@@ -1,0 +1,19 @@
+<svg viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0"><defs><mask id="mask74_213_13980" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="-0.004399999999805004" width="42" height="43">
+<g id="clip0_4418_9484">
+<path id="Vector_824" d="M42,-0.0044h-42v42h42z" fill="white"/>
+</g>
+</mask></defs><g id="Clip path group_75">
+<mask id="mask74_213_13980" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="629" y="4635" width="42" height="43">
+<g id="clip0_4418_9484">
+<path id="Vector_824" d="M671 4635H629V4677H671V4635Z" fill="white"/>
+</g>
+</mask>
+<g mask="url(#mask74_213_13980)">
+<g id="Group_299">
+<path id="Vector_825" d="M38.5,29.2956v-21.12c0,-2.1 -1.715,-3.66 -3.798,-3.49h-0.105c-3.675,0.32 -9.257,2.19 -12.372,4.15l-0.298,0.19c-0.507,0.32 -1.347,0.32 -1.855,0l-0.437,-0.26c-3.115,-1.94 -8.68,-3.8 -12.355,-4.09c-2.083,-0.18 -3.78,1.4 -3.78,3.48v21.14c0,1.68 1.365,3.25 3.045,3.46l0.507,0.07c3.798,0.51 9.66,2.44 13.02,4.27l0.07,0.04c0.473,0.26 1.225,0.26 1.68,0c3.36,-1.86 9.24,-3.8 13.055,-4.31l0.578,-0.07c1.68,-0.21 3.045,-1.78 3.045,-3.46z" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_826" d="M21,9.6056v26.25" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_827" d="M13.562,14.8556h-3.937" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_828" d="M14.875,20.1056h-5.25" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+</g></svg>

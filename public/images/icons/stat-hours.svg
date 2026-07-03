@@ -1,0 +1,19 @@
+<svg viewBox="0 0 53 53" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0"><defs><mask id="mask2_213_13980" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="-0.5" y="0" width="54" height="53">
+<g id="clip0_4418_9981">
+<path id="Vector_121" d="M52.5,0.5v52h-52v-52z" fill="white" stroke="white"/>
+</g>
+</mask></defs><g id="Clip path group_3">
+<mask id="mask2_213_13980" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="1224" y="851" width="54" height="53">
+<g id="clip0_4418_9981">
+<path id="Vector_121" d="M1277 851.5V903.5H1225V851.5H1277Z" fill="white" stroke="white"/>
+</g>
+</mask>
+<g mask="url(#mask2_213_13980)">
+<g id="Group_5">
+<path id="Vector_122" d="M45.82,29.26c0,10.667 -8.65,19.323 -19.32,19.323c-10.67,0 -19.32,-8.656 -19.32,-19.323c0,-10.666 8.65,-19.322 19.32,-19.322c10.67,0 19.32,8.656 19.32,19.322z" stroke="#D9CEA9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_123" opacity="0.14" d="M45.82,29.26c0,10.667 -8.65,19.323 -19.32,19.323c-10.67,0 -19.32,-8.656 -19.32,-19.323c0,-10.666 8.65,-19.322 19.32,-19.322c10.67,0 19.32,8.656 19.32,19.322z" fill="#FCFBF8"/>
+<path id="Vector_124" d="M26.5,17.667v11.041" stroke="#D9CEA9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_125" d="M19.88,4.417h13.24" stroke="#D9CEA9" stroke-width="5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+</g></svg>

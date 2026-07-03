@@ -1,0 +1,25 @@
+<svg viewBox="0 0 1440 589" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0"><defs><filter id="filter13_f_213_13980" x="786.577" y="-181.5043999999998" width="921.244" height="1450.74" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="90.9722" result="effect1_foregroundBlur_213_13980"/>
+</filter><filter id="filter14_f_213_13980" x="-206.312" y="-163.61439999999948" width="1794.15" height="954.426" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="90.9722" result="effect1_foregroundBlur_213_13980"/>
+</filter><linearGradient id="paint34_linear_213_13980" x1="1360.95" y1="345.8056000000006" x2="1104.78" y2="1083.5556000000006" gradientUnits="userSpaceOnUse">
+<stop stop-color="#D9CEA9"/>
+<stop offset="1" stop-color="#3C3B3D" stop-opacity="0"/>
+</linearGradient><radialGradient id="paint35_radial_213_13980" cx="0" cy="0" r="1" gradientTransform="matrix(-132.24 -575.911 1889.31 368.843 315.221 516.187)" gradientUnits="userSpaceOnUse">
+<stop stop-color="#D9CEA9"/>
+<stop offset="1" stop-color="#504D4D" stop-opacity="0"/>
+</radialGradient><clipPath id="clip14_213_13980">
+<rect width="1441" height="589" fill="white" transform="translate(-1, -0.004399999999805004)"/>
+</clipPath></defs><g id="Frame 1437256641" clip-path="url(#clip14_213_13980)">
+<rect id="Rectangle 2744" x="-1" y="-0.004399999999805004" width="1441" height="698" rx="8" fill="#414042"/>
+<g id="Element_7" opacity="0.72" filter="url(#filter13_f_213_13980)">
+<path d="M1038.74,292.6356c238.41,276.23 146.23,628.57 34.16,794.66l452.98,-653.87l-293.73,-428.53c-115.06,-25.42 -393.135,56.31 -193.41,287.74z" fill="url(#paint34_linear_213_13980)" fill-opacity="0.4"/>
+</g>
+<g id="Element_8" opacity="0.58" filter="url(#filter14_f_213_13980)">
+<ellipse cx="307.983" cy="717.307" rx="307.983" ry="717.307" transform="matrix(0.256348, -0.956703, 0.99078, 0.026423, -98.8828, 589.2956000000004)" fill="url(#paint35_radial_213_13980)" fill-opacity="0.5"/>
+</g>
+</g></svg>

@@ -1,0 +1,1891 @@
+@import "../../../../vendor/filament/filament/resources/css/theme.css";
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+@font-face {
+    font-family: 'GhroobArabic';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('/fonts/ghroob/itfGhroobArabic-Light.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'GhroobArabic';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/ghroob/itfGhroobArabic-Regular.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'GhroobArabic';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/fonts/ghroob/itfGhroobArabic-Medium.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'GhroobArabic';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/ghroob/itfGhroobArabic-Bold.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'GhroobArabic';
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url('/fonts/ghroob/itfGhroobArabic-ExtraBold.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 200;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-200.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-300.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-400.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-500.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-600.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-700.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-800.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 900;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-900.ttf') format('truetype');
+}
+
+@theme {
+    --font-family: "Noto Sans", Arial, Helvetica, ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ============================================
+   Ibrahim Admin — Graphite/Gold Visual Identity
+
+   Font faces are served locally from public/fonts.
+   Overrides sit in the components layer so they
+   naturally beat Filament's own component styles
+   without needing !important.
+   ============================================ */
+
+/* Shared scale tuned for the bilingual SANA-inspired font stack. */
+:root {
+    font-size: 14px;
+    --sidebar-width: 20rem !important;
+
+    --navy-400: 75, 85, 101;
+
+    --base-50: 255, 255, 255;
+    --base-100: 249, 249, 249;
+    --base-200: 242, 242, 242;
+    --base-300: 235, 235, 235;
+    --base-400: 228, 228, 228;
+    --base-500: 221, 221, 221;
+    --base-600: 214, 214, 214;
+    --base-700: 207, 207, 207;
+    --base-800: 200, 200, 200;
+    --base-900: 193, 193, 193;
+    --base-950: 186, 186, 186;
+
+    /* Yellow Color Palette */
+    --yellow-50: 252, 251, 248;
+    --yellow-100: 246, 244, 235;
+    --yellow-200: 240, 236, 222;
+    --yellow-300: 228, 221, 196;
+    --yellow-400: 217, 206, 169;
+    --yellow-500: 196, 179, 125;
+    --yellow-600: 180, 165, 113;
+    --yellow-700: 159, 143, 98;
+    --yellow-800: 133, 122, 84;
+    --yellow-900: 108, 99, 68;
+    --yellow-950: 88, 80, 55;
+
+    /* Dark Gray Color Palette */
+    --dark-gray-50: 245, 245, 246;
+    --dark-gray-100: 227, 227, 227;
+    --dark-gray-200: 208, 208, 208;
+    --dark-gray-300: 170, 170, 170;
+    --dark-gray-400: 132, 132, 132;
+    --dark-gray-500: 65, 64, 66;
+    --dark-gray-600: 60, 59, 61;
+    --dark-gray-700: 52, 51, 53;
+    --dark-gray-800: 44, 44, 45;
+    --dark-gray-900: 36, 35, 36;
+    --dark-gray-950: 30, 29, 30;
+
+    /* Light Gray Color Palette */
+    --light-gray-50: 254, 254, 254;
+    --light-gray-100: 253, 253, 253;
+    --light-gray-200: 252, 253, 253;
+    --light-gray-300: 249, 249, 249;
+    --light-gray-400: 247, 247, 247;
+    --light-gray-500: 241, 242, 242;
+    --light-gray-600: 222, 223, 223;
+    --light-gray-700: 193, 193, 193;
+    --light-gray-800: 164, 165, 165;
+    --light-gray-900: 133, 133, 133;
+    --light-gray-950: 109, 109, 109;
+}
+
+@theme inline {
+    --color-navy: rgb(var(--navy-400));
+
+    --color-primary: rgb(var(--yellow-500));
+    --color-primary-content: rgb(var(--dark-gray-500));
+
+    /* Base Color Palette */
+    --color-base-50: rgb(var(--base-50));
+    --color-base-100: rgb(var(--base-100));
+    --color-base-200: rgb(var(--base-200));
+    --color-base-300: rgb(var(--base-300));
+    --color-base-400: rgb(var(--base-400));
+    --color-base-500: rgb(var(--base-500));
+    --color-base-600: rgb(var(--base-600));
+    --color-base-700: rgb(var(--base-700));
+    --color-base-800: rgb(var(--base-800));
+    --color-base-900: rgb(var(--base-900));
+    --color-base-950: rgb(var(--base-950));
+
+    /* Yellow Color Palette */
+    --color-yellow: rgb(var(--yellow-500));
+    --color-yellow-50: rgb(var(--yellow-50));
+    --color-yellow-100: rgb(var(--yellow-100));
+    --color-yellow-200: rgb(var(--yellow-200));
+    --color-yellow-300: rgb(var(--yellow-300));
+    --color-yellow-400: rgb(var(--yellow-400));
+    --color-yellow-500: rgb(var(--yellow-500));
+    --color-yellow-600: rgb(var(--yellow-600));
+    --color-yellow-700: rgb(var(--yellow-700));
+    --color-yellow-800: rgb(var(--yellow-800));
+    --color-yellow-900: rgb(var(--yellow-900));
+    --color-yellow-950: rgb(var(--yellow-950));
+
+    /* Dark Gray Color Palette */
+    --color-dark-gray: rgb(var(--dark-gray-500));
+    --color-dark-gray-50: rgb(var(--dark-gray-50));
+    --color-dark-gray-100: rgb(var(--dark-gray-100));
+    --color-dark-gray-200: rgb(var(--dark-gray-200));
+    --color-dark-gray-300: rgb(var(--dark-gray-300));
+    --color-dark-gray-400: rgb(var(--dark-gray-400));
+    --color-dark-gray-500: rgb(var(--dark-gray-500));
+    --color-dark-gray-600: rgb(var(--dark-gray-600));
+    --color-dark-gray-700: rgb(var(--dark-gray-700));
+    --color-dark-gray-800: rgb(var(--dark-gray-800));
+    --color-dark-gray-900: rgb(var(--dark-gray-900));
+    --color-dark-gray-950: rgb(var(--dark-gray-950));
+
+    /* Light Gray Color Palette */
+    --color-light-gray: rgb(var(--light-gray-500));
+    --color-light-gray-50: rgb(var(--light-gray-50));
+    --color-light-gray-100: rgb(var(--light-gray-100));
+    --color-light-gray-200: rgb(var(--light-gray-200));
+    --color-light-gray-300: rgb(var(--light-gray-300));
+    --color-light-gray-400: rgb(var(--light-gray-400));
+    --color-light-gray-500: rgb(var(--light-gray-500));
+    --color-light-gray-600: rgb(var(--light-gray-600));
+    --color-light-gray-700: rgb(var(--light-gray-700));
+    --color-light-gray-800: rgb(var(--light-gray-800));
+    --color-light-gray-900: rgb(var(--light-gray-900));
+    --color-light-gray-950: rgb(var(--light-gray-950));
+
+    /* Font Family */
+    --font-primary: var(--font-primary);
+}
+
+.fi-ta-text-item span {
+    max-width: 200px !important;
+    min-width: fit-content;
+    width: fit-content;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+}
+
+@utility jisr-gold-gradient {
+    background: linear-gradient(135deg, #c7b57a 0%, #b5a265 100%);
+}
+
+/* --- Sidebar (dark navy) --- */
+@layer components {
+    .fi-sidebar {
+        @apply bg-dark-gray-800 dark:bg-[#002D54] pb-0;
+
+        background: url("../../../../public/images/objects/bg.svg") no-repeat
+            center center;
+        background-repeat: repeat;
+        background-position: center center;
+        background-size: auto;
+
+        &.fi-sidebar-open {
+            @apply ring-0 shadow-none;
+        }
+    }
+
+    .fi-sidebar-header-ctn {
+        @apply border-b border-[#C7B57A]/20;
+    }
+
+    .fi-sidebar-header {
+        @apply py-5;
+    }
+
+    /* Light logo on dark sidebar — dark theme uses logo.svg via fi-logo-dark */
+    .fi-sidebar-header-logo-ctn .fi-logo-light {
+        filter: brightness(0) invert(1);
+    }
+
+    .fi-sidebar-header-logo-ctn .fi-logo-dark {
+        filter: none;
+    }
+
+    .fi-body-has-topbar .fi-sidebar-header {
+        @apply bg-[#002D54] ring-0 dark:bg-[#002D54];
+    }
+
+    .fi-sidebar-nav {
+        @apply px-4;
+    }
+
+    .fi-sidebar-nav-groups {
+        @apply -mx-1;
+    }
+
+    /* Group labels — gold, uppercase */
+    .fi-sidebar-group-label {
+        @apply text-[#C7B57A]/70 text-[0.65rem] font-semibold uppercase tracking-wider;
+    }
+
+    .fi-sidebar-group-btn .fi-icon {
+        @apply text-[#C7B57A]/40;
+    }
+
+    /* Sidebar items */
+    .fi-sidebar-item-btn {
+        @apply rounded-[8px] text-white/70 transition-colors duration-150;
+
+        & > .fi-icon {
+            @apply text-white/40;
+        }
+
+        &:hover {
+            @apply bg-[#C7B57A]/10;
+        }
+    }
+
+    .fi-sidebar-item.fi-sidebar-item-has-url > .fi-sidebar-item-btn {
+        @apply hover:bg-[#C7B57A]/10 focus-visible:bg-[#C7B57A]/10;
+    }
+
+    .fi-sidebar-item-label {
+        @apply text-white/75 font-normal text-base;
+    }
+
+    /* Active sidebar item */
+    .fi-sidebar-item.fi-active {
+        & > .fi-sidebar-item-btn {
+            @apply bg-[#C7B57A]/15 border-[1px] border-[#7e7458];
+
+            & > .fi-icon {
+                @apply text-[#C7B57A];
+            }
+
+            & > .fi-sidebar-item-label {
+                @apply text-white font-medium;
+            }
+
+            &
+                > .fi-sidebar-item-grouped-border
+                > .fi-sidebar-item-grouped-border-part {
+                @apply bg-[#C7B57A];
+            }
+        }
+    }
+
+    /* Sidebar item hover states */
+    .fi-sidebar-item .fi-sidebar-item-btn:hover > .fi-icon {
+        @apply text-[#C7B57A];
+    }
+
+    .fi-sidebar-item .fi-sidebar-item-btn:hover > .fi-sidebar-item-label {
+        @apply text-white;
+    }
+
+    /* Sidebar badges */
+    .fi-sidebar-item-badge-ctn .fi-badge {
+        @apply bg-[#C7B57A]/20 text-[#C7B57A] text-[0.65rem];
+    }
+
+    /* Sidebar grouped border parts */
+    .fi-sidebar-item-grouped-border-part {
+        @apply bg-white/30;
+    }
+
+    .fi-sidebar-item-grouped-border-part-not-first,
+    .fi-sidebar-item-grouped-border-part-not-last {
+        @apply bg-white/20;
+    }
+
+    /* Sidebar collapse buttons */
+    .fi-sidebar-open-collapse-sidebar-btn,
+    .fi-sidebar-close-collapse-sidebar-btn {
+        @apply text-white/40 hover:text-[#C7B57A];
+    }
+
+    /* Sidebar footer */
+    .fi-sidebar-footer {
+        @apply border-t border-[#C7B57A]/15;
+    }
+
+    /* Sidebar close overlay */
+    .fi-sidebar-close-overlay {
+        @apply bg-[#002D54]/60;
+    }
+
+    /* Sidebar database notifications button */
+    .fi-sidebar-database-notifications-btn {
+        @apply hover:bg-[#C7B57A]/10 focus-visible:bg-[#C7B57A]/10;
+
+        & > .fi-icon {
+            @apply text-white/40;
+        }
+
+        & > .fi-sidebar-database-notifications-btn-label {
+            @apply text-white/75;
+        }
+    }
+
+    /* --- Topbar --- */
+    .fi-topbar {
+        @apply bg-light-gray-100 dark:bg-dark-gray-800 border-b border-dark-gray-800 shadow-none ring-0;
+    }
+
+    .fi-topbar-open-collapse-sidebar-btn,
+    .fi-topbar-close-collapse-sidebar-btn {
+        @apply text-[#002D54];
+    }
+
+    /* --- Main content area --- */
+    .fi-body {
+        @apply bg-light-gray-300 dark:bg-dark-gray-950;
+    }
+
+    .fi-main {
+        @apply dark:bg-dark-gray-950;
+    }
+
+    /* --- Page header --- */
+    .fi-header-heading {
+        @apply text-yellow-900 dark:text-white font-bold;
+    }
+
+    .fi-header-subheading {
+        @apply text-gray-500 dark:text-gray-400;
+    }
+
+    /* --- Stats widgets --- */
+    .fi-wi-stats-overview-stat:not(.dashboard-home-stat) {
+        @apply rounded-xl bg-white dark:bg-dark-gray-800 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all duration-200;
+    }
+
+    .fi-wi-stats-overview-stat.dashboard-home-stat {
+        @apply rounded-xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 transition-all duration-200;
+    }
+
+    .fi-wi-stats-overview-stat:hover {
+        @apply shadow-md ring-primary-300/40 dark:ring-primary-500/30;
+    }
+
+    .fi-wi-stats-overview-stat-value {
+        @apply text-gray-950 dark:text-white font-bold text-2xl;
+    }
+
+    .fi-wi-stats-overview-stat-label {
+        @apply text-gray-500 dark:text-gray-400 font-medium text-sm;
+    }
+
+    /* --- Cards & sections --- */
+    .fi-section:not(.fi-section-not-contained):not(.fi-aside) {
+        @apply rounded-xl bg-white dark:bg-dark-gray-800 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10;
+    }
+
+    /* Section content border — lighter separator */
+    .fi-section:not(.fi-section-not-contained).fi-section-has-header:not(
+            .fi-collapsed
+        )
+        > .fi-section-content-ctn {
+        @apply border-t border-gray-100 dark:border-white/10;
+    }
+
+    /* Section header — subtle tinted background */
+    .fi-section:not(.fi-section-not-contained):not(.fi-aside)
+        > .fi-section-header {
+        @apply bg-gray-50/60 dark:bg-white/5;
+    }
+
+    .fi-section .fi-section-header-heading {
+        @apply text-gray-950 dark:text-white font-semibold;
+    }
+
+    /* Section footer */
+    .fi-section:not(.fi-section-not-contained)
+        > .fi-section-content-ctn
+        > .fi-section-footer {
+        @apply border-t border-gray-100 dark:border-white/10;
+    }
+
+    /* Aside section card */
+    .fi-section.fi-aside > .fi-section-content-ctn {
+        @apply rounded-xl bg-white dark:bg-dark-gray-800 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10;
+    }
+
+    /* Divided section separators */
+    .fi-section.fi-divided > .fi-section-content-ctn > .fi-section-content {
+        @apply divide-gray-100 dark:divide-white/10;
+    }
+
+    /* --- Tables --- */
+    .fi-ta-ctn {
+        @apply rounded-xl bg-white dark:bg-dark-gray-800 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10;
+    }
+
+    .fi-ta-ctn .fi-ta-content-ctn {
+        @apply divide-gray-100 dark:divide-white/10 border-gray-100 dark:border-white/10;
+    }
+
+    /* Table header section */
+    .fi-ta-ctn .fi-ta-header {
+        @apply border-b border-gray-100 dark:border-white/10;
+    }
+
+    .fi-ta-ctn .fi-ta-header .fi-ta-header-heading {
+        @apply text-gray-950 dark:text-white font-semibold;
+    }
+
+    /* Table toolbar (search, filters) — tinted stripe */
+    .fi-ta-ctn .fi-ta-header-toolbar {
+        @apply border-b border-gray-100 dark:border-white/10 bg-gray-50/40 dark:bg-white/5;
+    }
+
+    /* Table head — subtle background */
+    .fi-ta-table > thead > tr {
+        @apply bg-gray-50/80 dark:bg-white/5;
+    }
+
+    .fi-ta-table > thead > tr.fi-ta-table-head-groups-row {
+        @apply bg-gray-100/70 dark:bg-white/[0.07];
+    }
+
+    /* Table header cells */
+    .fi-ta-header-cell {
+        @apply text-gray-600 dark:text-gray-300 font-semibold text-xs uppercase tracking-wide;
+    }
+
+    .fi-ta-header-cell.fi-ta-header-cell-sorted .fi-icon {
+        @apply text-primary-600 dark:text-primary-400;
+    }
+
+    .fi-ta-header-cell:not(.fi-ta-header-cell-sorted)
+        .fi-ta-header-cell-sort-btn:hover
+        .fi-icon {
+        @apply text-gray-500 dark:text-gray-400;
+    }
+
+    /* Table body — lighter dividers */
+    .fi-ta-table > tbody {
+        @apply divide-y divide-gray-100 dark:divide-white/10;
+    }
+
+    .fi-ta-table {
+        @apply divide-y divide-gray-100 dark:divide-white/10;
+    }
+
+    .fi-ta-row > .fi-ta-cell {
+        @apply border-gray-100 dark:border-white/10;
+    }
+
+    /* Table row hover */
+    .fi-ta-row.fi-clickable {
+        @apply hover:bg-primary-50/40 dark:hover:bg-primary-500/10;
+    }
+
+    /* Table selected row accent */
+    .fi-ta-row.fi-selected > *:first-child::before {
+        @apply bg-primary-500;
+    }
+
+    .fi-ta-row.fi-striped {
+        @apply bg-gray-50/50 dark:bg-white/[0.03];
+    }
+
+    .fi-ta-row.fi-ta-group-header-row > td {
+        @apply bg-gray-50/80 dark:bg-white/5;
+    }
+
+    /* Table empty state */
+    .fi-ta-empty-state {
+        @apply px-6 py-16;
+    }
+
+    .fi-ta-empty-state .fi-ta-empty-state-icon-bg {
+        @apply mb-4 rounded-full bg-gray-100 dark:bg-white/10 p-4;
+    }
+
+    .fi-ta-empty-state .fi-ta-empty-state-icon-bg .fi-icon {
+        @apply text-gray-400 dark:text-gray-500;
+    }
+
+    .fi-ta-empty-state .fi-ta-empty-state-heading {
+        @apply text-gray-600 dark:text-gray-300 font-semibold;
+    }
+
+    .fi-ta-empty-state .fi-ta-empty-state-description {
+        @apply text-gray-400 dark:text-gray-500;
+    }
+
+    /* Table footer/pagination */
+    .fi-ta-ctn .fi-pagination {
+        @apply border-t border-gray-100 dark:border-white/10;
+    }
+
+    /* Table filter indicators strip */
+    .fi-ta-ctn .fi-ta-filter-indicators {
+        @apply bg-primary-50/40 dark:bg-primary-500/10 border-b border-primary-100 dark:border-primary-500/20;
+    }
+
+    /* Table reorder bar */
+    .fi-ta-ctn .fi-ta-reorder-indicator {
+        @apply bg-gray-50/80 dark:bg-white/5 border-b border-gray-100 dark:border-white/10;
+    }
+
+    /* Table selection indicator bar */
+    .fi-ta-ctn .fi-ta-selection-indicator {
+        @apply bg-primary-50 dark:bg-primary-500/10 border-b border-primary-100 dark:border-primary-500/20;
+    }
+
+    /* Table filters sidebar */
+    .fi-ta-ctn .fi-ta-filters-before-content-ctn,
+    .fi-ta-ctn .fi-ta-filters-after-content-ctn {
+        @apply bg-white dark:bg-dark-gray-800 ring-1 ring-gray-950/5 dark:ring-white/10;
+    }
+
+    /* --- Form inputs --- */
+    .fi-input-wrp {
+        @apply rounded-[4px] bg-white dark:bg-dark-gray-700 shadow-sm ring-[0.5px] ring-gray-200 dark:ring-white/10;
+    }
+
+    .fi-input-wrp:not(.fi-disabled):not(
+            :has(.fi-ac-action:focus)
+        ):focus-within {
+        @apply ring-2 ring-primary-500 dark:ring-primary-400;
+    }
+
+    .fi-input-wrp.fi-invalid {
+        @apply ring-danger-600 dark:ring-danger-500;
+    }
+
+    .fi-input-wrp:not(.fi-disabled):not(
+            :has(.fi-ac-action:focus)
+        ).fi-invalid:focus-within {
+        @apply ring-2 ring-danger-500;
+    }
+
+    .fi-input-wrp.fi-disabled {
+        @apply bg-gray-50 dark:bg-white/5 ring-gray-200 dark:ring-white/10;
+    }
+
+    .fi-input,
+    .fi-select-input,
+    .fi-textarea {
+        @apply text-gray-950 dark:text-white;
+    }
+
+    .fi-input::placeholder,
+    .fi-textarea::placeholder {
+        @apply text-gray-400 dark:placeholder:text-white/55;
+    }
+
+    .fi-input:disabled,
+    .fi-textarea:disabled {
+        @apply dark:text-gray-400;
+    }
+
+    .fi-input:disabled::placeholder,
+    .fi-textarea:disabled::placeholder {
+        @apply dark:text-gray-400;
+    }
+
+    .fi-select-input-placeholder,
+    .fi-select-input .fi-select-input-placeholder,
+    .fi-select-input-btn .fi-select-input-placeholder {
+        @apply text-gray-400 dark:text-white/55;
+    }
+
+    .fi-input-wrp .fi-input-wrp-label {
+        @apply text-sm text-gray-500 dark:text-gray-400;
+    }
+
+    .fi-icon-btn {
+        @apply dark:text-gray-400;
+    }
+
+    .fi-input-wrp .fi-input-wrp-prefix > .fi-icon,
+    .fi-input-wrp .fi-input-wrp-suffix > .fi-icon,
+    .fi-input-wrp .fi-input-wrp-actions > .fi-icon,
+    .fi-input-wrp .fi-input-wrp-actions > .fi-icon-btn .fi-icon {
+        @apply text-gray-400 dark:text-gray-300;
+    }
+
+    .fi-input-wrp:not(.fi-disabled):focus-within .fi-input-wrp-prefix > .fi-icon,
+    .fi-input-wrp:not(.fi-disabled):focus-within .fi-input-wrp-suffix > .fi-icon {
+        @apply text-primary-600 dark:text-primary-400;
+    }
+
+    .fi-select-input-value-remove-btn .fi-icon {
+        @apply text-gray-500 dark:text-gray-400;
+    }
+
+    .fi-select-input-value-remove-btn:hover .fi-icon {
+        @apply text-gray-600 dark:text-gray-300;
+    }
+
+    /* Tags input */
+    .fi-fo-tags-input .fi-fo-tags-input-tags-ctn {
+        @apply border-t-gray-200 dark:border-t-white/10;
+    }
+
+    .fi-fo-tags-input .fi-fo-tags-input-tags-ctn > .fi-badge {
+        @apply ring-1 ring-gray-200/80 dark:ring-white/10;
+    }
+
+    /* Select / combobox value badges (multi-select tags) */
+    .fi-select-input-value-badges-ctn .fi-badge {
+        @apply ring-1 ring-gray-200/80 dark:ring-white/10;
+    }
+
+    /* Input inner borders — lighter */
+    .fi-input-wrp .fi-input-wrp-prefix:not(.fi-inline) {
+        @apply border-e border-gray-100 dark:border-white/10;
+    }
+
+    .fi-input-wrp .fi-input-wrp-suffix:not(.fi-inline) {
+        @apply border-s border-gray-100 dark:border-white/10;
+    }
+
+    .fi-input-wrp .fi-input-wrp-prefix,
+    .fi-input-wrp .fi-input-wrp-suffix {
+        @apply text-gray-500 dark:text-gray-400;
+    }
+
+    /* --- Breadcrumbs --- */
+    .fi-breadcrumbs ol li,
+    .fi-breadcrumbs-item-label {
+        @apply text-xs font-medium text-gray-500 dark:text-gray-400;
+    }
+
+    .fi-breadcrumbs ol li a,
+    .fi-breadcrumbs-item-label a {
+        @apply text-gray-500 dark:text-gray-400 transition duration-75 hover:text-gray-700 dark:hover:text-gray-200;
+    }
+
+    .fi-breadcrumbs-item:last-child .fi-breadcrumbs-item-label,
+    .fi-breadcrumbs ol li:last-child .fi-breadcrumbs-item-label {
+        @apply text-gray-950 dark:text-white font-semibold;
+    }
+
+    .fi-breadcrumbs-item-separator .fi-icon,
+    .fi-breadcrumbs ol li .fi-icon {
+        @apply text-gray-400 dark:text-gray-500;
+    }
+
+    /* --- Fieldset --- */
+    .fi-fieldset {
+        @apply border-gray-200 dark:border-white/10 rounded-xl;
+    }
+
+    .fi-fo-field-wrp-label label,
+    .fi-fo-field-wrp-label span {
+        @apply text-gray-700 dark:text-gray-200;
+    }
+
+    .fi-fo-field-wrp-helper-text {
+        @apply text-gray-500 dark:text-gray-400;
+    }
+
+    .fi-fo-field-wrp-error-message {
+        @apply text-danger-600 dark:text-danger-400;
+    }
+
+    /* --- Buttons --- */
+    /* Default (non-color) buttons — crisper ring */
+    .fi-btn:not(.fi-outlined):not(.fi-color) {
+        @apply bg-white dark:bg-dark-gray-700 ring-1 ring-gray-200 dark:ring-white/10 shadow-sm text-gray-950 dark:text-white;
+    }
+
+    .fi-btn:not(.fi-outlined):not(.fi-color):not(.fi-disabled):not(
+            [disabled]
+        ):hover {
+        @apply bg-gray-50 dark:bg-white/10;
+    }
+
+    /* Header action buttons */
+    .fi-header-actions-ctn .fi-btn.fi-color {
+        @apply min-h-10 px-5 rounded-lg;
+    }
+
+    /* --- Pagination --- */
+    .fi-pagination-item-btn[aria-current="page"] {
+        @apply bg-primary-600 text-white;
+    }
+
+    /* --- Dropdowns --- */
+    .fi-dropdown-panel {
+        @apply rounded-xl shadow-lg ring-1 ring-gray-950/5;
+    }
+
+    .fi-dropdown-list-item:hover {
+        @apply bg-primary-50/40;
+    }
+
+    /* --- Modal --- */
+    .fi-modal-window {
+        @apply rounded-xl;
+    }
+
+    /* --- Login page --- */
+    .fi-simple-layout {
+        @apply bg-gradient-to-br from-[#002D54] via-[#001A33] to-[#001323];
+    }
+
+    .dark .fi-simple-layout {
+        @apply bg-gradient-to-br from-dark-gray-950 via-dark-gray-900 to-dark-gray-950;
+    }
+
+    .fi-simple-main {
+        @apply bg-white dark:bg-dark-gray-900 rounded-xl shadow-2xl ring-0 dark:ring-1 dark:ring-white/10 relative overflow-hidden m-0 p-0;
+    }
+
+    .fi-simple-main-ctn {
+        @apply bg-transparent;
+    }
+
+    .fi-auth-shell {
+        @apply min-h-screen w-full overflow-hidden bg-white dark:bg-dark-gray-950;
+    }
+
+    .fi-auth-shell__section {
+        @apply bg-white/10 dark:bg-dark-gray-900/40;
+    }
+
+    .fi-auth-shell__card {
+        @apply rounded-md border border-light-gray-300 dark:border-white/10 bg-white dark:bg-dark-gray-800 p-5 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),_0_4px_6px_-4px_rgba(0,0,0,0.10)] dark:shadow-none sm:p-6;
+    }
+
+    .fi-auth-shell__title {
+        @apply text-3xl font-bold leading-tight text-center text-dark-gray-900 dark:text-white;
+    }
+
+    .fi-auth-shell__heading {
+        @apply text-2xl font-bold text-primary dark:text-primary-400 mb-6;
+    }
+
+    .fi-auth-shell__subtext {
+        @apply text-sm text-dark-gray-500 dark:text-gray-400;
+    }
+
+    .fi-simple-main::before {
+        content: "";
+        @apply absolute top-0 inset-x-0 h-1;
+        background: linear-gradient(
+            90deg,
+            #d2c495 0%,
+            #c7b57a 50%,
+            #8d8157 100%
+        );
+    }
+
+    .fi-simple-layout .fi-logo img {
+        filter: none;
+        @apply h-12;
+    }
+
+    .fi-simple-layout .fi-btn.fi-color {
+        @apply font-bold rounded-lg min-h-11;
+    }
+
+    .fi-simple-layout .fi-input-wrp:focus-within {
+        @apply ring-2 ring-primary-500;
+    }
+
+    /* --- Links --- */
+    .fi-link {
+        @apply text-gray-700 font-medium;
+    }
+
+    .fi-link:hover {
+        @apply text-primary-700;
+    }
+
+    .fi-link.fi-color {
+        @apply text-primary-600;
+    }
+
+    /* --- Loading indicator --- */
+    .fi-loading-indicator {
+        @apply text-primary-500;
+    }
+
+    /* =========================================
+       METRONIC-INSPIRED ADDITIONS
+       ========================================= */
+
+    /* --- Page layout spacing --- */
+    .fi-page-header-main-ctn {
+        @apply py-6;
+    }
+
+    .fi-page-content {
+        @apply gap-y-6;
+    }
+
+    /* --- Page header — Metronic compact style --- */
+    .fi-header-heading {
+        @apply text-xl font-bold tracking-tight;
+    }
+
+    /* --- Topbar — Metronic clean white bar --- */
+    .fi-topbar {
+        @apply h-16 border-b border-dark-gray-100 shadow-none ring-0;
+    }
+
+    .fi-topbar-item-btn {
+        @apply text-gray-500 hover:text-[#002D54] hover:bg-gray-100/80;
+    }
+
+    .fi-topbar-item-label {
+        @apply text-gray-700;
+    }
+
+    /* --- User menu in topbar --- */
+    .fi-topbar .fi-user-menu-trigger {
+        @apply rounded-lg px-2 py-1.5 hover:bg-gray-100 transition-colors duration-150;
+    }
+
+    .fi-user-avatar {
+        @apply rounded-lg;
+    }
+
+    /* --- Global search --- */
+    .fi-global-search-results-ctn {
+        @apply rounded-xl shadow-lg ring-1 ring-gray-950/5;
+    }
+
+    .fi-global-search-result-group-header {
+        @apply bg-gray-50 text-gray-700 font-semibold text-xs uppercase tracking-wide;
+    }
+
+    .fi-global-search-result {
+        @apply hover:bg-primary-50/40;
+    }
+
+    /* --- Stats cards — Metronic colored left-border (non-dashboard stats) --- */
+    .fi-wi-stats-overview-stat:not(.dashboard-home-stat) {
+        @apply border border-yellow-50 dark:border-yellow-900/10;
+    }
+
+    /* Color the left border based on each stat's color variant */
+    .fi-wi-stats-overview-stat:not(.dashboard-home-stat).fi-color-success {
+        @apply border-s-success-500;
+    }
+
+    .fi-wi-stats-overview-stat:not(.dashboard-home-stat).fi-color-info {
+        @apply border-s-info-500;
+    }
+
+    .fi-wi-stats-overview-stat:not(.dashboard-home-stat).fi-color-warning {
+        @apply border-s-warning-500;
+    }
+
+    .fi-wi-stats-overview-stat:not(.dashboard-home-stat).fi-color-danger {
+        @apply border-s-danger-500;
+    }
+
+    .fi-wi-stats-overview-stat:not(.dashboard-home-stat).fi-color-primary {
+        @apply border-s-primary-500;
+    }
+
+    /* Stat icon — match the card's color */
+    .fi-wi-stats-overview-stat.fi-color-success .fi-icon {
+        @apply text-success-500;
+    }
+
+    .fi-wi-stats-overview-stat.fi-color-info .fi-icon {
+        @apply text-info-500;
+    }
+
+    .fi-wi-stats-overview-stat.fi-color-warning .fi-icon {
+        @apply text-warning-500;
+    }
+
+    .fi-wi-stats-overview-stat.fi-color-danger .fi-icon {
+        @apply text-danger-500;
+    }
+
+    .fi-wi-stats-overview-stat.fi-color-primary .fi-icon {
+        @apply text-primary-500;
+    }
+
+    /* --- Table widget card — same card style as sections --- */
+    .fi-wi-table {
+        @apply rounded-xl bg-white dark:bg-dark-gray-800 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10;
+    }
+
+    /* --- Badges — Metronic pill style --- */
+    .fi-badge {
+        @apply rounded-full font-semibold text-[0.7rem] tracking-wide px-2.5;
+    }
+
+    /* --- Tabs — gold segmented style --- */
+    .fi-tabs {
+        @apply mx-auto mt-2 max-w-none gap-1 rounded-xl border-0 bg-light-gray-500/70 p-1.5 ring-1 ring-light-gray-600/50 dark:bg-white/[0.04] dark:ring-white/10;
+    }
+
+    .fi-tabs.fi-contained {
+        @apply border-0 bg-light-gray-500/70 px-1.5 py-1.5 dark:bg-white/[0.04];
+    }
+
+    .fi-tabs-item {
+        @apply rounded-lg border-0 border-b-0 px-4 py-2 text-sm font-medium text-gray-600 transition-all duration-150 dark:text-gray-400;
+
+        &.fi-active {
+            @apply bg-white text-yellow-700 shadow-sm ring-1 ring-light-gray-600/60 dark:bg-dark-gray-700 dark:text-yellow-500 dark:ring-white/10;
+
+            & .fi-tabs-item-label {
+                @apply font-semibold text-yellow-700 dark:text-yellow-500;
+            }
+        }
+    }
+
+    .fi-tabs-item:hover:not(.fi-active) {
+        @apply border-0 bg-white/40 text-gray-800 dark:bg-white/5 dark:text-gray-200;
+    }
+
+    .fi-sc-tabs.fi-tabs-translatable {
+        @apply gap-4;
+
+        & > .fi-tabs {
+            @apply w-fit;
+        }
+    }
+
+    /* --- Select / dropdown options --- */
+    .fi-select-options-container {
+        @apply rounded-xl shadow-lg ring-1 ring-gray-950/5;
+    }
+
+    .fi-select-option {
+        @apply text-sm text-gray-700;
+    }
+
+    .fi-select-option:hover {
+        @apply bg-primary-50/50;
+    }
+
+    .fi-select-option.fi-selected {
+        @apply bg-primary-50 text-primary-700 font-medium;
+    }
+
+    /* --- Modal — Metronic clean modal --- */
+    .fi-modal-window {
+        @apply rounded-2xl shadow-2xl ring-1 ring-gray-950/5;
+    }
+
+    .fi-modal-header {
+        @apply border-b border-gray-100 px-6 py-4;
+    }
+
+    .fi-modal-heading {
+        @apply text-base font-semibold text-gray-950;
+    }
+
+    .fi-modal-footer {
+        @apply border-t border-gray-100 px-6 py-4 bg-gray-50/60 !mt-0;
+    }
+
+    /* --- Notifications / alerts --- */
+    .fi-notification {
+        @apply rounded-xl shadow-lg ring-1 ring-gray-950/5;
+    }
+
+    /* --- Form field labels — Metronic small caps --- */
+    .fi-fo-field-wrp-label label {
+        @apply text-gray-700 font-semibold text-sm;
+    }
+
+    /* --- Toggle / checkbox --- */
+    .fi-toggle {
+        @apply focus:ring-primary-500;
+    }
+
+    /* --- Pagination — Metronic rounded pills --- */
+    .fi-pagination-item-btn {
+        @apply rounded-lg min-w-[2rem] min-h-[2rem] text-sm font-medium text-gray-600 hover:bg-gray-100;
+    }
+
+    .fi-pagination-item-btn[aria-current="page"] {
+        @apply bg-primary-600 text-white hover:bg-primary-700 ring-0;
+    }
+
+    /* --- Collapse button (section) --- */
+    .fi-section-header-collapse-btn {
+        @apply text-gray-400 hover:text-gray-600 transition-colors duration-150;
+    }
+
+    /* --- Key/value entries (infolist) --- */
+    .fi-in-entry-wrp-label label {
+        @apply text-xs font-semibold text-gray-500 uppercase tracking-wide;
+    }
+
+    .fi-in-text-item-label {
+        @apply text-gray-950 font-medium;
+    }
+
+    /* --- Login page heading --- */
+    .fi-simple-header-heading {
+        @apply text-[#002D54] dark:text-white font-bold;
+    }
+
+    .fi-simple-header-subheading {
+        @apply text-gray-500 dark:text-gray-400 text-sm;
+    }
+
+    .fi-btn {
+        border-radius: 4px !important;
+    }
+
+    .fi-btn.fi-ai-seo-btn {
+        border-radius: 1.5rem !important;
+    }
+
+    .fi-btn.fi-color-primary {
+        background: linear-gradient(
+            135deg,
+            rgb(var(--yellow-500)) 0%,
+            rgb(var(--yellow-700)) 100%
+        ) !important;
+    }
+
+    .fi-fo-field-label-content {
+        @apply !text-base;
+    }
+}
+
+/* Sidebar scrollbar (not Tailwind-able) */
+.fi-sidebar-nav::-webkit-scrollbar {
+    width: 3px;
+}
+
+.fi-sidebar-nav::-webkit-scrollbar-thumb {
+    background-color: rgba(199, 181, 122, 0.25);
+    border-radius: 3px;
+}
+
+.fi-sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ProseMirror {
+    min-height: 140px;
+}
+
+svg
+    path[d="M216,56V200a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V56A16,16,0,0,1,56,40H200A16,16,0,0,1,216,56Z"] {
+    color: transparent;
+}
+
+/* Admin panel — shared tokens & typography */
+@layer components {
+    .fi-panel-admin {
+        --admin-yellow-500: #c4b37d;
+        --admin-yellow-600: #b4a571;
+        --admin-yellow-700: #9f8f62;
+        --admin-placeholder: rgb(156 163 175);
+        --admin-icon-muted: rgb(107 114 128);
+    }
+
+    .fi-panel-admin * {
+        font-family:
+            "Noto Sans", Arial, Helvetica, ui-sans-serif, system-ui, sans-serif;
+    }
+
+    html[dir="rtl"] .fi-panel-admin * {
+        font-family:
+            "GhroobArabic", Arial, Helvetica, ui-sans-serif, system-ui, sans-serif;
+    }
+}
+
+/* Dark theme — scoped to Filament's html.dark class (theme switcher) */
+@layer components {
+    .dark .fi-panel-admin {
+        --admin-dark-900: #414042;
+        --admin-dark-950: #1e1d1e;
+        --admin-dark-800: #2c2c2d;
+        --admin-dark-700: #343335;
+        --admin-text: #f5f5f6;
+        --admin-muted: #d0d0d0;
+        --admin-placeholder: rgb(255 255 255 / 0.55);
+        --admin-icon-muted: rgb(255 255 255 / 0.45);
+        --admin-border: rgb(255 255 255 / 0.08);
+        --admin-border-strong: rgb(255 255 255 / 0.12);
+    }
+
+    .dark .fi-panel-admin .fi-body,
+    .dark .fi-panel-admin .fi-main,
+    .dark .fi-panel-admin .fi-page,
+    .dark .fi-panel-admin .fi-layout,
+    .dark .fi-panel-admin .fi-main-ctn {
+        background: var(--admin-dark-950);
+        color: var(--admin-text);
+    }
+
+    .dark .fi-panel-admin .fi-topbar {
+        @apply bg-gray-900;
+        border-color: var(--admin-border);
+    }
+
+    .dark .fi-panel-admin .fi-topbar-item-btn {
+        color: var(--admin-muted);
+    }
+
+    .dark .fi-panel-admin .fi-topbar-item-btn:hover {
+        color: var(--admin-yellow-500);
+        background: rgb(255 255 255 / 0.06);
+    }
+
+    .dark .fi-panel-admin .fi-topbar-item-label {
+        color: var(--admin-text);
+    }
+
+    .dark .fi-panel-admin .fi-topbar-open-collapse-sidebar-btn,
+    .dark .fi-panel-admin .fi-topbar-close-collapse-sidebar-btn {
+        color: var(--admin-yellow-500);
+    }
+
+    .dark .fi-panel-admin .fi-topbar .fi-user-menu-trigger:hover {
+        background: rgb(255 255 255 / 0.06);
+    }
+
+    .dark .fi-panel-admin .fi-sidebar,
+    .dark .fi-panel-admin .fi-sidebar-header,
+    .dark
+        .fi-panel-admin
+        .fi-body-has-topbar
+        .fi-sidebar-header {
+        @apply bg-gray-900;
+    }
+
+    .dark .fi-panel-admin .fi-sidebar-item-btn:hover,
+    .dark
+        .fi-panel-admin
+        .fi-sidebar-item.fi-active
+        > .fi-sidebar-item-btn {
+        background: rgb(196 179 125 / 0.14);
+        border-inline-start-color: var(--admin-yellow-500);
+    }
+
+    .dark .fi-panel-admin .fi-sidebar-item.fi-active .fi-icon,
+    .dark .fi-panel-admin .fi-sidebar-item-btn:hover .fi-icon {
+        color: var(--admin-yellow-500);
+    }
+
+    .dark .fi-panel-admin .fi-section:not(.fi-section-not-contained):not(.fi-aside),
+    .dark .fi-panel-admin .fi-section.fi-aside > .fi-section-content-ctn,
+    .dark .fi-panel-admin .fi-ta-ctn,
+    .dark .fi-panel-admin .fi-wi-table,
+    .dark .fi-panel-admin .fi-dropdown-panel,
+    .dark .fi-panel-admin .fi-modal-window,
+    .dark .fi-panel-admin .fi-global-search-results-ctn,
+    .dark .fi-panel-admin .fi-select-options-container,
+    .dark .fi-panel-admin .fi-ta-ctn .fi-ta-filters-before-content-ctn,
+    .dark .fi-panel-admin .fi-ta-ctn .fi-ta-filters-after-content-ctn,
+    .dark .fi-panel-admin .fi-notification {
+        background: var(--admin-dark-800);
+        border-color: var(--admin-border);
+        box-shadow: 0 12px 30px -20px rgb(0 0 0 / 0.8);
+        --tw-ring-color: var(--admin-border);
+    }
+
+    .dark
+        .fi-panel-admin
+        .fi-section:not(.fi-section-not-contained).fi-section-has-header:not(
+            .fi-collapsed
+        )
+        > .fi-section-content-ctn,
+    .dark
+        .fi-panel-admin
+        .fi-section:not(.fi-section-not-contained)
+        > .fi-section-content-ctn
+        > .fi-section-footer,
+    .dark .fi-panel-admin .fi-ta-ctn .fi-ta-content-ctn,
+    .dark .fi-panel-admin .fi-ta-ctn .fi-pagination,
+    .dark .fi-panel-admin .fi-ta-row > .fi-ta-cell {
+        border-color: var(--admin-border);
+    }
+
+    .dark .fi-panel-admin .fi-fo-tags-input .fi-fo-tags-input-tags-ctn {
+        border-top-color: var(--admin-border);
+        background: rgb(255 255 255 / 0.02);
+    }
+
+    .dark .fi-panel-admin .fi-fo-tags-input .fi-fo-tags-input-tags-ctn > .fi-badge {
+        background: rgb(196 179 125 / 0.14);
+        color: #e4ddc4;
+        --tw-ring-color: rgb(255 255 255 / 0.1);
+    }
+
+    .dark .fi-panel-admin .fi-select-input-value-badges-ctn .fi-badge {
+        background: rgb(196 179 125 / 0.14);
+        color: #e4ddc4;
+    }
+
+    .dark .fi-panel-admin .fi-select-input-options-ctn,
+    .dark .fi-panel-admin .fi-select-input-option-group {
+        background: var(--admin-dark-800);
+        border-color: var(--admin-border);
+    }
+
+    .dark .fi-panel-admin .fi-select-input-option {
+        color: var(--admin-text);
+    }
+
+    .dark .fi-panel-admin .fi-select-input-option:hover,
+    .dark .fi-panel-admin .fi-select-input-option.fi-selected {
+        background: rgb(196 179 125 / 0.12);
+        color: var(--admin-yellow-500);
+    }
+
+    .dark .fi-panel-admin .ProseMirror {
+        background: var(--admin-dark-700);
+        color: var(--admin-text);
+        border-color: var(--admin-border-strong);
+    }
+
+    .dark .fi-panel-admin .fi-fo-field-wrp-helper-text {
+        color: var(--admin-muted);
+    }
+
+    .dark
+        .fi-panel-admin
+        .fi-section:not(.fi-section-not-contained):not(.fi-aside)
+        > .fi-section-header {
+        background: rgb(255 255 255 / 0.03);
+    }
+
+    .dark .fi-panel-admin .fi-header-heading,
+    .dark .fi-panel-admin .fi-section-header-heading,
+    .dark .fi-panel-admin .fi-ta-header-heading,
+    .dark .fi-panel-admin .fi-modal-heading,
+    .dark .fi-panel-admin .fi-wi-stats-overview-stat-value,
+    .dark .fi-panel-admin .fi-in-text-item-label,
+    .dark
+        .fi-panel-admin
+        .fi-breadcrumbs-item:last-child
+        .fi-breadcrumbs-item-label {
+        color: #fff;
+    }
+
+    .dark .fi-panel-admin .fi-header-subheading,
+    .dark .fi-panel-admin .fi-section-description,
+    .dark .fi-panel-admin .fi-ta-empty-state-description,
+    .dark .fi-panel-admin .fi-ta-empty-state-heading,
+    .dark .fi-panel-admin .fi-breadcrumbs-item-label,
+    .dark .fi-panel-admin .fi-wi-stats-overview-stat-label,
+    .dark .fi-panel-admin .fi-ta-header-cell {
+        color: var(--admin-muted);
+    }
+
+    .dark .fi-panel-admin .fi-ta-ctn .fi-ta-header,
+    .dark .fi-panel-admin .fi-ta-ctn .fi-ta-header-toolbar,
+    .dark .fi-panel-admin .fi-ta-table > thead > tr,
+    .dark
+        .fi-panel-admin
+        .fi-ta-table
+        > thead
+        > tr.fi-ta-table-head-groups-row,
+    .dark .fi-panel-admin .fi-ta-row.fi-ta-group-header-row > td,
+    .dark .fi-panel-admin .fi-ta-ctn .fi-ta-reorder-indicator {
+        background: rgb(255 255 255 / 0.04);
+        border-color: var(--admin-border);
+    }
+
+    .dark .fi-panel-admin .fi-ta-table > tbody,
+    .dark .fi-panel-admin .fi-ta-table,
+    .dark
+        .fi-panel-admin
+        .fi-section.fi-divided
+        > .fi-section-content-ctn
+        > .fi-section-content,
+    .dark .fi-panel-admin .fi-ta-ctn .fi-ta-content-ctn {
+        --tw-divide-color: var(--admin-border);
+        border-color: var(--admin-border);
+    }
+
+    .dark .fi-panel-admin .fi-ta-text-item,
+    .dark .fi-panel-admin .fi-ta-text-item-label,
+    .dark .fi-panel-admin .fi-ta-col-text-item {
+        color: var(--admin-text);
+    }
+
+    .dark .fi-panel-admin .fi-sc-section-label {
+        color: var(--admin-text);
+    }
+
+    .dark .fi-panel-admin .fi-ta-row.fi-striped {
+        background: rgb(255 255 255 / 0.02);
+    }
+
+    .dark .fi-panel-admin .fi-ta-row.fi-clickable:hover {
+        background: rgb(196 179 125 / 0.08);
+    }
+
+    .dark .fi-panel-admin .fi-input-wrp,
+    .dark .fi-panel-admin .fi-select-input,
+    .dark .fi-panel-admin .fi-textarea {
+        background: var(--admin-dark-700);
+        border-color: var(--admin-border-strong);
+        --tw-ring-color: var(--admin-border-strong);
+    }
+
+    .dark .fi-panel-admin .fi-input-wrp.fi-disabled {
+        background: rgb(255 255 255 / 0.04);
+    }
+
+    .dark .fi-panel-admin .fi-input,
+    .dark .fi-panel-admin .fi-select-input,
+    .dark .fi-panel-admin .fi-textarea,
+    .dark .fi-panel-admin .fi-fo-field-wrp-label label,
+    .dark .fi-panel-admin .fi-select-option {
+        color: var(--admin-text);
+    }
+
+    .dark .fi-panel-admin input.fi-input::placeholder,
+    .dark .fi-panel-admin textarea.fi-textarea::placeholder,
+    .dark .fi-panel-admin .fi-select-input-placeholder,
+    .dark .fi-panel-admin .fi-select-input .fi-select-input-placeholder,
+    .dark .fi-panel-admin .fi-select-input-btn .fi-select-input-placeholder {
+        color: var(--admin-placeholder) !important;
+        -webkit-text-fill-color: var(--admin-placeholder);
+        opacity: 1;
+    }
+
+    .dark .fi-panel-admin .fi-input:disabled,
+    .dark .fi-panel-admin .fi-textarea:disabled {
+        color: rgb(255 255 255 / 0.35);
+    }
+
+    .dark .fi-panel-admin input.fi-input:disabled::placeholder,
+    .dark .fi-panel-admin textarea.fi-textarea:disabled::placeholder {
+        color: rgb(255 255 255 / 0.35) !important;
+        -webkit-text-fill-color: rgb(255 255 255 / 0.35);
+    }
+
+    .dark .fi-panel-admin .fi-input-wrp .fi-input-wrp-label,
+    .dark .fi-panel-admin .fi-input-wrp .fi-input-wrp-prefix > .fi-icon,
+    .dark .fi-panel-admin .fi-input-wrp .fi-input-wrp-suffix > .fi-icon,
+    .dark .fi-panel-admin .fi-input-wrp .fi-input-wrp-actions > .fi-icon,
+    .dark .fi-panel-admin .fi-input-wrp .fi-input-wrp-actions > .fi-icon-btn .fi-icon,
+    .dark .fi-panel-admin .fi-select-input-value-remove-btn .fi-icon {
+        color: var(--admin-icon-muted);
+    }
+
+    .dark .fi-panel-admin .fi-input-wrp:not(.fi-disabled):focus-within .fi-input-wrp-prefix > .fi-icon,
+    .dark .fi-panel-admin .fi-input-wrp:not(.fi-disabled):focus-within .fi-input-wrp-suffix > .fi-icon {
+        color: var(--admin-yellow-500);
+    }
+
+    .dark .fi-panel-admin .fi-select-input-value-remove-btn:hover .fi-icon {
+        color: var(--admin-muted);
+    }
+
+    .dark .fi-panel-admin .fi-breadcrumbs ol li a:hover,
+    .dark .fi-panel-admin .fi-breadcrumbs-item-label a:hover {
+        color: var(--admin-yellow-500);
+    }
+
+    .dark .fi-panel-admin .fi-breadcrumbs-item-separator .fi-icon,
+    .dark .fi-panel-admin .fi-breadcrumbs ol li .fi-icon {
+        color: rgb(255 255 255 / 0.3);
+    }
+
+    .dark .fi-panel-admin .fi-fieldset {
+        border-color: var(--admin-border-strong);
+    }
+
+    .dark .fi-panel-admin .fi-btn:not(.fi-outlined):not(.fi-color) {
+        background: var(--admin-dark-700);
+        border-color: var(--admin-border-strong);
+        color: var(--admin-text);
+        --tw-ring-color: var(--admin-border-strong);
+    }
+
+    .dark
+        .fi-panel-admin
+        .fi-btn:not(.fi-outlined):not(.fi-color):not(.fi-disabled):not(
+            [disabled]
+        ):hover {
+        background: rgb(255 255 255 / 0.08);
+    }
+
+    .dark .fi-panel-admin .fi-btn-color-primary,
+    .dark .fi-panel-admin .fi-btn.fi-color-primary {
+        background: linear-gradient(
+            135deg,
+            var(--admin-yellow-500) 0%,
+            var(--admin-yellow-700) 100%
+        ) !important;
+        border-color: transparent;
+        color: #1e1d1e;
+    }
+
+    .dark .fi-panel-admin .fi-btn-color-primary:hover,
+    .dark .fi-panel-admin .fi-btn.fi-color-primary:hover {
+        filter: brightness(1.05);
+    }
+
+    .dark .fi-panel-admin .fi-badge {
+        background: rgb(196 179 125 / 0.16);
+        color: #e4ddc4;
+    }
+
+    .dark .fi-panel-admin .fi-link {
+        color: var(--admin-muted);
+    }
+
+    .dark .fi-panel-admin .fi-link:hover {
+        color: var(--admin-yellow-500);
+    }
+
+    .dark .fi-panel-admin .fi-tabs {
+        background: rgb(255 255 255 / 0.04);
+        border-color: var(--admin-border);
+    }
+
+    .dark .fi-panel-admin .fi-tabs-item {
+        color: var(--admin-muted);
+    }
+
+    .dark .fi-panel-admin .fi-tabs-item.fi-active {
+        background: var(--admin-dark-700);
+        color: var(--admin-yellow-500);
+        border-color: transparent;
+    }
+
+    .dark .fi-panel-admin .fi-tabs-item.fi-active .fi-tabs-item-label {
+        color: var(--admin-yellow-500);
+    }
+
+    .dark .fi-panel-admin .fi-tabs-item:hover:not(.fi-active) {
+        background: rgb(255 255 255 / 0.06);
+        color: var(--admin-text);
+        border-color: transparent;
+    }
+
+    .dark .fi-panel-admin .fi-pagination-item-btn {
+        color: var(--admin-muted);
+    }
+
+    .dark .fi-panel-admin .fi-pagination-item-btn:hover {
+        background: rgb(255 255 255 / 0.06);
+    }
+
+    .dark .fi-panel-admin .fi-dropdown-list-item:hover,
+    .dark .fi-panel-admin .fi-global-search-result:hover,
+    .dark .fi-panel-admin .fi-select-option:hover {
+        background: rgb(196 179 125 / 0.1);
+    }
+
+    .dark .fi-panel-admin .fi-select-option.fi-selected {
+        background: rgb(196 179 125 / 0.16);
+        color: var(--admin-yellow-500);
+    }
+
+    .dark .fi-panel-admin .fi-global-search-result-group-header {
+        background: rgb(255 255 255 / 0.04);
+        color: var(--admin-muted);
+    }
+
+    .dark .fi-panel-admin .fi-modal-header,
+    .dark .fi-panel-admin .fi-modal-footer {
+        border-color: var(--admin-border);
+    }
+
+    .dark .fi-panel-admin .fi-modal-footer {
+        background: rgb(255 255 255 / 0.03);
+    }
+
+    .dark .fi-panel-admin .fi-section-header-collapse-btn {
+        color: var(--admin-muted);
+    }
+
+    .dark .fi-panel-admin .fi-section-header-collapse-btn:hover {
+        color: var(--admin-text);
+    }
+
+    /* Dashboard stat cards — dark tinted variants */
+    .dark .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-info,
+    .dark .fi-panel-admin .dashboard-home-stat--info {
+        border-color: rgb(59 130 246 / 0.25);
+        background: linear-gradient(
+            135deg,
+            rgb(30 58 138 / 0.2) 0%,
+            var(--admin-dark-800) 100%
+        );
+    }
+
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.fi-color-info
+        .fi-wi-stats-overview-stat-label,
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.fi-color-info
+        .fi-wi-stats-overview-stat-value,
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.fi-color-info
+        .fi-wi-stats-overview-stat-icon {
+        color: rgb(147 197 253);
+    }
+
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.fi-color-info
+        .fi-wi-stats-overview-stat-icon,
+    .dark .fi-panel-admin .dashboard-home-stat--info .fi-wi-stats-overview-stat-icon {
+        background: rgb(59 130 246 / 0.2);
+    }
+
+    .dark .fi-panel-admin .fi-wi-stats-overview-stat.dashboard-home-stat--success,
+    .dark .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-success,
+    .dark .fi-panel-admin .dashboard-home-stat--success {
+        border-color: rgb(16 185 129 / 0.25);
+        background: linear-gradient(
+            135deg,
+            rgb(6 78 59 / 0.25) 0%,
+            var(--admin-dark-800) 100%
+        );
+    }
+
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.dashboard-home-stat--success
+        .fi-wi-stats-overview-stat-label,
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.dashboard-home-stat--success
+        .fi-wi-stats-overview-stat-value,
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.dashboard-home-stat--success
+        .fi-wi-stats-overview-stat-icon,
+    .dark
+        .fi-panel-admin
+        .dashboard-home-stat--success
+        .fi-wi-stats-overview-stat-label,
+    .dark
+        .fi-panel-admin
+        .dashboard-home-stat--success
+        .fi-wi-stats-overview-stat-value,
+    .dark
+        .fi-panel-admin
+        .dashboard-home-stat--success
+        .fi-wi-stats-overview-stat-icon {
+        color: rgb(110 231 183);
+    }
+
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.dashboard-home-stat--success
+        .fi-wi-stats-overview-stat-icon,
+    .dark
+        .fi-panel-admin
+        .dashboard-home-stat--success
+        .fi-wi-stats-overview-stat-icon {
+        background: rgb(16 185 129 / 0.2);
+    }
+
+    .dark .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-warning,
+    .dark .fi-panel-admin .dashboard-home-stat--warning {
+        border-color: rgb(245 158 11 / 0.25);
+        background: linear-gradient(
+            135deg,
+            rgb(120 53 15 / 0.25) 0%,
+            var(--admin-dark-800) 100%
+        );
+    }
+
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.fi-color-warning
+        .fi-wi-stats-overview-stat-label,
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.fi-color-warning
+        .fi-wi-stats-overview-stat-value,
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.fi-color-warning
+        .fi-wi-stats-overview-stat-icon {
+        color: rgb(252 211 77);
+    }
+
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.fi-color-warning
+        .fi-wi-stats-overview-stat-icon,
+    .dark
+        .fi-panel-admin
+        .dashboard-home-stat--warning
+        .fi-wi-stats-overview-stat-icon {
+        background: rgb(245 158 11 / 0.2);
+    }
+
+    .dark .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-primary,
+    .dark .fi-panel-admin .dashboard-home-stat--primary {
+        border-color: rgb(196 179 125 / 0.35);
+        background: linear-gradient(
+            135deg,
+            rgb(196 179 125 / 0.12) 0%,
+            var(--admin-dark-800) 100%
+        );
+    }
+
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.fi-color-primary
+        .fi-wi-stats-overview-stat-label,
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.fi-color-primary
+        .fi-wi-stats-overview-stat-value,
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.fi-color-primary
+        .fi-wi-stats-overview-stat-icon {
+        color: var(--admin-yellow-500);
+    }
+
+    .dark
+        .fi-panel-admin
+        .fi-wi-stats-overview-stat.fi-color-primary
+        .fi-wi-stats-overview-stat-icon,
+    .dark
+        .fi-panel-admin
+        .dashboard-home-stat--primary
+        .fi-wi-stats-overview-stat-icon {
+        background: rgb(196 179 125 / 0.2);
+    }
+
+    .dark .fi-panel-admin .dashboard-home-stat .fi-wi-stats-overview-stat-description {
+        color: var(--admin-muted);
+    }
+}
+
+/* Dashboard stat cards — light mode color variants */
+@layer components {
+    .fi-panel-admin .dashboard-home-stat,
+    .fi-panel-admin .fi-wi-stats-overview-stat {
+        border-radius: 1rem;
+        padding: 1.25rem;
+        border-width: 1px;
+        box-shadow: 0 8px 18px -16px rgb(0 0 0 / 0.16);
+
+        .fi-icon {
+            @apply dark:text-gray-300;
+        }
+    }
+
+    .dashboard-home-stat .fi-wi-stats-overview-stat-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .dashboard-home-stat .fi-wi-stats-overview-stat-value {
+        margin-top: 0.5rem;
+        font-size: 1.875rem;
+        line-height: 1;
+        font-weight: 700;
+    }
+
+    .fi-panel-admin .dashboard-home-stat .fi-wi-stats-overview-stat-description {
+        margin-top: 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat .fi-wi-stats-overview-stat-description {
+        color: rgb(75 85 101 / 0.9);
+    }
+
+    .dashboard-home-stat .fi-wi-stats-overview-stat-icon {
+        border-radius: 0.75rem;
+        padding: 0.625rem;
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--info,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-info {
+        border-color: rgb(219 234 254 / 0.95);
+        background: linear-gradient(135deg, rgb(248 251 255) 0%, #fff 100%);
+        box-shadow: 0 0 0 1px rgb(239 246 255 / 0.9);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--info .fi-wi-stats-overview-stat-label,
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--info .fi-wi-stats-overview-stat-icon,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-info .fi-wi-stats-overview-stat-label,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-info .fi-wi-stats-overview-stat-icon {
+        color: rgb(29 78 216);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--info .fi-wi-stats-overview-stat-value,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-info .fi-wi-stats-overview-stat-value {
+        color: rgb(30 64 175);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--info .fi-wi-stats-overview-stat-icon,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-info .fi-wi-stats-overview-stat-icon {
+        background: rgb(219 234 254);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--success,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.dashboard-home-stat--success,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-success {
+        border-color: rgb(209 250 229 / 0.95);
+        background: linear-gradient(135deg, rgb(236 253 245) 0%, #fff 100%);
+        box-shadow: 0 0 0 1px rgb(236 253 245 / 0.9);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--success .fi-wi-stats-overview-stat-label,
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--success .fi-wi-stats-overview-stat-icon,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.dashboard-home-stat--success .fi-wi-stats-overview-stat-label,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.dashboard-home-stat--success .fi-wi-stats-overview-stat-icon,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-success .fi-wi-stats-overview-stat-label,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-success .fi-wi-stats-overview-stat-icon {
+        color: rgb(4 120 87);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--success .fi-wi-stats-overview-stat-value,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.dashboard-home-stat--success .fi-wi-stats-overview-stat-value,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-success .fi-wi-stats-overview-stat-value {
+        color: rgb(6 95 70);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--success .fi-wi-stats-overview-stat-icon,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.dashboard-home-stat--success .fi-wi-stats-overview-stat-icon,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-success .fi-wi-stats-overview-stat-icon {
+        background: rgb(209 250 229);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--warning,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-warning {
+        border-color: rgb(254 235 200 / 0.95);
+        background: linear-gradient(135deg, rgb(255 252 247) 0%, #fff 100%);
+        box-shadow: 0 0 0 1px rgb(255 247 237 / 0.9);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--warning .fi-wi-stats-overview-stat-label,
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--warning .fi-wi-stats-overview-stat-icon,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-warning .fi-wi-stats-overview-stat-label,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-warning .fi-wi-stats-overview-stat-icon {
+        color: rgb(194 65 12);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--warning .fi-wi-stats-overview-stat-value,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-warning .fi-wi-stats-overview-stat-value {
+        color: rgb(154 52 18);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--warning .fi-wi-stats-overview-stat-icon,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-warning .fi-wi-stats-overview-stat-icon {
+        background: rgb(255 237 213);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--primary,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-primary {
+        border-color: rgb(233 225 255 / 0.95);
+        background: linear-gradient(135deg, rgb(250 247 255) 0%, #fff 100%);
+        box-shadow: 0 0 0 1px rgb(245 243 255 / 0.9);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--primary .fi-wi-stats-overview-stat-label,
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--primary .fi-wi-stats-overview-stat-icon,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-primary .fi-wi-stats-overview-stat-label,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-primary .fi-wi-stats-overview-stat-icon {
+        color: rgb(109 40 217);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--primary .fi-wi-stats-overview-stat-value,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-primary .fi-wi-stats-overview-stat-value {
+        color: rgb(91 33 182);
+    }
+
+    html:not(.dark) .fi-panel-admin .dashboard-home-stat--primary .fi-wi-stats-overview-stat-icon,
+    html:not(.dark) .fi-panel-admin .fi-wi-stats-overview-stat.fi-color-primary .fi-wi-stats-overview-stat-icon {
+        background: rgb(237 233 254);
+    }
+}
+
+.ltr {
+    direction: ltr;
+}

@@ -1,0 +1,207 @@
+@import 'tailwindcss';
+
+@plugin "../../node_modules/flyonui/index.js" {
+    themes: light --default;
+}
+
+@import "../../node_modules/flyonui/variants.css";
+@source "../../node_modules/flyonui/dist/index.js";
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@font-face {
+    font-family: 'GhroobArabic';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('/fonts/ghroob/itfGhroobArabic-Light.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'GhroobArabic';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/ghroob/itfGhroobArabic-Regular.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'GhroobArabic';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/fonts/ghroob/itfGhroobArabic-Medium.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'GhroobArabic';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/ghroob/itfGhroobArabic-Bold.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'GhroobArabic';
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url('/fonts/ghroob/itfGhroobArabic-ExtraBold.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 200;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-200.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-300.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-400.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-500.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-600.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-700.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-800.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 900;
+    font-display: swap;
+    src: url('/fonts/noto-sans/NotoSans-900.ttf') format('truetype');
+}
+
+@theme inline {
+    --font-sans: 'Noto Sans', Arial, Helvetica, ui-sans-serif, system-ui, sans-serif;
+
+    --color-graphite-50: #f5f7f6;
+    --color-graphite-100: #e5e9e8;
+    --color-graphite-150: #d7ddda;
+    --color-graphite-200: #c4ceca;
+    --color-graphite-400: #77837f;
+    --color-graphite-500: #5f6b67;
+    --color-graphite-650: #46524e;
+    --color-graphite-700: #34403c;
+    --color-graphite-800: #222d2a;
+    --color-graphite-900: #151f1c;
+    --color-graphite-950: #080d10;
+}
+
+:root {
+    color-scheme: light;
+    font-family: var(--font-sans);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html[dir='rtl'] {
+    --font-sans: 'GhroobArabic', Arial, Helvetica, ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-width: 320px;
+}
+
+@utility site-container {
+    @apply mx-auto w-full max-w-[1180px] px-5 md:px-8;
+}
+
+@utility hero-shell {
+    @apply relative isolate;
+}
+
+@utility page-hero {
+    @apply pt-[136px] pb-16 md:pt-[168px] md:pb-24;
+}
+
+@utility section-band {
+    @apply py-16 md:py-24;
+}
+
+@utility eyebrow {
+    @apply text-sm font-extrabold uppercase;
+    letter-spacing: 0;
+}
+
+@utility section-title {
+    @apply text-3xl font-extrabold leading-tight text-graphite-950 md:text-5xl;
+}
+
+@utility surface-card {
+    @apply rounded-md border border-graphite-150 bg-white p-6 shadow-[0_18px_50px_rgba(16,24,24,0.07)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(16,24,24,0.10)];
+}
+
+@utility service-icon {
+    @apply grid h-11 w-11 place-items-center rounded-md bg-emerald-100 text-emerald-800;
+}
+
+@utility filter-pill {
+    @apply rounded-md border border-graphite-200 bg-white px-4 py-2 text-sm font-bold text-graphite-700 transition hover:border-emerald-300 hover:bg-emerald-50;
+}
+
+@utility filter-pill-active {
+    @apply border-graphite-950 bg-graphite-950 text-white hover:border-graphite-950 hover:bg-graphite-950;
+}
+
+button,
+a {
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+}
+
+button {
+    cursor: pointer;
+}
+
+img {
+    max-width: 100%;
+}
