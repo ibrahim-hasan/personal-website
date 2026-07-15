@@ -36,12 +36,12 @@ class SiteSettingsTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(ManageSiteSettings::class)
-            ->set('data.strategic_consultation_url', 'mailto:hello@ibrahimhasan.dev')
+            ->set('data.strategic_consultation_url', 'mailto:hello@ibrahimhasan.net')
             ->call('saveContact')
             ->assertNotified();
 
         $this->assertSame(
-            'mailto:hello@ibrahimhasan.dev',
+            'mailto:hello@ibrahimhasan.net',
             Setting::getValue('strategic_consultation_url', 'contact'),
         );
     }

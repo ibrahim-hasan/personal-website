@@ -52,6 +52,7 @@ class ManageSiteSettings extends Page implements HasForms
     public function mount(): void
     {
         $settings = Setting::query()->pluck(Setting::valueColumn(), 'key')->toArray();
+        unset($settings['openai_api_key']);
         $settings = $this->expandTranslatableSettings($settings, [
             'default_seo_title',
             'default_seo_description',
@@ -62,7 +63,6 @@ class ManageSiteSettings extends Page implements HasForms
             'openai_provider' => 'openai',
             'openai_model' => array_key_first(self::providerModels()['openai']) ?: '',
             'openai_custom_url' => '',
-            'openai_api_key' => '',
             'ai_seo_enabled' => false,
             'ai_seo_expert_enabled' => false,
             'strategic_consultation_url' => self::defaultStrategicConsultationUrl(),
@@ -115,7 +115,7 @@ class ManageSiteSettings extends Page implements HasForms
 
     public static function defaultStrategicConsultationUrl(): string
     {
-        $email = setting_value('contact_email', 'contact', 'hello@ibrahimhasan.dev');
+        $email = setting_value('contact_email', 'contact', 'hello@ibrahimhasan.net');
 
         return 'mailto:'.$email;
     }
@@ -187,7 +187,6 @@ class ManageSiteSettings extends Page implements HasForms
         $customUrl = (string) ($this->data['openai_custom_url'] ?? '');
         $baseUrl = $this->providerToBaseUrl($provider, $customUrl);
 
-        Setting::setValue('openai_api_key', (string) ($this->data['openai_api_key'] ?? ''), 'ai');
         Setting::setValue('openai_provider', $provider, 'ai');
         Setting::setValue('openai_base_url', $baseUrl, 'ai');
         Setting::setValue('openai_custom_url', $customUrl, 'ai');

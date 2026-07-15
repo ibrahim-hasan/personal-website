@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
+use App\Support\PortfolioAtlas;
 use App\Support\SiteContent;
 use Illuminate\View\View;
 
@@ -12,7 +13,9 @@ class AboutController extends Controller
     {
         return view('website.about', [
             'process' => SiteContent::process(),
-            'toolchain' => SiteContent::toolchain(),
+            'companies' => PortfolioAtlas::companies(),
+            'experience' => PortfolioAtlas::experience(),
+            'lenses' => PortfolioAtlas::lenses(),
         ]);
     }
 }

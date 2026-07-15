@@ -89,7 +89,7 @@ return [
             'name' => 'Arabic',
             'native' => 'العربية',
             'rtl' => true,
-            'code' => 'ar',
+            'code' => 'عر',
         ],
         'en' => [
             'name' => 'English',

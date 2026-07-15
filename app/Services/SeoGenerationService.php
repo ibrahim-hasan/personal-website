@@ -41,7 +41,7 @@ final class SeoGenerationService
         $apiKey = $this->getApiKey();
 
         if ($apiKey === '') {
-            throw new RuntimeException(__('OpenAI API key is not configured. Please add it in Settings or .env file.'));
+            throw new RuntimeException(__('OpenAI API key is not configured in the server environment.'));
         }
 
         $baseUrl = $this->getBaseUrl();
@@ -76,7 +76,7 @@ final class SeoGenerationService
 
     private function getApiKey(): string
     {
-        return (string) (Setting::query()->where('key', 'openai_api_key')->value(Setting::valueColumn()) ?? '');
+        return (string) config('services.openai.api_key');
     }
 
     private function getModel(): string
@@ -86,7 +86,8 @@ final class SeoGenerationService
 
     private function getBaseUrl(): string
     {
-        return (string) (Setting::query()->where('key', 'openai_base_url')->value(Setting::valueColumn()) ?? 'https://api.openai.com/v1');
+        return (string) (Setting::query()->where('key', 'openai_base_url')->value(Setting::valueColumn())
+            ?? config('services.openai.base_url'));
     }
 
     /**

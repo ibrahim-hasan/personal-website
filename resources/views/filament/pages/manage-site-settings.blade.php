@@ -196,7 +196,9 @@
                 <div class="grid lg:grid-cols-3 grid-cols-1 gap-4">
                     <div class="space-y-1.5">
                         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('admin.settings.openai_api_key') }}</label>
-                        <input type="password" wire:model.lazy="data.openai_api_key" placeholder="sk-..." dir="ltr" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm" />
+                        <div class="rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm dark:border-gray-600 dark:bg-gray-800">
+                            {{ filled(config('services.openai.api_key')) ? __('Configured in server environment') : __('Not configured in server environment') }}
+                        </div>
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('admin.settings.openai_provider') }}</label>

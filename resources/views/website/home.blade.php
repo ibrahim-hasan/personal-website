@@ -2,94 +2,144 @@
     :title="__('site.home.title')"
     :description="__('site.home.description')">
 
-    <section class="hero-shell overflow-hidden pt-[76px] text-white">
-        <img src="{{ asset('images/ibrahim/hero-workspace.png') }}" alt="{{ __('site.home.hero_image_alt') }}" class="absolute inset-0 h-full w-full object-cover">
-        <div class="absolute inset-0 {{ is_rtl() ? 'bg-[linear-gradient(270deg,rgba(8,13,16,0.92),rgba(8,13,16,0.68),rgba(8,13,16,0.32))]' : 'bg-[linear-gradient(90deg,rgba(8,13,16,0.92),rgba(8,13,16,0.68),rgba(8,13,16,0.32))]' }}"></div>
-        <div class="absolute inset-x-0 bottom-0 h-36 bg-[linear-gradient(0deg,rgb(250,250,247),rgba(250,250,247,0))]"></div>
+    <section class="precision-hero">
+        <div class="precision-hero__halo" aria-hidden="true"></div>
 
-        <div class="site-container relative z-10 grid gap-10 py-8 md:py-12 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
-            <div class="max-w-3xl">
-                <p class="eyebrow text-emerald-200">{{ __('site.home.hero_eyebrow') }}</p>
-                <h1 class="mt-4 text-4xl font-extrabold leading-[1.02] sm:text-5xl md:mt-5 md:text-7xl">
-                    {{ __('site.brand.name') }}
-                </h1>
-                <p class="mt-5 max-w-2xl text-base leading-7 text-white/76 md:mt-6 md:text-xl md:leading-8">
-                    {{ __('site.home.hero_body') }}
-                </p>
-                <div class="mt-6 flex flex-col gap-3 sm:flex-row md:mt-8">
-                    <a href="{{ localized_route('contact') }}" class="inline-flex items-center justify-center gap-2 rounded-md bg-emerald-300 px-5 py-3 text-sm font-bold text-graphite-950 transition hover:bg-emerald-200">
-                        <x-phosphor-paper-plane-tilt class="h-5 w-5" />
-                        {{ __('site.actions.start_project') }}
-                    </a>
-                    <a href="{{ localized_route('work') }}" class="inline-flex items-center justify-center gap-2 rounded-md border border-white/18 bg-white/8 px-5 py-3 text-sm font-bold text-white backdrop-blur transition hover:bg-white/14">
-                        <x-phosphor-squares-four class="h-5 w-5" />
-                        {{ __('site.actions.see_work') }}
-                    </a>
+        <div class="site-container relative z-10">
+            <div class="precision-hero__grid">
+                <div class="precision-hero__copy">
+                    <p class="signal-label hero-enter" style="--enter-delay: 80ms">
+                        <span class="signal-label__line" aria-hidden="true"></span>
+                        {{ __('site.home.hero_kicker') }}
+                    </p>
+
+                    <h1 class="display-hero mt-7">
+                        <span class="hero-line"><span style="--enter-delay: 140ms">{{ __('site.home.hero_line_1') }}</span></span>
+                        <span class="hero-line hero-line--violet"><span style="--enter-delay: 230ms">{{ __('site.home.hero_line_2') }}</span></span>
+                        <span class="hero-line"><span style="--enter-delay: 320ms">{{ __('site.home.hero_line_3') }}</span></span>
+                    </h1>
+
+                    <p class="hero-enter copy-lead mt-7 max-w-[62ch]" style="--enter-delay: 410ms">
+                        {{ __('site.home.hero_body') }}
+                    </p>
+
+                    <div class="hero-enter mt-9 flex flex-col gap-3 sm:flex-row" style="--enter-delay: 500ms">
+                        <a href="{{ localized_route('contact') }}#consultation" class="button-primary" data-magnetic>
+                            <span>{{ __('site.actions.free_consultation') }}</span>
+                            <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
+                        </a>
+                        <a href="#method" class="button-quiet">
+                            <span>{{ __('site.actions.explore_method') }}</span>
+                            <x-phosphor-arrow-down class="h-4 w-4" />
+                        </a>
+                    </div>
+
+                    <p class="hero-enter mt-7 flex items-center gap-3 font-sans text-sm font-bold text-ink-soft" style="--enter-delay: 580ms">
+                        <span class="partnership-mark" aria-hidden="true"></span>
+                        {{ __('site.hero.partnerships') }}
+                    </p>
                 </div>
 
-                <dl class="mt-7 grid max-w-2xl grid-cols-2 gap-3 md:mt-10 md:grid-cols-4">
-                    @foreach ($stats as $stat)
-                        <div class="rounded-md border border-white/12 bg-white/8 p-3 backdrop-blur md:p-4">
-                            <dt class="text-xl font-extrabold text-white md:text-2xl">{{ $stat['value'] }}</dt>
-                            <dd class="mt-2 text-xs font-semibold leading-5 text-white/62">{{ $stat['label'] }}</dd>
-                        </div>
+                <div class="precision-stage hero-enter" style="--enter-delay: 220ms" data-depth="portrait">
+                    <figure class="precision-stage__media relative isolate overflow-hidden">
+                        <picture>
+                            <source
+                                media="(max-width: 63.999rem)"
+                                srcset="{{ asset('images/ibrahim/ibrahim-systems-portrait-compact.webp') }}"
+                                width="1000"
+                                height="1100"
+                                type="image/webp"
+                            >
+                            <img
+                                src="{{ asset('images/ibrahim/ibrahim-systems-portrait.webp') }}"
+                                alt="{{ __('site.home.portrait_alt') }}"
+                                width="1000"
+                                height="1250"
+                                sizes="(min-width: 1024px) 33rem, (min-width: 640px) 30rem, calc(100vw - 4.5rem)"
+                                class="precision-stage__portrait"
+                                decoding="async"
+                                fetchpriority="high"
+                            >
+                        </picture>
+                    </figure>
+
+                    <div class="precision-stage__orbit" aria-hidden="true"><span></span></div>
+                    <div class="precision-stage__note">
+                        <strong>{{ __('site.home.hero_stage_title') }}</strong>
+                        <span>{{ __('site.home.hero_stage_meta') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-sequence" aria-label="{{ __('site.home.method_eyebrow') }}">
+                <ol class="hero-sequence__steps">
+                    @foreach (array_slice($process, 0, 3) as $step)
+                        <li class="hero-sequence__item hero-enter" style="--enter-delay: {{ 620 + ($loop->index * 70) }}ms">
+                            <span>{{ $step['step'] }}</span>
+                            <strong>{{ $step['title'] }}</strong>
+                        </li>
                     @endforeach
-                </dl>
-            </div>
-
-            <figure class="mx-auto w-full max-w-[300px] overflow-hidden rounded-md border border-white/18 bg-white/8 shadow-[0_30px_90px_rgba(0,0,0,0.38)] backdrop-blur md:max-w-[340px] lg:mx-0">
-                <img src="{{ asset('images/ibrahim/ibrahim-hasan-portrait.png') }}" alt="{{ __('site.home.portrait_alt') }}" class="aspect-[4/5] w-full object-cover object-top">
-            </figure>
-        </div>
-    </section>
-
-    <section class="bg-stone-50 py-12 md:py-16">
-        <div class="site-container grid gap-10 lg:grid-cols-[0.75fr_1fr] lg:items-start">
-            <div>
-                <p class="eyebrow text-emerald-700">{{ __('site.home.intro_eyebrow') }}</p>
-                <h2 class="section-title mt-3">{{ __('site.home.intro_title') }}</h2>
-                <p class="mt-5 text-base leading-8 text-graphite-650">
-                    {{ __('site.home.intro_body') }}
-                </p>
-            </div>
-            <div class="grid gap-4 md:grid-cols-2">
-                @foreach ($services as $service)
-                    <article class="surface-card">
-                        <div class="flex items-center gap-3">
-                            <span class="grid h-10 w-10 place-items-center rounded-md bg-emerald-100 text-emerald-800">
-                                <x-phosphor-cube-focus class="h-5 w-5" />
-                            </span>
-                            <h3 class="text-lg font-bold text-graphite-950">{{ $service['name'] }}</h3>
-                        </div>
-                        <p class="mt-4 text-sm leading-7 text-graphite-650">{{ $service['summary'] }}</p>
-                    </article>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
-    <section class="section-band bg-white">
-        <div class="site-container">
-            <div class="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-                <div>
-                    <p class="eyebrow text-amber-700">{{ __('site.home.work_eyebrow') }}</p>
-                    <h2 class="section-title mt-3 max-w-2xl">{{ __('site.home.work_title') }}</h2>
-                </div>
-                <a href="{{ localized_route('work') }}" class="inline-flex w-fit items-center gap-2 rounded-md border border-graphite-200 px-4 py-2 text-sm font-bold text-graphite-900 transition hover:border-emerald-300 hover:bg-emerald-50">
-                    {{ __('site.actions.view_all_work') }}
-                    <x-phosphor-arrow-right class="h-4 w-4" />
+                </ol>
+                <a href="#manifesto" class="hero-scroll-cue hero-enter" style="--enter-delay: 840ms">
+                    <span>{{ __('site.home.scroll_label') }}</span>
+                    <x-phosphor-arrow-down class="h-4 w-4" />
                 </a>
             </div>
+        </div>
+    </section>
 
-            <div class="mt-10 grid gap-6 lg:grid-cols-3">
-                @foreach ($work as $item)
-                    <article class="overflow-hidden rounded-md border border-graphite-150 bg-white shadow-[0_24px_70px_rgba(16,24,24,0.08)]">
-                        <img src="{{ asset($item['image']) }}" alt="{{ $item['title'] }}" class="h-56 w-full object-cover">
-                        <div class="p-6">
-                            <p class="text-xs font-bold uppercase text-emerald-700">{{ $item['category'] }}</p>
-                            <h3 class="mt-3 text-xl font-extrabold text-graphite-950">{{ $item['title'] }}</h3>
-                            <p class="mt-3 text-sm leading-7 text-graphite-650">{{ $item['summary'] }}</p>
-                            <p class="mt-5 rounded-md bg-stone-100 px-4 py-3 text-sm font-semibold leading-6 text-graphite-800">{{ $item['outcome'] }}</p>
+    <section id="manifesto" class="manifesto-section">
+        <div class="site-container manifesto-section__grid">
+            <div class="manifesto-section__copy">
+                <h2 class="display-section max-w-[18ch] text-canvas" data-reveal="headline">
+                    {{ __('site.home.manifesto_title') }}
+                </h2>
+                <p class="copy-lead mt-8 max-w-[58ch] text-violet-100" data-reveal="copy">
+                    {{ __('site.home.manifesto_body') }}
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="practice-atlas" class="atlas-section">
+        <div class="site-container">
+            <div class="atlas-intro">
+                <div>
+                    <p class="signal-label">{{ __('site.home.atlas_eyebrow') }}</p>
+                    <h2 class="display-section mt-6 max-w-[13ch]" data-reveal="headline">{{ __('site.home.atlas_title') }}</h2>
+                </div>
+                <p class="copy-lead max-w-[58ch] lg:justify-self-end" data-reveal="copy">{{ __('site.home.atlas_body') }}</p>
+            </div>
+
+            <div class="atlas-constellation">
+                @foreach ($companies as $company)
+                    <article class="atlas-chapter" style="--atlas-index: {{ $loop->index }}; --reveal-index: {{ $loop->index }}" data-reveal="chapter">
+                        <div class="atlas-chapter__head">
+                            <span>{{ sprintf('%02d', $loop->iteration) }}</span>
+                            <p>{{ $company['relationship'] }}</p>
+                        </div>
+                        @if ($company['logo'] !== '')
+                            <div @class([
+                                'atlas-chapter__brand',
+                                'atlas-chapter__brand--symbol' => $company['id'] === 'from-scratch',
+                            ])>
+                                <img
+                                    src="{{ asset($company['logo']) }}"
+                                    alt="{{ $company['logo_alt'] }}"
+                                    loading="lazy"
+                                    decoding="async"
+                                >
+                            </div>
+                        @endif
+                        <h3>{{ $company['name'] }}</h3>
+                        <p class="atlas-chapter__summary">{{ $company['summary'] }}</p>
+                        <div class="atlas-chapter__focus">
+                            <span>{{ __('site.home.atlas_focus') }}</span>
+                            <ul>
+                                @foreach ($company['focus'] as $focus)
+                                    <li>{{ $focus }}</li>
+                                @endforeach
+                            </ul>
                         </div>
                     </article>
                 @endforeach
@@ -97,53 +147,173 @@
         </div>
     </section>
 
-    <section class="section-band bg-graphite-950 text-white">
-        <div class="site-container grid gap-12 lg:grid-cols-[0.8fr_1fr] lg:items-start">
-            <div>
-                <p class="eyebrow text-emerald-200">{{ __('site.home.method_eyebrow') }}</p>
-                <h2 class="section-title mt-3 text-white">{{ __('site.home.method_title') }}</h2>
-                <p class="mt-5 text-base leading-8 text-white/64">
-                    {{ __('site.home.method_body') }}
-                </p>
+    <section id="method" class="experience-trajectory">
+        <div class="site-container experience-trajectory__grid">
+            <div class="experience-trajectory__intro">
+                <p class="signal-label signal-label--light">{{ __('site.home.trajectory_eyebrow') }}</p>
+                <h2 class="display-section mt-6 max-w-[15ch] text-canvas" data-reveal="headline">{{ __('site.home.trajectory_title') }}</h2>
+                <p class="copy-lead mt-7 max-w-[52ch] text-violet-100" data-reveal="copy">{{ __('site.home.trajectory_body') }}</p>
             </div>
-            <div class="grid gap-4">
-                @foreach ($process as $step)
-                    <article class="grid gap-4 rounded-md border border-white/10 bg-white/[0.04] p-5 md:grid-cols-[72px_1fr]">
-                        <span class="text-2xl font-extrabold text-amber-200">{{ $step['step'] }}</span>
+
+            <ol class="experience-path">
+                @foreach ($experience as $stage)
+                    <li class="experience-stage" style="--reveal-index: {{ $loop->index }}" data-reveal="step">
+                        <span class="experience-stage__number">{{ $stage['step'] }}</span>
                         <div>
-                            <h3 class="text-lg font-bold text-white">{{ $step['title'] }}</h3>
-                            <p class="mt-2 text-sm leading-7 text-white/62">{{ $step['body'] }}</p>
+                            <h3>{{ $stage['title'] }}</h3>
+                            <p>{{ $stage['summary'] }}</p>
                         </div>
-                    </article>
+                    </li>
+                @endforeach
+            </ol>
+        </div>
+    </section>
+
+    <section class="section-standard practice-section">
+        <div class="site-container">
+            <div class="section-split">
+                <h2 class="display-section max-w-[16ch]" data-reveal="headline">{{ __('site.home.practice_title') }}</h2>
+                <p class="copy-lead max-w-[52ch] lg:justify-self-end" data-reveal="copy">{{ __('site.home.practice_body') }}</p>
+            </div>
+
+            <div class="practice-list mt-16">
+                @foreach ($services as $service)
+                    <a href="{{ localized_route('services') }}#{{ $service['id'] }}" class="practice-row" style="--reveal-index: {{ $loop->index }}" data-reveal="row">
+                        <span class="practice-row__number">{{ sprintf('%02d', $loop->iteration) }}</span>
+                        <h3>{{ $service['name'] }}</h3>
+                        <p>{{ $service['summary'] }}</p>
+                        <span class="practice-row__arrow" aria-hidden="true"><x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" /></span>
+                    </a>
                 @endforeach
             </div>
         </div>
     </section>
 
-    <section class="section-band bg-stone-50">
+    <section id="selected-systems" class="work-theatre work-theatre--atlas">
         <div class="site-container">
-            <div class="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div class="section-split work-theatre__heading">
                 <div>
-                    <p class="eyebrow text-emerald-700">{{ __('site.home.writing_eyebrow') }}</p>
-                    <h2 class="section-title mt-3 max-w-2xl">{{ __('site.home.writing_title') }}</h2>
+                    <p class="signal-label signal-label--light">{{ __('site.home.work_eyebrow') }}</p>
+                    <h2 class="display-section mt-6 max-w-[15ch] text-canvas" data-reveal="headline">{{ __('site.home.projects_title') }}</h2>
                 </div>
-                <a href="{{ localized_route('writing') }}" class="inline-flex w-fit items-center gap-2 rounded-md border border-graphite-200 px-4 py-2 text-sm font-bold text-graphite-900 transition hover:border-emerald-300 hover:bg-emerald-50">
+                <p class="copy-lead max-w-[52ch] text-canvas/70 lg:justify-self-end" data-reveal="copy">{{ __('site.home.work_body') }}</p>
+            </div>
+
+            <div class="project-atlas">
+                @foreach ($projects as $project)
+                    <article class="project-atlas__case project-atlas__case--{{ $loop->iteration }}" style="--reveal-index: {{ $loop->index }}" data-reveal="case">
+                        <figure class="project-atlas__media" data-depth="media">
+                            <img
+                                src="{{ asset($project['image']) }}"
+                                alt="{{ $project['alt'] }}"
+                                width="1400"
+                                height="900"
+                                loading="lazy"
+                                decoding="async"
+                                class="project-atlas__image"
+                            >
+                            <span class="project-brand">
+                                <img
+                                    src="{{ asset($project['logo']) }}"
+                                    alt="{{ $project['logo_alt'] }}"
+                                    loading="lazy"
+                                    decoding="async"
+                                    class="project-brand__logo"
+                                >
+                            </span>
+                            <figcaption>
+                                <span>{{ sprintf('%02d', $loop->iteration) }}</span>
+                                <span>{{ $project['sector'] }}</span>
+                            </figcaption>
+                        </figure>
+                        <div class="project-atlas__copy">
+                            <h3>{{ $project['title'] }}</h3>
+                            <p>{{ $project['summary'] }}</p>
+                            <dl>
+                                <div>
+                                    <dt>{{ __('site.home.project_challenge') }}</dt>
+                                    <dd>{{ $project['challenge'] }}</dd>
+                                </div>
+                                <div>
+                                    <dt>{{ __('site.home.project_outcome') }}</dt>
+                                    <dd>{{ $project['outcome'] }}</dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+
+            <div class="mt-14 flex justify-end">
+                <a href="{{ localized_route('work') }}" class="button-outline-light">
+                    <span>{{ __('site.actions.view_all_work') }}</span>
+                    <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section id="decision-room-experience" class="decision-room-band">
+        <div class="site-container">
+            <div class="decision-room-band__intro">
+                <p class="signal-label">{{ __('site.home.decision_kicker') }}</p>
+                <h2 class="display-section mt-6 max-w-[13ch]" data-reveal="headline">{{ __('site.home.decision_title') }}</h2>
+                <p class="copy-lead mt-6 max-w-[58ch]" data-reveal="copy">{{ __('site.home.decision_body') }}</p>
+            </div>
+
+            <livewire:website.decision-room />
+        </div>
+    </section>
+
+    <section class="section-standard writing-section">
+        <div class="site-container editorial-sidebar">
+            <div class="editorial-sidebar__intro">
+                <p class="signal-label">{{ __('site.home.writing_eyebrow') }}</p>
+                <h2 class="display-section mt-6 max-w-[12ch]" data-reveal="headline">{{ __('site.home.writing_title') }}</h2>
+                <p class="copy-lead mt-7 max-w-[44ch]" data-reveal="copy">{{ __('site.home.writing_body') }}</p>
+                <a href="{{ localized_route('writing') }}" class="text-link mt-8 inline-flex">
                     {{ __('site.actions.read_notes') }}
-                    <x-phosphor-arrow-right class="h-4 w-4" />
+                    <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
                 </a>
             </div>
 
-            <div class="mt-10 grid gap-4 md:grid-cols-3">
-                @foreach ($writing as $note)
-                    <article class="surface-card">
-                        <div class="flex items-center justify-between gap-4">
-                            <p class="text-xs font-bold uppercase text-amber-700">{{ $note['type'] }}</p>
-                            <span class="rounded-full bg-stone-100 px-3 py-1 text-xs font-bold text-graphite-650">{{ $note['read_time'] }}</span>
+            <div class="writing-list">
+                @foreach ($articles as $article)
+                    <a href="{{ $article['url'] }}" class="writing-row writing-row--link" style="--reveal-index: {{ $loop->index }}" data-reveal="row">
+                        <div class="writing-row__meta">
+                            <span>{{ $article['type'] }}</span>
+                            <span>{{ $article['read_time'] }}</span>
                         </div>
-                        <h3 class="mt-5 text-xl font-extrabold text-graphite-950">{{ $note['title'] }}</h3>
-                        <p class="mt-3 text-sm leading-7 text-graphite-650">{{ $note['summary'] }}</p>
-                    </article>
+                        <h3>{{ $article['title'] }}</h3>
+                        <p>{{ $article['summary'] }}</p>
+                        <x-phosphor-arrow-up-right class="writing-row__arrow h-5 w-5 rtl:-rotate-90" />
+                    </a>
                 @endforeach
+            </div>
+        </div>
+    </section>
+
+    <section class="section-compact about-teaser">
+        <div class="site-container about-teaser__grid">
+            <figure class="about-teaser__portrait" data-reveal="media" data-depth="media">
+                <img
+                    src="{{ asset('images/ibrahim/ibrahim-speaking-hero.webp') }}"
+                    alt="{{ __('site.about.portrait_alt') }}"
+                    width="1200"
+                    height="900"
+                    loading="lazy"
+                    decoding="async"
+                >
+                <figcaption aria-hidden="true">IBRAHIM HASAN / IN PRACTICE</figcaption>
+            </figure>
+            <div class="about-teaser__copy">
+                <p class="signal-label">{{ __('site.about.eyebrow') }}</p>
+                <h2 class="display-section mt-6 max-w-[14ch]" data-reveal="headline">{{ __('site.home.about_teaser_title') }}</h2>
+                <p class="copy-lead mt-7 max-w-[60ch]" data-reveal="copy">{{ __('site.home.about_teaser_body') }}</p>
+                <a href="{{ localized_route('about') }}" class="text-link mt-8 inline-flex">
+                    {{ __('site.nav.about') }}
+                    <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
+                </a>
             </div>
         </div>
     </section>

@@ -9,7 +9,11 @@ use App\Filament\Pages\Profile;
 use App\Filament\Widgets\AdminContentStats;
 use App\Filament\Widgets\GuideDownloadsChart;
 use App\Filament\Widgets\NewsletterJoinsChart;
+use App\Http\Controllers\Filament\GenerateArticleAudioController;
+use App\Http\Controllers\Filament\GenerateArticleAudioSampleController;
 use App\Http\Controllers\Filament\GuideFileDownloadController;
+use App\Http\Controllers\Filament\PrepareArticleNarrationController;
+use App\Http\Controllers\Filament\UpdateArticleNarrationController;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -144,6 +148,22 @@ class AdminPanelProvider extends PanelProvider
             ->routes(function (): void {
                 Route::get('/guides/{guide}/guide-file', GuideFileDownloadController::class)
                     ->name('guides.guide-file');
+
+                Route::post('/article-audio/{article}/{locale}/generate', GenerateArticleAudioController::class)
+                    ->middleware([Authenticate::class, 'throttle:6,1'])
+                    ->name('article-audio.generate');
+
+                Route::post('/article-audio/{article}/{locale}/narration/prepare', PrepareArticleNarrationController::class)
+                    ->middleware([Authenticate::class, 'throttle:3,1'])
+                    ->name('article-audio.narration.prepare');
+
+                Route::put('/article-audio/{article}/{locale}/narration', UpdateArticleNarrationController::class)
+                    ->middleware([Authenticate::class, 'throttle:20,1'])
+                    ->name('article-audio.narration.update');
+
+                Route::post('/article-audio/{article}/{locale}/sample', GenerateArticleAudioSampleController::class)
+                    ->middleware([Authenticate::class, 'throttle:6,1'])
+                    ->name('article-audio.sample.generate');
             })
             ->userMenuItems([
                 MenuItem::make()

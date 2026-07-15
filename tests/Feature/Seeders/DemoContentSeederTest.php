@@ -24,7 +24,7 @@ class DemoContentSeederTest extends TestCase
         $this->seed(DemoContentSeeder::class);
 
         $this->assertSame('Ibrahim Hasan', Setting::getValue('site_name_en', 'site'));
-        $this->assertSame('hello@ibrahimhasan.dev', Setting::getValue('contact_email', 'contact'));
+        $this->assertSame('hello@ibrahimhasan.net', Setting::getValue('contact_email', 'contact'));
         $this->assertSame('180+', Setting::getValue('home_stats_total_clients', 'stats'));
 
         $this->assertSame(2, Author::query()->count());

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Contracts\ArticleAudio\NarrationEditor;
 use App\Models\Author;
 use App\Models\Guide;
 use App\Models\IntellectualLibrary;
@@ -17,6 +18,7 @@ use App\Policies\ServicePolicy;
 use App\Policies\SettingPolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
+use App\Services\OpenAI\OpenAiNarrationEditor;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +35,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         require_once app_path('Support/helpers.php');
+
+        $this->app->bind(NarrationEditor::class, OpenAiNarrationEditor::class);
     }
 
     /**

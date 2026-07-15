@@ -3,60 +3,117 @@
     :description="__('site.work.description')"
     activeMenu="true">
 
-    <section class="page-hero bg-graphite-950 text-white">
-        <div class="site-container grid gap-10 lg:grid-cols-[0.8fr_1fr] lg:items-end">
+    <section class="page-intro work-intro">
+        <div class="site-container page-intro__grid">
             <div>
-                <p class="eyebrow text-emerald-200">{{ __('site.work.eyebrow') }}</p>
-                <h1 class="mt-4 text-4xl font-extrabold leading-tight md:text-6xl">{{ __('site.work.heading') }}</h1>
+                <p class="signal-label">{{ __('site.work.eyebrow') }}</p>
+                <h1 class="display-page mt-7 max-w-[13ch]">{{ __('site.work.heading') }}</h1>
             </div>
-            <p class="max-w-2xl text-base leading-8 text-white/68 lg:justify-self-end">
-                {{ __('site.work.body') }}
-            </p>
+            <p class="copy-lead max-w-[58ch] lg:self-end lg:justify-self-end">{{ __('site.work.body') }}</p>
         </div>
     </section>
 
-    <section class="section-band bg-stone-50" x-data="projectFilter({ projects: @js($work) })">
+    <section class="work-archive bg-canvas-bright" x-data="projectFilter({ projects: @js($work) })">
         <div class="site-container">
-            <div class="flex flex-wrap gap-2" role="tablist" aria-label="{{ __('site.work.categories_label') }}">
-                <button type="button" @click="category = 'All'" class="filter-pill" :class="category === 'All' ? 'filter-pill-active' : ''">{{ __('site.work.all') }}</button>
-                <template x-for="item in categories()" :key="item">
-                    <button type="button" @click="category = item" class="filter-pill" :class="category === item ? 'filter-pill-active' : ''" x-text="item"></button>
-                </template>
+            <div class="work-archive__toolbar">
+                <p>{{ __('site.work.categories_label') }}</p>
+                <div class="filter-bar" role="group" aria-label="{{ __('site.work.categories_label') }}">
+                    <button type="button" @click="select('all')" :class="lens === 'all' ? 'is-active' : ''">
+                        {{ __('site.work.all') }}
+                    </button>
+                    @foreach ($lenses as $lens)
+                        <button type="button" @click="select(@js($lens['id']))" :class="lens === @js($lens['id']) ? 'is-active' : ''">
+                            {{ $lens['label'] }}
+                        </button>
+                    @endforeach
+                </div>
             </div>
 
-            <div class="mt-8 grid gap-6 md:grid-cols-2">
-                <template x-for="project in filtered()" :key="project.title">
-                    <article class="overflow-hidden rounded-md border border-graphite-150 bg-white shadow-[0_24px_70px_rgba(16,24,24,0.08)]">
-                        <img :src="'/' + project.image" :alt="project.title" class="h-64 w-full object-cover">
-                        <div class="p-6">
-                            <p class="text-xs font-bold uppercase text-emerald-700" x-text="project.category"></p>
-                            <h2 class="mt-3 text-2xl font-extrabold text-graphite-950" x-text="project.title"></h2>
-                            <p class="mt-3 text-sm leading-7 text-graphite-650" x-text="project.summary"></p>
-                            <p class="mt-5 rounded-md bg-stone-100 px-4 py-3 text-sm font-semibold leading-6 text-graphite-800" x-text="project.outcome"></p>
-                            <div class="mt-5 flex flex-wrap gap-2">
-                                <template x-for="tag in project.tags" :key="tag">
-                                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800" x-text="tag"></span>
-                                </template>
+            <div class="case-list">
+                @foreach ($work as $item)
+                    <article
+                        class="case-study case-study--real"
+                        x-show="matches(@js($item['lens']))"
+                        x-transition.opacity.duration.300ms
+                        style="--reveal-index: {{ $loop->index }}"
+                        data-reveal="case"
+                    >
+                        <figure class="case-study__media" data-depth="media">
+                            <img
+                                src="{{ asset($item['image']) }}"
+                                alt="{{ $item['alt'] }}"
+                                width="1400"
+                                height="900"
+                                loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                                decoding="async"
+                                class="case-study__image"
+                            >
+                            <span class="project-brand">
+                                <img
+                                    src="{{ asset($item['logo']) }}"
+                                    alt="{{ $item['logo_alt'] }}"
+                                    loading="lazy"
+                                    decoding="async"
+                                    class="project-brand__logo"
+                                >
+                            </span>
+                            <figcaption>
+                                <span>{{ sprintf('%02d', $loop->iteration) }}</span>
+                                <span>{{ $item['sector'] }}</span>
+                            </figcaption>
+                        </figure>
+
+                        <div class="case-study__copy">
+                            <div class="case-study__meta">
+                                <span>{{ $item['sector'] }}</span>
+                                <span>{{ sprintf('%02d', $loop->iteration) }}</span>
                             </div>
+                            <h2>{{ $item['title'] }}</h2>
+                            <p>{{ $item['summary'] }}</p>
+
+                            <dl class="case-study__story">
+                                <div>
+                                    <dt>{{ __('site.work.challenge') }}</dt>
+                                    <dd>{{ $item['challenge'] }}</dd>
+                                </div>
+                                <div>
+                                    <dt>{{ __('site.work.response') }}</dt>
+                                    <dd>{{ $item['response'] }}</dd>
+                                </div>
+                                <div class="case-study__outcome">
+                                    <dt>{{ __('site.work.outcome') }}</dt>
+                                    <dd>{{ $item['outcome'] }}</dd>
+                                </div>
+                            </dl>
+
+                            <ul class="tag-list" aria-label="{{ __('site.work.sector') }}">
+                                @foreach ($item['tags'] as $tag)
+                                    <li>{{ $tag }}</li>
+                                @endforeach
+                            </ul>
                         </div>
                     </article>
-                </template>
+                @endforeach
             </div>
         </div>
     </section>
 
-    <section class="section-band bg-white">
-        <div class="site-container grid gap-8 lg:grid-cols-[0.75fr_1fr] lg:items-start">
-            <div>
-                <p class="eyebrow text-amber-700">{{ __('site.work.entry_eyebrow') }}</p>
-                <h2 class="section-title mt-3">{{ __('site.work.entry_title') }}</h2>
+    <section class="section-standard">
+        <div class="site-container editorial-sidebar">
+            <div class="editorial-sidebar__intro">
+                <p class="signal-label">{{ __('site.work.entry_eyebrow') }}</p>
+                <h2 class="display-section mt-6 max-w-[13ch]" data-reveal="headline">{{ __('site.work.entry_title') }}</h2>
             </div>
-            <div class="grid gap-4 md:grid-cols-2">
+            <div class="open-list">
                 @foreach ($services as $service)
-                    <article class="surface-card">
-                        <h3 class="text-lg font-bold text-graphite-950">{{ $service['name'] }}</h3>
-                        <p class="mt-3 text-sm leading-7 text-graphite-650">{{ $service['problem'] }}</p>
-                    </article>
+                    <a href="{{ localized_route('services') }}#{{ $service['id'] }}" class="open-list__item" style="--reveal-index: {{ $loop->index }}" data-reveal="row">
+                        <span>{{ sprintf('%02d', $loop->iteration) }}</span>
+                        <div>
+                            <h3>{{ $service['name'] }}</h3>
+                            <p>{{ $service['problem'] }}</p>
+                        </div>
+                        <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
+                    </a>
                 @endforeach
             </div>
         </div>

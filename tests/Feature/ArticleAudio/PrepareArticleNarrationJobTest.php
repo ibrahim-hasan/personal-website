@@ -1,0 +1,81 @@
+<?php
+
+namespace Tests\Feature\ArticleAudio;
+
+use App\Contracts\ArticleAudio\NarrationEditor;
+use App\Data\ArticleAudio\NarrationDraft;
+use App\Enums\ArticleNarrationStatus;
+use App\Jobs\PrepareArticleNarration;
+use App\Models\ArticleNarration;
+use App\Services\ArticleAudio\ArticleNarrationScript;
+use App\Support\Editorial\ArticleCatalog;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use RuntimeException;
+use Tests\TestCase;
+
+class PrepareArticleNarrationJobTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_job_prepares_a_reviewable_draft_without_approving_it(): void
+    {
+        $article = app(ArticleCatalog::class)->findByKey('ai-value');
+        $this->assertNotNull($article);
+        $source = app(ArticleNarrationScript::class)->build($article, 'ar');
+        $prepared = str_replace("\n\n", "\n\n[short pause]\n\n", $source);
+
+        app()->instance(NarrationEditor::class, new class($prepared) implements NarrationEditor
+        {
+            public function __construct(private readonly string $script) {}
+
+            public function prepare(string $source, string $locale): NarrationDraft
+            {
+                return new NarrationDraft(
+                    script: $this->script,
+                    notes: ['Adjusted pacing.'],
+                    pronunciationNotes: ['Clarified one acronym.'],
+                    model: 'test-editor-model',
+                    promptVersion: 'test-v1',
+                );
+            }
+        });
+
+        $job = new PrepareArticleNarration('ai-value', 'ar');
+        app()->call([$job, 'handle']);
+
+        $narration = ArticleNarration::query()->firstOrFail();
+
+        $this->assertSame(ArticleNarrationStatus::Draft, $narration->status);
+        $this->assertSame(hash('sha256', $source), $narration->source_hash);
+        $this->assertSame($prepared, $narration->script);
+        $this->assertSame('test-editor-model', $narration->preparation_model);
+        $this->assertSame(['Adjusted pacing.'], $narration->preparation_notes);
+        $this->assertNull($narration->approved_at);
+        $this->assertNotNull($narration->prepared_at);
+    }
+
+    public function test_failed_repreparation_keeps_the_last_approved_script_and_redacts_the_key(): void
+    {
+        config()->set('services.openai.api_key', 'private-openai-key');
+        $article = app(ArticleCatalog::class)->findByKey('ai-value');
+        $this->assertNotNull($article);
+        $source = app(ArticleNarrationScript::class)->build($article, 'ar');
+        $narration = ArticleNarration::factory()->approved()->create([
+            'article_key' => 'ai-value',
+            'locale' => 'ar',
+            'source_hash' => hash('sha256', $source),
+            'script' => $source,
+        ]);
+
+        $job = new PrepareArticleNarration('ai-value', 'ar');
+        $job->failed(new RuntimeException('Provider rejected private-openai-key.'));
+
+        $narration->refresh();
+
+        $this->assertSame(ArticleNarrationStatus::Failed, $narration->status);
+        $this->assertSame($source, $narration->script);
+        $this->assertNotNull($narration->approved_at);
+        $this->assertStringContainsString('[redacted]', $narration->last_error);
+        $this->assertStringNotContainsString('private-openai-key', $narration->last_error);
+    }
+}

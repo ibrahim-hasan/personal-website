@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\LanguageSwitchController;
 use App\Http\Controllers\Website\AboutController;
+use App\Http\Controllers\Website\ArticleController;
 use App\Http\Controllers\Website\ContactController;
 use App\Http\Controllers\Website\GuideController;
 use App\Http\Controllers\Website\HomeController;
@@ -25,6 +26,7 @@ $registerWebsiteRoutes = function (): void {
     Route::get('/services', [ServiceController::class, 'index'])->name('services');
     Route::get('/work', PortfolioController::class)->name('work');
     Route::get('/writing', WritingController::class)->name('writing');
+    Route::get('/writing/{article}', ArticleController::class)->name('writing.show');
     Route::get('/about', AboutController::class)->name('about');
     Route::get('/contact', ContactController::class)->name('contact');
 

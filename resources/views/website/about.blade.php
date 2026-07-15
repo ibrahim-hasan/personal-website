@@ -3,34 +3,76 @@
     :description="__('site.about.description')"
     activeMenu="true">
 
-    <section class="page-hero bg-graphite-950 text-white">
-        <div class="site-container grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+    <section class="page-intro about-intro">
+        <div class="site-container about-intro__grid">
             <div>
-                <p class="eyebrow text-emerald-200">{{ __('site.about.eyebrow') }}</p>
-                <h1 class="mt-4 max-w-4xl text-4xl font-extrabold leading-tight md:text-6xl">{{ __('site.about.heading') }}</h1>
-                <p class="mt-6 max-w-2xl text-base leading-8 text-white/68">
-                    {{ __('site.about.body') }}
-                </p>
+                <p class="signal-label">{{ __('site.about.eyebrow') }}</p>
+                <h1 class="display-page mt-7 max-w-[13ch]">{{ __('site.about.heading') }}</h1>
+                <p class="copy-lead mt-8 max-w-[64ch]">{{ __('site.about.body') }}</p>
             </div>
-            <figure class="mx-auto w-full max-w-[280px] overflow-hidden rounded-md border border-white/14 bg-white/8 shadow-[0_30px_90px_rgba(0,0,0,0.34)] md:max-w-[320px] lg:mx-0">
-                <img src="{{ asset('images/ibrahim/ibrahim-hasan-portrait.png') }}" alt="{{ __('site.about.portrait_alt') }}" class="aspect-[4/5] w-full object-cover object-top">
+            <figure class="about-intro__portrait" data-reveal="media" data-depth="media">
+                <img
+                    src="{{ asset('images/ibrahim/ibrahim-speaking-hero.webp') }}"
+                    alt="{{ __('site.about.portrait_alt') }}"
+                    width="1200"
+                    height="900"
+                    fetchpriority="high"
+                    decoding="async"
+                >
+                <figcaption aria-hidden="true">IBRAHIM HASAN / STRATEGY IN PRACTICE</figcaption>
             </figure>
         </div>
     </section>
 
-    <section class="section-band bg-stone-50">
-        <div class="site-container grid gap-10 lg:grid-cols-[0.8fr_1fr]">
+    <section class="section-feature bg-canvas-bright">
+        <div class="site-container story-split">
             <div>
-                <p class="eyebrow text-amber-700">{{ __('site.about.principles_eyebrow') }}</p>
-                <h2 class="section-title mt-3">{{ __('site.about.principles_title') }}</h2>
+                <p class="signal-label">{{ __('site.about.background_eyebrow') }}</p>
+                <h2 class="display-section mt-6 max-w-[13ch]" data-reveal="headline">{{ __('site.about.background_title') }}</h2>
             </div>
-            <div class="grid gap-4">
-                @foreach ($process as $step)
-                    <article class="surface-card grid gap-4 md:grid-cols-[72px_1fr]">
-                        <span class="text-3xl font-extrabold text-emerald-700">{{ $step['step'] }}</span>
-                        <div>
-                            <h3 class="text-xl font-bold text-graphite-950">{{ $step['title'] }}</h3>
-                            <p class="mt-2 text-sm leading-7 text-graphite-650">{{ $step['body'] }}</p>
+            <p class="story-split__body" data-reveal="copy">{{ __('site.about.background_body') }}</p>
+        </div>
+    </section>
+
+    <section class="about-chapters">
+        <div class="site-container">
+            <div class="about-chapters__intro">
+                <div>
+                    <p class="signal-label signal-label--light">{{ __('site.about.companies_eyebrow') }}</p>
+                    <h2 class="display-section mt-6 max-w-[13ch] text-canvas" data-reveal="headline">{{ __('site.about.companies_title') }}</h2>
+                </div>
+                <p class="copy-lead max-w-[52ch] text-violet-100 lg:justify-self-end" data-reveal="copy">{{ __('site.about.companies_body') }}</p>
+            </div>
+
+            <div class="about-chapters__list">
+                @foreach ($companies as $company)
+                    <article style="--reveal-index: {{ $loop->index }}" data-reveal="chapter">
+                        <div class="about-chapters__number">{{ sprintf('%02d', $loop->iteration) }}</div>
+                        <div class="about-chapters__copy">
+                            @if ($company['logo'] !== '')
+                                <div @class([
+                                    'about-chapters__brand',
+                                    'about-chapters__brand--symbol' => $company['id'] === 'from-scratch',
+                                ])>
+                                    <img
+                                        src="{{ asset($company['logo']) }}"
+                                        alt="{{ $company['logo_alt'] }}"
+                                        loading="lazy"
+                                        decoding="async"
+                                    >
+                                </div>
+                            @endif
+                            <p>{{ $company['relationship'] }}</p>
+                            <h3>{{ $company['name'] }}</h3>
+                            <span>{{ $company['summary'] }}</span>
+                        </div>
+                        <div class="about-chapters__focus">
+                            <p>{{ __('site.about.focus_label') }}</p>
+                            <ul>
+                                @foreach ($company['focus'] as $focus)
+                                    <li>{{ $focus }}</li>
+                                @endforeach
+                            </ul>
                         </div>
                     </article>
                 @endforeach
@@ -38,36 +80,78 @@
         </div>
     </section>
 
-    <section class="section-band bg-white">
-        <div class="site-container">
-            <div class="max-w-2xl">
-                <p class="eyebrow text-emerald-700">{{ __('site.about.toolchain_eyebrow') }}</p>
-                <h2 class="section-title mt-3">{{ __('site.about.toolchain_title') }}</h2>
+    <section class="section-standard about-trajectory">
+        <div class="site-container narrative-rail">
+            <div class="narrative-rail__intro">
+                <p class="signal-label">{{ __('site.about.trajectory_eyebrow') }}</p>
+                <h2 class="display-section mt-6 max-w-[13ch]" data-reveal="headline">{{ __('site.about.trajectory_title') }}</h2>
             </div>
-            <div class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                @foreach ($toolchain as $tool)
-                    <div class="rounded-md border border-graphite-150 bg-white px-4 py-4 text-sm font-bold text-graphite-800 shadow-sm">
-                        {{ $tool }}
-                    </div>
+            <ol class="about-trajectory__list">
+                @foreach ($experience as $stage)
+                    <li style="--reveal-index: {{ $loop->index }}" data-reveal="step">
+                        <span>{{ $stage['step'] }}</span>
+                        <div>
+                            <h3>{{ $stage['title'] }}</h3>
+                            <p>{{ $stage['summary'] }}</p>
+                        </div>
+                    </li>
+                @endforeach
+            </ol>
+        </div>
+    </section>
+
+    <section class="perspective-band">
+        <div class="site-container">
+            <div class="section-split">
+                <div>
+                    <p class="signal-label signal-label--light">{{ __('site.about.lenses_eyebrow') }}</p>
+                    <h2 class="display-section mt-6 max-w-[13ch] text-canvas" data-reveal="headline">{{ __('site.about.lenses_title') }}</h2>
+                </div>
+                <p class="copy-lead max-w-[52ch] text-canvas/70 lg:justify-self-end" data-reveal="copy">{{ __('site.about.fit_body') }}</p>
+            </div>
+
+            <div class="perspective-grid">
+                @foreach ($lenses as $lens)
+                    <article style="--reveal-index: {{ $loop->index }}" data-reveal="chapter">
+                        <span>{{ sprintf('%02d', $loop->iteration) }}</span>
+                        <h3>{{ $lens['label'] }}</h3>
+                        <p>{{ $lens['description'] }}</p>
+                        <strong>{{ $lens['question'] }}</strong>
+                    </article>
                 @endforeach
             </div>
         </div>
     </section>
 
-    <section class="section-band bg-graphite-950 text-white">
-        <div class="site-container grid gap-8 lg:grid-cols-[1fr_0.7fr] lg:items-center">
-            <div>
-                <p class="eyebrow text-emerald-200">{{ __('site.about.fit_eyebrow') }}</p>
-                <h2 class="mt-3 max-w-3xl text-3xl font-extrabold leading-tight md:text-5xl">
-                    {{ __('site.about.fit_title') }}
-                </h2>
-                <p class="mt-5 max-w-2xl text-base leading-8 text-white/64">
-                    {{ __('site.about.fit_body') }}
-                </p>
+    <section class="section-standard principles-section">
+        <div class="site-container narrative-rail">
+            <div class="narrative-rail__intro">
+                <p class="signal-label">{{ __('site.about.principles_eyebrow') }}</p>
+                <h2 class="display-section mt-6 max-w-[13ch]" data-reveal="headline">{{ __('site.about.principles_title') }}</h2>
             </div>
-            <a href="{{ localized_route('contact') }}" class="inline-flex w-fit items-center justify-center gap-2 rounded-md bg-emerald-300 px-5 py-3 text-sm font-bold text-graphite-950 transition hover:bg-emerald-200 lg:justify-self-end">
-                <x-phosphor-paper-plane-tilt class="h-5 w-5" />
-                {{ __('site.actions.start_project') }}
+            <div class="principle-list">
+                @foreach ($process as $step)
+                    <article class="principle-row" style="--reveal-index: {{ $loop->index }}" data-reveal="row">
+                        <span>{{ $step['step'] }}</span>
+                        <div>
+                            <h3>{{ $step['title'] }}</h3>
+                            <p>{{ $step['body'] }}</p>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    <section class="section-compact">
+        <div class="site-container fit-statement">
+            <div>
+                <p class="signal-label">{{ __('site.about.fit_eyebrow') }}</p>
+                <h2 class="display-section mt-6 max-w-[14ch]" data-reveal="headline">{{ __('site.about.fit_title') }}</h2>
+            </div>
+            <a href="{{ localized_route('contact') }}#consultation" class="button-primary" data-magnetic>
+                <span>{{ __('site.actions.free_consultation') }}</span>
+                <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
             </a>
         </div>
     </section>

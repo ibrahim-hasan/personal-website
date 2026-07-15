@@ -2,16 +2,19 @@
 
 namespace App\Support;
 
+use App\Models\Setting;
+use Illuminate\Support\Facades\Schema;
+
 class SiteContent
 {
     public static function home(): array
     {
         return self::localize([
-            'stats' => [
-                ['value' => ['ar' => 'AI', 'en' => 'AI'], 'label' => ['ar' => 'مساعدات ذكية، RAG، وأتمتة سير العمل', 'en' => 'assistants, RAG, and workflow automation']],
-                ['value' => ['ar' => 'Ops', 'en' => 'Ops'], 'label' => ['ar' => 'نشر، استعادة، وفحوصات إنتاج', 'en' => 'deployment, recovery, and production checks']],
-                ['value' => ['ar' => 'Admin', 'en' => 'Admin'], 'label' => ['ar' => 'Filament، لوحات متابعة، وأدوات داخلية', 'en' => 'Filament, dashboards, and internal tools']],
-                ['value' => ['ar' => 'ثنائي', 'en' => 'Bilingual'], 'label' => ['ar' => 'تجارب عربية وإنجليزية للمنتجات', 'en' => 'Arabic and English product workflows']],
+            'focus' => [
+                ['value' => ['ar' => 'التحول الرقمي', 'en' => 'Digital Transformation'], 'label' => ['ar' => 'ما الذي يُرقمن، وما الذي يؤتمت، وبأي ترتيب', 'en' => 'What to digitize, what to automate, and in what order']],
+                ['value' => ['ar' => 'الذكاء الاصطناعي', 'en' => 'AI Adoption'], 'label' => ['ar' => 'مساعدون، وكلاء، تقييم، وتقليل مخاطر الهلوسة', 'en' => 'Assistants, agents, evaluation, and hallucination risk']],
+                ['value' => ['ar' => 'حوكمة البيانات', 'en' => 'Data Governance'], 'label' => ['ar' => 'ملكية، صلاحيات، جودة، واستعداد البيانات', 'en' => 'Ownership, permissions, quality, and readiness']],
+                ['value' => ['ar' => 'الأنظمة والأتمتة', 'en' => 'Systems & Automation'], 'label' => ['ar' => 'منصات قابلة للصيانة والتوسع والقياس', 'en' => 'Maintainable, scalable, measurable platforms']],
             ],
             'services' => self::servicesPayload(),
             'work' => array_slice(self::workPayload(), 0, 3),
@@ -43,18 +46,69 @@ class SiteContent
     public static function contact(): array
     {
         return self::localize([
-            'email' => 'hello@ibrahimhasan.dev',
-            'location' => ['ar' => 'إسطنبول / عن بعد', 'en' => 'Istanbul / remote'],
+            'email' => 'hello@ibrahimhasan.net',
             'availability' => [
-                'ar' => 'متاح لبناء المنتجات المركزة، تحسين موثوقية الذكاء الاصطناعي، واستعادة أنظمة الإنتاج.',
-                'en' => 'Available for focused product builds, AI reliability work, and production recovery.',
+                'ar' => 'أعمل مع شركات تريد تحويل مشاكل التشغيل والنمو إلى أنظمة رقمية وحلول ذكاء اصطناعي عملية، مبنية على فهم واضح للعمليات والبيانات والمخاطر.',
+                'en' => 'I work with companies that want to turn operational and growth challenges into digital systems and practical AI solutions, built on a clear understanding of processes, data, and risk.',
             ],
             'channels' => [
-                ['label' => ['ar' => 'البريد', 'en' => 'Email'], 'href' => 'mailto:hello@ibrahimhasan.dev', 'value' => 'hello@ibrahimhasan.dev'],
-                ['label' => ['ar' => 'لينكدإن', 'en' => 'LinkedIn'], 'href' => 'https://www.linkedin.com/', 'value' => ['ar' => 'تواصل عبر لينكدإن', 'en' => 'Connect on LinkedIn']],
-                ['label' => ['ar' => 'جيت هب', 'en' => 'GitHub'], 'href' => 'https://github.com/', 'value' => ['ar' => 'راجع العمل الهندسي', 'en' => 'Review engineering work']],
+                ['label' => ['ar' => 'البريد', 'en' => 'Email'], 'href' => 'mailto:hello@ibrahimhasan.net', 'value' => 'hello@ibrahimhasan.net'],
+                ['label' => ['ar' => 'لينكدإن', 'en' => 'LinkedIn'], 'href' => 'https://sa.linkedin.com/in/i-hasan', 'value' => ['ar' => 'تواصل عبر لينكدإن', 'en' => 'Connect on LinkedIn']],
             ],
         ]);
+    }
+
+    /**
+     * @return list<array{platform: string, label: string, href: string}>
+     */
+    public static function socialProfiles(): array
+    {
+        $socialUrls = self::socialUrls();
+        $profiles = [
+            ['platform' => 'linkedin', 'label' => 'LinkedIn', 'href' => $socialUrls['linkedin'] ?? null],
+            ['platform' => 'facebook', 'label' => 'Facebook', 'href' => $socialUrls['facebook'] ?? null],
+            ['platform' => 'twitter', 'label' => 'X', 'href' => $socialUrls['twitter'] ?? null],
+            ['platform' => 'instagram', 'label' => 'Instagram', 'href' => $socialUrls['instagram'] ?? null],
+        ];
+
+        return array_values(array_filter(
+            $profiles,
+            fn (array $profile): bool => is_string($profile['href']) && trim($profile['href']) !== '',
+        ));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function socialUrls(): array
+    {
+        $socialUrls = config('services.social', []);
+        $defaultConnection = (string) config('database.default');
+        $databaseName = config("database.connections.{$defaultConnection}.database");
+
+        if (! is_string($databaseName) || trim($databaseName) === '' || ! Schema::hasTable('settings')) {
+            return $socialUrls;
+        }
+
+        $storedUrls = Setting::query()
+            ->where('group', 'social')
+            ->whereIn('key', ['social_linkedin', 'social_facebook', 'social_twitter', 'social_instagram'])
+            ->pluck(Setting::valueColumn(), 'key');
+
+        foreach ([
+            'linkedin' => 'social_linkedin',
+            'facebook' => 'social_facebook',
+            'twitter' => 'social_twitter',
+            'instagram' => 'social_instagram',
+        ] as $platform => $settingKey) {
+            $storedUrl = $storedUrls->get($settingKey);
+
+            if (is_string($storedUrl) && trim($storedUrl) !== '') {
+                $socialUrls[$platform] = $storedUrl;
+            }
+        }
+
+        return $socialUrls;
     }
 
     public static function toolchain(): array
@@ -68,10 +122,10 @@ class SiteContent
             ['ar' => 'OpenAI API', 'en' => 'OpenAI API'],
             ['ar' => 'n8n', 'en' => 'n8n'],
             ['ar' => 'GitHub Actions', 'en' => 'GitHub Actions'],
-            ['ar' => 'CloudPanel', 'en' => 'CloudPanel'],
             ['ar' => 'PostgreSQL', 'en' => 'PostgreSQL'],
             ['ar' => 'MySQL', 'en' => 'MySQL'],
             ['ar' => 'Redis', 'en' => 'Redis'],
+            ['ar' => 'السحابة وFinOps', 'en' => 'Cloud & FinOps'],
         ]);
     }
 
@@ -79,111 +133,107 @@ class SiteContent
     {
         return [
             [
-                'id' => 'ai-products',
-                'name' => ['ar' => 'هندسة منتجات الذكاء الاصطناعي', 'en' => 'AI Product Engineering'],
+                'id' => 'transformation',
+                'name' => ['ar' => 'استراتيجية التحول الرقمي', 'en' => 'Digital Transformation Strategy'],
                 'summary' => [
-                    'ar' => 'مساعدات محادثة، RAG، ويدجتات، حلقات جودة الإجابات، وميزات AI جاهزة للإنتاج.',
-                    'en' => 'Chatbots, RAG workflows, widgets, answer quality loops, and production-grade AI features.',
+                    'ar' => 'تشخيص ما يجب رقمنته، وما يجب أتمتته، وما يمكن دعمه بالذكاء الاصطناعي، بترتيب أولويات مرتبط بالأثر التشغيلي والتجاري.',
+                    'en' => 'Diagnosing what to digitize, what to automate, and what to support with AI, prioritized by operational and business impact.',
                 ],
                 'problem' => [
-                    'ar' => 'المنتج يحتاج إلى AI، لكن العروض العامة بطيئة أو غير دقيقة أو صعبة التشغيل.',
-                    'en' => 'The product needs AI, but generic demos are slow, inaccurate, or hard to operate.',
+                    'ar' => 'مبادرات رقمية متفرقة، أدوات تُشترى قبل فهم العملية، ونتائج يصعب قياسها أو صيانتها.',
+                    'en' => 'Scattered digital initiatives, tools bought before the process is understood, and results that are hard to measure or maintain.',
                 ],
                 'approach' => [
-                    'ar' => 'أراجع الاسترجاع، البرومبتات، التتبعات، زمن الاستجابة، حالات الفشل، وتجربة الواجهة معاً قبل الإطلاق.',
-                    'en' => 'I inspect retrieval, prompts, traces, latency, fallback behavior, and UI states together before shipping.',
+                    'ar' => 'أبدأ من العملية والقرار والمخاطر، ثم أحدد أين تكمن قيمة الرقمنة الحقيقية قبل اقتراح أي تقنية.',
+                    'en' => 'I start from the process, the decision, and the risk, then identify where digitization creates real value before proposing any technology.',
                 ],
                 'deliverables' => [
-                    ['ar' => 'معمارية RAG', 'en' => 'RAG architecture'],
-                    ['ar' => 'ويدجتات المساعد', 'en' => 'assistant widgets'],
-                    ['ar' => 'برومبتات تقييم', 'en' => 'evaluation prompts'],
-                    ['ar' => 'إسناد المصادر', 'en' => 'source attribution'],
-                    ['ar' => 'فحوصات زمن الاستجابة', 'en' => 'latency checks'],
+                    ['ar' => 'خارطة رقمنة مرحلية', 'en' => 'Phased digitization roadmap'],
+                    ['ar' => 'تحليل فجوات العملية', 'en' => 'Process gap analysis'],
+                    ['ar' => 'مصفوفة أولويات بالأثر', 'en' => 'Impact-priority matrix'],
+                    ['ar' => 'معايير قياس النجاح', 'en' => 'Success metrics'],
                 ],
                 'result' => [
-                    'ar' => 'ميزات AI تجيب من المعرفة الصحيحة، تعرض دليلاً مفيداً، ويمكن تتبعها بعد الإطلاق.',
-                    'en' => 'AI features that answer from the right knowledge, show useful evidence, and can be debugged after launch.',
+                    'ar' => 'قرارات تقنية أوضح، إنفاق أكثر تركيزاً، ونظام رقمي يخدم العمل لا العكس.',
+                    'en' => 'Clearer technology decisions, more focused spending, and a digital system that serves the business, not the other way around.',
                 ],
             ],
             [
-                'id' => 'platform-builds',
-                'name' => ['ar' => 'منصات Laravel وDjango', 'en' => 'Laravel and Django Platforms'],
+                'id' => 'ai-adoption',
+                'name' => ['ar' => 'هندسة تبنّي الذكاء الاصطناعي', 'en' => 'AI Adoption Engineering'],
                 'summary' => [
-                    'ar' => 'أنظمة ويب عملية مع لوحات إدارة، تدفقات مرتبطة بالفوترة، واجهات API، ونماذج محتوى قابلة للتوسع.',
-                    'en' => 'Practical web systems with admin panels, billing-aware workflows, APIs, and durable content models.',
+                    'ar' => 'مساعدون داخليون يستندون إلى المعرفة المعتمدة، مع مراجعة بشرية وضوابط واضحة للجودة والمخاطر.',
+                    'en' => 'Internal assistants grounded in approved knowledge, with human review and clear controls for quality and risk.',
                 ],
                 'problem' => [
-                    'ar' => 'التطبيق يملك منطقاً مهماً، لكن سير العمل متفرق أو هش أو يصعب شرحه.',
-                    'en' => 'The app has valuable domain logic, but the workflow feels scattered or fragile.',
+                    'ar' => 'تجارب ذكاء اصطناعي تبدو مبهرة في العرض لكنها غير دقيقة أو غير آمنة أو يصعب الاعتماد عليها في التشغيل.',
+                    'en' => 'AI demos that look impressive but are inaccurate, unsafe, or hard to rely on in real operations.',
                 ],
                 'approach' => [
-                    'ar' => 'أربط النماذج، المسارات، موارد الإدارة، الاختبارات، وسلوك المتصفح حول مسار المشغل الحقيقي.',
-                    'en' => 'I align models, routes, admin resources, tests, and browser behavior around the real operator flow.',
+                    'ar' => 'أربط الذكاء الاصطناعي بالمعرفة المؤسسية الصحيحة، وأبني حلقات تقييم، وأجعل الإنسان في الحلقة حيثما يلزم.',
+                    'en' => 'I ground AI in the right organizational knowledge, build evaluation loops, and keep a human in the loop wherever it matters.',
                 ],
                 'deliverables' => [
-                    ['ar' => 'تطبيقات Laravel', 'en' => 'Laravel apps'],
-                    ['ar' => 'تطبيقات Django', 'en' => 'Django apps'],
-                    ['ar' => 'إدارة Filament', 'en' => 'Filament admin'],
-                    ['ar' => 'واجهات Livewire', 'en' => 'Livewire interfaces'],
-                    ['ar' => 'أسطح API', 'en' => 'API surfaces'],
+                    ['ar' => 'مساعدون مدعومون بالمعرفة', 'en' => 'Knowledge-grounded assistants'],
+                    ['ar' => 'حلقات تقييم المخرجات', 'en' => 'Output evaluation loops'],
+                    ['ar' => 'إسناد المصادر', 'en' => 'Source attribution'],
+                    ['ar' => 'إدارة المخاطر والاعتمادية', 'en' => 'Risk and reliability controls'],
                 ],
                 'result' => [
-                    'ar' => 'منصة أسهل في التشغيل والشرح والنشر والتطوير.',
-                    'en' => 'A platform that is easier to operate, explain, deploy, and extend.',
+                    'ar' => 'ذكاء اصطناعي يعمل كمضاعِف للفريق، لا كبديل سحري، وبمخاطر مفهومة ومحكومة.',
+                    'en' => 'AI that works as a multiplier for the team, not a magic replacement, with risks understood and controlled.',
                 ],
             ],
             [
-                'id' => 'production-recovery',
-                'name' => ['ar' => 'استعادة الإنتاج', 'en' => 'Production Recovery'],
+                'id' => 'data-governance',
+                'name' => ['ar' => 'حوكمة البيانات واستراتيجيتها', 'en' => 'Data Governance & Strategy'],
                 'summary' => [
-                    'ar' => 'تشخيص الحوادث، فحوصات النشر، إعدادات الخادم، السجلات، والاستعادة من البداية للنهاية.',
-                    'en' => 'Incident diagnosis, deploy checks, server configuration, logs, and end-to-end recovery.',
+                    'ar' => 'أغلب مشاكل الذكاء الاصطناعي لا تأتي من ضعف النموذج، بل من بيانات ضعيفة أو غير منظمة أو بدون ملكية واضحة.',
+                    'en' => 'Most AI problems do not come from a weak model, but from weak, disorganized data without clear ownership.',
                 ],
                 'problem' => [
-                    'ar' => 'هناك شيء مكسور في الإنتاج والاختبارات المحلية الخضراء لا تفسر ما يراه المستخدم.',
-                    'en' => 'Something is broken in production and local green tests do not explain what users see.',
+                    'ar' => 'بيانات متناثرة، ملكية غامضة، صلاحيات غير واضحة، وجودود لا يكفي لقرارات موثوقة.',
+                    'en' => 'Scattered data, ambiguous ownership, unclear permissions, and quality that is not enough for reliable decisions.',
                 ],
                 'approach' => [
-                    'ar' => 'أبدأ بقراءة دون تغيير، أقارن حالة التشغيل، أراجع السجلات ومسارات النشر، ثم أطبق إصلاحاً محدداً.',
-                    'en' => 'I start read-only, compare runtime state, inspect logs, trace deployment paths, then apply a focused fix.',
+                    'ar' => 'أرسم تدفق البيانات، أحدد الملكية والصلاحيات، وأضع أسس الجودة والخصوصية قبل أي مبادرة ذكاء اصطناعي.',
+                    'en' => 'I map the data flow, define ownership and permissions, and set quality and privacy foundations before any AI initiative.',
                 ],
                 'deliverables' => [
-                    ['ar' => 'تقارير سبب جذري', 'en' => 'root-cause reports'],
-                    ['ar' => 'فحوصات CloudPanel', 'en' => 'CloudPanel checks'],
-                    ['ar' => 'إصلاحات GitHub Actions', 'en' => 'GitHub Actions fixes'],
-                    ['ar' => 'اختبارات دخان', 'en' => 'smoke tests'],
-                    ['ar' => 'ملاحظات إصدار', 'en' => 'release notes'],
+                    ['ar' => 'خارطة تدفق البيانات', 'en' => 'Data flow maps'],
+                    ['ar' => 'نموذج الملكية والصلاحيات', 'en' => 'Ownership and permissions model'],
+                    ['ar' => 'معايير الجودة والخصوصية', 'en' => 'Quality and privacy standards'],
+                    ['ar' => 'تقييم استعداد البيانات', 'en' => 'Data readiness assessment'],
                 ],
                 'result' => [
-                    'ar' => 'سطح إنتاجي ثابت مع فهم السبب، لا رقعة مؤقتة فقط.',
-                    'en' => 'A fixed production surface with the cause understood, not just a temporary patch.',
+                    'ar' => 'بيانات جاهزة تدعم قرارات موثوقة وتبنّي ذكاء اصطناعي بأقل مخاطر.',
+                    'en' => 'Ready data that supports reliable decisions and AI adoption with lower risk.',
                 ],
             ],
             [
-                'id' => 'product-ops',
-                'name' => ['ar' => 'تشغيل المنتج', 'en' => 'Product Operations'],
+                'id' => 'systems',
+                'name' => ['ar' => 'هندسة الأنظمة والأتمتة', 'en' => 'Systems & Automation Architecture'],
                 'summary' => [
-                    'ar' => 'تجربة الإدارة، التدفقات الداخلية، المحتوى التجاري العربي، تسليمات العملاء، وربط الأتمتة.',
-                    'en' => 'Admin UX, internal workflows, Arabic business content, client handoffs, and automation glue.',
+                    'ar' => 'منصات تشغيلية داخلية، وربط بين الأنظمة، وأتمتة لمسارات العمل بطريقة قابلة للصيانة والتوسع.',
+                    'en' => 'Internal operating platforms, connected systems, and workflow automation designed to remain maintainable as the work grows.',
                 ],
                 'problem' => [
-                    'ar' => 'العمل موزع بين إدارة المتصفح، واتساب، مستندات، جداول، وأدوات نشر.',
-                    'en' => 'The work is split between browser admin, WhatsApp, docs, spreadsheets, and deployment tools.',
+                    'ar' => 'عمل موزع بين أدوات متفرقة، جداول، ورسائل، مع تدفقات هشة يصعب شرحها أو تطويرها.',
+                    'en' => 'Work spread across scattered tools, spreadsheets, and messages, with fragile flows that are hard to explain or evolve.',
                 ],
                 'approach' => [
-                    'ar' => 'أحول العمل التشغيلي المتناثر إلى واجهات واضحة، قوائم تحقق، أتمتة، ومحتوى قابل لإعادة الاستخدام.',
-                    'en' => 'I turn loose operational work into clear interfaces, checklists, automations, and reusable content.',
+                    'ar' => 'أحوّل العمل التشغيلي المتناثر إلى أنظمة واضحة، وأتمتة موثوقة، وتدفقات يمكن قياسها وصيانتها.',
+                    'en' => 'I turn scattered operational work into clear systems, reliable automation, and flows that can be measured and maintained.',
                 ],
                 'deliverables' => [
-                    ['ar' => 'خرائط سير عمل', 'en' => 'workflow maps'],
-                    ['ar' => 'إعادة تصميم الإدارة', 'en' => 'admin redesigns'],
-                    ['ar' => 'تسليمات مؤتمتة', 'en' => 'automation handoffs'],
-                    ['ar' => 'أنظمة محتوى', 'en' => 'content systems'],
-                    ['ar' => 'مواد عملاء', 'en' => 'client material'],
+                    ['ar' => 'أنظمة تشغيل داخلية', 'en' => 'Internal operations systems'],
+                    ['ar' => 'ربط مسارات العمل وأتمتتها', 'en' => 'Connected and automated workflows'],
+                    ['ar' => 'لوحات متابعة', 'en' => 'Monitoring dashboards'],
+                    ['ar' => 'توثيق قابل للتسليم', 'en' => 'Handoff-ready documentation'],
                 ],
                 'result' => [
-                    'ar' => 'تنسيق يدوي أقل ومسار أوضح من الطلب إلى التسليم.',
-                    'en' => 'Less manual coordination and a clearer path from request to shipped work.',
+                    'ar' => 'تنسيق يدوي أقل، تدفقات أوضح، ومسار موثوق من الطلب إلى التسليم.',
+                    'en' => 'Less manual coordination, clearer flows, and a reliable path from request to delivery.',
                 ],
             ],
         ];
@@ -193,60 +243,60 @@ class SiteContent
     {
         return [
             [
-                'category' => ['ar' => 'AI', 'en' => 'AI'],
-                'title' => ['ar' => 'مساعد دعم عربي مع أدلة', 'en' => 'Arabic Support Assistant With Evidence'],
+                'category' => ['ar' => 'ذكاء اصطناعي', 'en' => 'AI'],
+                'title' => ['ar' => 'مساعد داخلي مدعوم بالمعرفة المؤسسية', 'en' => 'Knowledge-Grounded Internal Assistant'],
                 'summary' => [
-                    'ar' => 'تدفق مساعد موجه للعملاء يفصل بين الاسترجاع، حالة الإجابة، بطاقات المصادر، وسلوك الويدجت.',
-                    'en' => 'A customer-facing assistant flow that separates retrieval, answer status, source cards, and widget behavior.',
+                    'ar' => 'مساعد يجيب من قاعدة معرفة منظمة، يعرض مصادره، ويفصل بين حالة الإجابة وحالة الفشل بوضوح.',
+                    'en' => 'An assistant that answers from an organized knowledge base, shows its sources, and separates answer and failure states clearly.',
                 ],
                 'outcome' => [
-                    'ar' => 'إجابات أدق، حالات فشل أوضح، وبرومبتات اختبار لمتابعة الجودة.',
-                    'en' => 'Sharper answers, clearer fallback states, and test prompts for ongoing quality checks.',
+                    'ar' => 'إجابات أدق، مخاطر هلوسة أقل، وثقة أعلى في الاعتماد التشغيلي.',
+                    'en' => 'More accurate answers, lower hallucination risk, and higher confidence in operational use.',
                 ],
                 'image' => 'images/ibrahim/rag-console.png',
-                'tags' => [['ar' => 'RAG', 'en' => 'RAG'], ['ar' => 'ويدجت', 'en' => 'Widget'], ['ar' => 'تجربة عربية', 'en' => 'Arabic UX']],
+                'tags' => [['ar' => 'RAG', 'en' => 'RAG'], ['ar' => 'تقييم', 'en' => 'Evaluation'], ['ar' => 'إسناد المصادر', 'en' => 'Attribution']],
             ],
             [
-                'category' => ['ar' => 'منصة', 'en' => 'Platform'],
-                'title' => ['ar' => 'لوحة إدارة تشغيلية', 'en' => 'Operational Admin Console'],
+                'category' => ['ar' => 'أنظمة', 'en' => 'Systems'],
+                'title' => ['ar' => 'نظام تشغيل داخلي', 'en' => 'Internal Operations System'],
                 'summary' => [
-                    'ar' => 'تدفقات كثيفة بأسلوب Filament للمحتوى، الاستخدام، حدود الفوترة، ومسارات المراجعة الداخلية.',
-                    'en' => 'Dense Filament-style workflows for content, usage, billing-aware limits, and internal review paths.',
+                    'ar' => 'تدفقات تشغيلية للإدارة، المحتوى، الصلاحيات، والمتابعة الداخلية، مبنية للعمل المتكرر لا للزخرفة.',
+                    'en' => 'Operational flows for management, content, permissions, and internal follow-up, built for repeated work, not decoration.',
                 ],
                 'outcome' => [
-                    'ar' => 'سطح إداري هادئ مصمم للعمل المتكرر، لا للزخرفة التسويقية.',
-                    'en' => 'A calmer admin surface built for repeated operator work rather than marketing decoration.',
+                    'ar' => 'سطح تشغيلي هادئ، يقلل التنسيق اليدوي ويسرّع القرارات.',
+                    'en' => 'A calm operational surface that reduces manual coordination and speeds up decisions.',
                 ],
                 'image' => 'images/ibrahim/product-systems.png',
-                'tags' => [['ar' => 'Laravel', 'en' => 'Laravel'], ['ar' => 'Filament', 'en' => 'Filament'], ['ar' => 'Livewire', 'en' => 'Livewire']],
+                'tags' => [['ar' => 'Laravel', 'en' => 'Laravel'], ['ar' => 'إدارة', 'en' => 'Admin'], ['ar' => 'صلاحيات', 'en' => 'Permissions']],
             ],
             [
-                'category' => ['ar' => 'تشغيل', 'en' => 'Ops'],
-                'title' => ['ar' => 'استعادة نشر CloudPanel', 'en' => 'CloudPanel Deployment Recovery'],
+                'category' => ['ar' => 'بيانات', 'en' => 'Data'],
+                'title' => ['ar' => 'استعداد البيانات قبل تبنّي الذكاء الاصطناعي', 'en' => 'Data Readiness Before AI'],
                 'summary' => [
-                    'ar' => 'تشخيص قراءة فقط، فحص سجلات، استعادة مدير الملفات، ربط النشر، وفحوصات دخان.',
-                    'en' => 'Read-only diagnosis, log inspection, file-manager recovery, deployment wiring, and smoke checks.',
+                    'ar' => 'تقييم جودة البيانات، الملكية، الصلاحيات، والخصوصية كأساس قبل أي مبادرة ذكاء اصطناعي.',
+                    'en' => 'Assessing data quality, ownership, permissions, and privacy as a foundation before any AI initiative.',
                 ],
                 'outcome' => [
-                    'ar' => 'حلقة نشر مثبتة تربط الفرع، حالة الخادم، وسلوك المتصفح.',
-                    'en' => 'A proven deploy loop with branch reality, server state, and browser behavior aligned.',
+                    'ar' => 'تبنٍّ أقل مخاطر، وقرارات مبنية على بيانات يمكن الوثوق بها.',
+                    'en' => 'Lower-risk adoption and decisions built on data that can be trusted.',
                 ],
                 'image' => 'images/ibrahim/automation-board.png',
-                'tags' => [['ar' => 'CloudPanel', 'en' => 'CloudPanel'], ['ar' => 'GitHub Actions', 'en' => 'GitHub Actions'], ['ar' => 'PHP', 'en' => 'PHP']],
+                'tags' => [['ar' => 'حوكمة', 'en' => 'Governance'], ['ar' => 'جودة', 'en' => 'Quality'], ['ar' => 'خصوصية', 'en' => 'Privacy']],
             ],
             [
                 'category' => ['ar' => 'أتمتة', 'en' => 'Automation'],
-                'title' => ['ar' => 'تسليم من واتساب إلى التنفيذ', 'en' => 'WhatsApp-to-Delivery Handoff'],
+                'title' => ['ar' => 'أتمتة التدفق من الطلب إلى التسليم', 'en' => 'Request-to-Delivery Automation'],
                 'summary' => [
-                    'ar' => 'نمط تنسيق عملي يحول طلبات العملاء المتفرقة إلى مهام منتج منظمة.',
-                    'en' => 'A practical coordination pattern that turns fragmented client requests into structured product tasks.',
+                    'ar' => 'نمط تنسيق عملي يحوّل الطلبات المتفرقة إلى مهام منظمة، مع متابعة وتسليم أوضح.',
+                    'en' => 'A practical coordination pattern that turns scattered requests into structured tasks, with clearer follow-up and delivery.',
                 ],
                 'outcome' => [
-                    'ar' => 'استقبال أوضح، تفاصيل مفقودة أقل، ودورات مراجعة أسرع للعمل العربي والإنجليزي.',
-                    'en' => 'Cleaner intake, fewer missed details, and faster review cycles for Arabic and English work.',
+                    'ar' => 'استقبال أوضح، تفاصيل مفقودة أقل، ودورات عمل أسرع.',
+                    'en' => 'Clearer intake, fewer missed details, and faster work cycles.',
                 ],
                 'image' => 'images/ibrahim/workflow-map.png',
-                'tags' => [['ar' => 'n8n', 'en' => 'n8n'], ['ar' => 'مستندات', 'en' => 'Docs'], ['ar' => 'تشغيل العملاء', 'en' => 'Client Ops']],
+                'tags' => [['ar' => 'تنسيق', 'en' => 'Coordination'], ['ar' => 'تدفقات', 'en' => 'Workflows'], ['ar' => 'تسليم', 'en' => 'Delivery']],
             ],
         ];
     }
@@ -255,31 +305,31 @@ class SiteContent
     {
         return [
             [
-                'title' => ['ar' => 'كيف أشخص جودة إجابات الذكاء الاصطناعي', 'en' => 'How I Diagnose AI Answer Quality'],
-                'type' => ['ar' => 'ملاحظة ميدانية', 'en' => 'Field note'],
+                'title' => ['ar' => 'متى نستخدم الذكاء الاصطناعي ومتى لا نستخدمه', 'en' => 'When to Use AI and When Not To'],
+                'type' => ['ar' => 'رأي عملي', 'en' => 'Practical opinion'],
                 'summary' => [
-                    'ar' => 'قائمة عملية للفصل بين فشل الاسترجاع، فشل البرومبت، المحتوى القديم، وتجربة الويدجت.',
-                    'en' => 'A practical checklist for separating retrieval failure, prompt failure, stale content, and widget UX.',
+                    'ar' => 'ليست كل مشكلة تحتاج ذكاءً اصطناعياً. أحياناً نظام أفضل أو بيانات أنظف تحل المشكلة بكلفة أقل.',
+                    'en' => 'Not every problem needs AI. Sometimes a better system or cleaner data solves it at lower cost.',
                 ],
                 'read_time' => ['ar' => '6 دقائق', 'en' => '6 min'],
             ],
             [
-                'title' => ['ar' => 'لوحات الإدارة يجب أن تشبه طاولة العمل', 'en' => 'Admin Panels Should Feel Like Workbenches'],
-                'type' => ['ar' => 'رأي منتج', 'en' => 'Product opinion'],
+                'title' => ['ar' => 'لماذا تفشل مشاريع التحول الرقمي', 'en' => 'Why Digital Transformation Projects Fail'],
+                'type' => ['ar' => 'ملاحظة ميدانية', 'en' => 'Field note'],
                 'summary' => [
-                    'ar' => 'لماذا تحتاج الأدوات الداخلية إلى كثافة، وضوح حالة، قراءة سريعة، وزخرفة أقل.',
-                    'en' => 'Why internal tools need density, state clarity, fast scanning, and fewer decorative surfaces.',
-                ],
-                'read_time' => ['ar' => '4 دقائق', 'en' => '4 min'],
-            ],
-            [
-                'title' => ['ar' => 'إصلاحات الإنتاج تحتاج إلى حقيقة المتصفح', 'en' => 'Production Fixes Need Browser Truth'],
-                'type' => ['ar' => 'ملاحظة تشغيل', 'en' => 'Operations note'],
-                'summary' => [
-                    'ar' => 'الاختبارات المحلية مهمة، لكن رابط الإنتاج والسجلات وتاريخ النشر وسلوك المستخدم تغلق الحلقة.',
-                    'en' => 'Local tests matter, but live URL checks, logs, deployment history, and user-visible behavior close the loop.',
+                    'ar' => 'أغلب الفشل يبدأ قبل الكود: غياب فهم العملية، أهداف غير واضحة، أو أدوات تُشترى قبل السؤال الصحيح.',
+                    'en' => 'Most failure starts before code: no process understanding, unclear goals, or tools bought before the right question.',
                 ],
                 'read_time' => ['ar' => '5 دقائق', 'en' => '5 min'],
+            ],
+            [
+                'title' => ['ar' => 'البيانات قبل الذكاء الاصطناعي', 'en' => 'Data Before AI'],
+                'type' => ['ar' => 'إطار عمل', 'en' => 'Framework'],
+                'summary' => [
+                    'ar' => 'لماذا تبدأ مشاريع الذكاء الاصطناعي الناجحة من جودة البيانات وملكيتها وحوكمتها، لا من النموذج.',
+                    'en' => 'Why successful AI projects start from data quality, ownership, and governance, not from the model.',
+                ],
+                'read_time' => ['ar' => '4 دقائق', 'en' => '4 min'],
             ],
         ];
     }
@@ -287,10 +337,10 @@ class SiteContent
     private static function processPayload(): array
     {
         return [
-            ['step' => '01', 'title' => ['ar' => 'قراءة النظام الحقيقي', 'en' => 'Read the real system'], 'body' => ['ar' => 'أتحقق من المستودع، الفرع، بيئة التشغيل، الرابط، شكل البيانات، وسلوك المتصفح قبل تغيير الكود.', 'en' => 'I verify the repo, branch, runtime, URL, database shape, and browser behavior before changing code.']],
-            ['step' => '02', 'title' => ['ar' => 'تحديد السبب الجذري', 'en' => 'Find the root cause'], 'body' => ['ar' => 'أتتبع الفشل الظاهر للمستخدم عبر الكود، البيانات، الطوابير، نداءات المزود، وحالة النشر.', 'en' => 'I trace the user-visible failure back through code, data, queues, provider calls, and deployment state.']],
-            ['step' => '03', 'title' => ['ar' => 'شحن الإصلاح المركز', 'en' => 'Ship the focused fix'], 'body' => ['ar' => 'أبقي التغييرات قريبة من السطح المتأثر وأتبع أنماط الإطار الموجودة في المشروع.', 'en' => 'I keep edits close to the affected surface and match the framework patterns already in the project.']],
-            ['step' => '04', 'title' => ['ar' => 'إثبات أنه يعمل', 'en' => 'Prove it works'], 'body' => ['ar' => 'أشغل الاختبارات المناسبة، أبني الأصول، أتحقق في المتصفح، وأوضح ما تم التحقق منه وما بقي.', 'en' => 'I run targeted tests, build assets, check the browser, and report what was verified and what remains.']],
+            ['step' => '01', 'title' => ['ar' => 'فهم المشكلة قبل الحل', 'en' => 'Understand the problem first'], 'body' => ['ar' => 'ما المشكلة التشغيلية أو التجارية؟ أين الهدر أو التعطل؟ ما القرار المطلوب تحسينه؟', 'en' => 'What is the operational or business problem? Where is the waste or friction? What decision needs improving?']],
+            ['step' => '02', 'title' => ['ar' => 'تحليل العملية والبيانات', 'en' => 'Map the process and the data'], 'body' => ['ar' => 'أرسم العملية الحالية، تدفق البيانات، نقاط القرار، والمخاطر قبل التفكير في أي تقنية.', 'en' => 'I map the current process, data flow, decision points, and risks before thinking about any technology.']],
+            ['step' => '03', 'title' => ['ar' => 'تحديد ما يُرقمن ويؤتمت ويدعم بالذكاء الاصطناعي', 'en' => 'Decide what to digitize, automate, or support with AI'], 'body' => ['ar' => 'هل نحتاج ذكاءً اصطناعياً، أم نظاماً أفضل، أم بيانات أنظف؟ الترتيب يُبنى على الأثر والكلفة والمخاطر.', 'en' => 'Do we need AI, a better system, or cleaner data? The order is built on impact, cost, and risk.']],
+            ['step' => '04', 'title' => ['ar' => 'بناء حل قابل للصيانة والقياس', 'en' => 'Build maintainable and measurable'], 'body' => ['ar' => 'أبني حلاً يمكن صيانته وتوسعته وقياس أثره، مع توثيق واضح وتسليم يمكن لفريقك متابعته.', 'en' => 'I build a solution that can be maintained, scaled, and measured, with clear documentation your team can follow.']],
         ];
     }
 
