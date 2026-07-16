@@ -101,37 +101,6 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
-    Alpine.data('heroStage', ({ count }) => ({
-        active: 0,
-        count,
-        interval: null,
-        init() {
-            if (! window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                this.resume();
-            }
-        },
-        goTo(index) {
-            this.active = (index + this.count) % this.count;
-        },
-        resume() {
-            if (this.interval !== null || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                return;
-            }
-
-            this.interval = window.setInterval(() => this.goTo(this.active + 1), 6500);
-        },
-        pause() {
-            window.clearInterval(this.interval);
-            this.interval = null;
-        },
-        navigate(event) {
-            moveCompositeFocus(event);
-        },
-        destroy() {
-            this.pause();
-        },
-    }));
-
     Alpine.data('serviceTabs', ({ services }) => ({
         services,
         active: services[0]?.id ?? null,
@@ -205,6 +174,38 @@ document.addEventListener('alpine:init', () => {
 });
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+const initializeHeroVideos = (signal) => {
+    const shouldRemainStill = reducedMotion.matches || navigator.connection?.saveData === true;
+
+    document.querySelectorAll('[data-hero-video]').forEach((video) => {
+        video.muted = true;
+
+        if (shouldRemainStill) {
+            video.pause();
+
+            return;
+        }
+
+        const visibilityObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    video.play().catch(() => {});
+
+                    return;
+                }
+
+                video.pause();
+            });
+        }, { threshold: 0.25 });
+
+        visibilityObserver.observe(video);
+        signal.addEventListener('abort', () => {
+            visibilityObserver.disconnect();
+            video.pause();
+        }, { once: true });
+    });
+};
 
 const updateScrollProgress = () => {
     const scrollable = document.documentElement.scrollHeight - window.innerHeight;
@@ -403,6 +404,7 @@ const initializeFrontEnhancements = () => {
     frontEnhancementController = new AbortController();
 
     enableInternalNavigation();
+    initializeHeroVideos(frontEnhancementController.signal);
     initializePageMotion(frontEnhancementController.signal);
 };
 

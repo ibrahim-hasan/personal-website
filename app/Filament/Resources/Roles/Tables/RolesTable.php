@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Roles\Tables;
 
 use App\Models\Role;
+use App\Support\AdminTableEmptyState;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -16,7 +17,7 @@ class RolesTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return AdminTableEmptyState::apply($table, 'roles', 'heroicon-o-shield-check')
             ->columns([
                 TextColumn::make('display_name')
                     ->label(__('admin.fields.display_name'))

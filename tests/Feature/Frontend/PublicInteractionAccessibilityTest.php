@@ -11,7 +11,11 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->get('/en')
             ->assertOk()
             ->assertSee('class="precision-stage hero-enter"', false)
-            ->assertSee('<figcaption class="precision-stage__note">', false)
+            ->assertDontSee('precision-stage__note', false)
+            ->assertSee('data-hero-video', false)
+            ->assertSee('aria-hidden="true"', false)
+            ->assertSee('type="video/webm"', false)
+            ->assertSee('type="video/mp4"', false)
             ->assertSee('x-ref="menuToggle"', false)
             ->assertSee('@keydown.tab="trapFocus($event)"', false)
             ->assertSee('role="dialog"', false)
@@ -36,7 +40,11 @@ class PublicInteractionAccessibilityTest extends TestCase
             ->assertOk()
             ->assertSee('class="filter-bar" role="toolbar"', false)
             ->assertSee(':aria-pressed=', false)
-            ->assertSee(':tabindex=', false);
+            ->assertSee(':tabindex=', false)
+            ->assertSee('class="case-study__identity"', false)
+            ->assertSee('class="case-study__brand"', false)
+            ->assertDontSee('class="project-brand"', false)
+            ->assertDontSee('<figcaption>', false);
 
         $this->get('/en/writing')
             ->assertOk()
@@ -59,33 +67,66 @@ class PublicInteractionAccessibilityTest extends TestCase
             $css,
         );
         $this->assertMatchesRegularExpression(
-            '/@media \(max-width: 63\.999rem\)\s*\{.*?\.precision-stage\s*\{[^}]*overflow:\s*clip;/s',
+            '/@media \(max-width: 63\.999rem\)\s*\{.*?\.precision-stage\s*\{[^}]*width:\s*min\(100%, 22\.5rem\);[^}]*overflow:\s*clip;/s',
             $css,
         );
         $this->assertMatchesRegularExpression('/\.filter-bar\s*\{[^}]*overflow-x:\s*auto;/s', $css);
         $this->assertMatchesRegularExpression('/\.publication-topics\s*\{[^}]*overflow-x:\s*auto;/s', $css);
+        $this->assertMatchesRegularExpression(
+            '/@media \(min-width: 72rem\)\s*\{\s*\.publication-intro__grid\s*\{[^}]*grid-template-columns:/s',
+            $css,
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/@media \(min-width: 48rem\)\s*\{\s*\.publication-intro__grid\s*\{/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression('/\.featured-essay\s*\{[^}]*min-width:\s*0;/s', $css);
+        $this->assertMatchesRegularExpression(
+            '/\.case-study__brand\s*\{[^}]*width:\s*7rem;[^}]*height:\s*4rem;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.case-study__brand img\s*\{[^}]*max-width:\s*5\.5rem;[^}]*max-height:\s*2\.35rem;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.article-prose__closing > span\s*\{[^}]*width:\s*0\.85rem;[^}]*height:\s*0\.85rem;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media \(max-width: 63\.999rem\)\s*\{\s*\.related-writing__heading\s*\{[^}]*flex-direction:\s*column;[^}]*align-items:\s*start;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression('/\.text-link\s*\{[^}]*display:\s*inline-flex;/s', $css);
         $this->assertStringContainsString('scrollTopics(direction)', $javascript);
         $this->assertMatchesRegularExpression(
             "/\[data-reveal='copy'\]\s*\{[^}]*translate:\s*0 1\.75rem;/s",
             $css,
         );
-        $this->assertStringContainsString('@keyframes portrait-drift', $css);
-        $this->assertStringContainsString('@keyframes stage-plane-from-start', $css);
-        $this->assertStringContainsString('@keyframes stage-plane-from-end', $css);
-        $this->assertStringContainsString(':data-active="active"', $this->readProjectFile('resources/views/website/home.blade.php'));
+        $this->assertMatchesRegularExpression(
+            '/\.precision-stage__video\s*\{[^}]*object-fit:\s*cover;[^}]*object-position:\s*center;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media \(min-width: 64rem\)\s*\{.*?\.precision-stage\s*\{[^}]*width:\s*min\(100%, 24rem\);/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.precision-hero__grid\s*\{[^}]*position:\s*relative;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.precision-hero__orbit\s*\{[^}]*inset-block-start:\s*5rem;[^}]*left:\s*-2\.25rem;/s',
+            $css,
+        );
+        $this->assertStringNotContainsString('precision-stage__orbit', $css);
+        $this->assertStringContainsString('navigator.connection?.saveData === true', $javascript);
+        $this->assertStringContainsString("document.querySelectorAll('[data-hero-video]')", $javascript);
+        $this->assertStringContainsString('video.play().catch(() => {})', $javascript);
+        $this->assertStringContainsString('visibilityObserver.disconnect()', $javascript);
+        $this->assertStringNotContainsString('heroStage', $javascript);
+        $this->assertStringNotContainsString('precision-stage__control', $css);
         $this->assertStringContainsString('clip-path: inset(-0.3em -0.08em -0.4em -0.08em)', $css);
-        $this->assertMatchesRegularExpression(
-            '/\.precision-stage__control\.is-active > span\s*\{[^}]*margin:\s*0;[^}]*color:\s*var\(--color-canvas\);/s',
-            $css,
-        );
-        $this->assertMatchesRegularExpression(
-            '/\.precision-stage__control > span\s*\{[^}]*place-items:\s*center;[^}]*line-height:\s*1;/s',
-            $css,
-        );
-        $this->assertMatchesRegularExpression(
-            '/\.precision-stage__note span\s*\{[^}]*margin-top:\s*0\.35rem;[^}]*\}\s*\.precision-stage__control > span\s*\{[^}]*margin:\s*0;/s',
-            $css,
-        );
         $this->assertMatchesRegularExpression(
             '/\.hero-sequence__steps::before\s*\{[^}]*background:\s*linear-gradient/s',
             $css,

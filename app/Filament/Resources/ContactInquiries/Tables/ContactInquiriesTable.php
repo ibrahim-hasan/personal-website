@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ContactInquiries\Tables;
 
 use App\Enums\ContactInquiryStatus;
 use App\Models\ContactInquiry;
+use App\Support\AdminTableEmptyState;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
@@ -14,7 +15,7 @@ class ContactInquiriesTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return AdminTableEmptyState::apply($table, 'contact_inquiries', 'heroicon-o-inbox-arrow-down')
             ->columns([
                 TextColumn::make('name')
                     ->label(__('admin.fields.name'))

@@ -135,6 +135,31 @@ class AdminBrandingTest extends TestCase
         $this->assertStringNotContainsString('.dashboard-home-stat::before', $theme);
         $this->assertStringContainsString('.fi-section:not(.fi-section-not-contained)', $theme);
         $this->assertStringContainsString('.fi-wi-stats-overview .fi-section-not-contained', $theme);
+        $this->assertStringContainsString('.fi-topbar .admin-brand-lockup__wordmark', $theme);
+        $this->assertStringContainsString('.fi-ta-empty-state-content', $theme);
+        $this->assertStringContainsString('.fi-ta-empty-state-description', $theme);
+    }
+
+    public function test_every_admin_resource_table_uses_a_contextual_empty_state(): void
+    {
+        $tables = [
+            'articles' => 'app/Filament/Resources/Articles/Tables/ArticlesTable.php',
+            'comments' => 'app/Filament/Resources/Comments/Tables/CommentsTable.php',
+            'contact_inquiries' => 'app/Filament/Resources/ContactInquiries/Tables/ContactInquiriesTable.php',
+            'projects' => 'app/Filament/Resources/Projects/Tables/ProjectsTable.php',
+            'roles' => 'app/Filament/Resources/Roles/Tables/RolesTable.php',
+            'services' => 'app/Filament/Resources/Services/Tables/ServicesTable.php',
+            'users' => 'app/Filament/Resources/Users/Tables/UsersTable.php',
+        ];
+
+        foreach ($tables as $resource => $path) {
+            $contents = file_get_contents(base_path($path));
+
+            $this->assertNotFalse($contents);
+            $this->assertStringContainsString("AdminTableEmptyState::apply(\$table, '{$resource}'", $contents);
+            $this->assertNotSame("admin.empty_states.{$resource}.heading", __("admin.empty_states.{$resource}.heading"));
+            $this->assertNotSame("admin.empty_states.{$resource}.description", __("admin.empty_states.{$resource}.description"));
+        }
     }
 
     /**

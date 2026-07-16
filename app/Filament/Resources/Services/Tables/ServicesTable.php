@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Services\Tables;
 
 use App\Models\Service;
+use App\Support\AdminTableEmptyState;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -22,7 +23,7 @@ class ServicesTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return AdminTableEmptyState::apply($table, 'services', 'heroicon-o-squares-plus')
             ->columns([
                 TextColumn::make('name')
                     ->label(__('admin.fields.name'))

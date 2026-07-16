@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Users\Tables;
 
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
+use App\Support\AdminTableEmptyState;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -20,7 +21,7 @@ class UsersTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return AdminTableEmptyState::apply($table, 'users', 'heroicon-o-users')
             ->columns([
                 TextColumn::make('name')
                     ->label(__('admin.fields.name'))

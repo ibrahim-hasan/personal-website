@@ -48,13 +48,19 @@ class ArticlePagesTest extends TestCase
         $arabicUrl = $catalog->url($article, 'ar');
         $englishUrl = $catalog->url($article, 'en');
 
+        $arabicArticle = $article->localized('ar');
+        $firstContentsLabel = preg_replace('/^\s*[\d٠-٩]+[.)-]\s*/u', '', $arabicArticle['sections'][0]['heading']);
+
         $this->get(parse_url($arabicUrl, PHP_URL_PATH))
             ->assertOk()
-            ->assertSee($article->localized('ar')['title'], false)
+            ->assertSee($arabicArticle['title'], false)
             ->assertSee('property="og:type" content="article"', false)
             ->assertSee('hreflang="en" href="'.$englishUrl.'"', false)
             ->assertSee('"@type":"Article"', false)
             ->assertSee('data-reader-mode-toggle', false)
+            ->assertSee('<span class="article-contents__number">01</span>', false)
+            ->assertSee('<span class="article-contents__label">'.$firstContentsLabel.'</span>', false)
+            ->assertDontSee('class="article-consultation"', false)
             ->assertDontSee('data-speech-play', false)
             ->assertDontSee('data-speech-rate', false)
             ->assertDontSee('data-article-audio-player', false);

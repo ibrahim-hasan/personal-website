@@ -112,6 +112,36 @@ return [
         'status_enabled' => 'Status has been enabled successfully.',
         'status_disabled' => 'Status has been disabled successfully.',
     ],
+    'empty_states' => [
+        'articles' => [
+            'heading' => 'No articles yet',
+            'description' => 'Start with a practical idea for the writing library, then review and publish it when it is ready.',
+        ],
+        'comments' => [
+            'heading' => 'No comments need review',
+            'description' => 'Reader comments and new reports will appear here for moderation and follow-up.',
+        ],
+        'contact_inquiries' => [
+            'heading' => 'No new project inquiries',
+            'description' => 'Requests submitted through the consultation form will appear here with client, service, and follow-up details.',
+        ],
+        'projects' => [
+            'heading' => 'Document the first project',
+            'description' => 'Add a project that explains its challenge, approach, and outcome for the public work archive.',
+        ],
+        'roles' => [
+            'heading' => 'No additional roles',
+            'description' => 'Create a role when a member of the admin team needs a specific set of permissions.',
+        ],
+        'services' => [
+            'heading' => 'No services yet',
+            'description' => 'Add a focused service that connects a client need to your approach and expected outcome.',
+        ],
+        'users' => [
+            'heading' => 'No users to manage',
+            'description' => 'Admin team members will appear here so you can manage their accounts, roles, and access.',
+        ],
+    ],
     'permissions' => [
         'actions' => [
             'view_any' => 'View Any',

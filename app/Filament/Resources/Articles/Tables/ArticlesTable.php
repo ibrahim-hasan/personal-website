@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Articles\Tables;
 
 use App\Models\Article;
+use App\Support\AdminTableEmptyState;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -21,7 +22,7 @@ class ArticlesTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return AdminTableEmptyState::apply($table, 'articles', 'heroicon-o-document-text')
             ->columns([
                 SpatieMediaLibraryImageColumn::make(Article::IMAGE_COLLECTION)
                     ->label(__('editorial_admin.fields.image_path'))

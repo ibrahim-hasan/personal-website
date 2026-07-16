@@ -64,27 +64,24 @@
                                 decoding="async"
                                 class="case-study__image"
                             >
-                            @if ($item['logo'] !== '')
-                                <span class="project-brand">
-                                    <img
-                                        src="{{ asset($item['logo']) }}"
-                                        alt="{{ $item['logo_alt'] }}"
-                                        loading="lazy"
-                                        decoding="async"
-                                        class="project-brand__logo"
-                                    >
-                                </span>
-                            @endif
-                            <figcaption>
-                                <span>{{ sprintf('%02d', $loop->iteration) }}</span>
-                                <span>{{ $item['sector'] }}</span>
-                            </figcaption>
                         </figure>
 
                         <div class="case-study__copy">
-                            <div class="case-study__meta">
-                                <span>{{ $item['sector'] }}</span>
-                                <span>{{ sprintf('%02d', $loop->iteration) }}</span>
+                            <div class="case-study__identity">
+                                <div class="case-study__meta">
+                                    <span>{{ $item['sector'] }}</span>
+                                    <span>{{ sprintf('%02d', $loop->iteration) }}</span>
+                                </div>
+                                @if ($item['logo'] !== '')
+                                    <span class="case-study__brand">
+                                        <img
+                                            src="{{ asset($item['logo']) }}"
+                                            alt="{{ $item['logo_alt'] }}"
+                                            loading="lazy"
+                                            decoding="async"
+                                        >
+                                    </span>
+                                @endif
                             </div>
                             <h2>{{ $item['title'] }}</h2>
                             <p>{{ $item['summary'] }}</p>

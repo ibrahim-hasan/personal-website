@@ -44,72 +44,26 @@
                     class="precision-stage hero-enter"
                     style="--enter-delay: 220ms"
                     data-depth="portrait"
-                    x-data="heroStage({ count: 2 })"
-                    x-on:mouseenter="pause()"
-                    x-on:mouseleave="resume()"
-                    x-on:focusin="pause()"
-                    x-on:focusout="resume()"
                 >
-                    <div class="precision-stage__media relative isolate overflow-hidden" :data-active="active" aria-live="polite">
-                        <picture class="precision-stage__slide" :class="{ 'is-active': active === 0 }" :aria-hidden="active === 0 ? 'false' : 'true'">
-                            <source
-                                media="(max-width: 63.999rem)"
-                                srcset="{{ asset('images/ibrahim/ibrahim-systems-portrait-compact.webp') }}"
-                                width="1000"
-                                height="1100"
-                                type="image/webp"
-                            >
-                            <img
-                                src="{{ asset('images/ibrahim/ibrahim-systems-portrait.webp') }}"
-                                alt="{{ __('site.home.portrait_alt') }}"
-                                width="1000"
-                                height="1250"
-                                sizes="(min-width: 1024px) 33rem, (min-width: 640px) 30rem, calc(100vw - 4.5rem)"
-                                class="precision-stage__portrait precision-stage__portrait--systems"
-                                decoding="async"
-                                fetchpriority="high"
-                            >
-                        </picture>
-                        <img
-                            src="{{ asset('images/ibrahim/ibrahim-speaking-hero.webp') }}"
-                            alt="{{ __('site.home.hero_slide_speaking_alt') }}"
-                            width="1200"
-                            height="1500"
-                            class="precision-stage__slide precision-stage__portrait precision-stage__portrait--speaking"
-                            :class="{ 'is-active': active === 1 }"
-                            :aria-hidden="active === 1 ? 'false' : 'true'"
-                            decoding="async"
+                    <div class="precision-stage__media relative isolate overflow-hidden">
+                        <video
+                            class="precision-stage__video"
+                            data-hero-video
+                            muted
+                            loop
+                            playsinline
+                            preload="metadata"
+                            poster="{{ asset('images/ibrahim/ibrahim-hero-video-poster.webp') }}"
+                            aria-hidden="true"
                         >
+                            <source src="{{ asset('videos/hero/ibrahim-hero.webm') }}" type="video/webm">
+                            <source src="{{ asset('videos/hero/ibrahim-hero.mp4') }}" type="video/mp4">
+                        </video>
                     </div>
 
-                    <div class="precision-stage__orbit" aria-hidden="true"><span></span></div>
-
-                    <figcaption class="precision-stage__note">
-                        <div class="precision-stage__captions">
-                            @foreach (__('site.home.hero_slides') as $slide)
-                                <span class="precision-stage__caption" x-show="active === {{ $loop->index }}" x-cloak>
-                                    <strong>{{ $slide['title'] }}</strong>
-                                    <span>{{ $slide['meta'] }}</span>
-                                </span>
-                            @endforeach
-                        </div>
-                        <div class="precision-stage__controls" role="group" aria-label="{{ __('site.home.hero_slider_label') }}">
-                            @foreach (__('site.home.hero_slides') as $slide)
-                                <button
-                                    type="button"
-                                    class="precision-stage__control"
-                                    :class="{ 'is-active': active === {{ $loop->index }} }"
-                                    x-on:click="goTo({{ $loop->index }})"
-                                    x-on:keydown="navigate($event)"
-                                    :aria-pressed="active === {{ $loop->index }} ? 'true' : 'false'"
-                                    aria-label="{{ __('site.home.hero_slider_go_to', ['number' => $loop->iteration]) }}"
-                                >
-                                    <span aria-hidden="true">{{ sprintf('%02d', $loop->iteration) }}</span>
-                                </button>
-                            @endforeach
-                        </div>
-                    </figcaption>
                 </figure>
+
+                <div class="precision-hero__orbit" aria-hidden="true"><span></span></div>
             </div>
 
             <div class="hero-sequence" aria-label="{{ __('site.home.method_eyebrow') }}">
@@ -195,7 +149,7 @@
         <div class="site-container experience-trajectory__grid">
             <div class="experience-trajectory__intro">
                 <p class="signal-label signal-label--light">{{ __('site.home.trajectory_eyebrow') }}</p>
-                <h2 class="display-section mt-6 max-w-[15ch] text-canvas" data-reveal="headline">{{ __('site.home.trajectory_title') }}</h2>
+                <h2 class="experience-trajectory__title display-section mt-6 max-w-[15ch] text-canvas" data-reveal="headline">{{ __('site.home.trajectory_title') }}</h2>
                 <p class="copy-lead mt-7 max-w-[52ch] text-violet-100" data-reveal="copy">{{ __('site.home.trajectory_body') }}</p>
             </div>
 

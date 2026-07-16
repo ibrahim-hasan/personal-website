@@ -124,8 +124,8 @@
                         @foreach ($article['sections'] as $section)
                             <li>
                                 <a href="#article-section-{{ $loop->iteration }}">
-                                    <span>{{ sprintf('%02d', $loop->iteration) }}</span>
-                                    {{ $section['heading'] }}
+                                    <span class="article-contents__number">{{ sprintf('%02d', $loop->iteration) }}</span>
+                                    <span class="article-contents__label">{{ preg_replace('/^\s*[\d٠-٩]+[.)-]\s*/u', '', $section['heading']) }}</span>
                                 </a>
                             </li>
                         @endforeach
@@ -199,16 +199,6 @@
                     </a>
                 @endforeach
             </div>
-        </div>
-    </section>
-
-    <section class="article-consultation" data-reader-secondary>
-        <div class="site-container article-consultation__inner">
-            <p>{{ __('articles.index.consultation_prompt') }}</p>
-            <a href="{{ localized_route('contact') }}#consultation" wire:navigate class="button-light" data-magnetic>
-                <span>{{ __('site.actions.free_consultation') }}</span>
-                <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
-            </a>
         </div>
     </section>
 

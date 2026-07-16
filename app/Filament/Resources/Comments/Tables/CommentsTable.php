@@ -9,6 +9,7 @@ use App\Models\Comment;
 use App\Models\User;
 use App\Notifications\CommentApprovedNotification;
 use App\Notifications\CommentReplyNotification;
+use App\Support\AdminTableEmptyState;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Textarea;
@@ -25,7 +26,7 @@ class CommentsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return AdminTableEmptyState::apply($table, 'comments', 'heroicon-o-chat-bubble-left-right')
             ->columns([
                 TextColumn::make('user.name')
                     ->label(__('editorial_admin.fields.reader'))

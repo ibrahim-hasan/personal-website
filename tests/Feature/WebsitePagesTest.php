@@ -6,6 +6,19 @@ use Tests\TestCase;
 
 class WebsitePagesTest extends TestCase
 {
+    public function test_public_layout_uses_the_violet_diamond_favicon(): void
+    {
+        $this->assertFileExists(public_path('favicon.svg'));
+        $this->assertFileExists(public_path('apple-touch-icon.png'));
+        $this->assertStringContainsString('#7d53cd', file_get_contents(public_path('favicon.svg')));
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('href="'.asset('favicon.svg').'" type="image/svg+xml"', false)
+            ->assertSee('href="'.asset('apple-touch-icon.png').'"', false)
+            ->assertDontSee('rel="icon" href="'.asset('images/ibrahim/ibrahim-systems-portrait-compact.webp').'"', false);
+    }
+
     public function test_public_pages_render_the_ibrahim_site(): void
     {
         $pages = [
@@ -28,20 +41,25 @@ class WebsitePagesTest extends TestCase
         }
     }
 
-    public function test_homepage_uses_real_portraits_and_project_evidence_without_placeholders(): void
+    public function test_homepage_uses_optimized_hero_video_and_project_evidence_without_placeholders(): void
     {
-        $this->assertFileExists(public_path('images/ibrahim/ibrahim-systems-portrait.webp'));
-        $this->assertFileExists(public_path('images/ibrahim/ibrahim-systems-portrait-compact.webp'));
+        $this->assertFileExists(public_path('videos/hero/ibrahim-hero.mp4'));
+        $this->assertFileExists(public_path('videos/hero/ibrahim-hero.webm'));
+        $this->assertFileExists(public_path('images/ibrahim/ibrahim-hero-video-poster.webp'));
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('<picture class="precision-stage__slide"', false)
-            ->assertSee('images/ibrahim/ibrahim-systems-portrait.webp', false)
-            ->assertSee('images/ibrahim/ibrahim-systems-portrait-compact.webp', false)
-            ->assertSee('إبراهيم حسن يراجع مخططاً لنظام رقمي', false)
-            ->assertSee('أفهم النظام قبل أن أبني الأداة.', false)
-            ->assertSee('من القرار إلى نظامٍ يعمل.', false)
-            ->assertSee('images/ibrahim/ibrahim-speaking-hero.webp', false)
+            ->assertSee('data-hero-video', false)
+            ->assertSee('videos/hero/ibrahim-hero.webm', false)
+            ->assertSee('videos/hero/ibrahim-hero.mp4', false)
+            ->assertSee('images/ibrahim/ibrahim-hero-video-poster.webp', false)
+            ->assertSee('muted', false)
+            ->assertSee('loop', false)
+            ->assertSee('playsinline', false)
+            ->assertSee('preload="metadata"', false)
+            ->assertDontSee('precision-stage__note', false)
+            ->assertDontSee('heroStage(', false)
+            ->assertDontSee('precision-stage__control', false)
             ->assertSee('كود مومنتس', false)
             ->assertSee('فروم سكراتش', false)
             ->assertSee('images/ibrahim/ibrahim-speaking-hero.webp', false)
@@ -90,13 +108,13 @@ class WebsitePagesTest extends TestCase
             ->assertOk()
             ->assertSee('precision-hero', false)
             ->assertSee('precision-stage', false)
+            ->assertSee('videos/hero/ibrahim-hero.webm', false)
+            ->assertSee('images/ibrahim/ibrahim-hero-video-poster.webp', false)
             ->assertSee('manifesto-section', false)
             ->assertSee('atlas-constellation', false)
             ->assertSee('decision-room', false)
             ->assertDontSee('PRECISION / PRACTICE', false)
-            ->assertSee('Ibrahim Hasan reviewing a digital system map', false)
-            ->assertSee('Understand the system before building the tool.', false)
-            ->assertSee('From decision to a system that works.', false)
+            ->assertDontSee('precision-stage__note', false)
             ->assertSee('Request a free consultation', false);
     }
 

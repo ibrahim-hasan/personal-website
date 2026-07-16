@@ -67,6 +67,17 @@ class TypographyOverflowTest extends TestCase
         );
     }
 
+    public function test_experience_heading_reserves_space_for_arabic_descenders(): void
+    {
+        $css = file_get_contents(dirname(__DIR__, 3).'/resources/css/app.css');
+
+        $this->assertNotFalse($css);
+        $this->assertMatchesRegularExpression(
+            '/\.experience-trajectory__title\s*\{[^}]*padding-block-end:\s*0\.18em;[^}]*overflow:\s*visible;/s',
+            $css,
+        );
+    }
+
     public function test_company_logo_cards_share_one_visual_measure(): void
     {
         $css = file_get_contents(dirname(__DIR__, 3).'/resources/css/app.css');

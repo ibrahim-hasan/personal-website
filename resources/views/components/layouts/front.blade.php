@@ -58,8 +58,8 @@
         <meta property="article:author" content="Ibrahim Hasan">
     @endif
 
-    <link rel="icon" href="{{ asset('images/ibrahim/ibrahim-systems-portrait-compact.webp') }}" type="image/webp">
-    <link rel="apple-touch-icon" href="{{ asset('images/ibrahim/ibrahim-systems-portrait-compact.webp') }}">
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles

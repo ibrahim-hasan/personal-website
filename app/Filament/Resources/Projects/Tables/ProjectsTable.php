@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Projects\Tables;
 
 use App\Models\Project;
+use App\Support\AdminTableEmptyState;
 use App\Support\PortfolioAtlas;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -24,7 +25,7 @@ class ProjectsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return AdminTableEmptyState::apply($table, 'projects', 'heroicon-o-briefcase')
             ->columns([
                 SpatieMediaLibraryImageColumn::make(Project::IMAGE_COLLECTION)
                     ->label(__('admin.fields.project_image'))

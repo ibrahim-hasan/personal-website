@@ -82,6 +82,33 @@ class ArticleCommunityTest extends TestCase
         ]);
     }
 
+    public function test_community_validation_uses_localized_human_field_names(): void
+    {
+        $article = Article::factory()->create();
+        $reader = User::factory()->create();
+
+        app()->setLocale('ar');
+
+        Livewire::actingAs($reader)
+            ->test(ArticleCommunity::class, ['articleKey' => $article->key])
+            ->call('postComment')
+            ->assertHasErrors(['commentBody' => 'required'])
+            ->tap(function ($component): void {
+                $this->assertSame('حقل نص المشاركة مطلوب.', $component->errors()->first('commentBody'));
+                $this->assertStringNotContainsString('comment body', $component->errors()->first('commentBody'));
+            });
+
+        app()->setLocale('en');
+
+        Livewire::actingAs($reader)
+            ->test(ArticleCommunity::class, ['articleKey' => $article->key])
+            ->call('postComment')
+            ->assertHasErrors(['commentBody' => 'required'])
+            ->tap(function ($component): void {
+                $this->assertSame('The contribution field is required.', $component->errors()->first('commentBody'));
+            });
+    }
+
     public function test_a_reader_can_privately_report_an_approved_contribution_only_once(): void
     {
         $article = Article::factory()->create();
