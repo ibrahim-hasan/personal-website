@@ -26,21 +26,25 @@ class RolePolicy
 
     public function update(User $user, Role $role): bool
     {
-        return $user->hasPermissionTo('update roles');
+        return $role->name !== 'super_admin'
+            && $user->hasPermissionTo('update roles');
     }
 
     public function delete(User $user, Role $role): bool
     {
-        return $user->hasPermissionTo('delete roles');
+        return $role->name !== 'super_admin'
+            && $user->hasPermissionTo('delete roles');
     }
 
     public function restore(User $user, Role $role): bool
     {
-        return $user->hasPermissionTo('restore roles');
+        return $role->name !== 'super_admin'
+            && $user->hasPermissionTo('restore roles');
     }
 
     public function forceDelete(User $user, Role $role): bool
     {
-        return $user->hasPermissionTo('force_delete roles');
+        return $role->name !== 'super_admin'
+            && $user->hasPermissionTo('force_delete roles');
     }
 }

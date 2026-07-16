@@ -25,6 +25,8 @@ class ServiceResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
 
+    protected static ?int $navigationSort = 20;
+
     public static function getNavigationGroup(): ?string
     {
         return __('admin.navigation.content');
@@ -74,10 +76,10 @@ class ServiceResource extends Resource
                     ->schema([
                         TranslatableInfolistTabs::make([
                             'name' => [],
-                            'problems_you_are_facing' => ['columnSpanFull' => true],
-                            'how_can_we_help' => ['columnSpanFull' => true],
-                            'type_of_intervention' => ['columnSpanFull' => true],
-                            'results' => ['columnSpanFull' => true],
+                            'summary' => ['columnSpanFull' => true],
+                            'problem' => ['columnSpanFull' => true],
+                            'approach' => ['columnSpanFull' => true],
+                            'result' => ['columnSpanFull' => true],
                         ], columns: 2),
                     ]),
                 Section::make(__('admin.sections.publishing'))

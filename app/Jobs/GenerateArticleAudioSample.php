@@ -8,6 +8,7 @@ use App\Services\ArticleAudio\ArticleNarrationScript;
 use App\Services\ArticleAudio\NarrationMarkup;
 use App\Services\ArticleAudio\NarrationSampleExcerpt;
 use App\Services\ElevenLabs\ElevenLabsTextToSpeech;
+use App\Support\Ai\ElevenLabsExecutionBudget;
 use App\Support\Editorial\ArticleCatalog;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,17 +24,19 @@ class GenerateArticleAudioSample implements ShouldBeUnique, ShouldQueue
 
     public int $tries = 1;
 
-    public int $timeout = 180;
+    public int $timeout;
 
     public bool $failOnTimeout = true;
 
-    public int $uniqueFor = 600;
+    public int $uniqueFor;
 
     public function __construct(
         public readonly string $articleKey,
         public readonly string $locale,
         public readonly string $modelId,
     ) {
+        $this->timeout = ElevenLabsExecutionBudget::sampleJobTimeout($this->modelId);
+        $this->uniqueFor = ElevenLabsExecutionBudget::uniqueFor($this->timeout);
         $this->onConnection((string) config('services.elevenlabs.queue_connection', 'database'));
         $this->onQueue((string) config('services.elevenlabs.queue', 'article-audio'));
     }
@@ -81,34 +84,47 @@ class GenerateArticleAudioSample implements ShouldBeUnique, ShouldQueue
 
         $prepared = $markup->forModel((string) $narration->script, $this->modelId);
         $sampleText = $excerpt->make($prepared, (int) config('services.elevenlabs.sample_characters', 650));
-        $result = $speech->synthesize($sampleText, $this->locale, $this->modelId);
         $diskName = (string) config('services.elevenlabs.audio_disk', 'public');
         $path = sprintf(
-            'article-audio/samples/%s/%s-%s-%s.mp3',
+            'article-audio/samples/%s/%s-%s-%s-%s.mp3',
             $this->locale,
             $this->articleKey,
             Str::slug($this->modelId),
             substr($scriptHash, 0, 12),
+            Str::lower((string) Str::uuid()),
         );
         $disk = Storage::disk($diskName);
-        $stored = $disk->put($path, $result->audio, ['visibility' => 'public']);
+        $samplePersisted = false;
 
-        if (! $stored || ! $disk->exists($path) || $disk->size($path) === 0) {
-            throw new RuntimeException('The generated sample MP3 could not be persisted.');
+        try {
+            $result = $speech->synthesize($sampleText, $this->locale, $this->modelId);
+            $stored = $disk->put($path, $result->audio, ['visibility' => 'public']);
+
+            if (! $stored || ! $disk->exists($path) || $disk->size($path) === 0) {
+                throw new RuntimeException('The generated sample MP3 could not be persisted.');
+            }
+
+            $narration->updateSample($this->modelId, [
+                'status' => 'ready',
+                'disk' => $diskName,
+                'path' => $path,
+                'script_hash' => $scriptHash,
+                'voice_id' => $speech->voiceId(),
+                'character_count' => $result->characterCount,
+                'segment_count' => $result->segmentCount,
+                'request_ids' => $result->requestIds,
+                'generated_at' => now()->toIso8601String(),
+                'failed_at' => null,
+                'last_error' => null,
+            ]);
+            $samplePersisted = true;
+        } catch (Throwable $exception) {
+            if (! $samplePersisted && $disk->exists($path)) {
+                $disk->delete($path);
+            }
+
+            throw $exception;
         }
-
-        $narration->updateSample($this->modelId, [
-            'status' => 'ready',
-            'disk' => $diskName,
-            'path' => $path,
-            'script_hash' => $scriptHash,
-            'character_count' => $result->characterCount,
-            'segment_count' => $result->segmentCount,
-            'request_ids' => $result->requestIds,
-            'generated_at' => now()->toIso8601String(),
-            'failed_at' => null,
-            'last_error' => null,
-        ]);
 
         $previousPath = is_array($previousSample) ? data_get($previousSample, 'path') : null;
         $previousDisk = is_array($previousSample) ? data_get($previousSample, 'disk', 'public') : null;
@@ -136,7 +152,7 @@ class GenerateArticleAudioSample implements ShouldBeUnique, ShouldQueue
             $message = str_replace($apiKey, '[redacted]', $message);
         }
 
-        $narration->updateSample($this->modelId, [
+        $narration->failSampleGeneration($this->modelId, [
             'status' => 'failed',
             'failed_at' => now()->toIso8601String(),
             'last_error' => Str::limit($message, 1000),

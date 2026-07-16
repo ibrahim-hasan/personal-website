@@ -25,9 +25,6 @@ class RolesTable
                 TextColumn::make('name')
                     ->label(__('admin.fields.code_name'))
                     ->searchable(),
-                // TextColumn::make('guard_name')
-                //     ->label(__('admin.fields.guard_name'))
-                //     ->searchable(),
                 TextColumn::make('created_at')
                     ->label(__('admin.fields.created_at'))
                     ->dateTime()
@@ -47,13 +44,16 @@ class RolesTable
             ->recordActions([
                 ActionGroup::make([
                     ViewAction::make(),
-                    EditAction::make(),
-                    DeleteAction::make(),
+                    EditAction::make()
+                        ->visible(fn (Role $record): bool => $record->name !== 'super_admin'),
+                    DeleteAction::make()
+                        ->visible(fn (Role $record): bool => $record->name !== 'super_admin'),
                 ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete'),
                 ]),
             ]);
     }

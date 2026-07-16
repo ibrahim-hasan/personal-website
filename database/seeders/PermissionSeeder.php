@@ -12,7 +12,7 @@ class PermissionSeeder extends Seeder
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        $resources = ['services', 'intellectual_libraries', 'authors', 'guides', 'settings', 'users', 'roles', 'tags'];
+        $resources = ['services', 'projects', 'articles', 'comments', 'contact_inquiries', 'settings', 'users', 'roles'];
         $actions = ['view_any', 'view', 'create', 'update', 'delete', 'restore', 'force_delete'];
 
         foreach ($resources as $resource) {

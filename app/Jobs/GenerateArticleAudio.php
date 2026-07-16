@@ -6,7 +6,9 @@ use App\Enums\ArticleAudioStatus;
 use App\Models\ArticleAudio;
 use App\Models\ArticleNarration;
 use App\Services\ArticleAudio\ArticleAudioScript;
+use App\Services\ArticleAudio\Mp3Metadata;
 use App\Services\ElevenLabs\ElevenLabsTextToSpeech;
+use App\Support\Ai\ElevenLabsExecutionBudget;
 use App\Support\Editorial\ArticleCatalog;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -22,17 +24,19 @@ class GenerateArticleAudio implements ShouldBeUnique, ShouldQueue
 
     public int $tries = 1;
 
-    public int $timeout = 300;
+    public int $timeout;
 
     public bool $failOnTimeout = true;
 
-    public int $uniqueFor = 900;
+    public int $uniqueFor;
 
     public function __construct(
         public readonly string $articleKey,
         public readonly string $locale,
         public readonly ?string $modelId = null,
     ) {
+        $this->timeout = ElevenLabsExecutionBudget::fullJobTimeout();
+        $this->uniqueFor = ElevenLabsExecutionBudget::uniqueFor($this->timeout);
         $this->onConnection((string) config('services.elevenlabs.queue_connection', 'database'));
         $this->onQueue((string) config('services.elevenlabs.queue', 'article-audio'));
     }
@@ -45,6 +49,7 @@ class GenerateArticleAudio implements ShouldBeUnique, ShouldQueue
     public function handle(
         ArticleCatalog $articles,
         ArticleAudioScript $scripts,
+        Mp3Metadata $metadata,
         ElevenLabsTextToSpeech $speech,
     ): void {
         $article = $articles->findByKey($this->articleKey);
@@ -107,10 +112,11 @@ class GenerateArticleAudio implements ShouldBeUnique, ShouldQueue
                 'path' => $path,
                 'mime_type' => 'audio/mpeg',
                 'file_size' => $disk->size($path),
+                'duration_seconds' => $metadata->durationSeconds($result->audio),
                 'character_count' => $result->characterCount,
                 'segment_count' => $result->segmentCount,
                 'content_hash' => $contentHash,
-                'voice_id' => (string) config('services.elevenlabs.voice_id'),
+                'voice_id' => $speech->voiceId(),
                 'model_id' => $modelId,
                 'output_format' => (string) config('services.elevenlabs.output_format'),
                 'voice_settings' => $speech->profile($modelId)['voice_settings'],

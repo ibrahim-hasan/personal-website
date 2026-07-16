@@ -8,6 +8,7 @@ use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Filament\Resources\Users\Pages\ShowUser;
 use App\Filament\Resources\Users\Schemas\UserForm;
 use App\Filament\Resources\Users\Tables\UsersTable;
+use App\Models\Role;
 use App\Models\User;
 use BackedEnum;
 use Filament\Infolists\Components\TextEntry;
@@ -15,19 +16,23 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 
 class UserResource extends Resource
 {
-    public const SEEDED_ADMIN_EMAIL = 'admin@ibrahimhasan.dev';
-
     protected static ?string $model = User::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
+    protected static ?int $navigationSort = 20;
+
     public static function getNavigationGroup(): ?string
     {
-        return __('admin.navigation.access');
+        return __('admin.navigation.administration');
     }
 
     public static function getModelLabel(): string
@@ -86,13 +91,106 @@ class UserResource extends Resource
                             ->getStateUsing(fn (User $record): string => filled($record->locale_preference)
                                 ? (__('admin.locales.'.$record->locale_preference) ?? $record->locale_preference)
                                 : '-'),
+                        TextEntry::make('roles.name')
+                            ->label(__('admin.fields.roles'))
+                            ->badge()
+                            ->formatStateUsing(fn (string $state): string => Str::headline($state))
+                            ->placeholder('-'),
                     ]),
             ]);
     }
 
     public static function canManageRecord(User $record): bool
     {
-        return Gate::allows('update', $record) || $record->email === self::SEEDED_ADMIN_EMAIL;
+        return Gate::allows('update', $record);
+    }
+
+    public static function canChangeStatus(User $record): bool
+    {
+        $actor = auth()->user();
+
+        return $actor instanceof User
+            && ! $actor->is($record)
+            && Gate::forUser($actor)->allows('update', $record);
+    }
+
+    public static function canManageRoles(?User $record): bool
+    {
+        $actor = auth()->user();
+
+        if (! $actor instanceof User) {
+            return false;
+        }
+
+        if ($record === null) {
+            return $actor->hasRole('super_admin') || $actor->can('update users');
+        }
+
+        return ! $actor->is($record) && Gate::forUser($actor)->allows('update', $record);
+    }
+
+    /** @param  Builder<Role>  $query */
+    public static function scopeAssignableRoles(Builder $query): Builder
+    {
+        $actor = auth()->user();
+
+        if (! $actor instanceof User || ! $actor->hasRole('super_admin')) {
+            $query->where('name', '!=', 'super_admin');
+        }
+
+        return $query;
+    }
+
+    /** @return array<int, string> */
+    public static function assignableRoleIds(): array
+    {
+        return self::scopeAssignableRoles(Role::query())
+            ->pluck('id')
+            ->map(fn (int $id): string => (string) $id)
+            ->all();
+    }
+
+    public static function roleLabel(Role $role): string
+    {
+        return $role->getTranslation('display_name', app()->getLocale(), false)
+            ?: Str::headline($role->name);
+    }
+
+    /** @param  array<int, int|string>  $roleIds */
+    public static function syncAssignableRoles(User $record, array $roleIds): void
+    {
+        $actor = auth()->user();
+
+        abort_unless($actor instanceof User, 403);
+
+        if ($actor->is($record)) {
+            return;
+        }
+
+        Gate::forUser($actor)->authorize('update', $record);
+
+        /** @var Collection<int, Role> $roles */
+        $roles = Role::query()->whereKey($roleIds)->get();
+
+        abort_if($roles->count() !== count(array_unique($roleIds)), 422);
+        abort_if(! $actor->hasRole('super_admin') && $roles->contains('name', 'super_admin'), 403);
+
+        $record->syncRoles($roles);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with('roles');
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->id() !== $record->getKey() && parent::canDelete($record);
+    }
+
+    public static function canForceDelete(Model $record): bool
+    {
+        return auth()->id() !== $record->getKey() && parent::canForceDelete($record);
     }
 
     public static function getRelations(): array

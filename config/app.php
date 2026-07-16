@@ -138,6 +138,4 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'enable_phase_2' => env('ENABLE_PHASE_2', false),
-
 ];

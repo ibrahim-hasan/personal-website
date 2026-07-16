@@ -2,8 +2,24 @@
 
 namespace App\Support;
 
+use App\Models\Project;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Schema;
+
 final class PortfolioAtlas
 {
+    /**
+     * @return list<array{id: string, title: string, sector: string, summary: string, challenge: string, response: string, outcome: string, lens: string, image: string, alt: string, logo: string, logo_alt: string, tags: list<string>}>
+     */
+    public static function homepageProjects(int $limit = 6): array
+    {
+        if ($limit <= 0) {
+            return [];
+        }
+
+        return array_slice(self::projects(), 0, $limit);
+    }
+
     /**
      * @return list<array{id: string, title: string, sector: string, summary: string, challenge: string, response: string, outcome: string, lens: string, image: string, alt: string, logo: string, logo_alt: string, tags: list<string>}>
      */
@@ -11,6 +27,18 @@ final class PortfolioAtlas
     {
         if ($limit <= 0) {
             return [];
+        }
+
+        if (self::usesStoredProjects()) {
+            return Project::query()
+                ->published()
+                ->where('featured', true)
+                ->when($lens !== null, fn (Builder $query): Builder => $query->where('lens', $lens))
+                ->orderBy('sort_order')
+                ->limit($limit)
+                ->get()
+                ->map(fn (Project $project): array => $project->toPortfolioArray(app()->getLocale()))
+                ->all();
         }
 
         $projects = self::projects();
@@ -30,11 +58,20 @@ final class PortfolioAtlas
      */
     public static function projects(): array
     {
-        return self::localize(self::projectsPayload());
+        if (self::usesStoredProjects()) {
+            return Project::query()
+                ->published()
+                ->orderBy('sort_order')
+                ->get()
+                ->map(fn (Project $project): array => $project->toPortfolioArray(app()->getLocale()))
+                ->all();
+        }
+
+        return self::localize(self::projectDefaults());
     }
 
     /**
-     * @return list<array{id: string, name: string, relationship: string, summary: string, logo: string, logo_alt: string, focus: list<string>}>
+     * @return list<array{id: string, name: string, relationship: string, summary: string, logo_on_light: string, logo_on_dark: string, logo_alt: string, logo_on_light_width: int, logo_on_light_height: int, logo_on_dark_width: int, logo_on_dark_height: int, focus: list<string>}>
      */
     public static function companies(): array
     {
@@ -62,43 +99,53 @@ final class PortfolioAtlas
      */
     private static function companiesPayload(): array
     {
-        return [
+        $companies = [
             [
                 'id' => 'code-moments',
-                'name' => ['ar' => 'Code Moments', 'en' => 'Code Moments'],
+                'name' => ['ar' => 'كود مومنتس', 'en' => 'Code Moments'],
                 'relationship' => [
                     'ar' => 'الرئيس التنفيذي',
                     'en' => 'Chief Executive Officer',
                 ],
                 'summary' => [
-                    'ar' => 'في Code Moments أقود الشركة من فهم احتياج العمل إلى بناء منتجات وأنظمة رقمية متقنة، مع إبقاء القرار التجاري وجودة التنفيذ والتطوير المستمر في مسار واحد.',
+                    'ar' => 'في كود مومنتس أقود الشركة من فهم احتياج العمل إلى بناء منتجات وأنظمة رقمية متقنة، مع إبقاء القرار التجاري وجودة التنفيذ والتطوير المستمر في مسار واحد.',
                     'en' => 'At Code Moments, I lead the company from understanding the business need through building polished digital products and systems, keeping commercial judgment, delivery quality, and continuous improvement on one path.',
                 ],
-                'logo' => 'images/brands/companies/code-moments.svg',
-                'logo_alt' => ['ar' => 'شعار Code Moments', 'en' => 'Code Moments logo'],
+                'logo_on_light' => 'images/brands/companies/code-moments-on-light.svg',
+                'logo_on_dark' => 'images/brands/companies/code-moments-on-dark.svg',
+                'logo_alt' => ['ar' => 'شعار كود مومنتس', 'en' => 'Code Moments logo'],
+                'logo_on_light_width' => 94,
+                'logo_on_light_height' => 34,
+                'logo_on_dark_width' => 133,
+                'logo_on_dark_height' => 48,
                 'focus' => [
-                    ['ar' => 'قيادة الشركة', 'en' => 'Company leadership'],
-                    ['ar' => 'استراتيجية المنتجات', 'en' => 'Product strategy'],
-                    ['ar' => 'جودة التسليم', 'en' => 'Delivery quality'],
+                    ['ar' => 'تحويل الاحتياج إلى خارطة منتج', 'en' => 'Turn needs into a product roadmap'],
+                    ['ar' => 'مواءمة القرار التجاري والتنفيذ', 'en' => 'Align commercial decisions and delivery'],
+                    ['ar' => 'بناء نظام جودة وتحسين مستمر', 'en' => 'Build a system for quality and iteration'],
                 ],
             ],
             [
                 'id' => 'from-scratch',
-                'name' => ['ar' => 'From Scratch', 'en' => 'From Scratch'],
+                'name' => ['ar' => 'فروم سكراتش', 'en' => 'From Scratch'],
                 'relationship' => [
                     'ar' => 'الشريك المؤسس والرئيس التنفيذي',
                     'en' => 'Co-founder & Chief Executive Officer',
                 ],
                 'summary' => [
-                    'ar' => 'شاركت في تأسيس From Scratch وقيادة نموها وتسليم منتجات رقمية لقطاعات متعددة؛ تجربة رسّخت لدي أن التقنية الجيدة تبدأ بفهم التشغيل وتنتهي بنظام يستطيع الفريق الاعتماد عليه.',
+                    'ar' => 'شاركت في تأسيس فروم سكراتش وقيادة نموها وتسليم منتجات رقمية لقطاعات متعددة؛ تجربة رسّخت لدي أن التقنية الجيدة تبدأ بفهم التشغيل وتنتهي بنظام يستطيع الفريق الاعتماد عليه.',
                     'en' => 'I co-founded From Scratch and led its growth and delivery across digital products in multiple sectors—an experience that reinforced a simple principle: good technology starts with understanding operations and ends with a system the team can rely on.',
                 ],
-                'logo' => 'images/brands/companies/from-scratch.svg',
-                'logo_alt' => ['ar' => 'شعار From Scratch', 'en' => 'From Scratch logo'],
+                'logo_on_light' => 'images/brands/companies/from-scratch-on-light.svg',
+                'logo_on_dark' => 'images/brands/companies/from-scratch-on-dark.svg',
+                'logo_alt' => ['ar' => 'شعار فروم سكراتش', 'en' => 'From Scratch logo'],
+                'logo_on_light_width' => 259,
+                'logo_on_light_height' => 140,
+                'logo_on_dark_width' => 136,
+                'logo_on_dark_height' => 74,
                 'focus' => [
-                    ['ar' => 'تأسيس الشركة', 'en' => 'Company building'],
-                    ['ar' => 'قيادة فرق التسليم', 'en' => 'Delivery leadership'],
-                    ['ar' => 'منتجات متعددة القطاعات', 'en' => 'Multi-sector products'],
+                    ['ar' => 'بناء نموذج تشغيل قابل للتوسع', 'en' => 'Build a scalable operating model'],
+                    ['ar' => 'تسليم منتجات عبر قطاعات متعددة', 'en' => 'Deliver products across multiple sectors'],
+                    ['ar' => 'تحويل الخبرة إلى أنظمة يعتمد عليها', 'en' => 'Turn experience into dependable systems'],
                 ],
             ],
             [
@@ -112,15 +159,29 @@ final class PortfolioAtlas
                     'ar' => 'أعمل مباشرة مع أصحاب القرار من موقع معماري حلول للتحول الرقمي والذكاء الاصطناعي: أبدأ من العملية والقرار والبيانات والمخاطر، ثم أحدد التقنية التي تستحق البناء والقياس.',
                     'en' => 'I work directly with decision-makers as an AI and digital transformation architect: starting with the process, decision, data, and risk, then identifying the technology worth building and measuring.',
                 ],
-                'logo' => '',
+                'logo_on_light' => '',
+                'logo_on_dark' => '',
                 'logo_alt' => '',
+                'logo_on_light_width' => 0,
+                'logo_on_light_height' => 0,
+                'logo_on_dark_width' => 0,
+                'logo_on_dark_height' => 0,
                 'focus' => [
-                    ['ar' => 'وضوح القرار', 'en' => 'Decision clarity'],
-                    ['ar' => 'حوكمة الذكاء الاصطناعي', 'en' => 'AI governance'],
-                    ['ar' => 'أثر قابل للقياس', 'en' => 'Measurable impact'],
+                    ['ar' => 'تحديد القرار قبل اختيار التقنية', 'en' => 'Define the decision before the technology'],
+                    ['ar' => 'ضبط مخاطر البيانات والذكاء الاصطناعي', 'en' => 'Control data and AI risk'],
+                    ['ar' => 'ربط الاستثمار بأثر قابل للقياس', 'en' => 'Connect investment to measurable impact'],
                 ],
             ],
         ];
+
+        $order = ['from-scratch' => 0, 'code-moments' => 1, 'independent-strategic-practice' => 2];
+
+        usort(
+            $companies,
+            static fn (array $first, array $second): int => $order[$first['id']] <=> $order[$second['id']],
+        );
+
+        return $companies;
     }
 
     /**
@@ -157,9 +218,9 @@ final class PortfolioAtlas
                 ],
             ],
             [
-                'id' => 'guide-ai-transformation',
+                'id' => 'lead-ai-transformation',
                 'step' => '04',
-                'title' => ['ar' => 'قيادة التحول الرقمي وتبنّي الذكاء الاصطناعي', 'en' => 'Guide AI and digital transformation'],
+                'title' => ['ar' => 'قيادة التحول الرقمي وتبنّي الذكاء الاصطناعي', 'en' => 'Lead AI and digital transformation'],
                 'summary' => [
                     'ar' => 'تجتمع الخبرة اليوم في قرار واحد متكامل: ما الذي يُرقمن، وما الذي يُؤتمت، وأين يضيف الذكاء الاصطناعي قيمة حقيقية ضمن مخاطر مفهومة.',
                     'en' => 'The experience now comes together in one integrated decision: what to digitize, what to automate, and where AI creates real value with understood risk.',
@@ -171,7 +232,7 @@ final class PortfolioAtlas
     /**
      * @return list<array<string, mixed>>
      */
-    private static function projectsPayload(): array
+    public static function projectDefaults(): array
     {
         return [
             [
@@ -366,7 +427,7 @@ final class PortfolioAtlas
                 'sector' => ['ar' => 'السياحة والتجارب', 'en' => 'Tourism & experiences'],
                 'summary' => [
                     'ar' => 'دليل سياحي رقمي يربط زوار المملكة بمزودي التجارب، ويساعدهم على اكتشاف الوجهات وتنظيم الرحلات.',
-                    'en' => 'A digital tourism guide connecting visitors in Saudi Arabia with experience providers while supporting destination discovery and trip planning.',
+                    'en' => 'A digital tourism platform connecting visitors in Saudi Arabia with experience providers while supporting destination discovery and trip planning.',
                 ],
                 'challenge' => [
                     'ar' => 'احتاج الزائر إلى جمع اكتشاف الوجهات وبناء الرحلة والتواصل مع المزود في تجربة واحدة، مع دور واضح لمقدم التجربة.',
@@ -480,6 +541,11 @@ final class PortfolioAtlas
                 ],
             ],
         ];
+    }
+
+    private static function usesStoredProjects(): bool
+    {
+        return Schema::hasTable('projects');
     }
 
     private static function localize(mixed $value, ?string $locale = null): mixed

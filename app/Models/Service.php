@@ -16,17 +16,19 @@ class Service extends Model implements HasMedia
     use HasFactory, HasTranslations, InteractsWithMedia, Posted, SoftDeletes;
 
     protected $fillable = [
+        'slug',
         'name',
-        'problems_you_are_facing',
-        'how_can_we_help',
-        'type_of_intervention',
-        'results',
+        'summary',
+        'problem',
+        'approach',
+        'deliverables',
+        'result',
         'order',
         'is_draft',
         'is_active',
     ];
 
-    protected $translatable = ['name', 'problems_you_are_facing', 'how_can_we_help', 'type_of_intervention', 'results'];
+    protected $translatable = ['name', 'summary', 'problem', 'approach', 'result'];
 
     protected $attributes = [
         'order' => 0,
@@ -38,10 +40,11 @@ class Service extends Model implements HasMedia
     {
         return [
             'name' => 'array',
-            'problems_you_are_facing' => 'array',
-            'how_can_we_help' => 'array',
-            'type_of_intervention' => 'array',
-            'results' => 'array',
+            'summary' => 'array',
+            'problem' => 'array',
+            'approach' => 'array',
+            'deliverables' => 'array',
+            'result' => 'array',
             'order' => 'integer',
             'is_draft' => 'boolean',
             'is_active' => 'boolean',
@@ -54,5 +57,36 @@ class Service extends Model implements HasMedia
         static::deleted(fn () => DashboardCache::bust());
         static::restored(fn () => DashboardCache::bust());
         static::forceDeleted(fn () => DashboardCache::bust());
+    }
+
+    /**
+     * @return array{id: string, name: string, summary: string, problem: string, approach: string, deliverables: list<string>, result: string}
+     */
+    public function toPublicArray(string $locale): array
+    {
+        return [
+            'id' => $this->slug,
+            'name' => $this->translation('name', $locale),
+            'summary' => $this->translation('summary', $locale),
+            'problem' => $this->translation('problem', $locale),
+            'approach' => $this->translation('approach', $locale),
+            'deliverables' => collect($this->deliverables ?? [])
+                ->map(fn (array $deliverable): string => (string) ($deliverable[$locale] ?? $deliverable['en'] ?? $deliverable['ar'] ?? ''))
+                ->filter()
+                ->values()
+                ->all(),
+            'result' => $this->translation('result', $locale),
+        ];
+    }
+
+    private function translation(string $attribute, string $locale): string
+    {
+        $translations = $this->getAttribute($attribute);
+
+        if (! is_array($translations)) {
+            return is_string($translations) ? $translations : '';
+        }
+
+        return (string) ($translations[$locale] ?? $translations['en'] ?? $translations['ar'] ?? '');
     }
 }

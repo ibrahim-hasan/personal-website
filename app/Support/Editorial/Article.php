@@ -11,6 +11,7 @@ final readonly class Article
      * @param  array{ar: string, en: string}  $slugs
      * @param  array{ar: int, en: int}  $readMinutes
      * @param  list<string>  $topicKeys
+     * @param  array<string, array<string, mixed>>  $translations
      */
     public function __construct(
         public string $key,
@@ -22,6 +23,7 @@ final readonly class Article
         public array $topicKeys,
         public bool $featured = false,
         public ?string $sourceUrl = null,
+        public array $translations = [],
     ) {}
 
     public function slug(string $locale): string
@@ -66,7 +68,8 @@ final readonly class Article
 
     private function translatedString(string $field, string $locale): string
     {
-        $value = Lang::get("articles.articles.{$this->key}.{$field}", [], $locale);
+        $value = $this->translations[$field][$locale]
+            ?? Lang::get("articles.articles.{$this->key}.{$field}", [], $locale);
 
         return is_string($value) ? $value : '';
     }
@@ -76,7 +79,8 @@ final readonly class Article
      */
     private function translatedArray(string $field, string $locale): array
     {
-        $value = Lang::get("articles.articles.{$this->key}.{$field}", [], $locale);
+        $value = $this->translations[$field][$locale]
+            ?? Lang::get("articles.articles.{$this->key}.{$field}", [], $locale);
 
         return is_array($value) ? $value : [];
     }

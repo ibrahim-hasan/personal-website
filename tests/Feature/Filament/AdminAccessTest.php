@@ -3,7 +3,6 @@
 namespace Tests\Feature\Filament;
 
 use App\Filament\Widgets\AdminContentStats;
-use App\Filament\Widgets\AdminPageHealth;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,7 +30,9 @@ class AdminAccessTest extends TestCase
 
         $this->actingAs($user)
             ->get('/admin')
-            ->assertOk();
+            ->assertOk()
+            ->assertSee('data-admin-tools', escape: false)
+            ->assertSee(__('admin.navigation.utilities'));
     }
 
     public function test_content_stats_widget_visibility_depends_on_permissions(): void
@@ -46,16 +47,24 @@ class AdminAccessTest extends TestCase
         $this->assertFalse(AdminContentStats::canView());
     }
 
-    public function test_page_health_widget_visibility_depends_on_permissions(): void
+    public function test_content_stats_widget_balances_each_permitted_stat_count(): void
     {
-        $allowedUser = $this->makeUserWithPermissions(['view_any settings']);
-        $blockedUser = User::factory()->create();
+        $widget = new class extends AdminContentStats
+        {
+            /**
+             * @return int|array<string, int>
+             */
+            public function columnsFor(int $statCount): int|array
+            {
+                return $this->columnsForStatCount($statCount);
+            }
+        };
 
-        $this->actingAs($allowedUser);
-        $this->assertTrue(AdminPageHealth::canView());
-
-        $this->actingAs($blockedUser);
-        $this->assertFalse(AdminPageHealth::canView());
+        $this->assertSame(1, $widget->columnsFor(1));
+        $this->assertSame(2, $widget->columnsFor(2)['@md']);
+        $this->assertSame(3, $widget->columnsFor(3)['@3xl']);
+        $this->assertSame(4, $widget->columnsFor(4)['@4xl']);
+        $this->assertSame(5, $widget->columnsFor(5)['@5xl']);
     }
 
     /**

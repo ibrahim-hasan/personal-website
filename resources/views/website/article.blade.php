@@ -27,7 +27,7 @@
         <header class="article-hero">
             <div class="site-container article-hero__grid">
                 <div class="article-hero__copy">
-                    <a href="{{ localized_route('writing') }}" class="article-back-link">
+                    <a href="{{ localized_route('writing') }}" wire:navigate class="article-back-link">
                         <x-phosphor-arrow-left class="h-4 w-4 rtl:rotate-180" />
                         <span>{{ __('articles.index.back') }}</span>
                     </a>
@@ -70,61 +70,38 @@
             <aside class="reader-panel" aria-label="{{ __('articles.reader.tools') }}">
                 <div class="reader-panel__primary">
                     @if ($articleAudio)
-                        <div class="article-audio" data-article-audio-player>
-                            <div class="article-audio__custom" data-article-audio-custom hidden>
-                                <div class="article-audio__topline">
-                                    <button
-                                        type="button"
-                                        class="article-audio__toggle"
-                                        data-article-audio-toggle
-                                        aria-label="{{ __('articles.reader.listen') }}"
-                                        title="{{ __('articles.reader.listen') }}"
-                                    >
-                                        <x-phosphor-play class="h-5 w-5" data-article-audio-play-icon />
-                                        <x-phosphor-pause class="h-5 w-5" data-article-audio-pause-icon hidden />
-                                    </button>
-
-                                    <div class="article-audio__meta">
-                                        <p>{{ __('articles.reader.listen') }}</p>
-                                        <p data-article-audio-status aria-live="polite">{{ __('articles.reader.ready') }}</p>
-                                    </div>
-
-                                    <label class="article-audio__rate">
-                                        <span class="sr-only">{{ __('articles.reader.speed') }}</span>
-                                        <select data-article-audio-rate aria-label="{{ __('articles.reader.speed') }}">
-                                            <option value="0.85">0.85×</option>
-                                            <option value="1" selected>1×</option>
-                                            <option value="1.15">1.15×</option>
-                                            <option value="1.3">1.3×</option>
-                                        </select>
-                                    </label>
-                                </div>
-
-                                <div class="article-audio__timeline">
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="100"
-                                        step="0.1"
-                                        value="0"
-                                        data-article-audio-progress
-                                        aria-label="{{ __('articles.reader.progress') }}"
-                                    >
-                                    <div class="article-audio__time" aria-hidden="true">
-                                        <bdi dir="ltr" data-article-audio-current>00:00</bdi>
-                                        <bdi dir="ltr" data-article-audio-duration>--:--</bdi>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <audio
-                                data-article-audio-element
-                                controls
-                                preload="metadata"
-                                src="{{ $articleAudio['url'] }}"
+                        <div
+                            class="article-audio article-audio--launcher"
+                            data-article-audio-source
+                            data-audio-url="{{ $articleAudio['url'] }}"
+                            data-audio-title="{{ $article['title'] }}"
+                            data-audio-article-key="{{ $articleAudio['article_key'] }}"
+                            data-audio-locale="{{ $articleAudio['locale'] }}"
+                            data-audio-duration-seconds="{{ $articleAudio['duration_seconds'] ?? '' }}"
+                            data-status-loading="{{ __('articles.reader.loading') }}"
+                            data-status-playing="{{ __('articles.reader.playing') }}"
+                            data-status-paused="{{ __('articles.reader.paused') }}"
+                            data-status-finished="{{ __('articles.reader.finished') }}"
+                            data-status-error="{{ __('articles.reader.error') }}"
+                            data-label-listen="{{ __('articles.reader.listen') }}"
+                            data-label-resume="{{ __('articles.reader.resume') }}"
+                            data-label-pause="{{ __('articles.reader.pause') }}"
+                        >
+                            <button
+                                type="button"
+                                class="article-audio__launch"
+                                data-article-audio-launch
+                                aria-label="{{ __('articles.reader.listen') }}"
                             >
-                                {{ __('articles.reader.unsupported') }}
-                            </audio>
+                                <span class="article-audio__launch-icon" aria-hidden="true">
+                                    <x-phosphor-play class="h-5 w-5" />
+                                </span>
+                                <span>
+                                    <strong>{{ __('articles.reader.listen') }}</strong>
+                                    <small>{{ __('articles.reader.continue_listening') }}</small>
+                                </span>
+                                <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" aria-hidden="true" />
+                            </button>
                         </div>
                     @endif
 
@@ -198,11 +175,16 @@
         </div>
     </article>
 
+    <livewire:website.article-community
+        :article-key="$article['key']"
+        :return-path="request()->getRequestUri()"
+    />
+
     <section class="related-writing" data-reader-secondary>
         <div class="site-container">
             <div class="related-writing__heading">
                 <h2>{{ __('articles.reader.related') }}</h2>
-                <a href="{{ localized_route('writing') }}" class="text-link">
+                <a href="{{ localized_route('writing') }}" wire:navigate class="text-link">
                     {{ __('articles.index.view_all') }}
                     <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
                 </a>
@@ -210,7 +192,7 @@
 
             <div class="related-writing__list">
                 @foreach ($relatedArticles as $relatedArticle)
-                    <a href="{{ $relatedArticle['url'] }}" data-reveal>
+                    <a href="{{ $relatedArticle['url'] }}" wire:navigate data-reveal>
                         <span>{{ $relatedArticle['type'] }} · {{ $relatedArticle['read_time'] }}</span>
                         <h3>{{ $relatedArticle['title'] }}</h3>
                         <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
@@ -223,7 +205,7 @@
     <section class="article-consultation" data-reader-secondary>
         <div class="site-container article-consultation__inner">
             <p>{{ __('articles.index.consultation_prompt') }}</p>
-            <a href="{{ localized_route('contact') }}#consultation" class="button-light" data-magnetic>
+            <a href="{{ localized_route('contact') }}#consultation" wire:navigate class="button-light" data-magnetic>
                 <span>{{ __('site.actions.free_consultation') }}</span>
                 <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
             </a>

@@ -16,7 +16,7 @@ class ManageArticleAudio extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-speaker-wave';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 40;
 
     protected string $view = 'filament.pages.manage-article-audio';
 
@@ -37,7 +37,7 @@ class ManageArticleAudio extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->can('view_any intellectual_libraries') === true;
+        return auth()->user()?->can('view_any articles') === true;
     }
 
     public static function shouldRegisterNavigation(): bool
@@ -134,7 +134,7 @@ class ManageArticleAudio extends Page
     {
         $voiceId = (string) config('services.elevenlabs.voice_id');
         $elevenLabsKeyConfigured = filled(config('services.elevenlabs.api_key'));
-        $openAiKeyConfigured = filled(config('services.openai.api_key'));
+        $openAiKeyConfigured = filled(config('ai.providers.openai.key'));
         $voiceConfigured = $voiceId !== '';
 
         return [
@@ -154,7 +154,7 @@ class ManageArticleAudio extends Page
 
     public function canGenerate(): bool
     {
-        return auth()->user()?->can('update intellectual_libraries') === true;
+        return auth()->user()?->can('update articles') === true;
     }
 
     private function trackStatusLabel(?ArticleAudio $track, bool $isStale): string
@@ -269,7 +269,7 @@ class ManageArticleAudio extends Page
             return null;
         }
 
-        if (str_contains($error, 'HTTP 402') || str_contains($error, 'insufficient_credits')) {
+        if (str_contains($error, 'HTTP 402') || str_contains($error, 'insufficient_credits') || str_contains($error, 'quota_exceeded')) {
             return __('article_audio.errors.insufficient_credits');
         }
 

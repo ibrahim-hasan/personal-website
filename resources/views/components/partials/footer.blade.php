@@ -10,7 +10,7 @@
             <h2 class="display-section max-w-4xl text-canvas">
                 {{ __('site.footer.cta_title') }}
             </h2>
-            <a href="{{ localized_route('contact') }}#consultation" class="button-light" data-magnetic>
+            <a href="{{ localized_route('contact') }}#consultation" wire:navigate class="button-light" data-magnetic>
                 <span>{{ __('site.actions.free_consultation') }}</span>
                 <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
             </a>
@@ -19,7 +19,7 @@
 
     <div class="site-container grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-[1.2fr_0.7fr_0.7fr]">
         <div>
-            <a href="{{ localized_route('home') }}" class="brand-mark brand-mark--footer">
+            <a href="{{ localized_route('home') }}" wire:navigate class="brand-mark brand-mark--footer">
                 <span class="brand-mark__name">{{ __('site.brand.name') }}</span>
                 <span class="brand-mark__signal" aria-hidden="true"></span>
             </a>
@@ -31,10 +31,10 @@
         <div>
             <h3 class="footer-label">{{ __('site.footer.navigate') }}</h3>
             <ul class="mt-5 flex flex-col gap-3 text-base">
-                <li><a class="footer-link" href="{{ localized_route('services') }}">{{ __('site.nav.services') }}</a></li>
-                <li><a class="footer-link" href="{{ localized_route('work') }}">{{ __('site.nav.work') }}</a></li>
-                <li><a class="footer-link" href="{{ localized_route('writing') }}">{{ __('site.nav.writing') }}</a></li>
-                <li><a class="footer-link" href="{{ localized_route('about') }}">{{ __('site.nav.about') }}</a></li>
+                <li><a class="footer-link" wire:navigate href="{{ localized_route('services') }}">{{ __('site.nav.services') }}</a></li>
+                <li><a class="footer-link" wire:navigate href="{{ localized_route('work') }}">{{ __('site.nav.work') }}</a></li>
+                <li><a class="footer-link" wire:navigate href="{{ localized_route('writing') }}">{{ __('site.nav.writing') }}</a></li>
+                <li><a class="footer-link" wire:navigate href="{{ localized_route('about') }}">{{ __('site.nav.about') }}</a></li>
             </ul>
         </div>
 
@@ -42,7 +42,7 @@
             <h3 class="footer-label">{{ __('site.footer.contact') }}</h3>
             <ul class="mt-5 flex flex-col gap-3 text-base text-canvas/70">
                 <li><a class="footer-link inline-block" href="mailto:{{ $contact['email'] }}" dir="ltr">{{ $contact['email'] }}</a></li>
-                <li><a class="footer-link" href="{{ localized_route('contact') }}#consultation">{{ __('site.actions.free_consultation') }}</a></li>
+                <li><a class="footer-link" wire:navigate href="{{ localized_route('contact') }}#consultation">{{ __('site.actions.free_consultation') }}</a></li>
             </ul>
         </div>
     </div>
@@ -60,8 +60,8 @@
                         rel="noopener noreferrer"
                         class="footer-socials__link"
                     >
-                        <span aria-hidden="true">{{ sprintf('%02d', $loop->iteration) }}</span>
                         <strong>{{ $profile['label'] }}</strong>
+                        <x-phosphor-arrow-up-right class="h-3.5 w-3.5 rtl:-rotate-90" aria-hidden="true" />
                     </a>
                 @endforeach
             </nav>

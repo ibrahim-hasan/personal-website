@@ -1,10 +1,7 @@
-<img
-    src="{{ asset('images/logo-dark.svg') }}"
-    alt="{{ __('admin.brand.name') }}"
-    class="max-w-48 h-auto mx-auto dark:hidden"
-/>
-<img
-    src="{{ asset('images/logo.svg') }}"
-    alt="{{ __('admin.brand.name') }}"
-    class="max-w-48 h-auto mx-auto hidden dark:block"
-/>
+<div class="admin-brand-lockup">
+    <img
+        class="admin-brand-lockup__wordmark"
+        src="{{ asset('images/brand/ibrahim-admin-wordmark.svg') }}"
+        alt="{{ __('admin.brand.owner') }}"
+    >
+</div>

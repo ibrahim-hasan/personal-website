@@ -6,6 +6,7 @@ use App\Contracts\ArticleAudio\NarrationEditor;
 use App\Enums\ArticleNarrationStatus;
 use App\Models\ArticleNarration;
 use App\Services\ArticleAudio\ArticleNarrationScript;
+use App\Support\Ai\NarrationExecutionBudget;
 use App\Support\Editorial\ArticleCatalog;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,7 +21,7 @@ class PrepareArticleNarration implements ShouldBeUnique, ShouldQueue
 
     public int $tries = 1;
 
-    public int $timeout = 240;
+    public int $timeout;
 
     public bool $failOnTimeout = true;
 
@@ -30,6 +31,7 @@ class PrepareArticleNarration implements ShouldBeUnique, ShouldQueue
         public readonly string $articleKey,
         public readonly string $locale,
     ) {
+        $this->timeout = NarrationExecutionBudget::jobTimeout();
         $this->onConnection((string) config('services.openai.queue_connection', 'database'));
         $this->onQueue((string) config('services.openai.queue', 'article-audio'));
     }
@@ -84,7 +86,7 @@ class PrepareArticleNarration implements ShouldBeUnique, ShouldQueue
 
     public function failed(?Throwable $exception): void
     {
-        $apiKey = (string) config('services.openai.api_key');
+        $apiKey = (string) config('ai.providers.openai.key');
         $message = $exception?->getMessage() ?: 'Article narration preparation failed.';
 
         if ($apiKey !== '') {

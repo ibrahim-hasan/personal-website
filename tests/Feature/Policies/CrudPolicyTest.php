@@ -2,16 +2,14 @@
 
 namespace Tests\Feature\Policies;
 
-use App\Models\Author;
-use App\Models\Guide;
-use App\Models\IntellectualLibrary;
+use App\Models\Article;
+use App\Models\Project;
 use App\Models\Service;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Spatie\Tags\Tag;
 use Tests\TestCase;
 
 class CrudPolicyTest extends TestCase
@@ -38,57 +36,40 @@ class CrudPolicyTest extends TestCase
         $this->assertFalse($user->can('viewAny', Service::class));
     }
 
-    public function test_user_with_permission_can_update_intellectual_library(): void
+    public function test_user_with_permission_can_update_article(): void
     {
-        $author = Author::query()->create([
-            'name' => ['ar' => 'مؤلف', 'en' => 'Author'],
-            'is_active' => true,
-            'is_draft' => false,
-        ]);
-        $library = IntellectualLibrary::query()->create([
-            'name' => ['ar' => 'اختبار', 'en' => 'Test'],
-            'slug' => ['ar' => 'اختبار', 'en' => 'test'],
-            'type' => 'article',
-            'author_id' => $author->id,
-            'seo_title' => ['ar' => 'عنوان', 'en' => 'Title'],
-        ]);
+        $article = Article::factory()->create();
 
-        $user = $this->makeUserWithPermissions(['update intellectual_libraries']);
+        $user = $this->makeUserWithPermissions(['update articles']);
 
-        $this->assertTrue($user->can('update', $library));
+        $this->assertTrue($user->can('update', $article));
     }
 
-    public function test_user_without_permission_cannot_delete_author(): void
+    public function test_user_without_permission_cannot_delete_project(): void
     {
-        $author = Author::query()->create([
-            'name' => ['ar' => 'مؤلف', 'en' => 'Author'],
-            'is_active' => true,
-            'is_draft' => false,
-        ]);
+        $project = Project::factory()->create();
         $user = User::factory()->create();
 
-        $this->assertFalse($user->can('delete', $author));
+        $this->assertFalse($user->can('delete', $project));
     }
 
-    public function test_user_with_permission_can_create_guides(): void
+    public function test_user_with_permission_can_create_projects(): void
     {
-        $user = $this->makeUserWithPermissions(['create guides']);
+        $user = $this->makeUserWithPermissions(['create projects']);
 
-        $this->assertTrue($user->can('create', Guide::class));
+        $this->assertTrue($user->can('create', Project::class));
     }
 
-    public function test_user_with_permission_can_manage_setting_and_tag(): void
+    public function test_user_with_permission_can_manage_setting(): void
     {
         $setting = Setting::query()->create([
             'group' => 'test',
             'key' => 'sample',
             'value' => '1',
         ]);
-        $tag = Tag::findOrCreate('sample-tag', 'tags');
-        $user = $this->makeUserWithPermissions(['update settings', 'update tags']);
+        $user = $this->makeUserWithPermissions(['update settings']);
 
         $this->assertTrue($user->can('update', $setting));
-        $this->assertTrue($user->can('update', $tag));
     }
 
     /**
@@ -107,7 +88,7 @@ class CrudPolicyTest extends TestCase
 
     protected function seedPermissions(): void
     {
-        $resources = ['services', 'intellectual_libraries', 'authors', 'guides', 'settings', 'users', 'roles', 'tags'];
+        $resources = ['services', 'projects', 'articles', 'comments', 'contact_inquiries', 'settings', 'users', 'roles'];
         $actions = ['view_any', 'view', 'create', 'update', 'delete', 'restore', 'force_delete'];
 
         foreach ($resources as $resource) {

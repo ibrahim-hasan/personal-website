@@ -12,23 +12,28 @@ class ServiceFactory extends Factory
     public function definition(): array
     {
         return [
+            'slug' => fake()->unique()->slug(2),
             'name' => [
                 'ar' => fake()->sentence(3),
                 'en' => fake()->sentence(3),
             ],
-            'problems_you_are_facing' => [
+            'summary' => [
                 'ar' => fake()->paragraph(),
                 'en' => fake()->paragraph(),
             ],
-            'how_can_we_help' => [
+            'problem' => [
                 'ar' => fake()->paragraph(),
                 'en' => fake()->paragraph(),
             ],
-            'type_of_intervention' => [
-                'ar' => fake()->sentence(),
-                'en' => fake()->sentence(),
+            'approach' => [
+                'ar' => fake()->paragraph(),
+                'en' => fake()->paragraph(),
             ],
-            'results' => [
+            'deliverables' => [
+                ['ar' => 'خارطة طريق', 'en' => 'Roadmap'],
+                ['ar' => 'نظام قابل للتسليم', 'en' => 'Handoff-ready system'],
+            ],
+            'result' => [
                 'ar' => fake()->paragraph(),
                 'en' => fake()->paragraph(),
             ],

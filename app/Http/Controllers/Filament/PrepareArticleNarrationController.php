@@ -26,7 +26,7 @@ class PrepareArticleNarrationController extends Controller
 
         abort_if($resolvedArticle === null || ! in_array($locale, ['ar', 'en'], true), 404);
 
-        if (blank(config('services.openai.api_key'))) {
+        if (blank(config('ai.providers.openai.key'))) {
             Notification::make()
                 ->title(__('article_audio.notifications.openai_missing'))
                 ->danger()

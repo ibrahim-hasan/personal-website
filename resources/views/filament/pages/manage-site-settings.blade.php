@@ -1,14 +1,13 @@
 <x-filament-panels::page>
     @php
-        $locales = array_keys(config('app.supported_locales', ['ar' => [], 'en' => []]));
-        $localeNames = ['ar' => 'العربية', 'en' => 'English'];
         $socialFields = [
             'social_facebook' => 'Facebook',
+            'social_twitter' => 'X',
             'social_instagram' => 'Instagram',
             'social_linkedin' => 'LinkedIn',
             'social_youtube' => 'YouTube',
         ];
-        $providerModels = \App\Filament\Pages\ManageSiteSettings::providerModels();
+        $openAiModels = \App\Filament\Pages\ManageSiteSettings::openAiModels();
     @endphp
 
     <div class="space-y-8">
@@ -78,15 +77,9 @@
                         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Contact Email') }}</label>
                         <input type="email" wire:model.lazy="data.contact_email" dir="ltr" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm" />
                     </div>
-                    <div class="space-y-1.5 md:col-span-2">
-                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('admin.settings.strategic_consultation_url') }}</label>
-                        <input
-                            type="url"
-                            wire:model.lazy="data.strategic_consultation_url"
-                            placeholder="{{ \App\Filament\Pages\ManageSiteSettings::defaultStrategicConsultationUrl() }}"
-                            dir="ltr"
-                            class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-900 dark:text-gray-100"
-                        />
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('WhatsApp Number') }}</label>
+                        <input type="tel" wire:model.lazy="data.whatsapp_number" dir="ltr" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm" />
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end">
@@ -126,103 +119,31 @@
             <div class="px-6 py-5 bg-gradient-to-r from-primary-50 to-white dark:from-gray-800 dark:to-gray-900 border-b border-primary-100/80 dark:border-gray-700">
                 <div class="flex items-start gap-3">
                     <div class="rounded-xl bg-primary-100/80 dark:bg-primary-900/30 p-2.5">
-                        <x-filament::icon icon="heroicon-o-magnifying-glass" class="h-5 w-5 text-primary-700 dark:text-primary-300" />
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-primary-800 dark:text-gray-100">{{ __('admin.settings.seo') }}</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('Set default multilingual SEO title and description for uncategorized pages.') }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="px-6 py-5 space-y-6" x-data="{ activeTab: '{{ app()->getLocale() }}' }">
-                <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700">
-                    @foreach ($locales as $locale)
-                        <button type="button" @click="activeTab = '{{ $locale }}'" class="px-4 py-2.5 text-sm font-medium border-b-2"
-                            :class="activeTab === '{{ $locale }}' ? 'border-primary-600 text-primary-700' : 'border-transparent text-gray-500'">
-                            {{ $localeNames[$locale] ?? strtoupper($locale) }}
-                        </button>
-                    @endforeach
-                </div>
-                @foreach ($locales as $locale)
-                    <div x-show="activeTab === '{{ $locale }}'">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-1.5">
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Default SEO Title') }}</label>
-                                <input type="text" wire:model.lazy="data.default_seo_title_{{ $locale }}" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm" />
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Default SEO Description') }}</label>
-                                <input type="text" wire:model.lazy="data.default_seo_description_{{ $locale }}" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm" />
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-                <div class="flex justify-end">
-                    <x-filament::button type="button" wire:click="saveSeo" wire:loading.attr="disabled" wire:target="saveSeo">
-                        <span wire:loading.remove wire:target="saveSeo">{{ __('admin.settings.save_seo') }}</span>
-                        <span wire:loading wire:target="saveSeo">{{ __('admin.settings.saving') }}</span>
-                    </x-filament::button>
-                </div>
-            </div>
-        </div>
-
-        <div class="rounded-2xl border border-primary-100/70 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all overflow-hidden">
-            <div class="px-6 py-5 bg-gradient-to-r from-primary-50 to-white dark:from-gray-800 dark:to-gray-900 border-b border-primary-100/80 dark:border-gray-700">
-                <div class="flex items-start gap-3">
-                    <div class="rounded-xl bg-primary-100/80 dark:bg-primary-900/30 p-2.5">
                         <x-filament::icon icon="heroicon-o-sparkles" class="h-5 w-5 text-primary-700 dark:text-primary-300" />
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-primary-800 dark:text-gray-100">{{ __('admin.settings.ai') }}</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('Configure provider, model, and feature flags for AI-powered SEO generation.') }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('Configure the server-managed OpenAI integration and AI-powered SEO generation.') }}</p>
                     </div>
                 </div>
             </div>
-            <div class="px-6 py-5 space-y-6"
-                x-data="{
-                    provider: @entangle('data.openai_provider'),
-                    model: @entangle('data.openai_model'),
-                    providerModels: @js($providerModels),
-                    syncModel() {
-                        if (this.provider === 'custom') return;
-                        const options = Object.keys(this.providerModels[this.provider] ?? {});
-                        if (! options.length) { this.model = ''; return; }
-                        if (! options.includes(this.model)) this.model = options[0];
-                    },
-                }"
-                x-init="syncModel()"
-                x-effect="syncModel()"
-            >
-                <div class="grid lg:grid-cols-3 grid-cols-1 gap-4">
+            <div class="px-6 py-5 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-1.5">
-                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('admin.settings.openai_api_key') }}</label>
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('admin.settings.openai_connection_status') }}</label>
                         <div class="rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm dark:border-gray-600 dark:bg-gray-800">
-                            {{ filled(config('services.openai.api_key')) ? __('Configured in server environment') : __('Not configured in server environment') }}
+                            {{ \App\Filament\Pages\ManageSiteSettings::isOpenAiConfigured()
+                                ? __('admin.settings.openai_configured_on_server')
+                                : __('admin.settings.openai_not_configured_on_server') }}
                         </div>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('admin.settings.openai_provider') }}</label>
-                        <select wire:model.live="data.openai_provider" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm">
-                            <option value="openai">OpenAI</option>
-                            <option value="openrouter">OpenRouter</option>
-                            <option value="custom">{{ __('admin.settings.provider_custom') }}</option>
-                        </select>
-                    </div>
-                    <div class="space-y-1.5" x-show="provider === 'custom'" x-cloak>
-                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('admin.settings.openai_custom_url') }}</label>
-                        <input type="url" wire:model.lazy="data.openai_custom_url" placeholder="https://api.example.com/v1" dir="ltr" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm" />
-                    </div>
-                    <div class="space-y-1.5" x-show="provider !== 'custom'">
                         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('admin.settings.openai_model') }}</label>
-                        <select wire:model.live="data.openai_model" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm">
-                            <template x-for="[value, label] in Object.entries(providerModels[provider] ?? {})" :key="value">
-                                <option :value="value" x-text="label"></option>
-                            </template>
+                        <select wire:model.lazy="data.openai_model" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm">
+                            @foreach ($openAiModels as $value => $label)
+                                <option value="{{ $value }}">{{ $label }}</option>
+                            @endforeach
                         </select>
-                    </div>
-                    <div class="space-y-1.5" x-show="provider === 'custom'" x-cloak>
-                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('admin.settings.openai_model') }}</label>
-                        <input type="text" wire:model.lazy="data.openai_model" placeholder="gpt-4o-mini" dir="ltr" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm" />
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

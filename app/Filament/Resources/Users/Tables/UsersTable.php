@@ -14,6 +14,7 @@ use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 
 class UsersTable
 {
@@ -27,9 +28,17 @@ class UsersTable
                 TextColumn::make('email')
                     ->label(__('admin.fields.email_address'))
                     ->searchable(),
+                TextColumn::make('roles.name')
+                    ->label(__('admin.fields.roles'))
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => Str::headline($state))
+                    ->placeholder('-'),
                 ToggleColumn::make('is_active')
                     ->label(__('admin.fields.is_active_flag'))
-                    ->disabled(fn (User $record): bool => ! UserResource::canManageRecord($record))
+                    ->disabled(fn (User $record): bool => ! UserResource::canChangeStatus($record))
+                    ->beforeStateUpdated(function (User $record): void {
+                        abort_unless(UserResource::canChangeStatus($record), 403);
+                    })
                     ->afterStateUpdated(function (bool $state): void {
                         Notification::make()
                             ->title($state ? __('admin.messages.status_enabled') : __('admin.messages.status_disabled'))
@@ -62,7 +71,8 @@ class UsersTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete'),
                 ]),
             ]);
     }

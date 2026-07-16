@@ -12,7 +12,9 @@ class AdminForgotPasswordNotificationTest extends TestCase
 
     public function test_admin_password_reset_route_is_available(): void
     {
-        $this->markTestSkipped('Filament password reset routes depend on admin panel configuration');
+        $this->get('/admin/password-reset/request')
+            ->assertOk()
+            ->assertSee(__('admin.auth.forgot_password'));
     }
 
     public function test_admin_password_reset_notification_class_exists(): void

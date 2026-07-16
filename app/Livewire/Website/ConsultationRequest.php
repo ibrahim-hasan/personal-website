@@ -4,6 +4,7 @@ namespace App\Livewire\Website;
 
 use App\Livewire\Forms\ConsultationRequestFormData;
 use App\Mail\ConsultationRequestMail;
+use App\Models\ContactInquiry;
 use App\Support\SiteContent;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Mail;
@@ -40,8 +41,8 @@ class ConsultationRequest extends Component
         }
 
         $payload = $this->form->validate();
-        $service = collect(SiteContent::services())->firstWhere('id', $payload['service']);
-        $payload['service_label'] = $service['name'] ?? $payload['service'];
+        $service = collect($this->availableServices())->firstWhere('id', $payload['service']);
+        $payload['service_label'] = $service['name'] ?? __('site.consultation.general_service');
         $payload['locale'] = current_locale();
 
         $rateLimitKey = 'consultation-request:'.Str::lower($payload['email']).'|'.request()->ip();
@@ -51,8 +52,16 @@ class ConsultationRequest extends Component
                 $rateLimitKey,
                 3,
                 function () use ($payload): bool {
-                    Mail::to(SiteContent::contact()['email'])
-                        ->send(new ConsultationRequestMail($payload));
+                    ContactInquiry::query()->create([
+                        'name' => $payload['name'],
+                        'email' => $payload['email'],
+                        'company' => $payload['company'],
+                        'service_key' => $payload['service'],
+                        'service_label' => $payload['service_label'],
+                        'challenge' => $payload['challenge'],
+                        'locale' => $payload['locale'],
+                        'received_at' => now(),
+                    ]);
 
                     return true;
                 },
@@ -71,6 +80,13 @@ class ConsultationRequest extends Component
             return;
         }
 
+        try {
+            Mail::to(SiteContent::contact()['email'])
+                ->queue(new ConsultationRequestMail($payload));
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+
         $this->form->reset();
         $this->submitted = true;
     }
@@ -78,7 +94,19 @@ class ConsultationRequest extends Component
     public function render(): View
     {
         return view('livewire.website.consultation-request', [
-            'services' => SiteContent::services(),
+            'services' => $this->availableServices(),
         ]);
+    }
+
+    /** @return list<array{id: string, name: string}> */
+    private function availableServices(): array
+    {
+        return [
+            ...SiteContent::services(),
+            [
+                'id' => 'general',
+                'name' => __('site.consultation.general_service'),
+            ],
+        ];
     }
 }

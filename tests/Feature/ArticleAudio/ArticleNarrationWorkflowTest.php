@@ -11,6 +11,7 @@ use App\Models\ArticleNarration;
 use App\Models\User;
 use App\Services\ArticleAudio\ArticleNarrationScript;
 use App\Support\Editorial\ArticleCatalog;
+use Database\Seeders\ArticleSeeder;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -26,10 +27,10 @@ class ArticleNarrationWorkflowTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(PermissionSeeder::class);
+        $this->seed([ArticleSeeder::class, PermissionSeeder::class]);
         Queue::fake();
         Storage::fake('public');
-        config()->set('services.openai.api_key', 'openai-server-only-secret');
+        config()->set('ai.providers.openai.key', 'openai-server-only-secret');
         config()->set('services.elevenlabs.api_key', 'eleven-server-only-secret');
         config()->set('services.elevenlabs.voice_id', 'arabic-editorial-voice');
     }
@@ -107,6 +108,7 @@ class ArticleNarrationWorkflowTest extends TestCase
         $narration->refresh()->updateSample('eleven_v3', [
             'status' => 'ready',
             'script_hash' => $narration->scriptFingerprint(),
+            'voice_id' => 'arabic-editorial-voice',
             'disk' => 'public',
             'path' => 'article-audio/samples/ar/approved-v3.mp3',
             'generated_at' => now()->toIso8601String(),
@@ -138,6 +140,31 @@ class ArticleNarrationWorkflowTest extends TestCase
             ->assertDontSee('eleven-server-only-secret', false);
     }
 
+    public function test_samples_require_the_current_shared_voice(): void
+    {
+        $narration = ArticleNarration::factory()->create([
+            'article_key' => 'ai-value',
+            'locale' => 'en',
+            'script' => 'An editorial script.',
+            'samples' => [
+                'eleven_v3' => [
+                    'status' => 'ready',
+                    'script_hash' => hash('sha256', 'An editorial script.'),
+                    'path' => 'article-audio/samples/en/old.mp3',
+                    'voice_id' => 'old-voice',
+                ],
+            ],
+        ]);
+
+        $this->assertFalse($narration->hasCurrentSample('eleven_v3'));
+
+        $narration->updateSample('eleven_v3', [
+            'voice_id' => 'arabic-editorial-voice',
+        ]);
+
+        $this->assertTrue($narration->hasCurrentSample('eleven_v3'));
+    }
+
     private function approvedNarration(): ArticleNarration
     {
         $article = app(ArticleCatalog::class)->findByKey('ai-value');
@@ -160,8 +187,8 @@ class ArticleNarrationWorkflowTest extends TestCase
             'guard_name' => 'web',
         ]);
         $role->syncPermissions([
-            'view_any intellectual_libraries',
-            'update intellectual_libraries',
+            'view_any articles',
+            'update articles',
         ]);
 
         $user = User::factory()->create();

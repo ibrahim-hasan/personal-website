@@ -2,7 +2,9 @@
 
 namespace App\Services\ArticleAudio;
 
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Symfony\Component\Process\Process;
 
 class Mp3Concatenator
 {
@@ -29,7 +31,73 @@ class Mp3Concatenator
             $audio .= $segment;
         }
 
-        return $audio;
+        return $this->rewriteDurationMetadata($audio);
+    }
+
+    private function rewriteDurationMetadata(string $audio): string
+    {
+        $binary = (string) config('services.elevenlabs.ffmpeg_binary', 'ffmpeg');
+
+        if ($binary === '') {
+            return $audio;
+        }
+
+        $input = tempnam(sys_get_temp_dir(), 'article-audio-input-');
+        $output = tempnam(sys_get_temp_dir(), 'article-audio-output-');
+
+        if ($input === false || $output === false) {
+            if ($input !== false) {
+                @unlink($input);
+            }
+
+            if ($output !== false) {
+                @unlink($output);
+            }
+
+            return $audio;
+        }
+
+        try {
+            if (file_put_contents($input, $audio) === false) {
+                return $audio;
+            }
+
+            $process = new Process([
+                $binary,
+                '-hide_banner',
+                '-loglevel',
+                'error',
+                '-y',
+                '-i',
+                $input,
+                '-map',
+                '0:a:0',
+                '-c:a',
+                'copy',
+                '-write_xing',
+                '1',
+                $output,
+            ]);
+            $process->setTimeout(120);
+            $process->run();
+
+            if (! $process->isSuccessful() || ! is_file($output) || filesize($output) === 0) {
+                return $audio;
+            }
+
+            $normalized = file_get_contents($output);
+
+            return is_string($normalized) && $normalized !== '' ? $normalized : $audio;
+        } catch (\Throwable $exception) {
+            Log::warning('Unable to normalize concatenated MP3 metadata.', [
+                'exception' => $exception,
+            ]);
+
+            return $audio;
+        } finally {
+            @unlink($input);
+            @unlink($output);
+        }
     }
 
     private function stripId3v1(string $audio): string

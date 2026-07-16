@@ -56,7 +56,8 @@
         </div>
     </section>
 
-    <section class="section-standard">
+    @if ($services !== [])
+        <section class="section-standard">
         <div class="site-container">
             <h2 class="display-section max-w-[14ch]" data-reveal>{{ __('site.contact.ask_title') }}</h2>
             <div class="practice-list mt-14">
@@ -70,6 +71,7 @@
                 @endforeach
             </div>
         </div>
-    </section>
+        </section>
+    @endif
 
 </x-layouts.front>

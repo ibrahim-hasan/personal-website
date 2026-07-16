@@ -1,5 +1,6 @@
 {
     "agents": [
+        "codex",
         "cursor",
         "opencode"
     ],
@@ -8,6 +9,7 @@
     "nightwatch_mcp": false,
     "sail": false,
     "skills": [
+        "ai-sdk-development",
         "laravel-best-practices",
         "livewire-development",
         "tailwindcss-development"

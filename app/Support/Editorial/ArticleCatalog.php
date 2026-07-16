@@ -2,6 +2,10 @@
 
 namespace App\Support\Editorial;
 
+use App\Models\Article as ArticleRecord;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Schema;
+
 final class ArticleCatalog
 {
     /**
@@ -137,7 +141,11 @@ final class ArticleCatalog
      */
     public function all(): array
     {
-        $articles = array_map($this->make(...), self::DEFINITIONS);
+        $articles = $this->storedArticles();
+
+        if ($articles === null) {
+            $articles = array_map($this->make(...), self::DEFINITIONS);
+        }
 
         usort(
             $articles,
@@ -145,6 +153,39 @@ final class ArticleCatalog
         );
 
         return $articles;
+    }
+
+    /**
+     * The idempotent import payload for the database-backed publishing system.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function bootstrapRecords(): array
+    {
+        return array_map(function (array $definition): array {
+            $translations = [];
+
+            foreach (['title', 'summary', 'seo_title', 'seo_description', 'type', 'lead', 'sections', 'closing'] as $field) {
+                $translations[$field] = [
+                    'ar' => Lang::get("articles.articles.{$definition['key']}.{$field}", [], 'ar'),
+                    'en' => Lang::get("articles.articles.{$definition['key']}.{$field}", [], 'en'),
+                ];
+            }
+
+            return [
+                'key' => $definition['key'],
+                'slugs' => $definition['slugs'],
+                ...$translations,
+                'published_at' => $definition['published_at'],
+                'modified_at' => $definition['modified_at'],
+                'image' => $definition['image'],
+                'read_minutes' => $definition['read_minutes'],
+                'topic_keys' => $definition['topics'],
+                'featured' => $definition['featured'] ?? false,
+                'source_url' => $definition['source_url'] ?? null,
+                'is_published' => true,
+            ];
+        }, self::DEFINITIONS);
     }
 
     /**
@@ -272,6 +313,43 @@ final class ArticleCatalog
             featured: $definition['featured'] ?? false,
             sourceUrl: $definition['source_url'] ?? null,
         );
+    }
+
+    /**
+     * @return list<Article>|null
+     */
+    private function storedArticles(): ?array
+    {
+        if (! Schema::hasTable('articles')) {
+            return null;
+        }
+
+        return ArticleRecord::query()
+            ->published()
+            ->orderByDesc('published_at')
+            ->get()
+            ->map(fn (ArticleRecord $record): Article => new Article(
+                key: $record->key,
+                slugs: $record->slugs,
+                publishedAt: $record->published_at->toDateString(),
+                modifiedAt: $record->modified_at->toDateString(),
+                image: $record->imageUrl(),
+                readMinutes: $record->read_minutes,
+                topicKeys: $record->topic_keys,
+                featured: $record->featured,
+                sourceUrl: $record->source_url,
+                translations: [
+                    'title' => $record->title,
+                    'summary' => $record->summary,
+                    'seo_title' => $record->seo_title,
+                    'seo_description' => $record->seo_description,
+                    'type' => $record->type,
+                    'lead' => $record->lead,
+                    'sections' => $record->sections,
+                    'closing' => $record->closing,
+                ],
+            ))
+            ->all();
     }
 
     /**

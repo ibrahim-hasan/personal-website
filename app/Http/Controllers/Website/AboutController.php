@@ -12,6 +12,7 @@ class AboutController extends Controller
     public function __invoke(): View
     {
         return view('website.about', [
+            'biography' => SiteContent::aboutBiography(),
             'process' => SiteContent::process(),
             'companies' => PortfolioAtlas::companies(),
             'experience' => PortfolioAtlas::experience(),

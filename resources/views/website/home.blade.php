@@ -40,9 +40,18 @@
                     </p>
                 </div>
 
-                <div class="precision-stage hero-enter" style="--enter-delay: 220ms" data-depth="portrait">
-                    <figure class="precision-stage__media relative isolate overflow-hidden">
-                        <picture>
+                <figure
+                    class="precision-stage hero-enter"
+                    style="--enter-delay: 220ms"
+                    data-depth="portrait"
+                    x-data="heroStage({ count: 2 })"
+                    x-on:mouseenter="pause()"
+                    x-on:mouseleave="resume()"
+                    x-on:focusin="pause()"
+                    x-on:focusout="resume()"
+                >
+                    <div class="precision-stage__media relative isolate overflow-hidden" :data-active="active" aria-live="polite">
+                        <picture class="precision-stage__slide" :class="{ 'is-active': active === 0 }" :aria-hidden="active === 0 ? 'false' : 'true'">
                             <source
                                 media="(max-width: 63.999rem)"
                                 srcset="{{ asset('images/ibrahim/ibrahim-systems-portrait-compact.webp') }}"
@@ -56,19 +65,51 @@
                                 width="1000"
                                 height="1250"
                                 sizes="(min-width: 1024px) 33rem, (min-width: 640px) 30rem, calc(100vw - 4.5rem)"
-                                class="precision-stage__portrait"
+                                class="precision-stage__portrait precision-stage__portrait--systems"
                                 decoding="async"
                                 fetchpriority="high"
                             >
                         </picture>
-                    </figure>
+                        <img
+                            src="{{ asset('images/ibrahim/ibrahim-speaking-hero.webp') }}"
+                            alt="{{ __('site.home.hero_slide_speaking_alt') }}"
+                            width="1200"
+                            height="1500"
+                            class="precision-stage__slide precision-stage__portrait precision-stage__portrait--speaking"
+                            :class="{ 'is-active': active === 1 }"
+                            :aria-hidden="active === 1 ? 'false' : 'true'"
+                            decoding="async"
+                        >
+                    </div>
 
                     <div class="precision-stage__orbit" aria-hidden="true"><span></span></div>
-                    <div class="precision-stage__note">
-                        <strong>{{ __('site.home.hero_stage_title') }}</strong>
-                        <span>{{ __('site.home.hero_stage_meta') }}</span>
-                    </div>
-                </div>
+
+                    <figcaption class="precision-stage__note">
+                        <div class="precision-stage__captions">
+                            @foreach (__('site.home.hero_slides') as $slide)
+                                <span class="precision-stage__caption" x-show="active === {{ $loop->index }}" x-cloak>
+                                    <strong>{{ $slide['title'] }}</strong>
+                                    <span>{{ $slide['meta'] }}</span>
+                                </span>
+                            @endforeach
+                        </div>
+                        <div class="precision-stage__controls" role="group" aria-label="{{ __('site.home.hero_slider_label') }}">
+                            @foreach (__('site.home.hero_slides') as $slide)
+                                <button
+                                    type="button"
+                                    class="precision-stage__control"
+                                    :class="{ 'is-active': active === {{ $loop->index }} }"
+                                    x-on:click="goTo({{ $loop->index }})"
+                                    x-on:keydown="navigate($event)"
+                                    :aria-pressed="active === {{ $loop->index }} ? 'true' : 'false'"
+                                    aria-label="{{ __('site.home.hero_slider_go_to', ['number' => $loop->iteration]) }}"
+                                >
+                                    <span aria-hidden="true">{{ sprintf('%02d', $loop->iteration) }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    </figcaption>
+                </figure>
             </div>
 
             <div class="hero-sequence" aria-label="{{ __('site.home.method_eyebrow') }}">
@@ -118,14 +159,17 @@
                             <span>{{ sprintf('%02d', $loop->iteration) }}</span>
                             <p>{{ $company['relationship'] }}</p>
                         </div>
-                        @if ($company['logo'] !== '')
+                        @if ($company['logo_on_light'] !== '')
                             <div @class([
                                 'atlas-chapter__brand',
-                                'atlas-chapter__brand--symbol' => $company['id'] === 'from-scratch',
+                                'atlas-chapter__brand--code-moments' => $company['id'] === 'code-moments',
+                                'atlas-chapter__brand--from-scratch' => $company['id'] === 'from-scratch',
                             ])>
                                 <img
-                                    src="{{ asset($company['logo']) }}"
+                                    src="{{ asset($company['logo_on_light']) }}"
                                     alt="{{ $company['logo_alt'] }}"
+                                    width="{{ $company['logo_on_light_width'] }}"
+                                    height="{{ $company['logo_on_light_height'] }}"
                                     loading="lazy"
                                     decoding="async"
                                 >
@@ -176,16 +220,27 @@
                 <p class="copy-lead max-w-[52ch] lg:justify-self-end" data-reveal="copy">{{ __('site.home.practice_body') }}</p>
             </div>
 
-            <div class="practice-list mt-16">
-                @foreach ($services as $service)
+            @if ($services !== [])
+                <div class="practice-list mt-16">
+                    @foreach ($services as $service)
                     <a href="{{ localized_route('services') }}#{{ $service['id'] }}" class="practice-row" style="--reveal-index: {{ $loop->index }}" data-reveal="row">
                         <span class="practice-row__number">{{ sprintf('%02d', $loop->iteration) }}</span>
                         <h3>{{ $service['name'] }}</h3>
                         <p>{{ $service['summary'] }}</p>
                         <span class="practice-row__arrow" aria-hidden="true"><x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" /></span>
                     </a>
-                @endforeach
-            </div>
+                    @endforeach
+                </div>
+            @else
+                <x-partials.content-empty
+                    class="mt-12"
+                    :eyebrow="__('site.services.empty_eyebrow')"
+                    :title="__('site.services.empty_title')"
+                    :body="__('site.services.empty_body')"
+                    :action-url="localized_route('contact').'#consultation'"
+                    :action-label="__('site.actions.start_project')"
+                />
+            @endif
         </div>
     </section>
 
@@ -199,8 +254,9 @@
                 <p class="copy-lead max-w-[52ch] text-canvas/70 lg:justify-self-end" data-reveal="copy">{{ __('site.home.work_body') }}</p>
             </div>
 
-            <div class="project-atlas">
-                @foreach ($projects as $project)
+            @if ($projects !== [])
+                <div class="project-atlas">
+                    @foreach ($projects as $project)
                     <article class="project-atlas__case project-atlas__case--{{ $loop->iteration }}" style="--reveal-index: {{ $loop->index }}" data-reveal="case">
                         <figure class="project-atlas__media" data-depth="media">
                             <img
@@ -212,15 +268,17 @@
                                 decoding="async"
                                 class="project-atlas__image"
                             >
-                            <span class="project-brand">
-                                <img
-                                    src="{{ asset($project['logo']) }}"
-                                    alt="{{ $project['logo_alt'] }}"
-                                    loading="lazy"
-                                    decoding="async"
-                                    class="project-brand__logo"
-                                >
-                            </span>
+                            @if ($project['logo'] !== '')
+                                <span class="project-brand">
+                                    <img
+                                        src="{{ asset($project['logo']) }}"
+                                        alt="{{ $project['logo_alt'] }}"
+                                        loading="lazy"
+                                        decoding="async"
+                                        class="project-brand__logo"
+                                    >
+                                </span>
+                            @endif
                             <figcaption>
                                 <span>{{ sprintf('%02d', $loop->iteration) }}</span>
                                 <span>{{ $project['sector'] }}</span>
@@ -241,15 +299,26 @@
                             </dl>
                         </div>
                     </article>
-                @endforeach
-            </div>
+                    @endforeach
+                </div>
 
-            <div class="mt-14 flex justify-end">
-                <a href="{{ localized_route('work') }}" class="button-outline-light">
-                    <span>{{ __('site.actions.view_all_work') }}</span>
-                    <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
-                </a>
-            </div>
+                <div class="mt-14 flex justify-end">
+                    <a href="{{ localized_route('work') }}" class="button-outline-light">
+                        <span>{{ __('site.actions.view_all_work') }}</span>
+                        <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
+                    </a>
+                </div>
+            @else
+                <x-partials.content-empty
+                    class="mt-12"
+                    tone="dark"
+                    :eyebrow="__('site.work.empty_eyebrow')"
+                    :title="__('site.work.empty_title')"
+                    :body="__('site.work.empty_body')"
+                    :action-url="localized_route('contact').'#consultation'"
+                    :action-label="__('site.actions.start_project')"
+                />
+            @endif
         </div>
     </section>
 
@@ -277,8 +346,9 @@
                 </a>
             </div>
 
-            <div class="writing-list">
-                @foreach ($articles as $article)
+            @if ($articles !== [])
+                <div class="writing-list">
+                    @foreach ($articles as $article)
                     <a href="{{ $article['url'] }}" class="writing-row writing-row--link" style="--reveal-index: {{ $loop->index }}" data-reveal="row">
                         <div class="writing-row__meta">
                             <span>{{ $article['type'] }}</span>
@@ -288,8 +358,15 @@
                         <p>{{ $article['summary'] }}</p>
                         <x-phosphor-arrow-up-right class="writing-row__arrow h-5 w-5 rtl:-rotate-90" />
                     </a>
-                @endforeach
-            </div>
+                    @endforeach
+                </div>
+            @else
+                <x-partials.content-empty
+                    :eyebrow="__('site.writing.empty_eyebrow')"
+                    :title="__('site.writing.empty_title')"
+                    :body="__('site.writing.empty_body')"
+                />
+            @endif
         </div>
     </section>
 
@@ -304,7 +381,6 @@
                     loading="lazy"
                     decoding="async"
                 >
-                <figcaption aria-hidden="true">IBRAHIM HASAN / IN PRACTICE</figcaption>
             </figure>
             <div class="about-teaser__copy">
                 <p class="signal-label">{{ __('site.about.eyebrow') }}</p>

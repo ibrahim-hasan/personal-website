@@ -18,6 +18,8 @@ return [
         'search' => 'Search articles',
         'search_placeholder' => 'Search by title or topic',
         'filter_by_topic' => 'Filter by topic',
+        'previous_topics' => 'Show previous topics',
+        'next_topics' => 'Show more topics',
         'clear_filters' => 'Show all articles',
         'no_results' => 'No articles match this search yet.',
         'statement' => 'Good writing does more than display knowledge. It makes the next decision clearer.',
@@ -29,6 +31,10 @@ return [
         'enter_reader' => 'Enter reader mode',
         'exit_reader' => 'Exit reader mode',
         'listen' => 'Listen to article',
+        'continue_listening' => 'Keep listening while you explore the site',
+        'now_listening' => 'Now listening',
+        'audio_player' => 'Article audio player',
+        'close' => 'Close audio player',
         'pause' => 'Pause',
         'resume' => 'Resume',
         'speed' => 'Playback speed',
@@ -376,7 +382,7 @@ return [
             'summary' => 'A practical design for placing people at points of risk, uncertainty, and accountability without turning human review into a ceremonial approval or bottleneck.',
             'seo_title' => 'Human Judgment in AI-Enabled Business Workflows',
             'seo_description' => 'Design human review, escalation, and approval in AI workflows according to risk, confidence, reversibility, and accountability.',
-            'type' => 'Workflow design',
+            'type' => 'Workflow design guide',
             'lead' => '“Human in the loop” is not a sufficient control. It can describe genuine review, or a tired employee clicking approve without evidence. A sound design explains why a person intervenes, what context they receive, which decision they own, and when they can stop or correct the system.',
             'sections' => [
                 [

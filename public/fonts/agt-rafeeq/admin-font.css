@@ -1,0 +1,59 @@
+@font-face {
+    font-family: 'Agt Rafeeq Sans';
+    font-style: normal;
+    font-weight: 200;
+    font-display: swap;
+    src: url('./DINNextLTArabic-UltraLight.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Agt Rafeeq Sans';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('./DINNextLTArabic-Light.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Agt Rafeeq Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('./DINNextLTArabic-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Agt Rafeeq Sans';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('./DINNextLTArabic-Medium.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Agt Rafeeq Sans';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('./DINNextLTArabic-Bold.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Agt Rafeeq Sans';
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url('./DINNextLTArabic-Heavy.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Agt Rafeeq Sans';
+    font-style: normal;
+    font-weight: 900;
+    font-display: swap;
+    src: url('./DINNextLTArabic-Black.woff2') format('woff2');
+}
+
+:root {
+    --rafeeq-font-sans: 'Agt Rafeeq Sans', 'DIN Next LT Arabic', 'Noto Kufi Arabic', 'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}

@@ -12,7 +12,7 @@ class PrepareArticleNarrationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()?->can('update intellectual_libraries') === true;
+        return $this->user()?->can('update articles') === true;
     }
 
     /**

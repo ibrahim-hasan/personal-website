@@ -23,9 +23,11 @@ class RoleResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shield-check';
 
+    protected static ?int $navigationSort = 30;
+
     public static function getNavigationGroup(): ?string
     {
-        return __('admin.navigation.access');
+        return __('admin.navigation.administration');
     }
 
     public static function getModelLabel(): string

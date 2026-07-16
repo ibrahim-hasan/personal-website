@@ -13,23 +13,38 @@
         </div>
     </section>
 
-    <section class="work-archive bg-canvas-bright" x-data="projectFilter({ projects: @js($work) })">
+    <section class="work-archive bg-canvas-bright" @if ($work !== []) x-data="projectFilter({ projects: @js($work) })" @endif>
         <div class="site-container">
-            <div class="work-archive__toolbar">
+            @if ($work !== [])
+                <div class="work-archive__toolbar">
                 <p>{{ __('site.work.categories_label') }}</p>
-                <div class="filter-bar" role="group" aria-label="{{ __('site.work.categories_label') }}">
-                    <button type="button" @click="select('all')" :class="lens === 'all' ? 'is-active' : ''">
+                <div class="filter-bar" role="toolbar" aria-label="{{ __('site.work.categories_label') }}">
+                    <button
+                        type="button"
+                        @click="select('all')"
+                        @keydown="navigate($event)"
+                        :aria-pressed="lens === 'all'"
+                        :tabindex="lens === 'all' ? 0 : -1"
+                        :class="lens === 'all' ? 'is-active' : ''"
+                    >
                         {{ __('site.work.all') }}
                     </button>
                     @foreach ($lenses as $lens)
-                        <button type="button" @click="select(@js($lens['id']))" :class="lens === @js($lens['id']) ? 'is-active' : ''">
+                        <button
+                            type="button"
+                            @click="select(@js($lens['id']))"
+                            @keydown="navigate($event)"
+                            :aria-pressed="lens === @js($lens['id'])"
+                            :tabindex="lens === @js($lens['id']) ? 0 : -1"
+                            :class="lens === @js($lens['id']) ? 'is-active' : ''"
+                        >
                             {{ $lens['label'] }}
                         </button>
                     @endforeach
                 </div>
-            </div>
+                </div>
 
-            <div class="case-list">
+                <div class="case-list">
                 @foreach ($work as $item)
                     <article
                         class="case-study case-study--real"
@@ -45,18 +60,21 @@
                                 width="1400"
                                 height="900"
                                 loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                                @if ($loop->first) fetchpriority="high" @endif
                                 decoding="async"
                                 class="case-study__image"
                             >
-                            <span class="project-brand">
-                                <img
-                                    src="{{ asset($item['logo']) }}"
-                                    alt="{{ $item['logo_alt'] }}"
-                                    loading="lazy"
-                                    decoding="async"
-                                    class="project-brand__logo"
-                                >
-                            </span>
+                            @if ($item['logo'] !== '')
+                                <span class="project-brand">
+                                    <img
+                                        src="{{ asset($item['logo']) }}"
+                                        alt="{{ $item['logo_alt'] }}"
+                                        loading="lazy"
+                                        decoding="async"
+                                        class="project-brand__logo"
+                                    >
+                                </span>
+                            @endif
                             <figcaption>
                                 <span>{{ sprintf('%02d', $loop->iteration) }}</span>
                                 <span>{{ $item['sector'] }}</span>
@@ -94,11 +112,21 @@
                         </div>
                     </article>
                 @endforeach
-            </div>
+                </div>
+            @else
+                <x-partials.content-empty
+                    :eyebrow="__('site.work.empty_eyebrow')"
+                    :title="__('site.work.empty_title')"
+                    :body="__('site.work.empty_body')"
+                    :action-url="localized_route('contact').'#consultation'"
+                    :action-label="__('site.actions.start_project')"
+                />
+            @endif
         </div>
     </section>
 
-    <section class="section-standard">
+    @if ($services !== [])
+        <section class="section-standard">
         <div class="site-container editorial-sidebar">
             <div class="editorial-sidebar__intro">
                 <p class="signal-label">{{ __('site.work.entry_eyebrow') }}</p>
@@ -117,6 +145,7 @@
                 @endforeach
             </div>
         </div>
-    </section>
+        </section>
+    @endif
 
 </x-layouts.front>

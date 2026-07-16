@@ -1,37 +1,38 @@
 @php
-$current = app()->getLocale();
+    $current = app()->getLocale();
+    $targetLocale = $current === 'ar' ? 'en' : 'ar';
 @endphp
 
-<div class="flex items-center gap-2 me-2">
-    @if ($current !== 'ar')
-    <form method="POST" action="{{ locale_switch_url('ar') }}">
-        @csrf
-        <button type="submit" class="fi-btn fi-btn-size-sm fi-btn-color-gray">
-            <span class="fi-btn-label">{{ __('admin.locales.ar') }}</span>
-        </button>
-    </form>
-    @endif
+<div class="admin-topbar-tools" data-admin-tools>
+    <x-filament::dropdown placement="bottom-end" teleport>
+        <x-slot name="trigger">
+            <x-filament::icon-button
+                icon="heroicon-o-globe-alt"
+                color="gray"
+                size="lg"
+                :label="__('admin.navigation.utilities')"
+            />
+        </x-slot>
 
-    @if ($current !== 'en')
-    <form method="POST" action="{{ locale_switch_url('en') }}">
-        @csrf
-        <button type="submit" class="fi-btn fi-btn-size-sm fi-btn-color-gray">
-            <span class="fi-btn-label">{{ __('admin.locales.en') }}</span>
-        </button>
-    </form>
-    @endif
+        <x-filament::dropdown.list>
+            <x-filament::dropdown.list.item
+                tag="form"
+                method="POST"
+                :action="locale_switch_url($targetLocale)"
+                icon="heroicon-o-language"
+            >
+                {{ __('admin.locales.'.$targetLocale) }}
+            </x-filament::dropdown.list.item>
 
-    <div class="flex items-center me-2">
-        <x-filament::button
-            tag="a"
-            :href="localized_route('home')"
-            target="_blank"
-            rel="noopener noreferrer"
-            size="sm"
-            color="yellow"
-            outlined
-        >
-            {{ __('admin.auth.open_website') }}
-        </x-filament::button>
-    </div>
+            <x-filament::dropdown.list.item
+                tag="a"
+                :href="localized_route('home')"
+                target="_blank"
+                rel="noopener noreferrer"
+                icon="heroicon-o-arrow-top-right-on-square"
+            >
+                {{ __('admin.auth.open_website') }}
+            </x-filament::dropdown.list.item>
+        </x-filament::dropdown.list>
+    </x-filament::dropdown>
 </div>

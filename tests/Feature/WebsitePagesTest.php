@@ -13,7 +13,7 @@ class WebsitePagesTest extends TestCase
             '/services' => ['مساعدة مركزة حيث يلتقي العمل بالتقنية', 'استراتيجية التحول الرقمي'],
             '/work' => ['أعمال مختارة', 'ديجي بيديا'],
             '/writing' => ['التقنية بلغة الأعمال', 'من تجربة الذكاء الاصطناعي إلى تحقيق القيمة'],
-            '/about' => ['أعمل حيث يلتقي العمل بالتقنية', 'Code Moments'],
+            '/about' => ['أعمل حيث يلتقي العمل بالتقنية', 'كود مومنتس'],
             '/contact' => ['أخبرني بالمشكلة التي تريد حلّها', 'أرسل طلب الاستشارة'],
         ];
 
@@ -35,20 +35,28 @@ class WebsitePagesTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('<picture>', false)
+            ->assertSee('<picture class="precision-stage__slide"', false)
             ->assertSee('images/ibrahim/ibrahim-systems-portrait.webp', false)
             ->assertSee('images/ibrahim/ibrahim-systems-portrait-compact.webp', false)
             ->assertSee('إبراهيم حسن يراجع مخططاً لنظام رقمي', false)
             ->assertSee('أفهم النظام قبل أن أبني الأداة.', false)
             ->assertSee('من القرار إلى نظامٍ يعمل.', false)
             ->assertSee('images/ibrahim/ibrahim-speaking-hero.webp', false)
+            ->assertSee('كود مومنتس', false)
+            ->assertSee('فروم سكراتش', false)
+            ->assertSee('images/ibrahim/ibrahim-speaking-hero.webp', false)
             ->assertSee('images/projects/atlas/digi-pedia-ai-learning.webp', false)
             ->assertSee('images/brands/projects/digi-pedia.webp', false)
-            ->assertSee('images/brands/companies/code-moments.svg', false)
-            ->assertSee('images/brands/companies/from-scratch.svg', false)
+            ->assertSee('images/brands/companies/code-moments-on-light.svg', false)
+            ->assertSee('images/brands/companies/from-scratch-on-light.svg', false)
+            ->assertSee('atlas-chapter__brand--code-moments', false)
+            ->assertSee('طيفك', false)
+            ->assertSee('ما الذي رسّخه هذا الفصل', false)
+            ->assertDontSee('images/brands/companies/code-moments-on-dark.svg', false)
             ->assertSee('ديجي بيديا', false)
-            ->assertSee('From Scratch', false)
+            ->assertDontSee('<h3>From Scratch</h3>', false)
             ->assertDontSee('From Scratch Solutions', false)
+            ->assertDontSee('IBRAHIM HASAN / IN PRACTICE', false)
             ->assertDontSee('مساحة الصورة الشخصية — تُبنى لاحقاً', false)
             ->assertDontSee('مساحة المشهد — تُبنى لاحقاً', false)
             ->assertDontSee('Strategy / Systems / AI', false)
@@ -57,10 +65,23 @@ class WebsitePagesTest extends TestCase
         $this->get('/en/about')
             ->assertOk()
             ->assertSee('images/ibrahim/ibrahim-speaking-hero.webp', false)
+            ->assertSee('images/brands/companies/code-moments-on-dark.svg', false)
+            ->assertSee('images/brands/companies/from-scratch-on-dark.svg', false)
+            ->assertDontSee('images/brands/companies/code-moments-on-light.svg', false)
             ->assertSee('Code Moments', false)
             ->assertDontSee('Toolkit', false)
             ->assertDontSee('Portrait space — to be art-directed later', false)
             ->assertDontSee('images/ibrahim/ibrahim-hasan-portrait.png', false);
+    }
+
+    public function test_writing_library_uses_precise_taxonomy_and_one_footer_cta(): void
+    {
+        $this->get('/writing')
+            ->assertOk()
+            ->assertSee('دليل تصميم سير العمل', false)
+            ->assertDontSee('مقال تصميمي', false)
+            ->assertDontSee('الكتابة الجيدة لا تعرض المعرفة فقط', false)
+            ->assertSee('site-footer__cta', false);
     }
 
     public function test_homepage_includes_the_precision_motion_composition(): void
@@ -134,16 +155,5 @@ class WebsitePagesTest extends TestCase
                 $response->assertSee($text, false);
             }
         }
-    }
-
-    public function test_legacy_public_urls_redirect_to_new_sections(): void
-    {
-        $this->get('/intellectual-biography')->assertRedirect('/about');
-        $this->get('/knowledge-library')->assertRedirect('/writing');
-        $this->get('/contact-us')->assertRedirect('/contact');
-
-        $this->get('/en/intellectual-biography')->assertRedirect('/en/about');
-        $this->get('/en/knowledge-library')->assertRedirect('/en/writing');
-        $this->get('/en/contact-us')->assertRedirect('/en/contact');
     }
 }

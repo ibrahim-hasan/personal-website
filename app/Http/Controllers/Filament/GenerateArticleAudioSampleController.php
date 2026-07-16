@@ -8,6 +8,7 @@ use App\Http\Requests\GenerateArticleAudioSampleRequest;
 use App\Jobs\GenerateArticleAudioSample;
 use App\Models\ArticleNarration;
 use App\Services\ArticleAudio\ArticleNarrationScript;
+use App\Services\ElevenLabs\ElevenLabsTextToSpeech;
 use App\Support\Editorial\ArticleCatalog;
 use Filament\Notifications\Notification;
 use Illuminate\Http\RedirectResponse;
@@ -20,12 +21,13 @@ class GenerateArticleAudioSampleController extends Controller
         string $locale,
         ArticleCatalog $articles,
         ArticleNarrationScript $source,
+        ElevenLabsTextToSpeech $speech,
     ): RedirectResponse {
         $resolvedArticle = $articles->findByKey($article);
 
         abort_if($resolvedArticle === null || ! in_array($locale, ['ar', 'en'], true), 404);
 
-        if (blank(config('services.elevenlabs.api_key')) || blank(config('services.elevenlabs.voice_id'))) {
+        if (blank(config('services.elevenlabs.api_key')) || blank($speech->voiceId())) {
             Notification::make()
                 ->title(__('article_audio.notifications.configuration_missing'))
                 ->danger()

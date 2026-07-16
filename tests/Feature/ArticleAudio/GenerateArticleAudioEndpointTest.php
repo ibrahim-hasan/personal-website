@@ -10,6 +10,7 @@ use App\Models\ArticleNarration;
 use App\Models\User;
 use App\Services\ArticleAudio\ArticleNarrationScript;
 use App\Support\Editorial\ArticleCatalog;
+use Database\Seeders\ArticleSeeder;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -25,7 +26,7 @@ class GenerateArticleAudioEndpointTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(PermissionSeeder::class);
+        $this->seed([ArticleSeeder::class, PermissionSeeder::class]);
         config()->set('services.elevenlabs.api_key', 'server-only-secret');
         config()->set('services.elevenlabs.voice_id', 'abcd1234voice5678wxyz');
         config()->set('services.elevenlabs.model_id', 'eleven_multilingual_v2');
@@ -44,6 +45,7 @@ class GenerateArticleAudioEndpointTest extends TestCase
         $narration->updateSample('eleven_multilingual_v2', [
             'status' => 'ready',
             'script_hash' => $narration->scriptFingerprint(),
+            'voice_id' => 'abcd1234voice5678wxyz',
             'disk' => 'public',
             'path' => 'article-audio/samples/ar/current-v2.mp3',
         ]);
@@ -52,8 +54,8 @@ class GenerateArticleAudioEndpointTest extends TestCase
     public function test_authorized_editor_can_queue_arabic_article_audio(): void
     {
         $editor = $this->userWithPermissions([
-            'view_any intellectual_libraries',
-            'update intellectual_libraries',
+            'view_any articles',
+            'update articles',
         ]);
 
         $this->actingAs($editor)
@@ -84,7 +86,7 @@ class GenerateArticleAudioEndpointTest extends TestCase
 
         $this->post($url)->assertRedirect();
 
-        $viewer = $this->userWithPermissions(['view_any intellectual_libraries']);
+        $viewer = $this->userWithPermissions(['view_any articles']);
 
         $this->actingAs($viewer)->post($url)->assertForbidden();
         Queue::assertNothingPushed();
@@ -93,8 +95,8 @@ class GenerateArticleAudioEndpointTest extends TestCase
     public function test_invalid_article_or_locale_is_not_queued(): void
     {
         $editor = $this->userWithPermissions([
-            'view_any intellectual_libraries',
-            'update intellectual_libraries',
+            'view_any articles',
+            'update articles',
         ]);
 
         $this->actingAs($editor)
@@ -119,8 +121,8 @@ class GenerateArticleAudioEndpointTest extends TestCase
     {
         config()->set('services.elevenlabs.api_key', null);
         $editor = $this->userWithPermissions([
-            'view_any intellectual_libraries',
-            'update intellectual_libraries',
+            'view_any articles',
+            'update articles',
         ]);
 
         $this->actingAs($editor)
@@ -137,8 +139,8 @@ class GenerateArticleAudioEndpointTest extends TestCase
     public function test_duplicate_click_does_not_dispatch_a_second_generation_job(): void
     {
         $editor = $this->userWithPermissions([
-            'view_any intellectual_libraries',
-            'update intellectual_libraries',
+            'view_any articles',
+            'update articles',
         ]);
         ArticleAudio::factory()->processing()->create([
             'article_key' => 'ai-value',
@@ -158,8 +160,8 @@ class GenerateArticleAudioEndpointTest extends TestCase
     public function test_stalled_generation_can_be_queued_again_after_its_unique_lock_window(): void
     {
         $editor = $this->userWithPermissions([
-            'view_any intellectual_libraries',
-            'update intellectual_libraries',
+            'view_any articles',
+            'update articles',
         ]);
         ArticleAudio::factory()->processing()->create([
             'article_key' => 'ai-value',
@@ -185,8 +187,8 @@ class GenerateArticleAudioEndpointTest extends TestCase
     public function test_admin_page_masks_configuration_and_never_renders_api_key(): void
     {
         $editor = $this->userWithPermissions([
-            'view_any intellectual_libraries',
-            'update intellectual_libraries',
+            'view_any articles',
+            'update articles',
         ]);
 
         $this->actingAs($editor)
@@ -199,8 +201,8 @@ class GenerateArticleAudioEndpointTest extends TestCase
     public function test_admin_page_explains_a_payment_failure_without_rendering_the_raw_provider_error(): void
     {
         $editor = $this->userWithPermissions([
-            'view_any intellectual_libraries',
-            'update intellectual_libraries',
+            'view_any articles',
+            'update articles',
         ]);
         ArticleAudio::factory()->failed()->create([
             'article_key' => 'ai-value',

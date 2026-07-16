@@ -7,6 +7,8 @@ use Database\Factories\ArticleNarrationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class ArticleNarration extends Model
@@ -15,6 +17,7 @@ class ArticleNarration extends Model
     use HasFactory;
 
     protected $fillable = [
+        'article_id',
         'article_key',
         'locale',
         'requested_by_user_id',
@@ -51,6 +54,12 @@ class ArticleNarration extends Model
     public function requestedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by_user_id');
+    }
+
+    /** @return BelongsTo<Article, $this> */
+    public function article(): BelongsTo
+    {
+        return $this->belongsTo(Article::class);
     }
 
     public function isPreparing(): bool
@@ -96,6 +105,16 @@ class ArticleNarration extends Model
     public function hasCurrentSample(string $modelId): bool
     {
         $sample = $this->sample($modelId);
+        $sampleVoiceId = trim((string) data_get($sample, 'voice_id'));
+        $expectedVoiceId = trim((string) config('services.elevenlabs.voice_id'));
+
+        if ($sampleVoiceId === '') {
+            return false;
+        }
+
+        if ($sampleVoiceId !== '' && ($expectedVoiceId === '' || ! hash_equals($expectedVoiceId, $sampleVoiceId))) {
+            return false;
+        }
 
         return $sample !== null
             && data_get($sample, 'status') === 'ready'
@@ -125,10 +144,73 @@ class ArticleNarration extends Model
     /** @param array<string, mixed> $attributes */
     public function updateSample(string $modelId, array $attributes): void
     {
-        $samples = is_array($this->samples) ? $this->samples : [];
-        $current = is_array($samples[$modelId] ?? null) ? $samples[$modelId] : [];
-        $samples[$modelId] = array_merge($current, $attributes);
+        $this->mutateSample($modelId, fn (array $sample): array => array_merge($sample, $attributes));
+    }
 
-        $this->forceFill(['samples' => $samples])->save();
+    /** @param array<string, mixed> $attributes */
+    public function failSampleGeneration(string $modelId, array $attributes): bool
+    {
+        return $this->mutateSample($modelId, function (array $sample) use ($attributes): ?array {
+            if (! in_array(data_get($sample, 'status'), ['queued', 'processing'], true)) {
+                return null;
+            }
+
+            return array_merge($sample, $attributes);
+        });
+    }
+
+    /**
+     * @param  callable(array<string, mixed>): (?array<string, mixed>)  $mutator
+     */
+    private function mutateSample(string $modelId, callable $mutator): bool
+    {
+        $updated = DB::transaction(function () use ($modelId, $mutator): ?ArticleNarration {
+            $narration = self::query()->lockForUpdate()->findOrFail($this->getKey());
+            $samples = is_array($narration->samples) ? $narration->samples : [];
+            $sample = is_array($samples[$modelId] ?? null) ? $samples[$modelId] : [];
+            $mutated = $mutator($sample);
+
+            if ($mutated === null) {
+                return null;
+            }
+
+            $samples[$modelId] = $mutated;
+            $narration->forceFill(['samples' => $samples])->save();
+
+            return $narration;
+        }, 3);
+
+        if ($updated === null) {
+            return false;
+        }
+
+        $this->setRawAttributes($updated->getAttributes(), true);
+
+        return true;
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (ArticleNarration $narration): void {
+            if (! Schema::hasColumn($narration->getTable(), 'article_id')) {
+                return;
+            }
+
+            $narration->article_id = Article::withTrashed()
+                ->where('key', $narration->article_key)
+                ->value('id');
+        });
+
+        static::deleting(function (ArticleNarration $narration): void {
+            foreach ((array) $narration->samples as $sample) {
+                $path = data_get($sample, 'path');
+
+                if (! is_string($path) || $path === '') {
+                    continue;
+                }
+
+                Storage::disk((string) data_get($sample, 'disk', 'public'))->delete($path);
+            }
+        });
     }
 }

@@ -3,18 +3,22 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class ConsultationRequestMail extends Mailable
+class ConsultationRequestMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     /** @param array{name: string, email: string, company: string|null, service: string, service_label: string, challenge: string, locale: string} $consultation */
-    public function __construct(public array $consultation) {}
+    public function __construct(public array $consultation)
+    {
+        $this->afterCommit();
+    }
 
     /**
      * Get the message envelope.

@@ -2,8 +2,9 @@
 
 namespace App\Exceptions;
 
-use Illuminate\Http\Client\Response;
+use Illuminate\Http\Client\RequestException;
 use RuntimeException;
+use Throwable;
 
 class OpenAiNarrationException extends RuntimeException
 {
@@ -12,17 +13,39 @@ class OpenAiNarrationException extends RuntimeException
         public readonly string $providerRequestId,
     ) {
         parent::__construct(sprintf(
-            'OpenAI narration preparation failed with HTTP %d (request %s).',
-            $httpStatus,
+            'OpenAI narration preparation failed%s (request %s).',
+            $httpStatus > 0 ? ' with HTTP '.$httpStatus : '',
             $providerRequestId,
         ));
     }
 
-    public static function fromResponse(Response $response): self
+    public static function fromThrowable(Throwable $exception): self
     {
+        $current = $exception;
+
+        do {
+            if ($current instanceof RequestException && $current->response !== null) {
+                return new self(
+                    httpStatus: $current->response->status(),
+                    providerRequestId: self::sanitizeRequestId(
+                        $current->response->header('x-request-id', 'unavailable'),
+                    ),
+                );
+            }
+
+            $current = $current->getPrevious();
+        } while ($current instanceof Throwable);
+
         return new self(
-            httpStatus: $response->status(),
-            providerRequestId: $response->header('x-request-id', 'unavailable'),
+            httpStatus: 0,
+            providerRequestId: 'unavailable',
         );
+    }
+
+    private static function sanitizeRequestId(string $requestId): string
+    {
+        $sanitized = preg_replace('/[^A-Za-z0-9._:-]/', '', mb_substr($requestId, 0, 120));
+
+        return filled($sanitized) ? $sanitized : 'unavailable';
     }
 }

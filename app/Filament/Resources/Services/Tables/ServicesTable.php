@@ -62,6 +62,7 @@ class ServicesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->reorderable('order')
+            ->authorizeReorder(fn (): bool => auth()->user()?->can('update services') === true)
             ->defaultSort('order', 'asc')
             ->filters([
                 TrashedFilter::make(),

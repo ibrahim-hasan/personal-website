@@ -25,21 +25,45 @@ class UserPolicy
 
     public function update(User $user, User $model): bool
     {
-        return $user->hasPermissionTo('update users');
+        if ($model->hasRole('super_admin') && ! $user->hasRole('super_admin')) {
+            return false;
+        }
+
+        return $user->hasRole('super_admin') || $user->hasPermissionTo('update users');
     }
 
     public function delete(User $user, User $model): bool
     {
-        return $user->hasPermissionTo('delete users');
+        if ($user->is($model)) {
+            return false;
+        }
+
+        if ($model->hasRole('super_admin') && ! $user->hasRole('super_admin')) {
+            return false;
+        }
+
+        return $user->hasRole('super_admin') || $user->hasPermissionTo('delete users');
     }
 
     public function restore(User $user, User $model): bool
     {
-        return $user->hasPermissionTo('restore users');
+        if ($model->hasRole('super_admin') && ! $user->hasRole('super_admin')) {
+            return false;
+        }
+
+        return $user->hasRole('super_admin') || $user->hasPermissionTo('restore users');
     }
 
     public function forceDelete(User $user, User $model): bool
     {
-        return $user->hasPermissionTo('force_delete users');
+        if ($user->is($model)) {
+            return false;
+        }
+
+        if ($model->hasRole('super_admin') && ! $user->hasRole('super_admin')) {
+            return false;
+        }
+
+        return $user->hasRole('super_admin') || $user->hasPermissionTo('force_delete users');
     }
 }

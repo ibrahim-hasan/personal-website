@@ -9,6 +9,7 @@ use App\Models\ArticleNarration;
 use App\Services\ArticleAudio\ArticleAudioScript;
 use App\Services\ArticleAudio\ArticleNarrationScript;
 use App\Support\Editorial\ArticleCatalog;
+use Database\Seeders\ArticleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -23,6 +24,7 @@ class GenerateArticleAudioJobTest extends TestCase
     {
         parent::setUp();
 
+        $this->seed(ArticleSeeder::class);
         Storage::fake('public');
         config()->set('services.elevenlabs.api_key', 'server-secret');
         config()->set('services.elevenlabs.voice_id', 'calm-arabic-voice');
@@ -47,6 +49,7 @@ class GenerateArticleAudioJobTest extends TestCase
         $narration->updateSample('eleven_multilingual_v2', [
             'status' => 'ready',
             'script_hash' => $narration->scriptFingerprint(),
+            'voice_id' => 'calm-arabic-voice',
             'disk' => 'public',
             'path' => 'article-audio/samples/ar/current-v2.mp3',
         ]);
@@ -86,6 +89,19 @@ class GenerateArticleAudioJobTest extends TestCase
         Storage::disk('public')->assertExists($audio->path);
         Storage::disk('public')->assertMissing('article-audio/ar/old.mp3');
         Http::assertSentCount(2);
+    }
+
+    public function test_job_uses_the_long_form_timeout_and_holds_its_unique_lock_longer(): void
+    {
+        config()->set('services.elevenlabs.job_timeout', 1560);
+        config()->set('services.elevenlabs.unique_for', 1800);
+        config()->set('queue.connections.database.retry_after', 1620);
+
+        $job = new GenerateArticleAudio('ai-value', 'ar', 'eleven_v3');
+
+        $this->assertSame(1560, $job->timeout);
+        $this->assertSame(1800, $job->uniqueFor);
+        $this->assertGreaterThan($job->timeout, $job->uniqueFor);
     }
 
     public function test_failed_job_records_a_sanitized_error_without_deleting_previous_audio(): void

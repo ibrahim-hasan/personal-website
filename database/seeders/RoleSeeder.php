@@ -43,17 +43,21 @@ class RoleSeeder extends Seeder
 
         $allPermissions = Permission::where('guard_name', 'web')->pluck('name')->toArray();
 
-        $superAdmin->syncPermissions($allPermissions);
+        if ($superAdmin->wasRecentlyCreated) {
+            $superAdmin->syncPermissions($allPermissions);
+        }
 
         $adminPermissions = collect($allPermissions)
             ->filter(fn (string $permission): bool => ! str_contains($permission, 'force_delete'))
             ->values()
             ->toArray();
-        $admin->syncPermissions($adminPermissions);
+        if ($admin->wasRecentlyCreated) {
+            $admin->syncPermissions($adminPermissions);
+        }
 
-        $editorResources = ['services', 'intellectual_libraries', 'authors', 'guides'];
+        $editorResources = ['services', 'projects', 'articles', 'comments', 'contact_inquiries'];
         $editorActions = ['view_any', 'view', 'create', 'update'];
-        $editorViewOnlyResources = ['settings', 'tags'];
+        $editorViewOnlyResources = ['settings'];
         $editorViewOnlyActions = ['view_any', 'view'];
 
         $editorPermissions = collect($editorResources)
@@ -66,6 +70,8 @@ class RoleSeeder extends Seeder
             )
             ->filter(fn (string $permission): bool => in_array($permission, $allPermissions, true))
             ->toArray();
-        $editor->syncPermissions($editorPermissions);
+        if ($editor->wasRecentlyCreated) {
+            $editor->syncPermissions($editorPermissions);
+        }
     }
 }

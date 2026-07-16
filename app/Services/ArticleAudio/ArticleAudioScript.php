@@ -32,7 +32,7 @@ class ArticleAudioScript
 
         return new ResolvedArticleAudioScript(
             text: $text,
-            contentHash: hash('sha256', $modelId."\0".$text),
+            contentHash: hash('sha256', $modelId."\0".(string) config('services.elevenlabs.voice_id')."\0".$text),
             sourceHash: $sourceHash,
             modelId: $modelId,
             narrationId: $narration->getKey(),

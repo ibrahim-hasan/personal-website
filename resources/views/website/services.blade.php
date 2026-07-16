@@ -13,16 +13,20 @@
         </div>
     </section>
 
-    <section class="section-feature service-explorer" x-data="serviceTabs({ services: @js($services) })">
-        <div class="site-container service-explorer__grid">
+    <section class="section-feature service-explorer" @if ($services !== []) x-data="serviceTabs({ services: @js($services) })" @endif>
+        @if ($services !== [])
+            <div class="site-container service-explorer__grid">
             <div class="service-index" role="tablist" aria-label="{{ __('site.services.tabs_label') }}">
                 @foreach ($services as $service)
                     <button
-                        id="{{ $service['id'] }}"
+                        id="service-tab-{{ $service['id'] }}"
                         type="button"
                         role="tab"
                         @click="activate('{{ $service['id'] }}')"
+                        @keydown="navigate($event)"
                         :aria-selected="active === '{{ $service['id'] }}'"
+                        :tabindex="active === '{{ $service['id'] }}' ? 0 : -1"
+                        aria-controls="service-panel"
                         class="service-index__item"
                         :class="active === '{{ $service['id'] }}' ? 'is-active' : ''"
                     >
@@ -33,7 +37,14 @@
                 @endforeach
             </div>
 
-            <article class="service-detail" role="tabpanel" aria-live="polite">
+            <article
+                id="service-panel"
+                class="service-detail"
+                role="tabpanel"
+                tabindex="0"
+                :aria-labelledby="'service-tab-' + active"
+                aria-live="polite"
+            >
                 <p class="signal-label">{{ __('site.services.selected_track') }}</p>
                 <h2 class="display-section mt-6 max-w-[13ch]" x-text="current().name"></h2>
                 <p class="copy-lead mt-7 max-w-[58ch]" x-text="current().summary"></p>
@@ -67,7 +78,18 @@
                     <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
                 </a>
             </article>
-        </div>
+            </div>
+        @else
+            <div class="site-container">
+                <x-partials.content-empty
+                    :eyebrow="__('site.services.empty_eyebrow')"
+                    :title="__('site.services.empty_title')"
+                    :body="__('site.services.empty_body')"
+                    :action-url="localized_route('contact').'#consultation'"
+                    :action-label="__('site.actions.start_project')"
+                />
+            </div>
+        @endif
     </section>
 
     <section class="method-band">

@@ -19,7 +19,7 @@ class HomeController extends Controller
             'companies' => PortfolioAtlas::companies(),
             'experience' => PortfolioAtlas::experience(),
             'lenses' => PortfolioAtlas::lenses(),
-            'projects' => PortfolioAtlas::featuredProjects(limit: 5),
+            'projects' => PortfolioAtlas::homepageProjects(),
             'articles' => $this->articles->featured(),
         ]);
     }

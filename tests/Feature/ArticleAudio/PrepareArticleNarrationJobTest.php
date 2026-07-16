@@ -8,7 +8,9 @@ use App\Enums\ArticleNarrationStatus;
 use App\Jobs\PrepareArticleNarration;
 use App\Models\ArticleNarration;
 use App\Services\ArticleAudio\ArticleNarrationScript;
+use App\Support\Ai\NarrationExecutionBudget;
 use App\Support\Editorial\ArticleCatalog;
+use Database\Seeders\ArticleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use RuntimeException;
 use Tests\TestCase;
@@ -16,6 +18,24 @@ use Tests\TestCase;
 class PrepareArticleNarrationJobTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_job_timeout_always_covers_every_provider_attempt_and_retry_delay(): void
+    {
+        config()->set('services.openai.timeout', 180);
+
+        $job = new PrepareArticleNarration('ai-value', 'ar');
+
+        $this->assertSame(NarrationExecutionBudget::jobTimeout(), $job->timeout);
+        $this->assertGreaterThanOrEqual(NarrationExecutionBudget::minimumJobTimeout(), $job->timeout);
+        $this->assertLessThan(650, $job->timeout);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(ArticleSeeder::class);
+    }
 
     public function test_job_prepares_a_reviewable_draft_without_approving_it(): void
     {
@@ -56,7 +76,7 @@ class PrepareArticleNarrationJobTest extends TestCase
 
     public function test_failed_repreparation_keeps_the_last_approved_script_and_redacts_the_key(): void
     {
-        config()->set('services.openai.api_key', 'private-openai-key');
+        config()->set('ai.providers.openai.key', 'private-openai-key');
         $article = app(ArticleCatalog::class)->findByKey('ai-value');
         $this->assertNotNull($article);
         $source = app(ArticleNarrationScript::class)->build($article, 'ar');

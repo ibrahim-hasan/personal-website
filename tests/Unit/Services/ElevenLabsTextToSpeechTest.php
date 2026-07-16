@@ -7,6 +7,7 @@ use App\Services\ArticleAudio\Mp3Concatenator;
 use App\Services\ElevenLabs\ElevenLabsTextToSpeech;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -131,6 +132,29 @@ class ElevenLabsTextToSpeechTest extends TestCase
         $this->assertSame(0.50, $request['voice_settings']['stability']);
     }
 
+    public function test_it_uses_the_same_configured_voice_for_english(): void
+    {
+        $request = null;
+        $segment = "\xFF\xFB".str_repeat('A', 250);
+
+        Http::preventStrayRequests();
+        Http::fake(function (Request $sent) use (&$request, $segment) {
+            $request = $sent;
+
+            return Http::response($segment, 200, ['Content-Type' => 'audio/mpeg']);
+        });
+
+        app(ElevenLabsTextToSpeech::class)->synthesize('An American English article.', 'en');
+
+        $this->assertNotNull($request);
+        $this->assertStringContainsString(
+            '/text-to-speech/calm-arabic-voice?output_format=mp3_44100_128',
+            $request->url(),
+        );
+        $this->assertSame('eleven_multilingual_v2', $request['model_id']);
+        $this->assertArrayNotHasKey('language_code', $request->data());
+    }
+
     public function test_v3_omits_request_stitching_fields_when_an_article_needs_multiple_chunks(): void
     {
         $requests = [];
@@ -181,6 +205,28 @@ class ElevenLabsTextToSpeechTest extends TestCase
         }
     }
 
+    public function test_it_rejects_narration_beyond_the_bounded_segment_budget_before_spending_credits(): void
+    {
+        config()->set('services.elevenlabs.max_segments', 2);
+        Http::preventStrayRequests();
+        Http::fake();
+
+        $text = implode("\n\n", [
+            str_repeat('أ', 80).'.',
+            str_repeat('ب', 80).'.',
+            str_repeat('ت', 80).'.',
+        ]);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('requires 3 ElevenLabs segments');
+
+        try {
+            app(ElevenLabsTextToSpeech::class)->synthesize($text, 'ar');
+        } finally {
+            Http::assertNothingSent();
+        }
+    }
+
     public function test_it_reports_a_sanitized_payment_error_without_retrying(): void
     {
         $requests = 0;
@@ -212,6 +258,59 @@ class ElevenLabsTextToSpeechTest extends TestCase
         }
 
         $this->assertSame(1, $requests);
+    }
+
+    public function test_it_retries_transient_provider_failures_with_the_shared_backoff(): void
+    {
+        $requests = 0;
+        $segment = "\xFF\xFB".str_repeat('R', 250);
+        Sleep::fake();
+
+        try {
+            Http::preventStrayRequests();
+            Http::fake(function () use (&$requests, $segment) {
+                $requests++;
+
+                return $requests < 3
+                    ? Http::response(['detail' => ['code' => 'provider_unavailable']], 503)
+                    : Http::response($segment, 200, ['Content-Type' => 'audio/mpeg']);
+            });
+
+            $result = app(ElevenLabsTextToSpeech::class)->synthesize('نص صالح للتوليد.', 'ar');
+
+            $this->assertSame(3, $requests);
+            $this->assertSame($segment, $result->audio);
+            Sleep::assertSequence([
+                Sleep::for(1200)->milliseconds(),
+                Sleep::for(3000)->milliseconds(),
+            ]);
+        } finally {
+            Sleep::fake(false);
+        }
+    }
+
+    public function test_it_reports_a_key_quota_error_as_quota_instead_of_invalid_credentials(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake(fn () => Http::response([
+            'detail' => [
+                'type' => 'authentication_error',
+                'code' => 'quota_exceeded',
+                'message' => 'Provider detail that must not be exposed.',
+                'request_id' => 'request-quota-401',
+            ],
+        ], 401));
+
+        try {
+            app(ElevenLabsTextToSpeech::class)->synthesize('نص صالح للتوليد.', 'ar');
+            $this->fail('The quota failure should throw an exception.');
+        } catch (ElevenLabsRequestException $exception) {
+            $this->assertSame(401, $exception->httpStatus);
+            $this->assertSame('quota_exceeded', $exception->providerCode);
+            $this->assertStringContainsString('credit quota', $exception->getMessage());
+            $this->assertStringNotContainsString('rejected the API key', $exception->getMessage());
+            $this->assertStringNotContainsString('must not be exposed', $exception->getMessage());
+        }
     }
 
     public function test_mp3_concatenation_keeps_only_the_first_id3_header(): void

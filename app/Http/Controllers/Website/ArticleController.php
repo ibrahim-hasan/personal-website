@@ -48,7 +48,10 @@ class ArticleController extends Controller
                 'url' => $audio->publicUrl(),
                 'mime_type' => $audio->mime_type ?? 'audio/mpeg',
                 'file_size' => $audio->file_size,
+                'duration_seconds' => $this->durationSeconds($audio),
                 'generated_at' => $audio->generated_at?->toIso8601String(),
+                'article_key' => $resolvedArticle->key,
+                'locale' => $locale,
             ];
         }
 
@@ -87,5 +90,27 @@ class ArticleController extends Controller
             'articleAudio' => $articleAudio,
             'structuredData' => $structuredData,
         ]);
+    }
+
+    private function durationSeconds(ArticleAudio $audio): ?int
+    {
+        if ($audio->duration_seconds !== null && $audio->duration_seconds > 0) {
+            return $audio->duration_seconds;
+        }
+
+        $fileSize = $audio->file_size;
+
+        if ($fileSize === null && $audio->path !== null && Storage::disk($audio->disk)->exists($audio->path)) {
+            $fileSize = Storage::disk($audio->disk)->size($audio->path);
+        }
+
+        if ($fileSize === null || $fileSize <= 0) {
+            return null;
+        }
+
+        preg_match('/_(\d+)(?:$|\?)/', (string) $audio->output_format, $matches);
+        $bitrate = (int) ($matches[1] ?? 0);
+
+        return $bitrate > 0 ? (int) round(($fileSize * 8) / ($bitrate * 1000)) : null;
     }
 }

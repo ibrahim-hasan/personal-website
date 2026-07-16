@@ -5,6 +5,7 @@ namespace Tests\Feature\Editorial;
 use App\Models\ArticleAudio;
 use App\Services\ArticleAudio\ArticleNarrationScript;
 use App\Support\Editorial\ArticleCatalog;
+use Database\Seeders\ArticleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -12,6 +13,13 @@ use Tests\TestCase;
 class ArticlePagesTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(ArticleSeeder::class);
+    }
 
     public function test_writing_index_presents_the_complete_arabic_and_english_libraries(): void
     {
@@ -72,14 +80,19 @@ class ArticlePagesTest extends TestCase
             'locale' => 'ar',
             'content_hash' => $hash,
             'path' => $path,
+            'file_size' => 17106274,
+            'output_format' => 'mp3_44100_128',
         ]);
 
         $response = $this->get(parse_url($catalog->url($article, 'ar'), PHP_URL_PATH));
 
         $response
             ->assertOk()
-            ->assertSee('data-article-audio-player', false)
+            ->assertSee('data-site-audio-player', false)
+            ->assertSee('data-article-audio-source', false)
             ->assertSee('data-article-audio-element', false)
+            ->assertSee('data-audio-duration-seconds="1069"', false)
+            ->assertSee('wire:navigate', false)
             ->assertSee('/storage/'.$path, false)
             ->assertSee('"@type":"AudioObject"', false)
             ->assertDontSee('ELEVENLABS_API_KEY', false)

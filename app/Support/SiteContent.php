@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Service;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Schema;
 
@@ -9,23 +10,60 @@ class SiteContent
 {
     public static function home(): array
     {
-        return self::localize([
+        $content = self::localize([
             'focus' => [
                 ['value' => ['ar' => 'التحول الرقمي', 'en' => 'Digital Transformation'], 'label' => ['ar' => 'ما الذي يُرقمن، وما الذي يؤتمت، وبأي ترتيب', 'en' => 'What to digitize, what to automate, and in what order']],
                 ['value' => ['ar' => 'الذكاء الاصطناعي', 'en' => 'AI Adoption'], 'label' => ['ar' => 'مساعدون، وكلاء، تقييم، وتقليل مخاطر الهلوسة', 'en' => 'Assistants, agents, evaluation, and hallucination risk']],
                 ['value' => ['ar' => 'حوكمة البيانات', 'en' => 'Data Governance'], 'label' => ['ar' => 'ملكية، صلاحيات، جودة، واستعداد البيانات', 'en' => 'Ownership, permissions, quality, and readiness']],
                 ['value' => ['ar' => 'الأنظمة والأتمتة', 'en' => 'Systems & Automation'], 'label' => ['ar' => 'منصات قابلة للصيانة والتوسع والقياس', 'en' => 'Maintainable, scalable, measurable platforms']],
             ],
-            'services' => self::servicesPayload(),
+            'services' => self::serviceDefaults(),
             'work' => array_slice(self::workPayload(), 0, 3),
             'writing' => array_slice(self::writingPayload(), 0, 3),
             'process' => self::processPayload(),
         ]);
+
+        $content['services'] = self::services();
+
+        return $content;
     }
 
     public static function services(): array
     {
-        return self::localize(self::servicesPayload());
+        if (Schema::hasTable('services') && Schema::hasColumn('services', 'slug')) {
+            return Service::query()
+                ->posted()
+                ->orderBy('order')
+                ->get()
+                ->map(fn (Service $service): array => $service->toPublicArray(app()->getLocale()))
+                ->all();
+        }
+
+        return self::localize(self::serviceDefaults());
+    }
+
+    public static function aboutBiography(): string
+    {
+        $fallback = (string) __('site.about.body');
+
+        if (! Schema::hasTable('settings')) {
+            return $fallback;
+        }
+
+        $stored = Setting::getValue('about_biography', 'website_content');
+
+        if (is_string($stored) && $stored !== '') {
+            $decoded = json_decode($stored, true);
+            $stored = is_array($decoded) ? $decoded : $stored;
+        }
+
+        if (is_array($stored)) {
+            $stored = $stored[app()->getLocale()] ?? $stored['en'] ?? $stored['ar'] ?? '';
+        }
+
+        $biography = trim(strip_tags(is_string($stored) ? $stored : ''));
+
+        return $biography !== '' ? $biography : $fallback;
     }
 
     public static function work(): array
@@ -45,16 +83,67 @@ class SiteContent
 
     public static function contact(): array
     {
+        $settings = self::contactSettings();
+        $configuredEmail = trim((string) ($settings['contact_email'] ?? ''));
+        $email = filter_var($configuredEmail, FILTER_VALIDATE_EMAIL)
+            ? $configuredEmail
+            : 'hello@ibrahimhasan.net';
+        $channels = [
+            [
+                'label' => ['ar' => 'البريد', 'en' => 'Email'],
+                'href' => 'mailto:'.$email,
+                'value' => $email,
+            ],
+        ];
+
+        $linkedin = self::socialUrls()['linkedin'] ?? null;
+
+        if (is_string($linkedin) && trim($linkedin) !== '') {
+            $channels[] = [
+                'label' => ['ar' => 'لينكدإن', 'en' => 'LinkedIn'],
+                'href' => $linkedin,
+                'value' => ['ar' => 'تواصل عبر لينكدإن', 'en' => 'Connect on LinkedIn'],
+            ];
+        }
+
+        $phone = trim((string) ($settings['contact_phone'] ?? ''));
+
+        if ($phone !== '') {
+            $channels[] = [
+                'label' => ['ar' => 'الهاتف', 'en' => 'Phone'],
+                'href' => 'tel:'.preg_replace('/[^+\d]/', '', $phone),
+                'value' => $phone,
+            ];
+        }
+
+        $whatsapp = trim((string) ($settings['whatsapp_number'] ?? ''));
+
+        if ($whatsapp !== '') {
+            $channels[] = [
+                'label' => ['ar' => 'واتساب', 'en' => 'WhatsApp'],
+                'href' => 'https://wa.me/'.preg_replace('/\D/', '', $whatsapp),
+                'value' => ['ar' => 'ابدأ محادثة', 'en' => 'Start a conversation'],
+            ];
+        }
+
+        $address = trim((string) ($settings['contact_address'] ?? ''));
+        $addressUrl = self::safeExternalUrl($settings['address_url'] ?? null);
+
+        if ($address !== '' && $addressUrl !== null) {
+            $channels[] = [
+                'label' => ['ar' => 'الموقع', 'en' => 'Location'],
+                'href' => $addressUrl,
+                'value' => $address,
+            ];
+        }
+
         return self::localize([
-            'email' => 'hello@ibrahimhasan.net',
+            'email' => $email,
             'availability' => [
                 'ar' => 'أعمل مع شركات تريد تحويل مشاكل التشغيل والنمو إلى أنظمة رقمية وحلول ذكاء اصطناعي عملية، مبنية على فهم واضح للعمليات والبيانات والمخاطر.',
                 'en' => 'I work with companies that want to turn operational and growth challenges into digital systems and practical AI solutions, built on a clear understanding of processes, data, and risk.',
             ],
-            'channels' => [
-                ['label' => ['ar' => 'البريد', 'en' => 'Email'], 'href' => 'mailto:hello@ibrahimhasan.net', 'value' => 'hello@ibrahimhasan.net'],
-                ['label' => ['ar' => 'لينكدإن', 'en' => 'LinkedIn'], 'href' => 'https://sa.linkedin.com/in/i-hasan', 'value' => ['ar' => 'تواصل عبر لينكدإن', 'en' => 'Connect on LinkedIn']],
-            ],
+            'channels' => $channels,
         ]);
     }
 
@@ -69,6 +158,7 @@ class SiteContent
             ['platform' => 'facebook', 'label' => 'Facebook', 'href' => $socialUrls['facebook'] ?? null],
             ['platform' => 'twitter', 'label' => 'X', 'href' => $socialUrls['twitter'] ?? null],
             ['platform' => 'instagram', 'label' => 'Instagram', 'href' => $socialUrls['instagram'] ?? null],
+            ['platform' => 'youtube', 'label' => 'YouTube', 'href' => $socialUrls['youtube'] ?? null],
         ];
 
         return array_values(array_filter(
@@ -92,7 +182,7 @@ class SiteContent
 
         $storedUrls = Setting::query()
             ->where('group', 'social')
-            ->whereIn('key', ['social_linkedin', 'social_facebook', 'social_twitter', 'social_instagram'])
+            ->whereIn('key', ['social_linkedin', 'social_facebook', 'social_twitter', 'social_instagram', 'social_youtube'])
             ->pluck(Setting::valueColumn(), 'key');
 
         foreach ([
@@ -100,15 +190,57 @@ class SiteContent
             'facebook' => 'social_facebook',
             'twitter' => 'social_twitter',
             'instagram' => 'social_instagram',
+            'youtube' => 'social_youtube',
         ] as $platform => $settingKey) {
             $storedUrl = $storedUrls->get($settingKey);
 
             if (is_string($storedUrl) && trim($storedUrl) !== '') {
-                $socialUrls[$platform] = $storedUrl;
+                $socialUrls[$platform] = self::safeExternalUrl($storedUrl);
             }
         }
 
-        return $socialUrls;
+        return collect($socialUrls)
+            ->map(fn (mixed $url): ?string => self::safeExternalUrl($url))
+            ->filter()
+            ->all();
+    }
+
+    /** @return array<string, string|null> */
+    private static function contactSettings(): array
+    {
+        $settings = [
+            'contact_email' => 'hello@ibrahimhasan.net',
+            'contact_phone' => null,
+            'contact_address' => null,
+            'address_url' => null,
+            'whatsapp_number' => null,
+        ];
+
+        if (! Schema::hasTable('settings')) {
+            return $settings;
+        }
+
+        return array_replace($settings, Setting::query()
+            ->where('group', 'contact')
+            ->whereIn('key', array_keys($settings))
+            ->pluck(Setting::valueColumn(), 'key')
+            ->all());
+    }
+
+    private static function safeExternalUrl(mixed $url): ?string
+    {
+        if (! is_string($url)) {
+            return null;
+        }
+
+        $url = trim($url);
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+
+        if ($url === '' || ! in_array($scheme, ['http', 'https'], true)) {
+            return null;
+        }
+
+        return filter_var($url, FILTER_VALIDATE_URL) ? $url : null;
     }
 
     public static function toolchain(): array
@@ -129,7 +261,7 @@ class SiteContent
         ]);
     }
 
-    private static function servicesPayload(): array
+    public static function serviceDefaults(): array
     {
         return [
             [

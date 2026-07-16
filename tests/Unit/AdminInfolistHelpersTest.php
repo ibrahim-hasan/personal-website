@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use App\Filament\Components\TranslatableInfolistTabs;
-use App\Models\Guide;
+use App\Models\Project;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -26,15 +26,15 @@ class AdminInfolistHelpersTest extends TestCase
 
     public function test_localized_model_attribute_returns_current_locale_with_fallback(): void
     {
-        $guide = Guide::factory()->create([
+        $project = Project::factory()->create([
             'title' => ['ar' => 'عنوان عربي', 'en' => 'English Title'],
         ]);
 
         app()->setLocale('ar');
-        $this->assertSame('عنوان عربي', localized_model_attribute($guide, 'title'));
+        $this->assertSame('عنوان عربي', localized_model_attribute($project, 'title'));
 
         app()->setLocale('en');
-        $this->assertSame('English Title', localized_model_attribute($guide, 'title'));
+        $this->assertSame('English Title', localized_model_attribute($project, 'title'));
     }
 
     public function test_translatable_infolist_tabs_builds_tabs_component(): void

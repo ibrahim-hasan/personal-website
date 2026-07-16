@@ -1,5 +1,5 @@
 @php
-    $featuredArticle = $articles[0];
+    $featuredArticle = $articles[0] ?? null;
     $topicMap = collect($articles)
         ->flatMap(function (array $article): array {
             return collect($article['topic_keys'])
@@ -22,7 +22,8 @@
                 <p class="copy-lead">{{ __('site.writing.body') }}</p>
             </div>
 
-            <a href="{{ $featuredArticle['url'] }}" class="featured-essay">
+            @if ($featuredArticle)
+                <a href="{{ $featuredArticle['url'] }}" class="featured-essay">
                 <figure>
                     <img
                         src="{{ $featuredArticle['image_url'] }}"
@@ -30,6 +31,7 @@
                         width="1200"
                         height="900"
                         fetchpriority="high"
+                        decoding="async"
                     >
                 </figure>
                 <div class="featured-essay__copy">
@@ -41,26 +43,58 @@
                         <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
                     </strong>
                 </div>
-            </a>
+                </a>
+            @else
+                <x-partials.content-empty
+                    :eyebrow="__('site.writing.empty_eyebrow')"
+                    :title="__('site.writing.empty_title')"
+                    :body="__('site.writing.empty_body')"
+                    :action-url="localized_route('contact').'#consultation'"
+                    :action-label="__('site.actions.start_project')"
+                />
+            @endif
         </div>
     </section>
 
-    <section class="publication-library" x-data="articleLibrary">
+    @if ($articles !== [])
+        <section class="publication-library" x-data="articleLibrary">
         <div class="site-container">
             <div class="publication-library__toolbar">
                 <div>
                     <p>{{ __('articles.index.library') }}</p>
                     <h2>{{ __('articles.index.all_articles') }}</h2>
                 </div>
-                <div class="publication-topics" role="group" aria-label="{{ __('articles.index.filter_by_topic') }}">
-                    <button type="button" @click="select('all')" :class="active === 'all' ? 'is-active' : ''">
+                <div class="publication-topics-shell">
+                    <button type="button" class="publication-topics__arrow" @click="scrollTopics(-1)" :disabled="topicCursor === 0" aria-label="{{ __('articles.index.previous_topics') }}">
+                        <x-phosphor-caret-left class="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+                    </button>
+                    <div x-ref="topics" class="publication-topics" role="toolbar" aria-label="{{ __('articles.index.filter_by_topic') }}">
+                    <button
+                        type="button"
+                        @click="select('all')"
+                        @keydown="navigate($event)"
+                        :aria-pressed="active === 'all'"
+                        :tabindex="active === 'all' ? 0 : -1"
+                        :class="active === 'all' ? 'is-active' : ''"
+                    >
                         {{ __('articles.index.all_topics') }}
                     </button>
                     @foreach ($topicMap as $key => $topic)
-                        <button type="button" @click="select(@js($key))" :class="active === @js($key) ? 'is-active' : ''">
+                        <button
+                            type="button"
+                            @click="select(@js($key))"
+                            @keydown="navigate($event)"
+                            :aria-pressed="active === @js($key)"
+                            :tabindex="active === @js($key) ? 0 : -1"
+                            :class="active === @js($key) ? 'is-active' : ''"
+                        >
                             {{ $topic }}
                         </button>
                     @endforeach
+                    </div>
+                    <button type="button" class="publication-topics__arrow" @click="scrollTopics(1)" :disabled="topicCursor === topicCount - 1" aria-label="{{ __('articles.index.next_topics') }}">
+                        <x-phosphor-caret-right class="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+                    </button>
                 </div>
             </div>
 
@@ -90,16 +124,7 @@
                 @endforeach
             </div>
         </div>
-    </section>
-
-    <section class="statement-band">
-        <div class="site-container publication-statement">
-            <p class="display-section" data-reveal>{{ __('articles.index.statement') }}</p>
-            <a href="{{ localized_route('contact') }}#consultation" class="button-light" data-magnetic>
-                <span>{{ __('site.actions.free_consultation') }}</span>
-                <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
-            </a>
-        </div>
-    </section>
+        </section>
+    @endif
 
 </x-layouts.front>

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Services\Schemas;
 
 use App\Filament\Components\TranslatableTabs;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -23,23 +24,23 @@ class ServiceForm
                     ->label(__('admin.fields.name'))
                     ->required()
                     ->maxLength(255),
-                Textarea::make("problems_you_are_facing.{$locale}")
-                    ->label(__('admin.fields.problems_you_are_facing'))
+                Textarea::make("summary.{$locale}")
+                    ->label(__('admin.fields.summary'))
                     ->required(fn (Get $get): bool => ! (bool) $get('is_draft'))
                     ->rows(3)
                     ->columnSpanFull(),
-                Textarea::make("how_can_we_help.{$locale}")
-                    ->label(__('admin.fields.how_can_we_help'))
+                Textarea::make("problem.{$locale}")
+                    ->label(__('admin.fields.problem'))
                     ->required(fn (Get $get): bool => ! (bool) $get('is_draft'))
                     ->rows(3)
                     ->columnSpanFull(),
-                Textarea::make("type_of_intervention.{$locale}")
-                    ->label(__('admin.fields.type_of_intervention'))
+                Textarea::make("approach.{$locale}")
+                    ->label(__('admin.fields.approach'))
                     ->required(fn (Get $get): bool => ! (bool) $get('is_draft'))
                     ->rows(3)
                     ->columnSpanFull(),
-                Textarea::make("results.{$locale}")
-                    ->label(__('admin.fields.results'))
+                Textarea::make("result.{$locale}")
+                    ->label(__('admin.fields.result'))
                     ->required(fn (Get $get): bool => ! (bool) $get('is_draft'))
                     ->rows(3)
                     ->columnSpanFull(),
@@ -52,10 +53,30 @@ class ServiceForm
                 Section::make(__('admin.sections.translations'))
                     ->schema([
                         TranslatableTabs::make($translationsTabsSchema, columns: 2),
+                        Repeater::make('deliverables')
+                            ->label(__('admin.fields.deliverables'))
+                            ->schema([
+                                TextInput::make('ar')
+                                    ->label(__('admin.locales.ar'))
+                                    ->required(),
+                                TextInput::make('en')
+                                    ->label(__('admin.locales.en'))
+                                    ->required(),
+                            ])
+                            ->columns(2)
+                            ->minItems(1)
+                            ->reorderable()
+                            ->columnSpanFull(),
                     ])
                     ->columnSpan(2),
                 Section::make(__('admin.sections.main_details'))
                     ->schema([
+                        TextInput::make('slug')
+                            ->label(__('admin.fields.slug'))
+                            ->required()
+                            ->alphaDash()
+                            ->maxLength(80)
+                            ->unique(ignoreRecord: true),
                         Toggle::make('is_draft')
                             ->label(__('admin.fields.draft'))
                             ->required(),

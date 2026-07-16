@@ -12,6 +12,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
 class Profile extends Page implements HasForms
@@ -32,12 +33,12 @@ class Profile extends Page implements HasForms
 
     public static function getLabel(): string
     {
-        return __('admin.resources.user.single');
+        return __('admin.auth.profile');
     }
 
     public function getTitle(): string
     {
-        return __('admin.resources.user.single');
+        return __('admin.auth.profile');
     }
 
     public function mount(): void
@@ -58,15 +59,24 @@ class Profile extends Page implements HasForms
         return $schema
             ->statePath('data')
             ->schema([
-                // Section::make(__('Profile Information'))
-                //     ->schema([
-                //         TextInput::make('name')
-                //             ->label(__('Name'))
-                //             ->disabled(),
-                //         TextInput::make('email')
-                //             ->label(__('Email'))
-                //             ->disabled(),
-                //     ]),
+                Section::make(__('admin.sections.main_details'))
+                    ->schema([
+                        TextInput::make('name')
+                            ->label(__('admin.fields.name'))
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('email')
+                            ->label(__('admin.fields.email_address'))
+                            ->email()
+                            ->required()
+                            ->unique(
+                                table: User::class,
+                                column: 'email',
+                                ignorable: fn (): ?User => Auth::user(),
+                            )
+                            ->maxLength(255),
+                    ])
+                    ->columns(2),
 
                 Section::make(__('admin.auth.change_password'))
                     ->schema([
@@ -80,8 +90,8 @@ class Profile extends Page implements HasForms
                             ->password()
                             ->revealable()
                             ->required()
-                            ->minLength(8)
-                            ->same('password_confirmation'),
+                            ->confirmed()
+                            ->rule(Password::defaults()),
                         TextInput::make('password_confirmation')
                             ->label(__('admin.auth.confirm_new_password'))
                             ->password()
@@ -107,18 +117,30 @@ class Profile extends Page implements HasForms
             ]);
         }
 
-        $user->password = Hash::make($data['password']);
+        $user->fill([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => $data['password'],
+        ]);
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
         $user->save();
 
         $this->form->fill([
             'name' => $user->name,
             'email' => $user->email,
+            'current_password' => null,
+            'password' => null,
+            'password_confirmation' => null,
         ]);
 
         $this->resetErrorBag();
 
         Notification::make()
-            ->title(__('admin.auth.password_updated'))
+            ->title(__('admin.auth.profile_updated'))
             ->success()
             ->send();
     }

@@ -8,7 +8,7 @@
             <div>
                 <p class="signal-label">{{ __('site.about.eyebrow') }}</p>
                 <h1 class="display-page mt-7 max-w-[13ch]">{{ __('site.about.heading') }}</h1>
-                <p class="copy-lead mt-8 max-w-[64ch]">{{ __('site.about.body') }}</p>
+                <p class="copy-lead mt-8 max-w-[64ch]">{{ $biography }}</p>
             </div>
             <figure class="about-intro__portrait" data-reveal="media" data-depth="media">
                 <img
@@ -49,14 +49,13 @@
                     <article style="--reveal-index: {{ $loop->index }}" data-reveal="chapter">
                         <div class="about-chapters__number">{{ sprintf('%02d', $loop->iteration) }}</div>
                         <div class="about-chapters__copy">
-                            @if ($company['logo'] !== '')
-                                <div @class([
-                                    'about-chapters__brand',
-                                    'about-chapters__brand--symbol' => $company['id'] === 'from-scratch',
-                                ])>
+                            @if ($company['logo_on_dark'] !== '')
+                                <div class="about-chapters__brand">
                                     <img
-                                        src="{{ asset($company['logo']) }}"
+                                        src="{{ asset($company['logo_on_dark']) }}"
                                         alt="{{ $company['logo_alt'] }}"
+                                        width="{{ $company['logo_on_dark_width'] }}"
+                                        height="{{ $company['logo_on_dark_height'] }}"
                                         loading="lazy"
                                         decoding="async"
                                     >

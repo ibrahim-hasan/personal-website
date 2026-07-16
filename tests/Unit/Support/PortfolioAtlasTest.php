@@ -92,6 +92,34 @@ class PortfolioAtlasTest extends TestCase
         $this->assertSame([], PortfolioAtlas::featuredProjects(limit: 0));
     }
 
+    public function test_homepage_projects_fill_a_balanced_six_case_grid(): void
+    {
+        $this->assertSame(
+            ['digi-pedia', 'wafaa', 'rannan', 'maazim', 'rafid-360', 'taifk'],
+            array_column(PortfolioAtlas::homepageProjects(), 'id'),
+        );
+        $this->assertSame([], PortfolioAtlas::homepageProjects(0));
+    }
+
+    public function test_company_chapters_describe_concrete_operating_outcomes(): void
+    {
+        app()->setLocale('en');
+
+        $companies = collect(PortfolioAtlas::companies())->keyBy('id');
+
+        $this->assertSame('Turn needs into a product roadmap', $companies['code-moments']['focus'][0]);
+        $this->assertSame('Build a scalable operating model', $companies['from-scratch']['focus'][0]);
+        $this->assertSame('Define the decision before the technology', $companies['independent-strategic-practice']['focus'][0]);
+    }
+
+    public function test_from_scratch_precedes_code_moments_in_the_company_chapters(): void
+    {
+        $this->assertSame(
+            ['from-scratch', 'code-moments', 'independent-strategic-practice'],
+            array_column(PortfolioAtlas::companies(), 'id'),
+        );
+    }
+
     public function test_public_content_does_not_expose_banned_technical_terms(): void
     {
         foreach (['ar', 'en'] as $locale) {
@@ -137,8 +165,21 @@ class PortfolioAtlasTest extends TestCase
         $this->assertSame('Chief Executive Officer', $companies['code-moments']['relationship']);
         $this->assertSame('From Scratch', $companies['from-scratch']['name']);
         $this->assertSame('Co-founder & Chief Executive Officer', $companies['from-scratch']['relationship']);
-        $this->assertFileExists(public_path($companies['code-moments']['logo']));
-        $this->assertFileExists(public_path($companies['from-scratch']['logo']));
+        foreach (['code-moments', 'from-scratch'] as $companyId) {
+            foreach (['logo_on_light', 'logo_on_dark'] as $logoVariant) {
+                $logoPath = $companies[$companyId][$logoVariant];
+
+                $this->assertIsString($logoPath);
+                $this->assertMatchesRegularExpression(
+                    '#^images/brands/companies/[a-z0-9-]+-on-(light|dark)\.svg$#',
+                    $logoPath,
+                );
+                $this->assertFileExists(public_path($logoPath));
+            }
+        }
+
+        $this->assertSame('', $companies['independent-strategic-practice']['logo_on_light']);
+        $this->assertSame('', $companies['independent-strategic-practice']['logo_on_dark']);
         $this->assertArrayNotHasKey('from-scratch-solutions', $companies->all());
     }
 

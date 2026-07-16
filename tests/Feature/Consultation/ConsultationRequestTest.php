@@ -4,12 +4,23 @@ namespace Tests\Feature\Consultation;
 
 use App\Livewire\Website\ConsultationRequest;
 use App\Mail\ConsultationRequestMail;
+use Database\Seeders\ServiceSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 class ConsultationRequestTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(ServiceSeeder::class);
+    }
+
     public function test_contact_page_contains_the_livewire_consultation_form(): void
     {
         $this->get('/contact')
@@ -31,11 +42,17 @@ class ConsultationRequestTest extends TestCase
             ->assertHasNoErrors()
             ->assertSet('submitted', true);
 
-        Mail::assertSent(ConsultationRequestMail::class, function (ConsultationRequestMail $mail): bool {
+        Mail::assertQueued(ConsultationRequestMail::class, function (ConsultationRequestMail $mail): bool {
             return $mail->hasTo('hello@ibrahimhasan.net')
                 && $mail->consultation['email'] === 'project@example.com'
                 && $mail->consultation['service'] === 'ai-adoption';
         });
+
+        $this->assertDatabaseHas('contact_inquiries', [
+            'email' => 'project@example.com',
+            'service_key' => 'ai-adoption',
+            'status' => 'new',
+        ]);
     }
 
     public function test_required_consultation_fields_are_enforced(): void
@@ -51,7 +68,7 @@ class ConsultationRequestTest extends TestCase
                 'form.challenge' => 'required',
             ]);
 
-        Mail::assertNothingSent();
+        Mail::assertNothingOutgoing();
     }
 
     public function test_arabic_validation_uses_human_field_names(): void

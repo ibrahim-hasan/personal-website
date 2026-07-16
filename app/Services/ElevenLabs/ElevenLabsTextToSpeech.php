@@ -6,10 +6,9 @@ use App\Data\ElevenLabs\SpeechSynthesisResult;
 use App\Exceptions\ElevenLabsRequestException;
 use App\Services\ArticleAudio\Mp3Concatenator;
 use App\Services\ArticleAudio\NarrationTextChunker;
-use Illuminate\Http\Client\RequestException;
+use App\Support\Ai\ElevenLabsExecutionBudget;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
-use Throwable;
 
 class ElevenLabsTextToSpeech
 {
@@ -21,7 +20,7 @@ class ElevenLabsTextToSpeech
     public function synthesize(string $text, string $locale, ?string $modelId = null): SpeechSynthesisResult
     {
         $apiKey = (string) config('services.elevenlabs.api_key');
-        $voiceId = (string) config('services.elevenlabs.voice_id');
+        $voiceId = $this->voiceId();
         $modelId ??= (string) config('services.elevenlabs.model_id', 'eleven_multilingual_v2');
         $profile = $this->profile($modelId);
 
@@ -33,6 +32,14 @@ class ElevenLabsTextToSpeech
 
         if ($chunks === []) {
             throw new RuntimeException('The article narration is empty.');
+        }
+
+        if (count($chunks) > ElevenLabsExecutionBudget::maxSegments()) {
+            throw new RuntimeException(sprintf(
+                'The narration requires %d ElevenLabs segments; the configured per-job maximum is %d.',
+                count($chunks),
+                ElevenLabsExecutionBudget::maxSegments(),
+            ));
         }
 
         $audioSegments = [];
@@ -74,17 +81,11 @@ class ElevenLabsTextToSpeech
                     'Accept' => 'audio/mpeg',
                 ])
                 ->asJson()
-                ->connectTimeout((int) config('services.elevenlabs.connect_timeout', 15))
-                ->timeout((int) config('services.elevenlabs.timeout', 150))
+                ->connectTimeout(ElevenLabsExecutionBudget::connectTimeout())
+                ->timeout(ElevenLabsExecutionBudget::providerTimeout())
                 ->retry(
-                    [1200, 3000],
-                    when: function (Throwable $exception): bool {
-                        if (! $exception instanceof RequestException) {
-                            return false;
-                        }
-
-                        return in_array($exception->response->status(), [429, 500, 502, 503, 504], true);
-                    },
+                    ElevenLabsExecutionBudget::retryDelays(),
+                    when: ElevenLabsExecutionBudget::shouldRetry(...),
                     throw: false,
                 )
                 ->post('/text-to-speech/'.rawurlencode($voiceId).'?output_format='.rawurlencode($outputFormat), $payload);
@@ -116,6 +117,11 @@ class ElevenLabsTextToSpeech
             segmentCount: count($audioSegments),
             characterCount: mb_strlen($text),
         );
+    }
+
+    public function voiceId(): string
+    {
+        return trim((string) config('services.elevenlabs.voice_id'));
     }
 
     /**

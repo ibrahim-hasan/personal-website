@@ -34,6 +34,9 @@ class ElevenLabsRequestException extends RuntimeException
     private function safeMessage(): string
     {
         $summary = match (true) {
+            in_array($this->providerCode, ['quota_exceeded', 'insufficient_credits'], true) => 'ElevenLabs credit quota or the API key character limit has been reached. Check Billing and the API key credit limit before retrying.',
+            in_array($this->providerCode, ['missing_permissions', 'insufficient_permissions'], true) => 'The ElevenLabs API key is missing permission to generate speech.',
+            $this->providerCode === 'unsupported_model' => 'The selected ElevenLabs model does not support one of the requested speech options.',
             $this->httpStatus === 401 => 'ElevenLabs rejected the API key or the key is missing a required permission.',
             $this->httpStatus === 402 => 'ElevenLabs credits are insufficient or the API key credit quota has been reached. Check Billing and the API key credit limit before retrying.',
             $this->httpStatus === 403 => 'The ElevenLabs API key cannot access the selected voice, model, or feature.',

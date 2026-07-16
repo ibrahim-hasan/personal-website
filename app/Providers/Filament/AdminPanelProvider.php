@@ -7,11 +7,8 @@ use App\Filament\Auth\RequestPasswordReset as AdminRequestPasswordReset;
 use App\Filament\Auth\ResetPassword as AdminResetPassword;
 use App\Filament\Pages\Profile;
 use App\Filament\Widgets\AdminContentStats;
-use App\Filament\Widgets\GuideDownloadsChart;
-use App\Filament\Widgets\NewsletterJoinsChart;
 use App\Http\Controllers\Filament\GenerateArticleAudioController;
 use App\Http\Controllers\Filament\GenerateArticleAudioSampleController;
-use App\Http\Controllers\Filament\GuideFileDownloadController;
 use App\Http\Controllers\Filament\PrepareArticleNarrationController;
 use App\Http\Controllers\Filament\UpdateArticleNarrationController;
 use Filament\FontProviders\LocalFontProvider;
@@ -45,72 +42,50 @@ class AdminPanelProvider extends PanelProvider
             ->login(AdminLogin::class)
             ->passwordReset(AdminRequestPasswordReset::class, AdminResetPassword::class)
             ->brandName(__('admin.brand.name'))
-            ->brandLogo(asset('images/logo-dark.svg'))
-            ->darkModeBrandLogo(asset('images/logo.svg'))
-            ->brandLogoHeight('3.5rem')
-            ->favicon(asset('images/favicon.png'))
-            ->font('Noto Sans', provider: LocalFontProvider::class)
+            ->brandLogo(fn () => view('filament.partials.auth-brand-logo'))
+            ->brandLogoHeight('2.75rem')
+            ->favicon(asset('images/ibrahim/ibrahim-systems-portrait-compact.webp'))
+            ->font(
+                'Agt Rafeeq Sans',
+                url: asset('fonts/agt-rafeeq/admin-font.css'),
+                provider: LocalFontProvider::class,
+            )
             ->colors([
                 'primary' => [
-                    50 => '#FCFBF8',
-                    100 => '#F6F4EB',
-                    200 => '#F0ECDE',
-                    300 => '#E4DDC4',
-                    400 => '#D9CEA9',
-                    500 => '#C4B37D',
-                    600 => '#B4A571',
-                    700 => '#9F8F62',
-                    800 => '#857A54',
-                    900 => '#6C6344',
-                    950 => '#585037',
+                    50 => 'oklch(0.96 0.022 300)',
+                    100 => 'oklch(0.91 0.05 300)',
+                    200 => 'oklch(0.84 0.08 299)',
+                    300 => 'oklch(0.74 0.115 298)',
+                    400 => 'oklch(0.64 0.155 297)',
+                    500 => 'oklch(0.55 0.18 296)',
+                    600 => 'oklch(0.47 0.18 295)',
+                    700 => 'oklch(0.39 0.155 294)',
+                    800 => 'oklch(0.29 0.11 293)',
+                    900 => 'oklch(0.205 0.065 292)',
+                    950 => 'oklch(0.155 0.04 292)',
                 ],
-                'gray' => [
-                    50 => '#F5F5F6',
-                    100 => '#E3E3E3',
-                    200 => '#D0D0D0',
-                    300 => '#AAAAAA',
-                    400 => '#848484',
-                    500 => '#414042',
-                    600 => '#3C3B3D',
-                    700 => '#343335',
-                    800 => '#2C2C2D',
-                    900 => '#242324',
-                    950 => '#1E1D1E',
-                ],
+                'gray' => Color::Slate,
                 'danger' => Color::Rose,
-                'info' => [
-                    50 => '#F4F6F8',
-                    100 => '#E9EDF0',
-                    200 => '#CBD4DC',
-                    300 => '#AAB9C6',
-                    400 => '#4B5565',
-                    500 => '#414042',
-                    600 => '#3C3B3D',
-                    700 => '#343335',
-                    800 => '#2C2C2D',
-                    900 => '#242324',
-                    950 => '#1E1D1E',
-                ],
+                'info' => Color::Blue,
                 'success' => Color::Emerald,
                 'warning' => Color::Amber,
             ])
             ->sidebarCollapsibleOnDesktop()
+            ->collapsibleNavigationGroups(false)
             ->sidebarWidth('17rem')
             ->maxContentWidth('full')
             ->simplePageMaxContentWidth('full')
             ->darkMode(true)
-            ->viteTheme('resources/css/filament/admin/theme.css')
+            ->viteTheme('resources/css/filament/admin/ibrahim.css')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->navigationGroups([
                 NavigationGroup::make()
                     ->label(fn (): string => __('admin.navigation.content')),
                 NavigationGroup::make()
-                    ->label(fn (): string => __('admin.navigation.guides')),
+                    ->label(fn (): string => __('admin.navigation.engagement')),
                 NavigationGroup::make()
-                    ->label(fn (): string => __('admin.navigation.access')),
-                NavigationGroup::make()
-                    ->label(fn (): string => __('admin.navigation.configuration')),
+                    ->label(fn (): string => __('admin.navigation.administration')),
             ])
             ->renderHook(
                 PanelsRenderHook::USER_MENU_BEFORE,
@@ -122,8 +97,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AdminContentStats::class,
-                GuideDownloadsChart::class,
-                NewsletterJoinsChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -136,19 +109,10 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->userMenuItems([
-                MenuItem::make()
-                    ->label(fn (): string => Profile::getLabel())
-                    ->url(fn (): string => Profile::getUrl())
-                    ->icon('heroicon-o-user-circle'),
-            ])
             ->authMiddleware([
                 Authenticate::class,
             ])
             ->routes(function (): void {
-                Route::get('/guides/{guide}/guide-file', GuideFileDownloadController::class)
-                    ->name('guides.guide-file');
-
                 Route::post('/article-audio/{article}/{locale}/generate', GenerateArticleAudioController::class)
                     ->middleware([Authenticate::class, 'throttle:6,1'])
                     ->name('article-audio.generate');
