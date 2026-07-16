@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Projects\Schemas;
 
 use App\Filament\Components\TranslatableTabs;
 use App\Models\Project;
+use App\Support\LocaleSlugger;
 use App\Support\PortfolioAtlas;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -13,6 +14,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class ProjectForm
@@ -26,7 +28,19 @@ class ProjectForm
                 TextInput::make("title.{$locale}")
                     ->label(__('admin.fields.title'))
                     ->required()
-                    ->maxLength(160),
+                    ->maxLength(160)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function ($state, Get $get, callable $set) use ($locale): void {
+                        if (filled($state) && blank($get("slug.{$locale}"))) {
+                            $set("slug.{$locale}", LocaleSlugger::generate((string) $state, $locale));
+                        }
+                    }),
+                TextInput::make("slug.{$locale}")
+                    ->label(__('admin.fields.slug'))
+                    ->required()
+                    ->unique(Project::class, "slug_{$locale}", ignoreRecord: true)
+                    ->regex('/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u')
+                    ->maxLength(180),
                 TextInput::make("sector.{$locale}")
                     ->label(__('admin.fields.sector'))
                     ->required()
@@ -90,11 +104,12 @@ class ProjectForm
                 Group::make([
                     Section::make(__('admin.sections.publishing'))
                         ->schema([
-                            TextInput::make('slug')
-                                ->label(__('admin.fields.slug'))
+                            TextInput::make('key')
+                                ->label(__('admin.fields.key'))
                                 ->required()
                                 ->alphaDash()
                                 ->maxLength(80)
+                                ->disabledOn('edit')
                                 ->unique(ignoreRecord: true),
                             Select::make('lens')
                                 ->label(__('admin.fields.lens'))

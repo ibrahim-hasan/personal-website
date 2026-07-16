@@ -45,7 +45,7 @@ class ArticleCommunityTest extends TestCase
         $this->actingAs($reader)
             ->get('/reader/library')
             ->assertOk()
-            ->assertSee($article->title['ar'], false)
+            ->assertSee($article->getTranslation('title', 'ar'), false)
             ->assertSee('60%', false);
     }
 

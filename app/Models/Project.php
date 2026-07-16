@@ -2,18 +2,22 @@
 
 namespace App\Models;
 
+use App\Traits\SynchronizesTranslatedSlugs;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Mcamara\LaravelLocalization\Interfaces\LocalizedUrlRoutable;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Sluggable\HasTranslatableSlug;
+use Spatie\Sluggable\SlugOptions;
 use Spatie\Translatable\HasTranslations;
 
-class Project extends Model implements HasMedia
+class Project extends Model implements HasMedia, LocalizedUrlRoutable
 {
     public const string IMAGE_COLLECTION = 'project_image';
 
@@ -26,9 +30,18 @@ class Project extends Model implements HasMedia
     public const string LOGO_CONVERSION = 'logo_display';
 
     /** @use HasFactory<ProjectFactory> */
-    use HasFactory, HasTranslations, InteractsWithMedia, SoftDeletes;
+    use HasFactory;
+
+    use HasTranslatableSlug {
+        getLocalizedRouteKey as private getSpatieLocalizedRouteKey;
+    }
+    use HasTranslations;
+    use InteractsWithMedia;
+    use SoftDeletes;
+    use SynchronizesTranslatedSlugs;
 
     protected $translatable = [
+        'slug',
         'title',
         'sector',
         'summary',
@@ -40,6 +53,7 @@ class Project extends Model implements HasMedia
     ];
 
     protected $fillable = [
+        'key',
         'slug',
         'title',
         'sector',
@@ -68,14 +82,6 @@ class Project extends Model implements HasMedia
     protected function casts(): array
     {
         return [
-            'title' => 'array',
-            'sector' => 'array',
-            'summary' => 'array',
-            'challenge' => 'array',
-            'response' => 'array',
-            'outcome' => 'array',
-            'image_alt' => 'array',
-            'logo_alt' => 'array',
             'tags' => 'array',
             'sort_order' => 'integer',
             'featured' => 'boolean',
@@ -87,6 +93,25 @@ class Project extends Model implements HasMedia
     public function scopePublished(Builder $query): void
     {
         $query->where('is_active', true);
+    }
+
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('title')
+            ->saveSlugsTo('slug')
+            ->slugsShouldBeNoLongerThan(180)
+            ->preventOverwrite();
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    public function getLocalizedRouteKey($locale): mixed
+    {
+        return $this->getSpatieLocalizedRouteKey((string) $locale);
     }
 
     public function registerMediaCollections(): void
@@ -129,12 +154,13 @@ class Project extends Model implements HasMedia
     }
 
     /**
-     * @return array{id: string, title: string, sector: string, summary: string, challenge: string, response: string, outcome: string, lens: string, image: string, alt: string, logo: string, logo_alt: string, tags: list<string>}
+     * @return array{key: string, id: string, title: string, sector: string, summary: string, challenge: string, response: string, outcome: string, lens: string, image: string, alt: string, logo: string, logo_alt: string, tags: list<string>}
      */
     public function toPortfolioArray(string $locale): array
     {
         return [
-            'id' => $this->slug,
+            'key' => $this->key,
+            'id' => $this->getTranslation('slug', $locale),
             'title' => $this->translation('title', $locale),
             'sector' => $this->translation('sector', $locale),
             'summary' => $this->translation('summary', $locale),
@@ -165,12 +191,6 @@ class Project extends Model implements HasMedia
 
     private function translation(string $attribute, string $locale): string
     {
-        $translations = $this->getAttribute($attribute);
-
-        if (! is_array($translations)) {
-            return is_string($translations) ? $translations : '';
-        }
-
-        return (string) ($translations[$locale] ?? $translations['en'] ?? $translations['ar'] ?? '');
+        return (string) $this->getTranslation($attribute, $locale);
     }
 }

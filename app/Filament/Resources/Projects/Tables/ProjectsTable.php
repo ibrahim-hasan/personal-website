@@ -35,12 +35,17 @@ class ProjectsTable
                     ->size(52),
                 TextColumn::make('title')
                     ->label(__('admin.fields.title'))
-                    ->formatStateUsing(fn (Project $record): string => $record->getTranslation('title', app()->getLocale()))
+                    ->getStateUsing(fn (Project $record): ?string => localized_model_attribute($record, 'title'))
+                    ->description(fn (Project $record): string => $record->key)
                     ->searchable(['title'])
                     ->sortable(),
+                TextColumn::make('slug')
+                    ->label(__('admin.fields.slug'))
+                    ->getStateUsing(fn (Project $record): ?string => localized_model_attribute($record, 'slug'))
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('sector')
                     ->label(__('admin.fields.sector'))
-                    ->formatStateUsing(fn (Project $record): string => $record->getTranslation('sector', app()->getLocale()))
+                    ->getStateUsing(fn (Project $record): ?string => localized_model_attribute($record, 'sector'))
                     ->toggleable(),
                 TextColumn::make('lens')
                     ->label(__('admin.fields.lens'))

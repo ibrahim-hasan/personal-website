@@ -17,6 +17,8 @@ class ArticleResource extends Resource
 {
     protected static ?string $model = Article::class;
 
+    protected static ?string $recordRouteKeyName = 'id';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-pencil-square';
 
     protected static ?int $navigationSort = 30;

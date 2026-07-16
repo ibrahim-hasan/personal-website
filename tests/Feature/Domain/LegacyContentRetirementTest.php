@@ -102,19 +102,24 @@ class LegacyContentRetirementTest extends TestCase
         Storage::disk('public')->assertMissing($path);
     }
 
-    public function test_final_transition_removes_only_marked_legacy_services_and_enforces_the_slug_invariant(): void
+    public function test_localized_transition_enforces_stable_service_keys_and_translated_slugs(): void
     {
-        $current = Service::factory()->create();
-        $legacy = Service::factory()->create(['slug' => 'legacy-service-123']);
-        $legacy->delete();
+        $service = Service::factory()->create([
+            'key' => 'service-stable-key',
+            'slug' => [
+                'ar' => 'مسار-الخدمة',
+                'en' => 'service-path',
+            ],
+        ]);
 
-        $migration = require database_path('migrations/2026_07_16_001323_finalize_personal_site_transition.php');
-        $migration->up();
+        $this->assertModelExists($service);
+        $this->assertSame('service-stable-key', $service->key);
+        $this->assertSame('مسار-الخدمة', $service->getTranslation('slug', 'ar'));
+        $this->assertSame('service-path', $service->getTranslation('slug', 'en'));
 
-        $this->assertModelExists($current);
-        $this->assertDatabaseMissing('services', ['id' => $legacy->getKey()]);
-
+        $keyColumn = collect(Schema::getColumns('services'))->firstWhere('name', 'key');
         $slugColumn = collect(Schema::getColumns('services'))->firstWhere('name', 'slug');
+        $this->assertFalse($keyColumn['nullable']);
         $this->assertFalse($slugColumn['nullable']);
     }
 

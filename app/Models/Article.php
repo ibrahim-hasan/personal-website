@@ -2,19 +2,25 @@
 
 namespace App\Models;
 
+use App\Traits\SynchronizesTranslatedSlugs;
 use Database\Factories\ArticleFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Schema;
+use Mcamara\LaravelLocalization\Interfaces\LocalizedUrlRoutable;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Sluggable\HasTranslatableSlug;
+use Spatie\Sluggable\SlugOptions;
+use Spatie\Translatable\HasTranslations;
 
-class Article extends Model implements HasMedia
+class Article extends Model implements HasMedia, LocalizedUrlRoutable
 {
     public const string IMAGE_COLLECTION = 'article_image';
 
@@ -23,11 +29,33 @@ class Article extends Model implements HasMedia
     public const string THUMBNAIL_CONVERSION = 'article_card';
 
     /** @use HasFactory<ArticleFactory> */
-    use HasFactory, InteractsWithMedia, SoftDeletes;
+    use HasFactory;
+
+    use HasTranslatableSlug {
+        getLocalizedRouteKey as private getSpatieLocalizedRouteKey;
+        resolveRouteBindingQuery as private resolveTranslatableRouteBindingQuery;
+    }
+    use HasTranslations;
+    use InteractsWithMedia;
+    use SoftDeletes;
+    use SynchronizesTranslatedSlugs;
+
+    protected $translatable = [
+        'slug',
+        'title',
+        'summary',
+        'seo_title',
+        'seo_description',
+        'type',
+        'lead',
+        'sections',
+        'closing',
+        'read_minutes',
+    ];
 
     protected $fillable = [
         'key',
-        'slugs',
+        'slug',
         'title',
         'summary',
         'seo_title',
@@ -52,18 +80,8 @@ class Article extends Model implements HasMedia
     protected function casts(): array
     {
         return [
-            'slugs' => 'array',
-            'title' => 'array',
-            'summary' => 'array',
-            'seo_title' => 'array',
-            'seo_description' => 'array',
-            'type' => 'array',
-            'lead' => 'array',
-            'sections' => 'array',
-            'closing' => 'array',
             'published_at' => 'immutable_date',
             'modified_at' => 'immutable_date',
-            'read_minutes' => 'array',
             'topic_keys' => 'array',
             'featured' => 'boolean',
             'is_published' => 'boolean',
@@ -74,6 +92,39 @@ class Article extends Model implements HasMedia
     public function scopePublished(Builder $query): void
     {
         $query
+            ->where('is_published', true)
+            ->whereDate('published_at', '<=', today());
+    }
+
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('title')
+            ->saveSlugsTo('slug')
+            ->slugsShouldBeNoLongerThan(180)
+            ->preventOverwrite();
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    public function getLocalizedRouteKey($locale): mixed
+    {
+        return $this->getSpatieLocalizedRouteKey((string) $locale);
+    }
+
+    public function resolveRouteBindingQuery($query, $value, $field = null): Builder|Relation
+    {
+        $bindingQuery = $this->resolveTranslatableRouteBindingQuery($query, $value, $field);
+        $bindingField = $field ?? $this->getRouteKeyName();
+
+        if ($bindingField !== 'slug' && ! str_ends_with($bindingField, '.slug')) {
+            return $bindingQuery;
+        }
+
+        return $bindingQuery
             ->where('is_published', true)
             ->whereDate('published_at', '<=', today());
     }
@@ -150,13 +201,6 @@ class Article extends Model implements HasMedia
 
     protected static function booted(): void
     {
-        static::saving(function (Article $article): void {
-            $slugs = (array) $article->slugs;
-
-            $article->setAttribute('slug_ar', trim((string) ($slugs['ar'] ?? '')));
-            $article->setAttribute('slug_en', trim((string) ($slugs['en'] ?? '')));
-        });
-
         static::created(function (Article $article): void {
             if (Schema::hasColumn((new ArticleAudio)->getTable(), 'article_id')) {
                 ArticleAudio::query()

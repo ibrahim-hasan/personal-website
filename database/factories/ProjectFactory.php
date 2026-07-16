@@ -17,8 +17,11 @@ class ProjectFactory extends Factory
      */
     public function definition(): array
     {
+        $key = fake()->unique()->slug(2);
+
         return [
-            'slug' => fake()->unique()->slug(2),
+            'key' => $key,
+            'slug' => ['ar' => 'مشروع-'.$key, 'en' => $key],
             'title' => ['ar' => 'مشروع تجريبي', 'en' => fake()->words(3, true)],
             'sector' => ['ar' => 'الأنظمة الرقمية', 'en' => 'Digital systems'],
             'summary' => ['ar' => fake()->sentence(), 'en' => fake()->sentence()],

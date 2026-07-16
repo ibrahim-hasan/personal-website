@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class LanguageSwitchController extends Controller
 {
@@ -26,8 +27,22 @@ class LanguageSwitchController extends Controller
 
         $request->session()->put('locale', $locale);
 
-        $target = localized_url($locale, url()->previous() ?: route('home'));
+        $previousUrl = url()->previous() ?: route('home');
+        $target = $this->isLocalizationIgnored($previousUrl)
+            ? $previousUrl
+            : localized_url($locale, $previousUrl);
 
         return redirect()->to($target);
+    }
+
+    protected function isLocalizationIgnored(string $url): bool
+    {
+        $path = trim((string) parse_url($url, PHP_URL_PATH), '/');
+        $ignoredPaths = array_map(
+            fn (string $ignoredPath): string => trim($ignoredPath, '/'),
+            config('laravellocalization.urlsIgnored', []),
+        );
+
+        return Str::is($ignoredPaths, $path);
     }
 }

@@ -19,7 +19,7 @@ use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 Route::post('/lang/{locale}', LanguageSwitchController::class)->name('lang.switch');
 
@@ -27,18 +27,12 @@ Route::get('/login', function (): RedirectResponse {
     return redirect()->to(localized_route('reader.login'));
 })->name('login');
 
-$localizedMiddleware = [
-    LaravelLocalizationViewPath::class,
-];
-
-$defaultLocale = app('laravellocalization')->getDefaultLocale();
-
-$registerWebsiteRoutes = function (?string $routeLocale = null): void {
+$registerLocalizedRoutes = function (?string $routeLocale = null): void {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/services', [ServiceController::class, 'index'])->name('services');
     Route::get('/work', PortfolioController::class)->name('work');
     Route::get('/writing', WritingController::class)->name('writing');
-    Route::get('/writing/{article}', ArticleController::class)->name('writing.show');
+    Route::get('/writing/{article:slug}', ArticleController::class)->name('writing.show');
     Route::get('/about', AboutController::class)->name('about');
     Route::get('/contact', ContactController::class)->name('contact');
 
@@ -61,13 +55,13 @@ $registerWebsiteRoutes = function (?string $routeLocale = null): void {
             ->name('reader.password.update');
     });
 
-    $verificationNoticeRoute = $routeLocale === null
-        ? 'reader.verification.notice'
-        : $routeLocale.'.reader.verification.notice';
-
     Route::get('/reader/email/verify/{id}/{hash}', ReaderEmailVerificationController::class)
         ->middleware(['auth', EnsureReaderIsActive::class, 'signed', 'throttle:6,1'])
         ->name('verification.verify');
+
+    $verificationNoticeRoute = $routeLocale === null
+        ? 'reader.verification.notice'
+        : $routeLocale.'.reader.verification.notice';
 
     Route::middleware(['auth', EnsureReaderIsActive::class])->group(function () use ($verificationNoticeRoute): void {
         Route::get('/reader/verify-email', fn () => view('auth.reader-verify-email'))
@@ -94,15 +88,18 @@ Route::get('/reader/email/verification-required', function (Request $request): R
     ));
 })->middleware(['auth', EnsureReaderIsActive::class])->name('verification.notice');
 
-Route::middleware($localizedMiddleware)->group(fn () => $registerWebsiteRoutes());
+$defaultLocale = LaravelLocalization::getDefaultLocale();
+$requestLocale = LaravelLocalization::setLocale();
 
-foreach (array_keys(config('app.supported_locales', [])) as $locale) {
-    if ($locale === $defaultLocale) {
-        continue;
-    }
+foreach (array_keys(LaravelLocalization::getSupportedLocales()) as $locale) {
+    $prefix = $locale === $defaultLocale
+        ? null
+        : LaravelLocalization::setLocale($locale);
 
-    Route::prefix($locale)
-        ->name($locale.'.')
-        ->middleware($localizedMiddleware)
-        ->group(fn () => $registerWebsiteRoutes($locale));
+    Route::prefix($prefix)
+        ->name($locale === $defaultLocale ? '' : $locale.'.')
+        ->middleware(['localize', 'localizationRedirect', 'localeViewPath'])
+        ->group(fn () => $registerLocalizedRoutes($locale === $defaultLocale ? null : $locale));
 }
+
+LaravelLocalization::setLocale($requestLocale);

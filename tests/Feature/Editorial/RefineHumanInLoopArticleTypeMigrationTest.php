@@ -27,13 +27,19 @@ class RefineHumanInLoopArticleTypeMigrationTest extends TestCase
 
         $this->assertSame(
             ['ar' => 'دليل تصميم سير العمل', 'en' => 'Workflow design guide'],
-            $article->fresh()->type,
+            $article->fresh()->getTranslations('type'),
         );
-        $this->assertSame(['ar' => 'نوع مخصص', 'en' => 'Custom type'], $unrelated->fresh()->type);
+        $this->assertSame(
+            ['ar' => 'نوع مخصص', 'en' => 'Custom type'],
+            $unrelated->fresh()->getTranslations('type'),
+        );
 
         $migration->down();
 
-        $this->assertSame(['ar' => 'مقال تصميمي', 'en' => 'Workflow design'], $article->fresh()->type);
+        $this->assertSame(
+            ['ar' => 'مقال تصميمي', 'en' => 'Workflow design'],
+            $article->fresh()->getTranslations('type'),
+        );
     }
 
     public function test_it_preserves_editorial_overrides_per_locale(): void
@@ -47,7 +53,7 @@ class RefineHumanInLoopArticleTypeMigrationTest extends TestCase
 
         $this->assertSame(
             ['ar' => 'تصنيف حرره المحرر', 'en' => 'Workflow design guide'],
-            $article->fresh()->type,
+            $article->fresh()->getTranslations('type'),
         );
     }
 

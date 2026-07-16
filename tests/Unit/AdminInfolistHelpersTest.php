@@ -28,6 +28,7 @@ class AdminInfolistHelpersTest extends TestCase
     {
         $project = Project::factory()->create([
             'title' => ['ar' => 'عنوان عربي', 'en' => 'English Title'],
+            'slug' => ['ar' => 'عنوان-عربي', 'en' => 'english-title'],
         ]);
 
         app()->setLocale('ar');
@@ -35,6 +36,7 @@ class AdminInfolistHelpersTest extends TestCase
 
         app()->setLocale('en');
         $this->assertSame('English Title', localized_model_attribute($project, 'title'));
+        $this->assertSame('english-title', localized_model_attribute($project, 'slug'));
     }
 
     public function test_translatable_infolist_tabs_builds_tabs_component(): void

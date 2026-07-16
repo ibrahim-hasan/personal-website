@@ -32,10 +32,14 @@ class ArticlesTable
                     ->size(52),
                 TextColumn::make('title')
                     ->label(__('editorial_admin.fields.title'))
-                    ->getStateUsing(fn (Article $record): string => (string) ($record->title[app()->getLocale()] ?? $record->title['en'] ?? $record->key))
+                    ->getStateUsing(fn (Article $record): string => localized_model_attribute($record, 'title') ?? $record->key)
                     ->description(fn (Article $record): string => $record->key)
                     ->searchable(query: fn ($query, string $search) => $query->where('key', 'like', "%{$search}%"))
                     ->wrap(),
+                TextColumn::make('slug')
+                    ->label(__('editorial_admin.fields.slug'))
+                    ->getStateUsing(fn (Article $record): ?string => localized_model_attribute($record, 'slug'))
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('published_at')
                     ->label(__('editorial_admin.fields.published_at'))
                     ->date()

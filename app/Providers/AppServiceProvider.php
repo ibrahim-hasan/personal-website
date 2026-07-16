@@ -22,15 +22,19 @@ use App\Policies\UserPolicy;
 use App\Services\OpenAI\OpenAiNarrationEditor;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Mcamara\LaravelLocalization\Traits\LoadsTranslatedCachedRoutes;
 
 class AppServiceProvider extends ServiceProvider
 {
+    use LoadsTranslatedCachedRoutes;
+
     /**
      * Register any application services.
      */
@@ -46,6 +50,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RouteServiceProvider::loadCachedRoutesUsing(
+            fn () => $this->loadCachedRoutes(),
+        );
+
         $this->configureDefaults();
         $this->registerSuperAdminAccess();
         $this->registerPolicies();

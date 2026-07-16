@@ -27,7 +27,7 @@ class CommentReplyNotification extends Notification implements ShouldQueue
     {
         $locale = $notifiable->locale_preference ?: config('app.locale');
         $article = $this->reply->article;
-        $slug = $article->slugs[$locale] ?? $article->slugs['ar'];
+        $slug = $article->getTranslation('slug', $locale);
         $url = localized_route('writing.show', ['article' => $slug], true, $locale).'#comment-'.$this->reply->getKey();
 
         return (new MailMessage)

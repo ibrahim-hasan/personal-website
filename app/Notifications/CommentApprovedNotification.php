@@ -48,7 +48,7 @@ class CommentApprovedNotification extends Notification implements ShouldQueue
     private function articleUrl(string $locale): string
     {
         $article = $this->comment->article;
-        $slug = $article->slugs[$locale] ?? $article->slugs['ar'];
+        $slug = $article->getTranslation('slug', $locale);
 
         return localized_route('writing.show', ['article' => $slug], true, $locale).'#comment-'.$this->comment->getKey();
     }

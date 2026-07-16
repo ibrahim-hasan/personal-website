@@ -19,6 +19,7 @@ class ProjectInfolist
                     ->schema([
                         TranslatableInfolistTabs::make([
                             'title' => [],
+                            'slug' => [],
                             'sector' => [],
                             'summary' => ['columnSpanFull' => true],
                             'challenge' => ['columnSpanFull' => true],
@@ -31,7 +32,7 @@ class ProjectInfolist
                 Section::make(__('admin.sections.publishing'))
                     ->columns(4)
                     ->schema([
-                        TextEntry::make('slug')->label(__('admin.fields.slug')),
+                        TextEntry::make('key')->label(__('admin.fields.key')),
                         TextEntry::make('lens')->label(__('admin.fields.lens'))->badge(),
                         TextEntry::make('featured')
                             ->label(__('admin.fields.featured'))

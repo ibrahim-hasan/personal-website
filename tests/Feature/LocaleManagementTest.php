@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mcamara\LaravelLocalization\Interfaces\LocalizedUrlRoutable;
 use Tests\TestCase;
 
 class LocaleManagementTest extends TestCase
@@ -61,11 +62,11 @@ class LocaleManagementTest extends TestCase
     {
         $this->get('/en/services')
             ->assertOk()
-            ->assertSee('href="http://localhost/services"', false);
+            ->assertSee('href="'.localized_route('services', locale: 'ar').'"', false);
 
         $this->get('/services')
             ->assertOk()
-            ->assertSee('href="http://localhost/en/services"', false);
+            ->assertSee('href="'.localized_route('services', locale: 'en').'"', false);
     }
 
     public function test_invalid_session_locale_falls_back_to_default_locale(): void
@@ -107,6 +108,48 @@ class LocaleManagementTest extends TestCase
             'id' => $user->id,
             'locale_preference' => 'en',
         ]);
+    }
+
+    public function test_admin_locale_switch_keeps_the_unlocalized_admin_url(): void
+    {
+        $response = $this
+            ->from('/admin/articles')
+            ->post(route('lang.switch', ['locale' => 'en']));
+
+        $response->assertRedirect('/admin/articles');
+        $response->assertSessionHas('locale', 'en');
+    }
+
+    public function test_localized_route_generates_urls_for_both_locales(): void
+    {
+        $this->assertSame(url('/').'/', localized_route('home', locale: 'ar'));
+        $this->assertSame(url('/en'), localized_route('home', locale: 'en'));
+        $this->assertSame('/en/services?source=test', localized_route(
+            'services',
+            ['source' => 'test'],
+            absolute: false,
+            locale: 'en',
+        ));
+    }
+
+    public function test_localized_route_uses_the_models_localized_route_key(): void
+    {
+        $article = new class implements LocalizedUrlRoutable
+        {
+            public function getLocalizedRouteKey($locale): string
+            {
+                return $locale === 'en' ? 'english-slug' : 'arabic-slug';
+            }
+        };
+
+        $this->assertSame(
+            url('/en/writing/english-slug'),
+            localized_route('writing.show', ['article' => $article], locale: 'en'),
+        );
+        $this->assertSame(
+            url('/writing/arabic-slug'),
+            localized_route('writing.show', ['article' => $article], locale: 'ar'),
+        );
     }
 
     public function test_invalid_locale_switch_is_rejected_without_session_or_user_mutation(): void

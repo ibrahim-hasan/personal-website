@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Project;
+use App\Support\LocaleSlugger;
 use App\Support\PortfolioAtlas;
 use Illuminate\Database\Seeder;
 
@@ -14,12 +15,13 @@ class ProjectSeeder extends Seeder
     public function run(): void
     {
         foreach (PortfolioAtlas::projectDefaults() as $index => $project) {
-            if (Project::withTrashed()->where('slug', $project['id'])->exists()) {
+            if (Project::withTrashed()->where('key', $project['id'])->exists()) {
                 continue;
             }
 
             Project::query()->create([
-                'slug' => $project['id'],
+                'key' => $project['id'],
+                'slug' => $this->localizedSlugs($project['title'], $project['id']),
                 'title' => $project['title'],
                 'sector' => $project['sector'],
                 'summary' => $project['summary'],
@@ -37,5 +39,20 @@ class ProjectSeeder extends Seeder
                 'is_active' => true,
             ]);
         }
+    }
+
+    /**
+     * @param  array<string, string>  $translations
+     * @return array<string, string>
+     */
+    private function localizedSlugs(array $translations, string $fallback): array
+    {
+        return collect(config('translatable.locales', ['ar', 'en']))
+            ->mapWithKeys(function (string $locale) use ($translations, $fallback): array {
+                $slug = LocaleSlugger::generate($translations[$locale] ?? $fallback, $locale);
+
+                return [$locale => $slug !== '' ? $slug : $fallback];
+            })
+            ->all();
     }
 }

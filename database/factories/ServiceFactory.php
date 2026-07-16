@@ -11,8 +11,11 @@ class ServiceFactory extends Factory
 
     public function definition(): array
     {
+        $key = fake()->unique()->slug(2);
+
         return [
-            'slug' => fake()->unique()->slug(2),
+            'key' => $key,
+            'slug' => ['ar' => 'خدمة-'.$key, 'en' => $key],
             'name' => [
                 'ar' => fake()->sentence(3),
                 'en' => fake()->sentence(3),

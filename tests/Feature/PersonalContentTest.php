@@ -23,14 +23,14 @@ class PersonalContentTest extends TestCase
         $this->assertSame(4, Service::query()->posted()->count());
 
         Service::query()
-            ->where('slug', 'ai-adoption')
+            ->where('key', 'ai-adoption')
             ->update([
                 'name' => ['ar' => 'هندسة ذكاء اصطناعي موثوقة', 'en' => 'Trustworthy AI Engineering'],
             ]);
 
         app()->setLocale('en');
 
-        $service = collect(SiteContent::services())->firstWhere('id', 'ai-adoption');
+        $service = collect(SiteContent::services())->firstWhere('key', 'ai-adoption');
 
         $this->assertSame('Trustworthy AI Engineering', $service['name']);
         $this->get('/en/services')
@@ -46,14 +46,14 @@ class PersonalContentTest extends TestCase
         $this->assertSame(5, Project::query()->published()->where('featured', true)->count());
 
         Project::query()
-            ->where('slug', 'digi-pedia')
+            ->where('key', 'digi-pedia')
             ->update([
                 'title' => ['ar' => 'ديجي بيديا المحدثة', 'en' => 'Digi-Pedia, Updated'],
             ]);
 
         app()->setLocale('en');
 
-        $project = collect(PortfolioAtlas::projects())->firstWhere('id', 'digi-pedia');
+        $project = collect(PortfolioAtlas::projects())->firstWhere('key', 'digi-pedia');
 
         $this->assertSame('Digi-Pedia, Updated', $project['title']);
         $this->get('/en/work')
@@ -86,19 +86,19 @@ class PersonalContentTest extends TestCase
     {
         $this->seed([ServiceSeeder::class, ProjectSeeder::class]);
 
-        $service = Service::query()->where('slug', 'ai-adoption')->firstOrFail();
+        $service = Service::query()->where('key', 'ai-adoption')->firstOrFail();
         $service->update(['name' => ['ar' => 'تحرير محفوظ', 'en' => 'Preserved service edit']]);
 
-        $project = Project::query()->where('slug', 'digi-pedia')->firstOrFail();
+        $project = Project::query()->where('key', 'digi-pedia')->firstOrFail();
         $project->delete();
 
         $this->seed([ServiceSeeder::class, ProjectSeeder::class]);
 
         $this->assertSame(
             'Preserved service edit',
-            Service::query()->where('slug', 'ai-adoption')->firstOrFail()->getTranslation('name', 'en'),
+            Service::query()->where('key', 'ai-adoption')->firstOrFail()->getTranslation('name', 'en'),
         );
-        $this->assertTrue(Project::withTrashed()->where('slug', 'digi-pedia')->firstOrFail()->trashed());
+        $this->assertTrue(Project::withTrashed()->where('key', 'digi-pedia')->firstOrFail()->trashed());
     }
 
     public function test_contact_settings_drive_the_public_contact_channels(): void

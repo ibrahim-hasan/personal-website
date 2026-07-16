@@ -48,6 +48,25 @@ class EditorialAdminTest extends TestCase
             ->assertOk();
     }
 
+    public function test_an_admin_can_edit_a_draft_that_remains_unavailable_on_the_public_slug(): void
+    {
+        $this->seed([PermissionSeeder::class, RoleSeeder::class]);
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+        $draft = Article::factory()->create(['is_published' => false]);
+
+        $this->actingAs($admin)
+            ->get('/admin/articles/'.$draft->getKey().'/edit')
+            ->assertOk();
+
+        $this->get(localized_route(
+            'writing.show',
+            ['article' => $draft],
+            absolute: false,
+            locale: 'ar',
+        ))->assertNotFound();
+    }
+
     public function test_approving_a_reply_notifies_both_contributors_after_moderation(): void
     {
         Notification::fake();

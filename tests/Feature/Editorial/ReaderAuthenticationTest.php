@@ -58,7 +58,7 @@ class ReaderAuthenticationTest extends TestCase
 
         $this->get('/en/reader/library')
             ->assertRedirect('/en/reader/login')
-            ->assertSessionHas('url.intended', 'http://localhost/en/reader/library');
+            ->assertSessionHas('url.intended', url('/en/reader/library'));
 
         $this->post('/en/reader/login', [
             'email' => $reader->email,

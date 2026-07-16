@@ -192,7 +192,7 @@ class SiteSettingsTest extends TestCase
     {
         Setting::setValue('social_linkedin', 'javascript:alert(document.domain)', 'social');
 
-        $this->get(route('en.home'))
+        $this->get(localized_route('home', locale: 'en'))
             ->assertOk()
             ->assertDontSee('javascript:alert', false);
     }

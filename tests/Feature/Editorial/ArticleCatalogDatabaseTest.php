@@ -17,7 +17,7 @@ class ArticleCatalogDatabaseTest extends TestCase
     {
         $stored = Article::factory()->create([
             'key' => 'database-first',
-            'slugs' => ['ar' => 'مقال-من-قاعدة-البيانات', 'en' => 'database-backed-article'],
+            'slug' => ['ar' => 'مقال-من-قاعدة-البيانات', 'en' => 'database-backed-article'],
             'title' => ['ar' => 'عنوان من قاعدة البيانات', 'en' => 'A database-backed title'],
             'published_at' => today()->subDay(),
         ]);
@@ -49,7 +49,10 @@ class ArticleCatalogDatabaseTest extends TestCase
         $this->assertCount(9, $firstKeys);
         $this->assertSame($firstKeys, Article::query()->orderBy('key')->pluck('key')->all());
         $this->assertContains('ai-value', $firstKeys);
-        $this->assertSame('Preserved edit', Article::query()->where('key', 'ai-value')->firstOrFail()->title['en']);
+        $this->assertSame(
+            'Preserved edit',
+            Article::query()->where('key', 'ai-value')->firstOrFail()->getTranslation('title', 'en'),
+        );
     }
 
     public function test_the_bootstrap_import_does_not_resurrect_a_deleted_article(): void
@@ -66,7 +69,7 @@ class ArticleCatalogDatabaseTest extends TestCase
     public function test_localized_article_slugs_are_synchronized_and_unique(): void
     {
         $article = Article::factory()->create([
-            'slugs' => ['ar' => 'مسار-فريد', 'en' => 'unique-path'],
+            'slug' => ['ar' => 'مسار-فريد', 'en' => 'unique-path'],
         ]);
 
         $this->assertSame('مسار-فريد', $article->fresh()->getAttribute('slug_ar'));
@@ -75,7 +78,7 @@ class ArticleCatalogDatabaseTest extends TestCase
         $this->expectException(QueryException::class);
 
         Article::factory()->create([
-            'slugs' => ['ar' => 'مسار-آخر', 'en' => 'unique-path'],
+            'slug' => ['ar' => 'مسار-آخر', 'en' => 'unique-path'],
         ]);
     }
 }

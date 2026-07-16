@@ -61,8 +61,8 @@
                 <legend>{{ __('site.consultation.service') }}</legend>
                 <div class="service-choice__grid">
                     @foreach ($services as $service)
-                        <label wire:key="consultation-service-{{ $service['id'] }}">
-                            <input type="radio" value="{{ $service['id'] }}" wire:model.change.live="form.service">
+                        <label wire:key="consultation-service-{{ $service['key'] }}">
+                            <input type="radio" value="{{ $service['key'] }}" wire:model.change.live="form.service">
                             <span>{{ $service['name'] }}</span>
                         </label>
                     @endforeach

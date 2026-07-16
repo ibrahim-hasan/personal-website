@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Service;
+use App\Support\LocaleSlugger;
 use App\Support\SiteContent;
 use Illuminate\Database\Seeder;
 
@@ -14,12 +15,13 @@ class ServiceSeeder extends Seeder
     public function run(): void
     {
         foreach (SiteContent::serviceDefaults() as $index => $service) {
-            if (Service::withTrashed()->where('slug', $service['id'])->exists()) {
+            if (Service::withTrashed()->where('key', $service['id'])->exists()) {
                 continue;
             }
 
             Service::query()->create([
-                'slug' => $service['id'],
+                'key' => $service['id'],
+                'slug' => $this->localizedSlugs($service['name'], $service['id']),
                 'name' => $service['name'],
                 'summary' => $service['summary'],
                 'problem' => $service['problem'],
@@ -31,5 +33,20 @@ class ServiceSeeder extends Seeder
                 'is_active' => true,
             ]);
         }
+    }
+
+    /**
+     * @param  array<string, string>  $translations
+     * @return array<string, string>
+     */
+    private function localizedSlugs(array $translations, string $fallback): array
+    {
+        return collect(config('translatable.locales', ['ar', 'en']))
+            ->mapWithKeys(function (string $locale) use ($translations, $fallback): array {
+                $slug = LocaleSlugger::generate($translations[$locale] ?? $fallback, $locale);
+
+                return [$locale => $slug !== '' ? $slug : $fallback];
+            })
+            ->all();
     }
 }

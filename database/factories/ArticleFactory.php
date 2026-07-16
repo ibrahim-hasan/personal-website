@@ -16,7 +16,7 @@ class ArticleFactory extends Factory
 
         return [
             'key' => $key,
-            'slugs' => ['ar' => 'مقال-'.$key, 'en' => 'article-'.$key],
+            'slug' => ['ar' => 'مقال-'.$key, 'en' => 'article-'.$key],
             'title' => ['ar' => 'عنوان عربي', 'en' => fake()->sentence(5)],
             'summary' => ['ar' => 'ملخص عربي', 'en' => fake()->sentence(12)],
             'seo_title' => ['ar' => 'عنوان عربي', 'en' => fake()->sentence(5)],

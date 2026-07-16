@@ -15,7 +15,7 @@ class LocaleSlugger
         }
 
         if ($locale === 'ar') {
-            $slug = preg_replace('/[^\p{Arabic}\p{N}\s-]+/u', '', $value) ?? '';
+            $slug = preg_replace('/[^\p{L}\p{N}\s-]+/u', '', $value) ?? '';
             $slug = preg_replace('/[\s_]+/u', '-', $slug) ?? '';
             $slug = preg_replace('/-+/u', '-', $slug) ?? '';
 

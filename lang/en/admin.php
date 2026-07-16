@@ -64,6 +64,7 @@ return [
         'project_tags' => 'Project Tags',
     ],
     'fields' => [
+        'key' => 'Stable Key',
         'name' => 'Name',
         'slug' => 'Slug',
         'title' => 'Title',

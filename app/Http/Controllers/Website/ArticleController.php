@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Website;
 
 use App\Enums\ArticleAudioStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Article as ArticleRecord;
 use App\Models\ArticleAudio;
 use App\Services\ArticleAudio\ArticleAudioScript;
 use App\Support\Editorial\ArticleCatalog;
@@ -17,10 +18,10 @@ class ArticleController extends Controller
         private readonly ArticleAudioScript $scripts,
     ) {}
 
-    public function __invoke(string $article): View
+    public function __invoke(ArticleRecord $article): View
     {
         $locale = app()->getLocale();
-        $resolvedArticle = $this->articles->resolve($article, $locale);
+        $resolvedArticle = $this->articles->findByKey($article->key);
 
         abort_if($resolvedArticle === null, 404);
 

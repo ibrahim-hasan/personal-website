@@ -27,7 +27,13 @@ class ServicesTable
             ->columns([
                 TextColumn::make('name')
                     ->label(__('admin.fields.name'))
+                    ->getStateUsing(fn (Service $record): ?string => localized_model_attribute($record, 'name'))
+                    ->description(fn (Service $record): string => $record->key)
                     ->searchable(),
+                TextColumn::make('slug')
+                    ->label(__('admin.fields.slug'))
+                    ->getStateUsing(fn (Service $record): ?string => localized_model_attribute($record, 'slug'))
+                    ->toggleable(isToggledHiddenByDefault: true),
                 ToggleColumn::make('is_draft')
                     ->label(__('admin.fields.draft'))
                     ->disabled(fn (Service $record): bool => ! Gate::allows('update', $record))

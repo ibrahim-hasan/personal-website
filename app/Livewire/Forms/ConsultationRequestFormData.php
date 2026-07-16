@@ -22,13 +22,17 @@ class ConsultationRequestFormData extends Form
 
     public function rules(): array
     {
+        $serviceKeys = collect(SiteContent::services())
+            ->map(fn (array $service): string => (string) ($service['key'] ?? $service['id']))
+            ->all();
+
         return [
             'name' => ['required', 'string', 'min:2', 'max:120'],
             'email' => ['required', 'email', 'max:255'],
             'company' => ['nullable', 'string', 'max:120'],
             'service' => [
                 'required',
-                Rule::in([...array_column(SiteContent::services(), 'id'), 'general']),
+                Rule::in([...$serviceKeys, 'general']),
             ],
             'challenge' => ['required', 'string', 'min:20', 'max:3000'],
         ];

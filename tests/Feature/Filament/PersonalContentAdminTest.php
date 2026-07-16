@@ -30,6 +30,13 @@ class PersonalContentAdminTest extends TestCase
         $service = Service::query()->firstOrFail();
         $project = Project::query()->firstOrFail();
 
+        $this->assertNotEmpty($service->key);
+        $this->assertNotEmpty($service->getTranslation('slug', 'ar'));
+        $this->assertNotEmpty($service->getTranslation('slug', 'en'));
+        $this->assertNotEmpty($project->key);
+        $this->assertNotEmpty($project->getTranslation('slug', 'ar'));
+        $this->assertNotEmpty($project->getTranslation('slug', 'en'));
+
         $this->actingAs($admin)
             ->get('/admin/services')
             ->assertOk()
@@ -47,8 +54,16 @@ class PersonalContentAdminTest extends TestCase
         $this->actingAs($admin)
             ->get('/admin/projects/'.$project->getKey().'/edit')
             ->assertOk()
+            ->assertSee(__('admin.fields.key'))
+            ->assertSee(__('admin.fields.slug'))
             ->assertSee(__('admin.fields.project_image'))
             ->assertSee(__('admin.hints.project_image_upload'))
             ->assertDontSee(__('admin.hints.public_asset_path'));
+
+        $this->actingAs($admin)
+            ->get('/admin/services/'.$service->getKey().'/edit')
+            ->assertOk()
+            ->assertSee(__('admin.fields.key'))
+            ->assertSee(__('admin.fields.slug'));
     }
 }

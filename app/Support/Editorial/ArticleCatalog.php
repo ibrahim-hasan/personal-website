@@ -174,7 +174,7 @@ final class ArticleCatalog
 
             return [
                 'key' => $definition['key'],
-                'slugs' => $definition['slugs'],
+                'slug' => $definition['slugs'],
                 ...$translations,
                 'published_at' => $definition['published_at'],
                 'modified_at' => $definition['modified_at'],
@@ -330,23 +330,23 @@ final class ArticleCatalog
             ->get()
             ->map(fn (ArticleRecord $record): Article => new Article(
                 key: $record->key,
-                slugs: $record->slugs,
+                slugs: $record->getTranslations('slug'),
                 publishedAt: $record->published_at->toDateString(),
                 modifiedAt: $record->modified_at->toDateString(),
                 image: $record->imageUrl(),
-                readMinutes: $record->read_minutes,
+                readMinutes: $record->getTranslations('read_minutes'),
                 topicKeys: $record->topic_keys,
                 featured: $record->featured,
                 sourceUrl: $record->source_url,
                 translations: [
-                    'title' => $record->title,
-                    'summary' => $record->summary,
-                    'seo_title' => $record->seo_title,
-                    'seo_description' => $record->seo_description,
-                    'type' => $record->type,
-                    'lead' => $record->lead,
-                    'sections' => $record->sections,
-                    'closing' => $record->closing,
+                    'title' => $record->getTranslations('title'),
+                    'summary' => $record->getTranslations('summary'),
+                    'seo_title' => $record->getTranslations('seo_title'),
+                    'seo_description' => $record->getTranslations('seo_description'),
+                    'type' => $record->getTranslations('type'),
+                    'lead' => $record->getTranslations('lead'),
+                    'sections' => $record->getTranslations('sections'),
+                    'closing' => $record->getTranslations('closing'),
                 ],
             ))
             ->all();

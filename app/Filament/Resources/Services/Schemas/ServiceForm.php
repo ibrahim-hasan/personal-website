@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Services\Schemas;
 
 use App\Filament\Components\TranslatableTabs;
+use App\Models\Service;
+use App\Support\LocaleSlugger;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -23,7 +25,19 @@ class ServiceForm
                 TextInput::make("name.{$locale}")
                     ->label(__('admin.fields.name'))
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function ($state, Get $get, callable $set) use ($locale): void {
+                        if (filled($state) && blank($get("slug.{$locale}"))) {
+                            $set("slug.{$locale}", LocaleSlugger::generate((string) $state, $locale));
+                        }
+                    }),
+                TextInput::make("slug.{$locale}")
+                    ->label(__('admin.fields.slug'))
+                    ->required()
+                    ->unique(Service::class, "slug_{$locale}", ignoreRecord: true)
+                    ->regex('/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u')
+                    ->maxLength(180),
                 Textarea::make("summary.{$locale}")
                     ->label(__('admin.fields.summary'))
                     ->required(fn (Get $get): bool => ! (bool) $get('is_draft'))
@@ -71,11 +85,12 @@ class ServiceForm
                     ->columnSpan(2),
                 Section::make(__('admin.sections.main_details'))
                     ->schema([
-                        TextInput::make('slug')
-                            ->label(__('admin.fields.slug'))
+                        TextInput::make('key')
+                            ->label(__('admin.fields.key'))
                             ->required()
                             ->alphaDash()
                             ->maxLength(80)
+                            ->disabledOn('edit')
                             ->unique(ignoreRecord: true),
                         Toggle::make('is_draft')
                             ->label(__('admin.fields.draft'))

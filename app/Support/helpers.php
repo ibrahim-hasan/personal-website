@@ -1,7 +1,12 @@
 <?php
 
 use App\Models\Setting;
+use Illuminate\Routing\Route as IlluminateRoute;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
+use Mcamara\LaravelLocalization\Interfaces\LocalizedUrlRoutable;
+use Mcamara\LaravelLocalization\LaravelLocalization;
 
 if (! function_exists('supported_locales')) {
     function supported_locales(): array
@@ -47,55 +52,95 @@ if (! function_exists('locale_switch_url')) {
 if (! function_exists('localized_current_url')) {
     function localized_current_url(string $locale): string
     {
-        return localized_url($locale, url()->current());
+        $route = request()->route();
+
+        if ($route instanceof IlluminateRoute && is_string($route->getName())) {
+            $routeName = $route->getName();
+
+            foreach (array_keys(app(LaravelLocalization::class)->getSupportedLocales()) as $supportedLocale) {
+                if ($supportedLocale !== default_locale() && Str::startsWith($routeName, $supportedLocale.'.')) {
+                    $routeName = Str::after($routeName, $supportedLocale.'.');
+
+                    break;
+                }
+            }
+
+            return localized_route(
+                $routeName,
+                [...$route->parameters(), ...request()->query()],
+                locale: $locale,
+            );
+        }
+
+        return localized_url($locale, request()->fullUrl());
     }
 }
 
 if (! function_exists('localized_url')) {
     function localized_url(string $locale, ?string $url = null): string
     {
-        $supportedLocales = array_keys(config('app.supported_locales', []));
-        $defaultLocale = default_locale();
+        $localization = app(LaravelLocalization::class);
+        $targetLocale = $localization->checkLocaleInSupportedLocales($locale)
+            ? $locale
+            : $localization->getDefaultLocale();
 
-        if (! in_array($locale, $supportedLocales, true)) {
-            $locale = $defaultLocale;
-        }
-
-        $url ??= url()->current();
-        $parts = parse_url($url);
-        $path = $parts['path'] ?? '/';
-        $query = isset($parts['query']) ? '?'.$parts['query'] : '';
-        $segments = array_values(array_filter(explode('/', trim($path, '/')), fn (string $segment): bool => $segment !== ''));
-
-        if (isset($segments[0]) && in_array($segments[0], $supportedLocales, true)) {
-            array_shift($segments);
-        }
-
-        if ($locale !== $defaultLocale) {
-            array_unshift($segments, $locale);
-        }
-
-        $localizedPath = implode('/', $segments);
-
-        return url($localizedPath === '' ? '/' : '/'.$localizedPath).$query;
+        return (string) $localization->getLocalizedURL(
+            $targetLocale,
+            $url ?? request()->fullUrl(),
+        );
     }
 }
 
 if (! function_exists('localized_route')) {
     function localized_route(string $name, mixed $parameters = [], bool $absolute = true, ?string $locale = null): string
     {
-        $supportedLocales = array_keys(config('app.supported_locales', []));
-        $pathLocale = request()?->segment(1);
+        $localization = app(LaravelLocalization::class);
+        $targetLocale = is_string($locale) && $localization->checkLocaleInSupportedLocales($locale)
+            ? $locale
+            : $localization->getCurrentLocale();
+        $localizedParameters = localized_route_parameters($parameters, $targetLocale);
+        $localizedName = $targetLocale === $localization->getDefaultLocale()
+            ? $name
+            : $targetLocale.'.'.$name;
+        $url = route(Route::has($localizedName) ? $localizedName : $name, $localizedParameters, $absolute);
 
-        if (! is_string($locale) && is_string($pathLocale) && in_array($pathLocale, $supportedLocales, true)) {
-            $locale = $pathLocale;
+        $localizedUrl = (string) $localization->getLocalizedURL(
+            $targetLocale,
+            $url,
+            Arr::wrap($localizedParameters),
+        );
+
+        if ($absolute) {
+            return $localizedUrl;
         }
 
-        $locale ??= current_locale();
-        $defaultLocale = default_locale();
-        $localizedName = $locale !== $defaultLocale ? "{$locale}.{$name}" : $name;
+        $path = (string) parse_url($localizedUrl, PHP_URL_PATH);
+        $query = parse_url($localizedUrl, PHP_URL_QUERY);
+        $fragment = parse_url($localizedUrl, PHP_URL_FRAGMENT);
 
-        return route(Route::has($localizedName) ? $localizedName : $name, $parameters, $absolute);
+        return $path
+            .(is_string($query) ? '?'.$query : '')
+            .(is_string($fragment) ? '#'.$fragment : '');
+    }
+}
+
+if (! function_exists('localized_route_parameters')) {
+    function localized_route_parameters(mixed $parameters, string $locale): mixed
+    {
+        if ($parameters instanceof LocalizedUrlRoutable) {
+            return $parameters->getLocalizedRouteKey($locale);
+        }
+
+        if (! is_array($parameters)) {
+            return $parameters;
+        }
+
+        return array_map(
+            fn (mixed $parameter): mixed => $parameter instanceof LocalizedUrlRoutable
+                ? $parameter->getLocalizedRouteKey($locale)
+                : $parameter,
+            $parameters,
+        );
     }
 }
 

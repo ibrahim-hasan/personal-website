@@ -4,18 +4,31 @@ namespace App\Models;
 
 use App\Support\DashboardCache;
 use App\Traits\Posted;
+use App\Traits\SynchronizesTranslatedSlugs;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Mcamara\LaravelLocalization\Interfaces\LocalizedUrlRoutable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Sluggable\HasTranslatableSlug;
+use Spatie\Sluggable\SlugOptions;
 use Spatie\Translatable\HasTranslations;
 
-class Service extends Model implements HasMedia
+class Service extends Model implements HasMedia, LocalizedUrlRoutable
 {
-    use HasFactory, HasTranslations, InteractsWithMedia, Posted, SoftDeletes;
+    use HasFactory;
+    use HasTranslatableSlug {
+        getLocalizedRouteKey as private getSpatieLocalizedRouteKey;
+    }
+    use HasTranslations;
+    use InteractsWithMedia;
+    use Posted;
+    use SoftDeletes;
+    use SynchronizesTranslatedSlugs;
 
     protected $fillable = [
+        'key',
         'slug',
         'name',
         'summary',
@@ -28,7 +41,7 @@ class Service extends Model implements HasMedia
         'is_active',
     ];
 
-    protected $translatable = ['name', 'summary', 'problem', 'approach', 'result'];
+    protected $translatable = ['slug', 'name', 'summary', 'problem', 'approach', 'result'];
 
     protected $attributes = [
         'order' => 0,
@@ -39,12 +52,7 @@ class Service extends Model implements HasMedia
     protected function casts(): array
     {
         return [
-            'name' => 'array',
-            'summary' => 'array',
-            'problem' => 'array',
-            'approach' => 'array',
             'deliverables' => 'array',
-            'result' => 'array',
             'order' => 'integer',
             'is_draft' => 'boolean',
             'is_active' => 'boolean',
@@ -59,13 +67,33 @@ class Service extends Model implements HasMedia
         static::forceDeleted(fn () => DashboardCache::bust());
     }
 
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('name')
+            ->saveSlugsTo('slug')
+            ->slugsShouldBeNoLongerThan(180)
+            ->preventOverwrite();
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    public function getLocalizedRouteKey($locale): mixed
+    {
+        return $this->getSpatieLocalizedRouteKey((string) $locale);
+    }
+
     /**
-     * @return array{id: string, name: string, summary: string, problem: string, approach: string, deliverables: list<string>, result: string}
+     * @return array{key: string, id: string, name: string, summary: string, problem: string, approach: string, deliverables: list<string>, result: string}
      */
     public function toPublicArray(string $locale): array
     {
         return [
-            'id' => $this->slug,
+            'key' => $this->key,
+            'id' => $this->getTranslation('slug', $locale),
             'name' => $this->translation('name', $locale),
             'summary' => $this->translation('summary', $locale),
             'problem' => $this->translation('problem', $locale),
@@ -81,12 +109,6 @@ class Service extends Model implements HasMedia
 
     private function translation(string $attribute, string $locale): string
     {
-        $translations = $this->getAttribute($attribute);
-
-        if (! is_array($translations)) {
-            return is_string($translations) ? $translations : '';
-        }
-
-        return (string) ($translations[$locale] ?? $translations['en'] ?? $translations['ar'] ?? '');
+        return (string) $this->getTranslation($attribute, $locale);
     }
 }

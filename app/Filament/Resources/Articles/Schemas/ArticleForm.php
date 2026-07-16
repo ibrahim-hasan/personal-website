@@ -15,6 +15,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class ArticleForm
@@ -30,16 +31,17 @@ class ArticleForm
                     ->required()
                     ->maxLength(180)
                     ->live(onBlur: true)
-                    ->afterStateUpdated(function ($state, callable $set) use ($locale): void {
-                        if (filled($state)) {
-                            $set("slugs.{$locale}", LocaleSlugger::generate((string) $state, $locale));
+                    ->afterStateUpdated(function ($state, Get $get, callable $set) use ($locale): void {
+                        if (filled($state) && blank($get("slug.{$locale}"))) {
+                            $set("slug.{$locale}", LocaleSlugger::generate((string) $state, $locale));
                         }
                     }),
-                TextInput::make("slugs.{$locale}")
+                TextInput::make("slug.{$locale}")
                     ->label(__('editorial_admin.fields.slug'))
                     ->required()
                     ->unique(Article::class, "slug_{$locale}", ignoreRecord: true)
-                    ->maxLength(190),
+                    ->regex('/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u')
+                    ->maxLength(180),
                 TextInput::make("type.{$locale}")
                     ->label(__('editorial_admin.fields.type'))
                     ->required()

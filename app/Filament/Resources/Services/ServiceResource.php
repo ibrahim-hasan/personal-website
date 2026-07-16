@@ -23,6 +23,8 @@ class ServiceResource extends Resource
 {
     protected static ?string $model = Service::class;
 
+    protected static ?string $recordRouteKeyName = 'id';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
 
     protected static ?int $navigationSort = 20;
@@ -76,6 +78,7 @@ class ServiceResource extends Resource
                     ->schema([
                         TranslatableInfolistTabs::make([
                             'name' => [],
+                            'slug' => [],
                             'summary' => ['columnSpanFull' => true],
                             'problem' => ['columnSpanFull' => true],
                             'approach' => ['columnSpanFull' => true],
@@ -85,6 +88,8 @@ class ServiceResource extends Resource
                 Section::make(__('admin.sections.publishing'))
                     ->columns(2)
                     ->schema([
+                        TextEntry::make('key')
+                            ->label(__('admin.fields.key')),
                         TextEntry::make('is_draft')
                             ->label(__('admin.fields.is_draft'))
                             ->badge()

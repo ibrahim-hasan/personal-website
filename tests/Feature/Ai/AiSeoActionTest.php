@@ -59,7 +59,7 @@ class AiSeoActionTest extends TestCase
         filament()->bootCurrentPanel();
 
         Livewire::actingAs($admin)
-            ->test(EditArticle::class, ['record' => $article->getRouteKey()])
+            ->test(EditArticle::class, ['record' => $article->getKey()])
             ->callFormComponentAction('article-content', 'generateSeo')
             ->assertNotified(__('AI SEO limit reached'));
 
@@ -96,7 +96,7 @@ class AiSeoActionTest extends TestCase
         filament()->bootCurrentPanel();
 
         Livewire::actingAs($admin)
-            ->test(EditArticle::class, ['record' => $article->getRouteKey()])
+            ->test(EditArticle::class, ['record' => $article->getKey()])
             ->callFormComponentAction('article-content', 'generateSeo')
             ->assertSchemaStateSet([
                 'seo_title.ar' => 'عنوان محسّن للمقال',

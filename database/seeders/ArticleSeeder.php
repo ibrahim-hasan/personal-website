@@ -15,6 +15,9 @@ class ArticleSeeder extends Seeder
                 continue;
             }
 
+            $record['slug'] = $record['slug'] ?? $record['slugs'] ?? [];
+            unset($record['slugs']);
+
             Article::query()->create($record);
         }
     }

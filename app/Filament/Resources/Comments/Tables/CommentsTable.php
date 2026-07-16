@@ -34,7 +34,9 @@ class CommentsTable
                     ->placeholder(__('editorial_admin.former_reader')),
                 TextColumn::make('article.title')
                     ->label(__('editorial_admin.article'))
-                    ->getStateUsing(fn (Comment $record): string => (string) ($record->article?->title[app()->getLocale()] ?? $record->article?->title['en'] ?? '—'))
+                    ->getStateUsing(fn (Comment $record): string => $record->article
+                        ? (localized_model_attribute($record->article, 'title') ?? $record->article->key)
+                        : '—')
                     ->wrap(),
                 TextColumn::make('body')
                     ->label(__('editorial_admin.fields.comment_body'))
@@ -93,7 +95,7 @@ class CommentsTable
                 SelectFilter::make('article_id')
                     ->label(__('editorial_admin.article'))
                     ->options(fn (): array => Article::query()->get()->mapWithKeys(
-                        fn (Article $article): array => [$article->getKey() => (string) ($article->title[app()->getLocale()] ?? $article->title['en'] ?? $article->key)],
+                        fn (Article $article): array => [$article->getKey() => localized_model_attribute($article, 'title') ?? $article->key],
                     )->all())
                     ->searchable(),
                 TernaryFilter::make('pending_reports')

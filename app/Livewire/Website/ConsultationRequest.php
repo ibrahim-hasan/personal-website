@@ -41,7 +41,7 @@ class ConsultationRequest extends Component
         }
 
         $payload = $this->form->validate();
-        $service = collect($this->availableServices())->firstWhere('id', $payload['service']);
+        $service = collect($this->availableServices())->firstWhere('key', $payload['service']);
         $payload['service_label'] = $service['name'] ?? __('site.consultation.general_service');
         $payload['locale'] = current_locale();
 
@@ -98,12 +98,18 @@ class ConsultationRequest extends Component
         ]);
     }
 
-    /** @return list<array{id: string, name: string}> */
+    /** @return list<array{key: string, id: string, name: string}> */
     private function availableServices(): array
     {
         return [
-            ...SiteContent::services(),
+            ...collect(SiteContent::services())
+                ->map(fn (array $service): array => [
+                    ...$service,
+                    'key' => (string) ($service['key'] ?? $service['id']),
+                ])
+                ->all(),
             [
+                'key' => 'general',
                 'id' => 'general',
                 'name' => __('site.consultation.general_service'),
             ],

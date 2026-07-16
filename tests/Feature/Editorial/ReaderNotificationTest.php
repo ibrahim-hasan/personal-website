@@ -95,7 +95,7 @@ class ReaderNotificationTest extends TestCase
     public function test_opening_an_update_marks_it_read_and_redirects_to_the_localized_comment(): void
     {
         $article = Article::factory()->create([
-            'slugs' => ['ar' => 'مقال-التنبيه', 'en' => 'notification-article'],
+            'slug' => ['ar' => 'مقال-التنبيه', 'en' => 'notification-article'],
         ]);
         $reader = User::factory()->create();
         $comment = Comment::factory()->approved()->create([
