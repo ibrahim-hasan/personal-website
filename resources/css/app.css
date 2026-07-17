@@ -4049,6 +4049,66 @@ html[dir='rtl'] .about-intro__portrait {
     object-position: 48% center;
 }
 
+.about-moments {
+    padding-block: clamp(5rem, 9vw, 8rem);
+    background: var(--color-canvas-bright);
+}
+
+.about-moments__intro {
+    display: grid;
+    gap: 1.5rem;
+    align-items: end;
+}
+
+.about-moments__grid {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: clamp(3rem, 7vw, 6rem);
+}
+
+.about-moment {
+    position: relative;
+    overflow: hidden;
+    background: var(--color-ink);
+}
+
+.about-moment--conference {
+    aspect-ratio: 3 / 4;
+}
+
+.about-moment--candid {
+    aspect-ratio: 4 / 3;
+}
+
+.about-moment img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: scale 700ms var(--ease-out-expo);
+}
+
+.about-moment--conference img {
+    object-position: center;
+}
+
+.about-moment--candid img {
+    object-position: center 38%;
+}
+
+.about-moment figcaption {
+    position: absolute;
+    z-index: 2;
+    inset-inline: 0;
+    inset-block-end: 0;
+    padding: 0.85rem 1rem;
+    background: color-mix(in oklab, var(--color-ink) 88%, transparent);
+    font-family: var(--family-ui);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--color-canvas);
+}
+
 .about-chapters,
 .perspective-band {
     padding-block: clamp(6rem, 11vw, 10rem);
@@ -4294,6 +4354,29 @@ html[dir='rtl'] .about-intro__portrait {
     .atlas-intro,
     .about-chapters__intro {
         grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.75fr);
+    }
+
+    .about-moments__intro {
+        grid-template-columns: minmax(0, 0.8fr) minmax(18rem, 0.65fr);
+    }
+
+    .about-moments__intro > p {
+        justify-self: end;
+    }
+
+    .about-moments__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: end;
+        gap: clamp(1.25rem, 3vw, 3rem);
+    }
+
+    .about-moment--conference {
+        grid-column: 1 / span 5;
+    }
+
+    .about-moment--candid {
+        grid-column: 6 / span 7;
+        margin-block-end: clamp(2rem, 6vw, 5rem);
     }
 
     .project-atlas__copy dl {
@@ -5403,6 +5486,10 @@ html[dir='rtl'].motion-capable .manifesto-section__copy::before {
 }
 
 @media (hover: hover) and (pointer: fine) {
+    .about-moment:hover img {
+        scale: 1.025;
+    }
+
     .filter-bar button:not(.is-active):hover,
     .publication-topics button:not(.is-active):hover,
     .service-index__item:not(.is-active):hover,

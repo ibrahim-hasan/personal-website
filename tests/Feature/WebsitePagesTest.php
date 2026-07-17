@@ -57,6 +57,9 @@ class WebsitePagesTest extends TestCase
         $this->assertFileExists(public_path('videos/hero/ibrahim-hero.mp4'));
         $this->assertFileExists(public_path('videos/hero/ibrahim-hero.webm'));
         $this->assertFileExists(public_path('images/ibrahim/ibrahim-hero-video-poster.webp'));
+        $this->assertFileExists(public_path('images/ibrahim/ibrahim-formal-portrait.webp'));
+        $this->assertFileExists(public_path('images/ibrahim/ibrahim-conference-event.webp'));
+        $this->assertFileExists(public_path('images/ibrahim/ibrahim-candid-session.webp'));
 
         $this->get('/')
             ->assertOk()
@@ -101,7 +104,13 @@ class WebsitePagesTest extends TestCase
 
         $this->get('/en/about')
             ->assertOk()
-            ->assertSee('images/ibrahim/ibrahim-speaking-hero.webp', false)
+            ->assertSee('images/ibrahim/ibrahim-formal-portrait.webp', false)
+            ->assertSee('images/ibrahim/ibrahim-conference-event.webp', false)
+            ->assertSee('images/ibrahim/ibrahim-candid-session.webp', false)
+            ->assertSee('Professional portrait of Ibrahim Hasan', false)
+            ->assertSee('At a professional event with From Scratch Solutions', false)
+            ->assertSee('A moment between working sessions', false)
+            ->assertSee('loading="lazy"', false)
             ->assertSee('images/brands/companies/code-moments-on-dark.svg', false)
             ->assertSee('images/brands/companies/from-scratch-on-dark.svg', false)
             ->assertDontSee('images/brands/companies/code-moments-on-light.svg', false)
@@ -109,6 +118,12 @@ class WebsitePagesTest extends TestCase
             ->assertDontSee('Toolkit', false)
             ->assertDontSee('Portrait space — to be art-directed later', false)
             ->assertDontSee('images/ibrahim/ibrahim-hasan-portrait.png', false);
+
+        $this->get('/about')
+            ->assertOk()
+            ->assertSee('صورة مهنية لإبراهيم حسن', false)
+            ->assertSee('في فعالية مهنية مع فروم سكراتش سوليوشنز', false)
+            ->assertSee('لحظة بين جلسات العمل', false);
     }
 
     public function test_writing_library_uses_precise_taxonomy_and_one_footer_cta(): void

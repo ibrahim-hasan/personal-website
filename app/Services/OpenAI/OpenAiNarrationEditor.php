@@ -20,7 +20,7 @@ use Throwable;
 
 class OpenAiNarrationEditor implements NarrationEditor
 {
-    private const PROMPT_VERSION = 'arabic-editorial-v4';
+    private const PROMPT_VERSION = 'arabic-editorial-v5';
 
     public function __construct(
         private readonly NarrationDraftValidator $validator,

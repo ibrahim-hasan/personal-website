@@ -13,10 +13,10 @@
             </div>
             <figure class="about-intro__portrait" data-reveal="media" data-depth="media">
                 <img
-                    src="{{ asset('images/ibrahim/ibrahim-speaking-hero.webp') }}"
+                    src="{{ asset('images/ibrahim/ibrahim-formal-portrait.webp') }}"
                     alt="{{ __('site.about.portrait_alt') }}"
-                    width="1200"
-                    height="900"
+                    width="1120"
+                    height="1400"
                     fetchpriority="high"
                     decoding="async"
                 >
@@ -32,6 +32,41 @@
                 <h2 class="display-section mt-6 max-w-[13ch]" data-reveal="headline">{{ __('site.about.background_title') }}</h2>
             </div>
             <p class="story-split__body" data-reveal="copy">{{ __('site.about.background_body') }}</p>
+        </div>
+    </section>
+
+    <section class="about-moments" aria-labelledby="about-moments-title">
+        <div class="site-container">
+            <div class="about-moments__intro">
+                <h2 id="about-moments-title" class="display-section max-w-[13ch]" data-reveal="headline">{{ __('site.about.moments_title') }}</h2>
+                <p class="copy-lead max-w-[56ch]" data-reveal="copy">{{ __('site.about.moments_body') }}</p>
+            </div>
+
+            <div class="about-moments__grid">
+                <figure class="about-moment about-moment--conference" data-reveal="media">
+                    <img
+                        src="{{ asset('images/ibrahim/ibrahim-conference-event.webp') }}"
+                        alt="{{ __('site.about.conference_alt') }}"
+                        width="1800"
+                        height="2400"
+                        loading="lazy"
+                        decoding="async"
+                    >
+                    <figcaption>{{ __('site.about.conference_caption') }}</figcaption>
+                </figure>
+
+                <figure class="about-moment about-moment--candid" data-reveal="media">
+                    <img
+                        src="{{ asset('images/ibrahim/ibrahim-candid-session.webp') }}"
+                        alt="{{ __('site.about.candid_alt') }}"
+                        width="1800"
+                        height="2400"
+                        loading="lazy"
+                        decoding="async"
+                    >
+                    <figcaption>{{ __('site.about.candid_caption') }}</figcaption>
+                </figure>
+            </div>
         </div>
     </section>
 
