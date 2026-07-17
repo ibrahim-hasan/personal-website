@@ -9,17 +9,45 @@ use App\Http\Controllers\Website\AboutController;
 use App\Http\Controllers\Website\ArticleController;
 use App\Http\Controllers\Website\ContactController;
 use App\Http\Controllers\Website\HomeController;
+use App\Http\Controllers\Website\MarkHeroVideoViewedController;
 use App\Http\Controllers\Website\PortfolioController;
+use App\Http\Controllers\Website\ReaderAccountController;
+use App\Http\Controllers\Website\ReaderAccountDeletionController;
 use App\Http\Controllers\Website\ReaderLibraryController;
 use App\Http\Controllers\Website\ReaderNotificationController;
+use App\Http\Controllers\Website\ReaderPasswordController;
+use App\Http\Controllers\Website\RobotsController;
 use App\Http\Controllers\Website\ServiceController;
+use App\Http\Controllers\Website\SitemapController;
 use App\Http\Controllers\Website\WritingController;
 use App\Http\Middleware\EnsureReaderIsActive;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+
+$statefulWebMiddleware = [
+    EncryptCookies::class,
+    AddQueuedCookiesToResponse::class,
+    StartSession::class,
+    ShareErrorsFromSession::class,
+    PreventRequestForgery::class,
+    SetLocale::class,
+];
+
+Route::get('/sitemap.xml', SitemapController::class)
+    ->withoutMiddleware($statefulWebMiddleware)
+    ->name('seo.sitemap');
+Route::get('/robots.txt', RobotsController::class)
+    ->withoutMiddleware($statefulWebMiddleware)
+    ->name('seo.robots');
 
 Route::post('/lang/{locale}', LanguageSwitchController::class)->name('lang.switch');
 
@@ -72,6 +100,19 @@ $registerLocalizedRoutes = function (?string $routeLocale = null): void {
             return back()->with('status', 'verification-link-sent');
         })->middleware('throttle:6,1')->name('verification.send');
         Route::post('/reader/logout', [ReaderSessionController::class, 'destroy'])->name('reader.logout');
+        Route::post('/reader/hero-video/viewed', MarkHeroVideoViewedController::class)
+            ->middleware('throttle:6,1')
+            ->name('reader.hero-video.viewed');
+        Route::get('/reader/account', [ReaderAccountController::class, 'show'])->name('reader.account');
+        Route::patch('/reader/account', [ReaderAccountController::class, 'update'])
+            ->middleware('throttle:10,1')
+            ->name('reader.account.update');
+        Route::put('/reader/account/password', ReaderPasswordController::class)
+            ->middleware('throttle:5,1')
+            ->name('reader.account.password.update');
+        Route::delete('/reader/account', ReaderAccountDeletionController::class)
+            ->middleware('throttle:3,1')
+            ->name('reader.account.destroy');
         Route::get('/reader/library', ReaderLibraryController::class)
             ->middleware(EnsureEmailIsVerified::redirectTo($verificationNoticeRoute))
             ->name('reader.library');

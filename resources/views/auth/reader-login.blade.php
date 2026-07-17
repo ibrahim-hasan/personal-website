@@ -1,4 +1,4 @@
-<x-layouts.front :title="__('reader_auth.login_title')" :description="__('reader_auth.login_description')">
+<x-layouts.front :title="__('reader_auth.login_title')" :description="__('reader_auth.login_description')" robots="noindex, follow, noarchive">
     <section class="mx-auto flex min-h-[75vh] w-full max-w-xl items-center px-6 pb-20 pt-32 sm:px-10 sm:pt-36" aria-labelledby="reader-login-title">
         <div class="relative w-full border border-violet-700/25 bg-canvas-bright p-7 shadow-[0.75rem_0.75rem_0_rgba(109,70,146,0.14)] sm:p-10">
             <span class="absolute inset-x-0 top-0 h-1 bg-violet-600" aria-hidden="true"></span>

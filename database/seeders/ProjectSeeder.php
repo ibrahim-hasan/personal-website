@@ -21,7 +21,7 @@ class ProjectSeeder extends Seeder
 
             Project::query()->create([
                 'key' => $project['id'],
-                'slug' => $this->localizedSlugs($project['title'], $project['id']),
+                'slug' => $project['slugs'] ?? $this->localizedSlugs($project['title'], $project['id']),
                 'title' => $project['title'],
                 'sector' => $project['sector'],
                 'summary' => $project['summary'],

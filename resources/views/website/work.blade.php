@@ -17,31 +17,39 @@
         <div class="site-container">
             @if ($work !== [])
                 <div class="work-archive__toolbar">
-                <p>{{ __('site.work.categories_label') }}</p>
-                <div class="filter-bar" role="toolbar" aria-label="{{ __('site.work.categories_label') }}">
-                    <button
-                        type="button"
-                        @click="select('all')"
-                        @keydown="navigate($event)"
-                        :aria-pressed="lens === 'all'"
-                        :tabindex="lens === 'all' ? 0 : -1"
-                        :class="lens === 'all' ? 'is-active' : ''"
-                    >
-                        {{ __('site.work.all') }}
-                    </button>
-                    @foreach ($lenses as $lens)
-                        <button
-                            type="button"
-                            @click="select(@js($lens['id']))"
-                            @keydown="navigate($event)"
-                            :aria-pressed="lens === @js($lens['id'])"
-                            :tabindex="lens === @js($lens['id']) ? 0 : -1"
-                            :class="lens === @js($lens['id']) ? 'is-active' : ''"
-                        >
-                            {{ $lens['label'] }}
+                    <p>{{ __('site.work.categories_label') }}</p>
+                    <div class="filter-bar-shell">
+                        <button type="button" class="filter-bar__arrow" @click="scrollLenses(-1)" :disabled="lensCursor === 0" aria-label="{{ __('site.work.previous_categories') }}">
+                            <x-phosphor-caret-left class="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
                         </button>
-                    @endforeach
-                </div>
+                        <div x-ref="lenses" class="filter-bar" role="toolbar" aria-label="{{ __('site.work.categories_label') }}">
+                            <button
+                                type="button"
+                                @click="select('all')"
+                                @keydown="navigate($event)"
+                                :aria-pressed="lens === 'all'"
+                                :tabindex="lens === 'all' ? 0 : -1"
+                                :class="lens === 'all' ? 'is-active' : ''"
+                            >
+                                {{ __('site.work.all') }}
+                            </button>
+                            @foreach ($lenses as $lens)
+                                <button
+                                    type="button"
+                                    @click="select(@js($lens['id']))"
+                                    @keydown="navigate($event)"
+                                    :aria-pressed="lens === @js($lens['id'])"
+                                    :tabindex="lens === @js($lens['id']) ? 0 : -1"
+                                    :class="lens === @js($lens['id']) ? 'is-active' : ''"
+                                >
+                                    {{ $lens['label'] }}
+                                </button>
+                            @endforeach
+                        </div>
+                        <button type="button" class="filter-bar__arrow" @click="scrollLenses(1)" :disabled="lensCursor === lensCount - 1" aria-label="{{ __('site.work.next_categories') }}">
+                            <x-phosphor-caret-right class="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+                        </button>
+                    </div>
                 </div>
 
                 <div class="case-list">
@@ -85,28 +93,27 @@
                             </div>
                             <h2>{{ $item['title'] }}</h2>
                             <p>{{ $item['summary'] }}</p>
-
-                            <dl class="case-study__story">
-                                <div>
-                                    <dt>{{ __('site.work.challenge') }}</dt>
-                                    <dd>{{ $item['challenge'] }}</dd>
-                                </div>
-                                <div>
-                                    <dt>{{ __('site.work.response') }}</dt>
-                                    <dd>{{ $item['response'] }}</dd>
-                                </div>
-                                <div class="case-study__outcome">
-                                    <dt>{{ __('site.work.outcome') }}</dt>
-                                    <dd>{{ $item['outcome'] }}</dd>
-                                </div>
-                            </dl>
-
                             <ul class="tag-list" aria-label="{{ __('site.work.sector') }}">
                                 @foreach ($item['tags'] as $tag)
                                     <li>{{ $tag }}</li>
                                 @endforeach
                             </ul>
                         </div>
+
+                        <dl class="case-study__story">
+                            <div>
+                                <dt>{{ __('site.work.challenge') }}</dt>
+                                <dd>{{ $item['challenge'] }}</dd>
+                            </div>
+                            <div>
+                                <dt>{{ __('site.work.response') }}</dt>
+                                <dd>{{ $item['response'] }}</dd>
+                            </div>
+                            <div class="case-study__outcome">
+                                <dt>{{ __('site.work.outcome') }}</dt>
+                                <dd>{{ $item['outcome'] }}</dd>
+                            </div>
+                        </dl>
                     </article>
                 @endforeach
                 </div>

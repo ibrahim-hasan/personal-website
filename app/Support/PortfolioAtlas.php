@@ -237,7 +237,8 @@ final class PortfolioAtlas
         return [
             [
                 'id' => 'digi-pedia',
-                'title' => ['ar' => 'ديجي بيديا', 'en' => 'Digi-Pedia'],
+                'slugs' => ['ar' => 'ديجي-بيديا', 'en' => 'digi-pedia'],
+                'title' => ['ar' => 'الموسوعة الرقمية', 'en' => 'Digi Pedia'],
                 'sector' => ['ar' => 'تعليم الذكاء الاصطناعي والمعرفة', 'en' => 'AI education & knowledge'],
                 'summary' => [
                     'ar' => 'منصة معرفية عربية تساعد المهنيين وصنّاع المحتوى ورواد الأعمال على فهم أدوات الذكاء الاصطناعي واستخدامها بصورة عملية.',
@@ -257,9 +258,9 @@ final class PortfolioAtlas
                 ],
                 'lens' => 'ai-adoption',
                 'image' => 'images/projects/atlas/digi-pedia-ai-learning.webp',
-                'alt' => ['ar' => 'تجربة ديجي بيديا لتعلّم الذكاء الاصطناعي بالعربية', 'en' => 'Digi-Pedia Arabic AI learning experience'],
+                'alt' => ['ar' => 'واجهة الموسوعة الرقمية لتعلّم الذكاء الاصطناعي بالعربية', 'en' => 'Digi Pedia Arabic AI learning platform interface'],
                 'logo' => 'images/brands/projects/digi-pedia.webp',
-                'logo_alt' => ['ar' => 'شعار ديجي بيديا', 'en' => 'Digi-Pedia logo'],
+                'logo_alt' => ['ar' => 'شعار الموسوعة الرقمية', 'en' => 'Digi Pedia logo'],
                 'tags' => [
                     ['ar' => 'ثقافة الذكاء الاصطناعي', 'en' => 'AI literacy'],
                     ['ar' => 'إتاحة المعرفة', 'en' => 'Knowledge access'],

@@ -1,3 +1,13 @@
+@push('head')
+    <link
+        rel="preload"
+        as="image"
+        href="{{ asset('images/ibrahim/ibrahim-hero-video-poster.webp') }}"
+        type="image/webp"
+        fetchpriority="high"
+    >
+@endpush
+
 <x-layouts.front
     :title="__('site.home.title')"
     :description="__('site.home.description')">
@@ -49,8 +59,13 @@
                         <video
                             class="precision-stage__video"
                             data-hero-video
+                            data-viewed="{{ auth()->user()?->hero_video_seen_at !== null ? 'true' : 'false' }}"
+                            @auth
+                                data-viewed-url="{{ localized_route('reader.hero-video.viewed') }}"
+                            @endauth
+                            width="720"
+                            height="1280"
                             muted
-                            loop
                             playsinline
                             preload="metadata"
                             poster="{{ asset('images/ibrahim/ibrahim-hero-video-poster.webp') }}"
@@ -59,6 +74,22 @@
                             <source src="{{ asset('videos/hero/ibrahim-hero.webm') }}" type="video/webm">
                             <source src="{{ asset('videos/hero/ibrahim-hero.mp4') }}" type="video/mp4">
                         </video>
+
+                        <div class="precision-stage__finale" data-hero-video-finale aria-hidden="true" inert>
+                            <span class="precision-stage__finale-mark" aria-hidden="true"></span>
+                            <p>{{ __('site.home.video_finale_eyebrow') }}</p>
+                            <strong>{{ __('site.home.video_finale_title') }}</strong>
+                            <div class="precision-stage__finale-actions">
+                                <a href="{{ localized_route('contact') }}#consultation" class="precision-stage__finale-cta">
+                                    <span>{{ __('site.home.video_finale_cta') }}</span>
+                                    <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
+                                </a>
+                                <button type="button" class="precision-stage__replay" data-hero-video-replay>
+                                    <x-phosphor-arrow-counter-clockwise class="h-4 w-4" aria-hidden="true" />
+                                    <span>{{ __('site.home.video_replay') }}</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                 </figure>
@@ -222,23 +253,25 @@
                                 decoding="async"
                                 class="project-atlas__image"
                             >
-                            @if ($project['logo'] !== '')
-                                <span class="project-brand">
-                                    <img
-                                        src="{{ asset($project['logo']) }}"
-                                        alt="{{ $project['logo_alt'] }}"
-                                        loading="lazy"
-                                        decoding="async"
-                                        class="project-brand__logo"
-                                    >
-                                </span>
-                            @endif
-                            <figcaption>
-                                <span>{{ sprintf('%02d', $loop->iteration) }}</span>
-                                <span>{{ $project['sector'] }}</span>
-                            </figcaption>
                         </figure>
                         <div class="project-atlas__copy">
+                            <div class="project-atlas__identity">
+                                <div class="project-atlas__meta">
+                                    <span>{{ $project['sector'] }}</span>
+                                    <span>{{ sprintf('%02d', $loop->iteration) }}</span>
+                                </div>
+                                @if ($project['logo'] !== '')
+                                    <span @class(['project-brand', "project-brand--{$project['id']}"])>
+                                        <img
+                                            src="{{ asset($project['logo']) }}"
+                                            alt="{{ $project['logo_alt'] }}"
+                                            loading="lazy"
+                                            decoding="async"
+                                            class="project-brand__logo"
+                                        >
+                                    </span>
+                                @endif
+                            </div>
                             <h3>{{ $project['title'] }}</h3>
                             <p>{{ $project['summary'] }}</p>
                             <dl>
@@ -294,22 +327,41 @@
                 <p class="signal-label">{{ __('site.home.writing_eyebrow') }}</p>
                 <h2 class="display-section mt-6 max-w-[12ch]" data-reveal="headline">{{ __('site.home.writing_title') }}</h2>
                 <p class="copy-lead mt-7 max-w-[44ch]" data-reveal="copy">{{ __('site.home.writing_body') }}</p>
-                <a href="{{ localized_route('writing') }}" class="text-link mt-8 inline-flex">
-                    {{ __('site.actions.read_notes') }}
-                    <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
-                </a>
+                @if ($audioArticle)
+                    <a href="{{ $audioArticle['url'] }}" class="writing-audio-feature">
+                        <span class="writing-audio-feature__play" aria-hidden="true">
+                            <x-phosphor-play class="h-5 w-5" />
+                        </span>
+                        <span class="writing-audio-feature__copy">
+                            <small>{{ __('site.home.writing_audio_eyebrow') }}</small>
+                            <strong>{{ __('site.home.writing_audio_title') }}</strong>
+                            <span>{{ $audioArticle['title'] }}</span>
+                        </span>
+                        <span class="writing-audio-feature__action">
+                            {{ __('articles.reader.listen') }}
+                            <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
+                        </span>
+                    </a>
+                @else
+                    <a href="{{ localized_route('writing') }}" class="text-link mt-8 inline-flex">
+                        {{ __('site.actions.read_notes') }}
+                        <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
+                    </a>
+                @endif
             </div>
 
             @if ($articles !== [])
                 <div class="writing-list">
                     @foreach ($articles as $article)
-                    <a href="{{ $article['url'] }}" class="writing-row writing-row--link" style="--reveal-index: {{ $loop->index }}" data-reveal="row">
-                        <div class="writing-row__meta">
-                            <span>{{ $article['type'] }}</span>
-                            <span>{{ $article['read_time'] }}</span>
+                    <a href="{{ $article['url'] }}" class="writing-row writing-row--link" style="--reveal-index: {{ $loop->index }}" data-reveal="editorial-row">
+                        <div class="writing-row__content">
+                            <div class="writing-row__meta">
+                                <span>{{ $article['type'] }}</span>
+                                <span>{{ $article['read_time'] }}</span>
+                            </div>
+                            <h3>{{ $article['title'] }}</h3>
+                            <p>{{ $article['summary'] }}</p>
                         </div>
-                        <h3>{{ $article['title'] }}</h3>
-                        <p>{{ $article['summary'] }}</p>
                         <x-phosphor-arrow-up-right class="writing-row__arrow h-5 w-5 rtl:-rotate-90" />
                     </a>
                     @endforeach
@@ -326,12 +378,12 @@
 
     <section class="section-compact about-teaser">
         <div class="site-container about-teaser__grid">
-            <figure class="about-teaser__portrait" data-reveal="media" data-depth="media">
+            <figure class="about-teaser__portrait" data-reveal="media">
                 <img
-                    src="{{ asset('images/ibrahim/ibrahim-speaking-hero.webp') }}"
+                    src="{{ asset('images/ibrahim/ibrahim-speaking-editorial.webp') }}"
                     alt="{{ __('site.about.portrait_alt') }}"
-                    width="1200"
-                    height="900"
+                    width="1152"
+                    height="1440"
                     loading="lazy"
                     decoding="async"
                 >

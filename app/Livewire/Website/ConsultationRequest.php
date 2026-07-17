@@ -21,6 +21,32 @@ class ConsultationRequest extends Component
 
     public string $errorMessage = '';
 
+    public function mount(): void
+    {
+        if (request()->string('source')->toString() !== 'decision-room') {
+            return;
+        }
+
+        $serviceKey = request()->string('service')->toString();
+        $hasService = collect($this->availableServices())->contains(
+            fn (array $service): bool => $service['key'] === $serviceKey,
+        );
+
+        if ($hasService) {
+            $this->form->service = $serviceKey;
+        }
+
+        $context = request()->string('context')
+            ->stripTags()
+            ->trim()
+            ->limit(3000, '')
+            ->toString();
+
+        if ($context !== '') {
+            $this->form->challenge = $context;
+        }
+    }
+
     public function updated(string $property): void
     {
         if (! Str::startsWith($property, 'form.') || $property === 'form.website') {

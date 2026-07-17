@@ -1,16 +1,13 @@
-<x-layouts.front :title="__('reader_auth.library_title')" :description="__('reader_auth.library_description')">
+<x-layouts.front :title="__('reader_auth.library_title')" :description="__('reader_auth.library_description')" robots="noindex, nofollow, noarchive, noimageindex">
     <section class="min-h-[75vh] bg-canvas pb-20 pt-32 sm:pb-24 sm:pt-36" aria-labelledby="reader-library-title">
         <div class="site-container">
-            <div class="flex flex-col justify-between gap-6 border-b border-ink/15 pb-8 sm:flex-row sm:items-end">
+            <div class="flex flex-col justify-between gap-8 border-b border-ink/15 pb-8 lg:flex-row lg:items-end">
                 <div>
                     <p class="signal-label">{{ __('reader_auth.community') }}</p>
                     <h1 id="reader-library-title" class="mt-5 font-display text-4xl font-black leading-[1.08] text-ink sm:text-6xl">{{ __('reader_auth.library_title') }}</h1>
                     <p class="mt-4 max-w-2xl text-base leading-8 text-ink-muted">{{ __('reader_auth.library_description') }}</p>
                 </div>
-                <form method="POST" action="{{ localized_route('reader.logout') }}">
-                    @csrf
-                    <button type="submit" class="button-quiet">{{ __('reader_auth.logout') }}</button>
-                </form>
+                <x-reader-account-nav active="library" />
             </div>
 
             @if (session('status'))

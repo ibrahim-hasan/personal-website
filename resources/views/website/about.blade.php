@@ -1,6 +1,7 @@
 <x-layouts.front
     :title="__('site.about.title')"
     :description="__('site.about.description')"
+    schemaType="ProfilePage"
     activeMenu="true">
 
     <section class="page-intro about-intro">

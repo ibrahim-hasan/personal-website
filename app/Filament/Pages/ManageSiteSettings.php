@@ -20,9 +20,7 @@ class ManageSiteSettings extends Page implements HasForms
     /** @var list<string> */
     private const STATE_KEYS = [
         'about_biography',
-        'address_url',
         'ai_seo_enabled',
-        'contact_address',
         'contact_email',
         'contact_phone',
         'openai_model',
@@ -179,8 +177,6 @@ class ManageSiteSettings extends Page implements HasForms
         $this->validate($this->contactRules());
 
         $this->saveGroup([
-            'contact_address',
-            'address_url',
             'contact_phone',
             'contact_email',
             'whatsapp_number',
@@ -264,8 +260,6 @@ class ManageSiteSettings extends Page implements HasForms
     private function contactRules(): array
     {
         return [
-            'data.contact_address' => ['nullable', 'string', 'max:500'],
-            'data.address_url' => ['nullable', 'url:http,https', 'max:2048'],
             'data.contact_phone' => ['nullable', 'string', 'max:40', 'regex:/^[+0-9() .-]+$/'],
             'data.contact_email' => ['nullable', 'email', 'max:255'],
             'data.whatsapp_number' => ['nullable', 'string', 'max:40', 'regex:/^[+0-9() .-]+$/'],

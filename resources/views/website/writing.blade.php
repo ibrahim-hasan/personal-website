@@ -12,6 +12,7 @@
 <x-layouts.front
     :title="__('site.writing.title')"
     :description="__('site.writing.description')"
+    schemaType="CollectionPage"
     activeMenu="true">
 
     <section class="publication-intro">
@@ -27,8 +28,8 @@
                 <figure>
                     <img
                         src="{{ $featuredArticle['image_url'] }}"
-                        alt=""
-                        width="1200"
+                        alt="{{ $featuredArticle['title'] }}"
+                        width="1600"
                         height="900"
                         fetchpriority="high"
                         decoding="async"
@@ -105,14 +106,15 @@
                         class="publication-row"
                         x-show="matches(@js($article['topic_keys']))"
                         x-transition.opacity.duration.250ms
-                        data-reveal
+                        style="--reveal-index: {{ $loop->index }}"
+                        data-reveal="editorial-row"
                     >
                         <span class="publication-row__number">{{ sprintf('%02d', $loop->iteration) }}</span>
                         <div class="publication-row__copy">
-                            <div>
-                                <span>{{ $article['type'] }}</span>
+                            <div class="publication-row__meta">
+                                <span class="publication-row__kind">{{ $article['type'] }}</span>
                                 <time datetime="{{ $article['published_at'] }}">{{ $article['published_label'] }}</time>
-                                <span>{{ $article['read_time'] }}</span>
+                                <span class="publication-row__read-time">{{ $article['read_time'] }}</span>
                             </div>
                             <h3>{{ $article['title'] }}</h3>
                             <p>{{ $article['summary'] }}</p>

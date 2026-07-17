@@ -67,6 +67,32 @@ class TypographyOverflowTest extends TestCase
         );
     }
 
+    public function test_revealed_headlines_do_not_clip_display_glyphs(): void
+    {
+        $css = file_get_contents(dirname(__DIR__, 3).'/resources/css/app.css');
+
+        $this->assertNotFalse($css);
+        $this->assertMatchesRegularExpression(
+            '/\.motion-capable \[data-reveal=\'headline\'\],\s*\.motion-capable \[data-reveal=\'headline\'\]\.is-revealed\s*\{[^}]*clip-path:\s*none;/s',
+            $css,
+        );
+    }
+
+    public function test_writing_rows_reserve_logical_end_space_for_the_arrow(): void
+    {
+        $css = file_get_contents(dirname(__DIR__, 3).'/resources/css/app.css');
+
+        $this->assertNotFalse($css);
+        $this->assertMatchesRegularExpression(
+            '/\.writing-row--link\s*\{[^}]*padding-inline:\s*0\.75rem;[^}]*padding-inline-end:\s*3\.25rem;/s',
+            $css,
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/html\[dir=\'rtl\'\] \.writing-row--link\s*\{[^}]*padding-inline:\s*3\.25rem 0\.75rem;/s',
+            $css,
+        );
+    }
+
     public function test_experience_heading_reserves_space_for_arabic_descenders(): void
     {
         $css = file_get_contents(dirname(__DIR__, 3).'/resources/css/app.css');

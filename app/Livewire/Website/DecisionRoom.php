@@ -64,6 +64,14 @@ class DecisionRoom extends Component
         ],
     ];
 
+    /** @var array<string, string> */
+    private const CONSULTATION_SERVICES = [
+        'ai-adoption' => 'ai-adoption',
+        'digital-transformation' => 'transformation',
+        'product-platform' => 'systems',
+        'operations-automation' => 'systems',
+    ];
+
     #[Locked]
     public int $step = 1;
 
@@ -696,11 +704,34 @@ class DecisionRoom extends Component
             return null;
         }
 
+        $recommendation = $this->recommendation();
+
+        if ($recommendation === null || ! is_string($this->selectedChallenge)) {
+            return null;
+        }
+
         return localized_route('contact', [
+            'source' => 'decision-room',
             'challenge' => $this->selectedChallenge,
             'friction' => $this->primaryFriction,
             'outcome' => $this->desiredOutcome,
+            'service' => self::CONSULTATION_SERVICES[$this->selectedChallenge],
+            'context' => $this->consultationContext($recommendation),
         ]).'#consultation';
+    }
+
+    /**
+     * @param  array{challenge: string, friction: string, outcome: string}  $recommendation
+     */
+    private function consultationContext(array $recommendation): string
+    {
+        $copy = $this->copy();
+
+        return implode("\n", [
+            $copy['challenge_label'].': '.$recommendation['challenge'],
+            $copy['friction_label'].': '.$recommendation['friction'],
+            $copy['outcome_label'].': '.$recommendation['outcome'],
+        ]);
     }
 
     private function locale(): string

@@ -11,7 +11,9 @@ export default defineConfig({
         tailwindcss(),
     ],
     build: {
-        assetsInlineLimit: 100000,
+        // Keep fonts as cacheable, content-hashed assets instead of embedding
+        // hundreds of kilobytes of base64 data in the render-blocking CSS.
+        assetsInlineLimit: 0,
     },
     server: {
         cors: true,

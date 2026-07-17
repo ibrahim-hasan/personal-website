@@ -120,6 +120,22 @@ class LocaleManagementTest extends TestCase
         $response->assertSessionHas('locale', 'en');
     }
 
+    public function test_admin_locale_switch_is_applied_to_the_redirected_filament_page(): void
+    {
+        $response = $this
+            ->from('/admin/login')
+            ->post(route('lang.switch', ['locale' => 'en']));
+
+        $response->assertRedirect('/admin/login');
+
+        $this->get('/admin/login')
+            ->assertOk()
+            ->assertSee('lang="en"', false)
+            ->assertSee('dir="ltr"', false)
+            ->assertSee('Sign In')
+            ->assertDontSee('تسجيل الدخول');
+    }
+
     public function test_localized_route_generates_urls_for_both_locales(): void
     {
         $this->assertSame(url('/').'/', localized_route('home', locale: 'ar'));

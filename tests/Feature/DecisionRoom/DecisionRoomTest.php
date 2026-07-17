@@ -70,13 +70,21 @@ class DecisionRoomTest extends TestCase
 
     public function test_complete_choices_generate_a_grounded_summary_and_consultation_url(): void
     {
+        $context = implode("\n", [
+            'Challenge: Product or platform direction',
+            'Primary friction: The roadmap is not clearly tied to customer or business needs',
+            'Desired outcome: A sharper product direction',
+        ]);
         $expectedUrl = localized_route('contact', [
+            'source' => 'decision-room',
             'challenge' => 'product-platform',
             'friction' => 'unclear-product-direction',
             'outcome' => 'product-direction',
+            'service' => 'systems',
+            'context' => $context,
         ]).'#consultation';
 
-        $component = Livewire::test(DecisionRoom::class)
+        Livewire::test(DecisionRoom::class)
             ->call('selectChallenge', 'product-platform')
             ->call('selectFriction', 'unclear-product-direction')
             ->call('selectOutcome', 'product-direction')
@@ -87,12 +95,12 @@ class DecisionRoomTest extends TestCase
             ->assertSee('The roadmap is not clearly tied to customer or business needs')
             ->assertSee('A sharper product direction')
             ->assertSee('This is a conversation starter based only on your selections.')
-            ->assertSee($expectedUrl);
+            ->assertSee($expectedUrl)
+            ->assertSeeHtml('data-no-navigate');
 
         $this->assertStringContainsString('challenge=product-platform', $expectedUrl);
         $this->assertStringContainsString('friction=unclear-product-direction', $expectedUrl);
         $this->assertStringContainsString('outcome=product-direction', $expectedUrl);
-        $component->assertHasNoErrors();
     }
 
     public function test_recommendation_copy_is_localized_in_arabic(): void

@@ -98,7 +98,33 @@
             <div class="method-band__steps mt-16">
                 @foreach ($process as $step)
                     <article data-reveal>
-                        <span>{{ $step['step'] }}</span>
+                        <div class="method-band__step-head">
+                            <span class="method-band__step-number">{{ $step['step'] }}</span>
+                            @switch($loop->iteration)
+                                @case(1)
+                                    <span class="method-band__icon method-band__icon--focus" aria-hidden="true">
+                                        <x-phosphor-crosshair />
+                                    </span>
+                                    @break
+
+                                @case(2)
+                                    <span class="method-band__icon method-band__icon--map" aria-hidden="true">
+                                        <x-phosphor-graph />
+                                    </span>
+                                    @break
+
+                                @case(3)
+                                    <span class="method-band__icon method-band__icon--prioritize" aria-hidden="true">
+                                        <x-phosphor-strategy />
+                                    </span>
+                                    @break
+
+                                @default
+                                    <span class="method-band__icon method-band__icon--measure" aria-hidden="true">
+                                        <x-phosphor-chart-line-up />
+                                    </span>
+                            @endswitch
+                        </div>
                         <h3>{{ $step['title'] }}</h3>
                         <p>{{ $step['body'] }}</p>
                     </article>

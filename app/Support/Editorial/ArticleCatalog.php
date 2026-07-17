@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Schema;
 
 final class ArticleCatalog
 {
+    /** @var list<Article>|null */
+    private ?array $articles = null;
+
     /**
      * @var list<array{
      *     key: string,
@@ -141,6 +144,10 @@ final class ArticleCatalog
      */
     public function all(): array
     {
+        if ($this->articles !== null) {
+            return $this->articles;
+        }
+
         $articles = $this->storedArticles();
 
         if ($articles === null) {
@@ -152,7 +159,7 @@ final class ArticleCatalog
             fn (Article $first, Article $second): int => $second->publishedAt <=> $first->publishedAt,
         );
 
-        return $articles;
+        return $this->articles = $articles;
     }
 
     /**

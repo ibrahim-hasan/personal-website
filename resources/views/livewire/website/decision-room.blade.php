@@ -4,11 +4,11 @@
     wire:loading.attr="aria-busy"
     wire:target="selectChallenge,selectFriction,selectOutcome,showRecommendation,back,resetDecisionRoom"
 >
-    <div class="decision-room__layout grid min-h-[38rem] lg:grid-cols-[minmax(16rem,0.72fr)_minmax(0,2fr)]">
+    <div class="decision-room__layout grid min-h-[38rem] lg:grid-cols-[minmax(18rem,0.78fr)_minmax(0,2fr)]">
         <aside class="decision-room__rail flex flex-col justify-between gap-10 border-b border-canvas/15 bg-ink/20 p-6 sm:p-8 lg:border-b-0 lg:border-e">
             <div>
                 <p class="signal-label signal-label--light">{{ $copy['eyebrow'] }}</p>
-                <h2 id="decision-room-title" class="mt-6 max-w-[13ch] font-display text-3xl font-black leading-tight text-canvas sm:text-4xl">
+                <h2 id="decision-room-title" class="decision-room__title mt-6 max-w-[13ch] font-display text-3xl font-black leading-tight text-canvas sm:text-4xl">
                     {{ $copy['title'] }}
                 </h2>
                 <p class="mt-5 max-w-[34rem] font-body text-base leading-7 text-canvas/70">
@@ -266,7 +266,11 @@
                                 >
                                     {{ $copy['back'] }}
                                 </button>
-                                <a class="button-primary" href="{{ $consultationUrl }}">
+                                <a
+                                    class="button-primary"
+                                    href="{{ $consultationUrl }}"
+                                    data-no-navigate
+                                >
                                     <span>{{ $copy['consultation'] }}</span>
                                     <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
                                 </a>

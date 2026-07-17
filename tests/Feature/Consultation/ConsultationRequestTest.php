@@ -28,6 +28,37 @@ class ConsultationRequestTest extends TestCase
             ->assertSeeLivewire(ConsultationRequest::class);
     }
 
+    public function test_decision_room_context_prefills_the_consultation_form(): void
+    {
+        $context = implode("\n", [
+            'Challenge: Product or platform direction',
+            'Primary friction: The roadmap is not clearly tied to customer or business needs',
+            'Desired outcome: A sharper product direction',
+        ]);
+
+        Livewire::withQueryParams([
+            'source' => 'decision-room',
+            'challenge' => 'product-platform',
+            'friction' => 'unclear-product-direction',
+            'outcome' => 'product-direction',
+            'service' => 'systems',
+            'context' => $context,
+        ])->test(ConsultationRequest::class)
+            ->assertSet('form.service', 'systems')
+            ->assertSet('form.challenge', $context);
+    }
+
+    public function test_unrelated_query_parameters_do_not_prefill_the_consultation_form(): void
+    {
+        Livewire::withQueryParams([
+            'source' => 'external',
+            'service' => 'systems',
+            'context' => 'This should not be carried into the form.',
+        ])->test(ConsultationRequest::class)
+            ->assertSet('form.service', '')
+            ->assertSet('form.challenge', '');
+    }
+
     public function test_a_consultation_request_is_validated_and_sent(): void
     {
         Mail::fake();

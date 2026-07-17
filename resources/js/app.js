@@ -1,3 +1,4 @@
+import './google-analytics';
 import './article-reader';
 
 const moveCompositeFocus = (event) => {
@@ -126,8 +127,30 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('projectFilter', ({ projects }) => ({
         projects,
         lens: 'all',
+        lensCursor: 0,
+        lensCount: 1,
+        init() {
+            this.$nextTick(() => {
+                this.lensCount = this.$refs.lenses?.children.length ?? 1;
+            });
+        },
         select(lens) {
             this.lens = lens;
+        },
+        scrollLenses(direction) {
+            const lenses = this.$refs.lenses;
+
+            if (! lenses) {
+                return;
+            }
+
+            this.lensCursor = Math.min(Math.max(this.lensCursor + direction, 0), this.lensCount - 1);
+            const scrollDirection = getComputedStyle(lenses).direction === 'rtl' ? -direction : direction;
+
+            lenses.scrollBy({
+                left: scrollDirection * lenses.clientWidth * 0.68,
+                behavior: reducedMotion.matches ? 'auto' : 'smooth',
+            });
         },
         navigate(event) {
             moveCompositeFocus(event);
@@ -177,12 +200,102 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 const initializeHeroVideos = (signal) => {
     const shouldRemainStill = reducedMotion.matches || navigator.connection?.saveData === true;
+    const guestSeenKey = 'ibrahim.hero-video.seen.v1';
 
     document.querySelectorAll('[data-hero-video]').forEach((video) => {
+        const stage = video.closest('.precision-stage__media');
+        const finale = stage?.querySelector('[data-hero-video-finale]');
+        const replay = stage?.querySelector('[data-hero-video-replay]');
+        let restartFrame = null;
+
+        const hasGuestSeenVideo = () => {
+            try {
+                return window.sessionStorage.getItem(guestSeenKey) === 'true';
+            } catch {
+                return false;
+            }
+        };
+
+        const markVideoSeen = () => {
+            if (! video.dataset.viewedUrl) {
+                try {
+                    window.sessionStorage.setItem(guestSeenKey, 'true');
+                } catch {}
+
+                return;
+            }
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+            window.fetch(video.dataset.viewedUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}),
+                },
+            }).catch(() => {});
+        };
+
+        const showFinale = () => {
+            stage?.classList.add('is-complete');
+            finale?.setAttribute('aria-hidden', 'false');
+            finale?.removeAttribute('inert');
+        };
+
+        const hideFinale = () => {
+            stage?.classList.remove('is-complete');
+            finale?.setAttribute('aria-hidden', 'true');
+            finale?.setAttribute('inert', '');
+        };
+
         video.muted = true;
+        video.loop = false;
+
+        video.addEventListener('ended', () => {
+            showFinale();
+            markVideoSeen();
+        }, { signal });
+        replay?.addEventListener('click', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (! stage || ! finale) {
+                return;
+            }
+
+            stage.classList.add('is-restarting');
+            hideFinale();
+            video.pause();
+            video.currentTime = 0;
+
+            restartFrame = window.requestAnimationFrame(async () => {
+                restartFrame = null;
+
+                try {
+                    await video.play();
+                } catch {
+                    showFinale();
+                } finally {
+                    stage.classList.remove('is-restarting');
+                }
+            });
+        }, { signal });
 
         if (shouldRemainStill) {
             video.pause();
+            showFinale();
+
+            return;
+        }
+
+        const hasSeenVideo = video.dataset.viewed === 'true'
+            || (! video.dataset.viewedUrl && hasGuestSeenVideo());
+
+        if (hasSeenVideo) {
+            video.pause();
+            showFinale();
 
             return;
         }
@@ -190,7 +303,9 @@ const initializeHeroVideos = (signal) => {
         const visibilityObserver = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
-                    video.play().catch(() => {});
+                    if (!video.ended && !stage?.classList.contains('is-complete')) {
+                        video.play().catch(() => {});
+                    }
 
                     return;
                 }
@@ -203,6 +318,10 @@ const initializeHeroVideos = (signal) => {
         signal.addEventListener('abort', () => {
             visibilityObserver.disconnect();
             video.pause();
+
+            if (restartFrame !== null) {
+                window.cancelAnimationFrame(restartFrame);
+            }
         }, { once: true });
     });
 };
@@ -212,6 +331,107 @@ const updateScrollProgress = () => {
     const progress = scrollable > 0 ? Math.min(window.scrollY / scrollable, 1) : 0;
 
     document.documentElement.style.setProperty('--scroll-progress', progress.toFixed(4));
+};
+
+const initializeScrollProgress = (signal) => {
+    let scrollProgressFrame = null;
+
+    const queueScrollProgress = () => {
+        if (scrollProgressFrame !== null) {
+            return;
+        }
+
+        scrollProgressFrame = window.requestAnimationFrame(() => {
+            scrollProgressFrame = null;
+            updateScrollProgress();
+        });
+    };
+
+    updateScrollProgress();
+    window.addEventListener('scroll', queueScrollProgress, { passive: true, signal });
+    window.addEventListener('resize', queueScrollProgress, { passive: true, signal });
+    signal.addEventListener('abort', () => {
+        if (scrollProgressFrame !== null) {
+            window.cancelAnimationFrame(scrollProgressFrame);
+        }
+    }, { once: true });
+};
+
+const initializeBackToTop = (signal) => {
+    const control = document.querySelector('[data-back-to-top]');
+
+    if (! control) {
+        return;
+    }
+
+    const floatingSurface = document.querySelector('[data-site-audio-player]');
+    const footerSafeZone = document.querySelector('[data-back-to-top-safe-zone]');
+    let visibilityFrame = null;
+    let floatingResizeObserver = null;
+    let floatingMutationObserver = null;
+
+    const updateFloatingOffset = () => {
+        const isVisible = floatingSurface && ! floatingSurface.hidden;
+        const audioOffset = isVisible ? Math.ceil(floatingSurface.getBoundingClientRect().height) : 0;
+        const footerRect = footerSafeZone?.getBoundingClientRect();
+        const footerOffset = footerRect && footerRect.top < window.innerHeight
+            ? Math.ceil(window.innerHeight - footerRect.top + 16)
+            : 0;
+        const occupiedHeight = Math.max(audioOffset, footerOffset);
+
+        control.style.setProperty('--floating-footer-offset', `${occupiedHeight}px`);
+    };
+
+    const updateVisibility = () => {
+        visibilityFrame = null;
+        updateFloatingOffset();
+        const shouldShow = window.scrollY > Math.max(window.innerHeight * 0.7, 520);
+
+        control.classList.toggle('is-visible', shouldShow);
+        control.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+        control.tabIndex = shouldShow ? 0 : -1;
+    };
+
+    const queueVisibilityUpdate = () => {
+        if (visibilityFrame !== null) {
+            return;
+        }
+
+        visibilityFrame = window.requestAnimationFrame(updateVisibility);
+    };
+
+    control.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: reducedMotion.matches ? 'auto' : 'smooth',
+        });
+    }, { signal });
+
+    updateVisibility();
+
+    if (floatingSurface) {
+        floatingResizeObserver = new ResizeObserver(updateFloatingOffset);
+        floatingResizeObserver.observe(floatingSurface);
+        floatingMutationObserver = new MutationObserver(updateFloatingOffset);
+        floatingMutationObserver.observe(floatingSurface, {
+            attributes: true,
+            attributeFilter: ['hidden', 'class', 'style'],
+        });
+    }
+    if (footerSafeZone) {
+        floatingResizeObserver ??= new ResizeObserver(updateFloatingOffset);
+        floatingResizeObserver.observe(footerSafeZone);
+    }
+    window.addEventListener('scroll', queueVisibilityUpdate, { passive: true, signal });
+    window.addEventListener('resize', queueVisibilityUpdate, { passive: true, signal });
+    signal.addEventListener('abort', () => {
+        if (visibilityFrame !== null) {
+            window.cancelAnimationFrame(visibilityFrame);
+        }
+
+        floatingResizeObserver?.disconnect();
+        floatingMutationObserver?.disconnect();
+    }, { once: true });
 };
 
 const enableInternalNavigation = () => {
@@ -244,10 +464,24 @@ const enableInternalNavigation = () => {
     });
 };
 
+const initializeArticleSharing = async (signal) => {
+    if (! document.querySelector('[data-article-share]')) {
+        return;
+    }
+
+    try {
+        const { initializeArticleShare } = await import('./article-share');
+
+        if (! signal.aborted) {
+            initializeArticleShare(signal);
+        }
+    } catch {
+        // Direct share links remain usable when the optional enhancement cannot load.
+    }
+};
+
 const initializePageMotion = (signal) => {
-    updateScrollProgress();
-    window.addEventListener('scroll', updateScrollProgress, { passive: true, signal });
-    window.addEventListener('resize', updateScrollProgress, { passive: true, signal });
+    initializeScrollProgress(signal);
 
     if (reducedMotion.matches) {
         document.documentElement.classList.remove('motion-capable');
@@ -259,7 +493,7 @@ const initializePageMotion = (signal) => {
 
     let revealObserver;
     let methodObserver;
-    let revealFrame = null;
+    let initialRevealFrame = null;
     const motionTimeouts = new Set();
 
     const revealElement = (element) => {
@@ -292,7 +526,7 @@ const initializePageMotion = (signal) => {
     const revealElements = [...document.querySelectorAll('[data-reveal]')];
 
     const revealVisibleElements = () => {
-        revealFrame = null;
+        initialRevealFrame = null;
 
         revealElements.forEach((element) => {
             if (element.classList.contains('is-revealed')) {
@@ -307,18 +541,8 @@ const initializePageMotion = (signal) => {
         });
     };
 
-    const queueVisibleReveal = () => {
-        if (revealFrame !== null) {
-            return;
-        }
-
-        revealFrame = window.requestAnimationFrame(revealVisibleElements);
-    };
-
     revealElements.forEach((element) => revealObserver.observe(element));
-    queueVisibleReveal();
-    window.addEventListener('scroll', queueVisibleReveal, { passive: true, signal });
-    window.addEventListener('resize', queueVisibleReveal, { passive: true, signal });
+    initialRevealFrame = window.requestAnimationFrame(revealVisibleElements);
 
     const methodSteps = document.querySelectorAll('[data-method-step]');
     methodObserver = new IntersectionObserver((entries) => {
@@ -388,8 +612,8 @@ const initializePageMotion = (signal) => {
         revealObserver?.disconnect();
         methodObserver?.disconnect();
 
-        if (revealFrame !== null) {
-            window.cancelAnimationFrame(revealFrame);
+        if (initialRevealFrame !== null) {
+            window.cancelAnimationFrame(initialRevealFrame);
         }
 
         motionTimeouts.forEach((timeout) => window.clearTimeout(timeout));
@@ -406,6 +630,8 @@ const initializeFrontEnhancements = () => {
     enableInternalNavigation();
     initializeHeroVideos(frontEnhancementController.signal);
     initializePageMotion(frontEnhancementController.signal);
+    initializeBackToTop(frontEnhancementController.signal);
+    void initializeArticleSharing(frontEnhancementController.signal);
 };
 
 if (document.readyState === 'loading') {

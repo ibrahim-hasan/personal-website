@@ -11,6 +11,7 @@ use App\Http\Controllers\Filament\GenerateArticleAudioController;
 use App\Http\Controllers\Filament\GenerateArticleAudioSampleController;
 use App\Http\Controllers\Filament\PrepareArticleNarrationController;
 use App\Http\Controllers\Filament\UpdateArticleNarrationController;
+use App\Http\Middleware\SetLocale;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -103,6 +104,7 @@ class AdminPanelProvider extends PanelProvider
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
                 AuthenticateSession::class,
+                SetLocale::class,
                 ShareErrorsFromSession::class,
                 PreventRequestForgery::class,
                 SubstituteBindings::class,

@@ -4,70 +4,112 @@
     'activeMenu' => false,
     'canonicalUrl' => url()->current(),
     'alternateUrls' => [],
+    'robots' => 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
     'ogType' => 'website',
     'ogImage' => null,
+    'ogImageAlt' => null,
+    'ogImageWidth' => null,
+    'ogImageHeight' => null,
+    'ogImageType' => null,
     'publishedAt' => null,
     'modifiedAt' => null,
+    'articleAuthorUrl' => null,
+    'articleSection' => null,
+    'articleTags' => [],
+    'schemaType' => 'WebPage',
     'structuredData' => null,
     'bodyClass' => null,
 ])
 
 @php
-    $siteName = __('site.brand.name');
-    $resolvedDescription = $description ?: __('site.meta.default_description');
-    $resolvedTitle = $title ? "{$title} | {$siteName}" : "{$siteName} | ".__('site.meta.default_title');
-    $resolvedOgImage = $ogImage ?: asset('images/ibrahim/hero-workspace.png');
-    $resolvedAlternateUrls = collect(array_keys(config('app.supported_locales', [])))
-        ->mapWithKeys(fn (string $locale): array => [
-            $locale => $alternateUrls[$locale] ?? localized_current_url($locale),
-        ])
-        ->all();
+    $seo = \App\Support\Seo\SeoMetadata::fromLayout(
+        title: $title,
+        description: $description,
+        canonicalUrl: $canonicalUrl,
+        alternateUrls: $alternateUrls,
+        robots: $robots,
+        ogType: $ogType,
+        ogImage: $ogImage,
+        ogImageAlt: $ogImageAlt,
+        ogImageWidth: $ogImageWidth,
+        ogImageHeight: $ogImageHeight,
+        ogImageType: $ogImageType,
+        publishedAt: $publishedAt,
+        modifiedAt: $modifiedAt,
+        articleAuthorUrl: $articleAuthorUrl,
+        articleSection: $articleSection,
+        articleTags: $articleTags,
+        schemaType: $schemaType,
+        structuredData: $structuredData,
+    );
 @endphp
 
 <!DOCTYPE html>
-<html lang="{{ current_locale() }}" dir="{{ is_rtl() ? 'rtl' : 'ltr' }}" data-theme="light">
+<html lang="{{ $seo->locale }}" dir="{{ is_rtl($seo->locale) ? 'rtl' : 'ltr' }}" data-theme="light">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#eceae6">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $resolvedTitle }}</title>
-    <link rel="canonical" href="{{ $canonicalUrl }}">
-    <meta name="description" content="{{ $resolvedDescription }}">
-    @foreach ($resolvedAlternateUrls as $locale => $alternateUrl)
+    <title>{{ $seo->title }}</title>
+    <link rel="canonical" href="{{ $seo->canonicalUrl }}">
+    <meta name="description" content="{{ $seo->description }}">
+    <meta name="robots" content="{{ $seo->robots }}">
+    @foreach ($seo->alternateUrls as $locale => $alternateUrl)
         <link rel="alternate" hreflang="{{ $locale }}" href="{{ $alternateUrl }}">
     @endforeach
-    <link rel="alternate" hreflang="x-default" href="{{ $resolvedAlternateUrls[default_locale()] }}">
+    <link rel="alternate" hreflang="x-default" href="{{ $seo->xDefaultUrl }}">
 
-    <meta property="og:type" content="{{ $ogType }}">
-    <meta property="og:title" content="{{ $resolvedTitle }}">
-    <meta property="og:description" content="{{ $resolvedDescription }}">
-    <meta property="og:url" content="{{ $canonicalUrl }}">
-    <meta property="og:image" content="{{ $resolvedOgImage }}">
-    <meta property="og:site_name" content="{{ $siteName }}">
-    <meta property="og:locale" content="{{ str_replace('-', '_', current_locale()) }}">
+    <meta property="og:type" content="{{ $seo->ogType }}">
+    <meta property="og:title" content="{{ $seo->title }}">
+    <meta property="og:description" content="{{ $seo->description }}">
+    <meta property="og:url" content="{{ $seo->canonicalUrl }}">
+    <meta property="og:image" content="{{ $seo->imageUrl }}">
+    <meta property="og:image:type" content="{{ $seo->imageType }}">
+    @if ($seo->imageWidth && $seo->imageHeight)
+        <meta property="og:image:width" content="{{ $seo->imageWidth }}">
+        <meta property="og:image:height" content="{{ $seo->imageHeight }}">
+    @endif
+    <meta property="og:image:alt" content="{{ $seo->imageAlt }}">
+    <meta property="og:site_name" content="{{ __('site.brand.name') }}">
+    <meta property="og:locale" content="{{ $seo->regionalLocale }}">
+    @foreach ($seo->alternateLocales as $regionalLocale)
+        <meta property="og:locale:alternate" content="{{ $regionalLocale }}">
+    @endforeach
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $resolvedTitle }}">
-    <meta name="twitter:description" content="{{ $resolvedDescription }}">
-    <meta name="twitter:image" content="{{ $resolvedOgImage }}">
+    <meta name="twitter:title" content="{{ $seo->title }}">
+    <meta name="twitter:description" content="{{ $seo->description }}">
+    <meta name="twitter:image" content="{{ $seo->imageUrl }}">
+    <meta name="twitter:image:alt" content="{{ $seo->imageAlt }}">
 
-    @if ($ogType === 'article' && $publishedAt)
-        <meta property="article:published_time" content="{{ $publishedAt }}">
-        <meta property="article:modified_time" content="{{ $modifiedAt ?: $publishedAt }}">
-        <meta property="article:author" content="Ibrahim Hasan">
+    @if ($seo->ogType === 'article' && $seo->publishedAt)
+        <meta property="article:published_time" content="{{ $seo->publishedAt }}">
+        <meta property="article:modified_time" content="{{ $seo->modifiedAt }}">
+        @if ($seo->articleAuthorUrl)
+            <meta property="article:author" content="{{ $seo->articleAuthorUrl }}">
+        @endif
+        @if ($seo->articleSection)
+            <meta property="article:section" content="{{ $seo->articleSection }}">
+        @endif
+        @foreach ($seo->articleTags as $articleTag)
+            <meta property="article:tag" content="{{ $articleTag }}">
+        @endforeach
     @endif
 
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
+    @if (app()->isProduction() && filled(config('services.google_analytics.measurement_id')))
+        <meta name="google-analytics-id" content="{{ config('services.google_analytics.measurement_id') }}">
+    @endif
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     @stack('head')
 
-    @if (is_array($structuredData))
-        <script type="application/ld+json">@json($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)</script>
-    @endif
+    <script type="application/ld+json">{!! \Illuminate\Support\Js::encode($seo->structuredData, JSON_UNESCAPED_SLASHES) !!}</script>
 </head>
 
 <body class="font-body antialiased {{ $bodyClass }}">
@@ -77,7 +119,7 @@
 
     <div class="scroll-progress" aria-hidden="true"><span></span></div>
 
-    <x-partials.navbar :activeMenu="$activeMenu" :alternateUrls="$resolvedAlternateUrls" />
+    <x-partials.navbar :activeMenu="$activeMenu" :alternateUrls="$seo->alternateUrls" />
 
     <main id="main">
         {{ $slot }}
@@ -86,6 +128,11 @@
     <x-partials.footer />
 
     <x-partials.article-audio-player />
+
+    <button type="button" class="back-to-top" data-back-to-top aria-label="{{ __('site.layout.back_to_top') }}" aria-hidden="true" tabindex="-1">
+        <span>{{ __('site.layout.back_to_top') }}</span>
+        <x-phosphor-arrow-up class="h-4 w-4" aria-hidden="true" />
+    </button>
 
     @livewireScripts
     @stack('scripts')

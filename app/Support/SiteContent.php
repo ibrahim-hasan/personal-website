@@ -126,16 +126,14 @@ class SiteContent
             ];
         }
 
-        $address = trim((string) ($settings['contact_address'] ?? ''));
-        $addressUrl = self::safeExternalUrl($settings['address_url'] ?? null);
-
-        if ($address !== '' && $addressUrl !== null) {
-            $channels[] = [
-                'label' => ['ar' => 'الموقع', 'en' => 'Location'],
-                'href' => $addressUrl,
-                'value' => $address,
-            ];
-        }
+        $channels[] = [
+            'label' => ['ar' => 'وقت الرد', 'en' => 'Response time'],
+            'href' => null,
+            'value' => [
+                'ar' => 'عادةً خلال يوم عمل واحد',
+                'en' => 'Usually within one business day',
+            ],
+        ];
 
         return self::localize([
             'email' => $email,
@@ -211,8 +209,6 @@ class SiteContent
         $settings = [
             'contact_email' => 'hello@ibrahimhasan.net',
             'contact_phone' => null,
-            'contact_address' => null,
-            'address_url' => null,
             'whatsapp_number' => null,
         ];
 
@@ -324,7 +320,7 @@ class SiteContent
                     'en' => 'Most AI problems do not come from a weak model, but from weak, disorganized data without clear ownership.',
                 ],
                 'problem' => [
-                    'ar' => 'بيانات متناثرة، ملكية غامضة، صلاحيات غير واضحة، وجودود لا يكفي لقرارات موثوقة.',
+                    'ar' => 'بيانات متناثرة، ملكية غامضة، صلاحيات غير واضحة، وجودة لا تكفي لاتخاذ قرارات موثوقة.',
                     'en' => 'Scattered data, ambiguous ownership, unclear permissions, and quality that is not enough for reliable decisions.',
                 ],
                 'approach' => [

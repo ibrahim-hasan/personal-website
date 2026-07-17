@@ -132,7 +132,6 @@ class Article extends Model implements HasMedia, LocalizedUrlRoutable
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection(self::IMAGE_COLLECTION)
-            ->useDisk('public')
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
             ->singleFile();
     }

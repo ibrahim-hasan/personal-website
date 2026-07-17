@@ -17,7 +17,7 @@
         </div>
     </section>
 
-    <div class="site-container grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-[1.2fr_0.7fr_0.7fr]">
+    <div class="site-container grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-[1.1fr_0.65fr_1fr]">
         <div>
             <a href="{{ localized_route('home') }}" wire:navigate class="brand-mark brand-mark--footer">
                 <span class="brand-mark__name">{{ __('site.brand.name') }}</span>
@@ -35,20 +35,27 @@
                 <li><a class="footer-link" wire:navigate href="{{ localized_route('work') }}">{{ __('site.nav.work') }}</a></li>
                 <li><a class="footer-link" wire:navigate href="{{ localized_route('writing') }}">{{ __('site.nav.writing') }}</a></li>
                 <li><a class="footer-link" wire:navigate href="{{ localized_route('about') }}">{{ __('site.nav.about') }}</a></li>
+                <li><a class="footer-link" wire:navigate href="{{ localized_route('contact') }}">{{ __('site.nav.contact') }}</a></li>
             </ul>
         </div>
 
-        <div>
+        <div class="footer-contact">
             <h3 class="footer-label">{{ __('site.footer.contact') }}</h3>
-            <ul class="mt-5 flex flex-col gap-3 text-base text-canvas/70">
-                <li><a class="footer-link inline-block" href="mailto:{{ $contact['email'] }}" dir="ltr">{{ $contact['email'] }}</a></li>
-                <li><a class="footer-link" wire:navigate href="{{ localized_route('contact') }}#consultation">{{ __('site.actions.free_consultation') }}</a></li>
-            </ul>
+            <p class="footer-contact__intro">{{ __('site.footer.contact_intro') }}</p>
+            <p class="footer-contact__note">{{ __('site.footer.consultation_note') }}</p>
+            <a class="footer-contact__email" href="mailto:{{ $contact['email'] }}">
+                <span>{{ __('site.footer.email_label') }}</span>
+                <strong dir="ltr">{{ $contact['email'] }}</strong>
+            </a>
+            <a class="footer-contact__action" wire:navigate href="{{ localized_route('contact') }}#consultation">
+                <span>{{ __('site.actions.free_consultation') }}</span>
+                <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" aria-hidden="true" />
+            </a>
         </div>
     </div>
 
     <div class="border-t border-canvas/10">
-        <div class="site-container site-footer__utility py-6 text-sm text-canvas/55">
+        <div class="site-container site-footer__utility py-6 text-sm text-canvas/55" data-back-to-top-safe-zone>
             <p>{{ __('site.footer.rights', ['year' => $year]) }}</p>
 
             <nav class="footer-socials" aria-label="{{ __('site.footer.social') }}">

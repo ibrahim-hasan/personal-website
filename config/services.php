@@ -48,6 +48,10 @@ return [
         'instagram' => env('SOCIAL_INSTAGRAM_URL'),
     ],
 
+    'google_analytics' => [
+        'measurement_id' => env('GOOGLE_ANALYTICS_MEASUREMENT_ID', 'G-L305M0T213'),
+    ],
+
     'openai' => [
         'narration_model' => env('OPENAI_NARRATION_MODEL', 'gpt-4.1'),
         'narration_max_output_tokens' => (int) env('OPENAI_NARRATION_MAX_OUTPUT_TOKENS', 20000),

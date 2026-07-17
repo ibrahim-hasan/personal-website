@@ -44,13 +44,23 @@
 
             <div class="channel-list">
                 @foreach ($contact['channels'] as $channel)
-                    <a href="{{ $channel['href'] }}" class="channel-row" data-reveal>
-                        <div>
-                            <span>{{ $channel['label'] }}</span>
-                            <strong>{{ $channel['value'] }}</strong>
+                    @if ($channel['href'] !== null)
+                        <a href="{{ $channel['href'] }}" class="channel-row" data-reveal>
+                            <div>
+                                <span>{{ $channel['label'] }}</span>
+                                <strong>{{ $channel['value'] }}</strong>
+                            </div>
+                            <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
+                        </a>
+                    @else
+                        <div class="channel-row channel-row--informational" data-reveal>
+                            <div>
+                                <span>{{ $channel['label'] }}</span>
+                                <strong>{{ $channel['value'] }}</strong>
+                            </div>
+                            <x-phosphor-clock class="h-5 w-5" aria-hidden="true" />
                         </div>
-                        <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
-                    </a>
+                    @endif
                 @endforeach
             </div>
         </div>

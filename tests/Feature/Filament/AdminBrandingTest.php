@@ -65,6 +65,10 @@ class AdminBrandingTest extends TestCase
         $this->assertStringNotContainsString('GhroobArabic', $theme);
         $this->assertStringNotContainsString('font-size: 14px;', $theme);
         $this->assertStringContainsString("url('../../../../public/images/brand/ibrahim-geometric-pattern.svg')", $theme);
+        $this->assertMatchesRegularExpression(
+            '/\.fi-auth-shell__context\s*\{[^}]*background:\s*var\(--admin-nav-bg\);/s',
+            $theme,
+        );
         $this->assertDoesNotMatchRegularExpression('/\.fi-panel-admin\s+\*\s*\{[^}]*font-family/s', $theme);
         $this->assertStringContainsString("font-family: 'Agt Rafeeq Sans';", $fontStylesheet);
 

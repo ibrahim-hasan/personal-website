@@ -55,20 +55,12 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-primary-800 dark:text-gray-100">{{ __('admin.settings.contact_information') }}</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('Maintain phone, email, and map details used on contact sections.') }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('Maintain the direct contact channels shown on the website.') }}</p>
                     </div>
                 </div>
             </div>
             <div class="px-6 py-5">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Address') }}</label>
-                        <input type="text" wire:model.lazy="data.contact_address" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm" />
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Address URL') }}</label>
-                        <input type="url" wire:model.lazy="data.address_url" dir="ltr" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm" />
-                    </div>
                     <div class="space-y-1.5">
                         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Contact Phone') }}</label>
                         <input type="tel" wire:model.lazy="data.contact_phone" dir="ltr" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm" />

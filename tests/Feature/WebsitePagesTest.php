@@ -24,7 +24,7 @@ class WebsitePagesTest extends TestCase
         $pages = [
             '/' => ['إبراهيم حسن', 'إلى أثرٍ يُقاس'],
             '/services' => ['مساعدة مركزة حيث يلتقي العمل بالتقنية', 'استراتيجية التحول الرقمي'],
-            '/work' => ['أعمال مختارة', 'ديجي بيديا'],
+            '/work' => ['أعمال مختارة', 'الموسوعة الرقمية'],
             '/writing' => ['التقنية بلغة الأعمال', 'من تجربة الذكاء الاصطناعي إلى تحقيق القيمة'],
             '/about' => ['أعمل حيث يلتقي العمل بالتقنية', 'كود مومنتس'],
             '/contact' => ['أخبرني بالمشكلة التي تريد حلّها', 'أرسل طلب الاستشارة'],
@@ -41,6 +41,17 @@ class WebsitePagesTest extends TestCase
         }
     }
 
+    public function test_services_method_uses_distinct_geometric_step_icons(): void
+    {
+        $this->get('/services')
+            ->assertOk()
+            ->assertSee('method-band__icon--focus', false)
+            ->assertSee('method-band__icon--map', false)
+            ->assertSee('method-band__icon--prioritize', false)
+            ->assertSee('method-band__icon--measure', false)
+            ->assertSee('aria-hidden="true"', false);
+    }
+
     public function test_homepage_uses_optimized_hero_video_and_project_evidence_without_placeholders(): void
     {
         $this->assertFileExists(public_path('videos/hero/ibrahim-hero.mp4'));
@@ -50,28 +61,36 @@ class WebsitePagesTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('data-hero-video', false)
+            ->assertSee('rel="preload"', false)
+            ->assertSee('as="image"', false)
+            ->assertSee('fetchpriority="high"', false)
             ->assertSee('videos/hero/ibrahim-hero.webm', false)
             ->assertSee('videos/hero/ibrahim-hero.mp4', false)
             ->assertSee('images/ibrahim/ibrahim-hero-video-poster.webp', false)
+            ->assertSee('width="720"', false)
+            ->assertSee('height="1280"', false)
             ->assertSee('muted', false)
-            ->assertSee('loop', false)
+            ->assertDontSee(' loop', false)
             ->assertSee('playsinline', false)
             ->assertSee('preload="metadata"', false)
+            ->assertSee('data-hero-video-finale', false)
+            ->assertSee('data-hero-video-replay', false)
+            ->assertSee('ابدأ من المشكلة', false)
             ->assertDontSee('precision-stage__note', false)
             ->assertDontSee('heroStage(', false)
             ->assertDontSee('precision-stage__control', false)
             ->assertSee('كود مومنتس', false)
             ->assertSee('فروم سكراتش', false)
-            ->assertSee('images/ibrahim/ibrahim-speaking-hero.webp', false)
+            ->assertSee('images/ibrahim/ibrahim-speaking-editorial.webp', false)
             ->assertSee('images/projects/atlas/digi-pedia-ai-learning.webp', false)
             ->assertSee('images/brands/projects/digi-pedia.webp', false)
             ->assertSee('images/brands/companies/code-moments-on-light.svg', false)
             ->assertSee('images/brands/companies/from-scratch-on-light.svg', false)
             ->assertSee('atlas-chapter__brand--code-moments', false)
             ->assertSee('طيفك', false)
-            ->assertSee('ما الذي رسّخه هذا الفصل', false)
+            ->assertSee('خبرات انتقلت إلى الممارسة الحالية', false)
             ->assertDontSee('images/brands/companies/code-moments-on-dark.svg', false)
-            ->assertSee('ديجي بيديا', false)
+            ->assertSee('الموسوعة الرقمية', false)
             ->assertDontSee('<h3>From Scratch</h3>', false)
             ->assertDontSee('From Scratch Solutions', false)
             ->assertDontSee('IBRAHIM HASAN / IN PRACTICE', false)
@@ -156,7 +175,7 @@ class WebsitePagesTest extends TestCase
         $pages = [
             '/en' => ['Ibrahim Hasan', 'to impact you can measure'],
             '/en/services' => ['Focused help where business', 'Digital Transformation Strategy'],
-            '/en/work' => ['Selected work', 'Digi-Pedia'],
+            '/en/work' => ['Selected work', 'Digi Pedia'],
             '/en/writing' => ['Technology in the language of business', 'From AI Experiment to Business Value'],
             '/en/about' => ['I work where business meets technology', 'Code Moments'],
             '/en/contact' => ['Tell me the problem you want to solve', 'Send consultation request'],

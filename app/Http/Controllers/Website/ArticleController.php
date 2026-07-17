@@ -8,6 +8,7 @@ use App\Models\Article as ArticleRecord;
 use App\Models\ArticleAudio;
 use App\Services\ArticleAudio\ArticleAudioScript;
 use App\Support\Editorial\ArticleCatalog;
+use App\Support\Seo\SeoMetadata;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -56,25 +57,54 @@ class ArticleController extends Controller
             ];
         }
 
+        $articleNodeId = $canonicalUrl.'#article';
+        $breadcrumbNodeId = $canonicalUrl.'#breadcrumb';
         $structuredData = [
-            '@context' => 'https://schema.org',
-            '@type' => 'Article',
-            'headline' => $localizedArticle['title'],
-            'description' => $localizedArticle['seo_description'],
-            'image' => [asset($localizedArticle['image'])],
-            'datePublished' => $localizedArticle['published_at'],
-            'dateModified' => $localizedArticle['modified_at'],
-            'author' => [
-                '@type' => 'Person',
-                'name' => 'Ibrahim Hasan',
-                'url' => localized_route('about', locale: $locale),
+            [
+                '@type' => 'BlogPosting',
+                '@id' => $articleNodeId,
+                'url' => $canonicalUrl,
+                'headline' => $localizedArticle['title'],
+                'description' => $localizedArticle['seo_description'],
+                'image' => asset($localizedArticle['image']),
+                'datePublished' => $localizedArticle['published_at'],
+                'dateModified' => $localizedArticle['modified_at'],
+                'author' => ['@id' => SeoMetadata::personId()],
+                'inLanguage' => $locale,
+                'articleSection' => $localizedArticle['type'],
+                'keywords' => $localizedArticle['topics'],
+                'isAccessibleForFree' => true,
+                'isPartOf' => ['@id' => SeoMetadata::websiteId()],
+                'mainEntityOfPage' => ['@id' => SeoMetadata::pageId($canonicalUrl)],
             ],
-            'inLanguage' => $locale,
-            'mainEntityOfPage' => $canonicalUrl,
+            [
+                '@type' => 'BreadcrumbList',
+                '@id' => $breadcrumbNodeId,
+                'itemListElement' => [
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 1,
+                        'name' => __('site.home.title'),
+                        'item' => localized_route('home', locale: $locale),
+                    ],
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 2,
+                        'name' => __('site.writing.title'),
+                        'item' => localized_route('writing', locale: $locale),
+                    ],
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 3,
+                        'name' => $localizedArticle['title'],
+                        'item' => $canonicalUrl,
+                    ],
+                ],
+            ],
         ];
 
         if ($articleAudio !== null) {
-            $structuredData['audio'] = [
+            $structuredData[0]['audio'] = [
                 '@type' => 'AudioObject',
                 'contentUrl' => $articleAudio['url'],
                 'encodingFormat' => $articleAudio['mime_type'],

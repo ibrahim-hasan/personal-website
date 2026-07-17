@@ -45,6 +45,7 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'hero_video_seen_at' => 'datetime',
         ];
     }
 
@@ -86,6 +87,11 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
             : default_locale();
     }
 
+    public function isReaderAccount(): bool
+    {
+        return ! $this->roles()->exists() && ! $this->permissions()->exists();
+    }
+
     public function sendPasswordResetNotification($token): void
     {
         $notification = request()->is('admin/*')
@@ -111,5 +117,11 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
     public function articleBookmarks(): HasMany
     {
         return $this->hasMany(ArticleBookmark::class);
+    }
+
+    /** @return HasMany<ArticleReadingProgress, $this> */
+    public function articleReadingProgresses(): HasMany
+    {
+        return $this->hasMany(ArticleReadingProgress::class);
     }
 }

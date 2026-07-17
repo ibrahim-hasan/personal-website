@@ -5,8 +5,12 @@
     :alternateUrls="$alternateUrls"
     ogType="article"
     :ogImage="asset($article['image'])"
+    :ogImageAlt="$article['title']"
     :publishedAt="$article['published_at']"
     :modifiedAt="$article['modified_at']"
+    :articleAuthorUrl="localized_route('about')"
+    :articleSection="$article['type']"
+    :articleTags="$article['topics']"
     :structuredData="$structuredData"
     bodyClass="article-surface"
     activeMenu="true">
@@ -50,19 +54,27 @@
                             @endforeach
                         </ul>
                     </div>
+
                 </div>
 
                 <figure class="article-hero__media">
                     <img
                         src="{{ asset($article['image']) }}"
-                        alt=""
-                        width="1200"
+                        alt="{{ $article['title'] }}"
+                        width="1600"
                         height="900"
                         fetchpriority="high"
                         decoding="async"
                     >
-                    <figcaption aria-hidden="true">IBRAHIM HASAN / FIELD NOTES</figcaption>
                 </figure>
+            </div>
+
+            <div class="site-container article-share-rail">
+                <x-article-share
+                    :title="$article['title']"
+                    :description="$article['summary']"
+                    :canonical-url="$canonicalUrl"
+                />
             </div>
         </header>
 
@@ -71,6 +83,7 @@
                 <div class="reader-panel__primary">
                     @if ($articleAudio)
                         <div
+                            id="article-audio"
                             class="article-audio article-audio--launcher"
                             data-article-audio-source
                             data-audio-url="{{ $articleAudio['url'] }}"
