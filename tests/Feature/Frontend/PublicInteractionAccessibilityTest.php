@@ -322,7 +322,7 @@ class PublicInteractionAccessibilityTest extends TestCase
             $this->readProjectFile('resources/css/app.css'),
         );
         $this->assertMatchesRegularExpression(
-            '/@media \(min-width: 72rem\)\s*\{[^}]*\.site-nav__desktop-links,[^}]*\.site-nav__utility-rail\s*\{[^}]*display:\s*flex;/s',
+            '/@media \(min-width: 72rem\).*?\.site-nav__desktop-links,\s*\.site-nav__utility-rail\s*\{[^}]*display:\s*flex;/s',
             $this->readProjectFile('resources/css/app.css'),
         );
         $this->assertStringContainsString("localized_route('reader.account.destroy')", $account);

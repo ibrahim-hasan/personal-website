@@ -10,22 +10,22 @@
                 @csrf
                 <label class="block">
                     <span class="mb-2 block font-sans text-sm font-bold text-ink-soft">{{ __('reader_auth.name') }}</span>
-                    <input name="name" type="text" autocomplete="name" required value="{{ old('name') }}" class="min-h-13 w-full rounded-[0.3rem] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
+                    <input name="name" type="text" autocomplete="name" required value="{{ old('name') }}" class="min-h-13 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
                     @error('name') <span class="mt-2 block text-sm text-danger" role="alert">{{ $message }}</span> @enderror
                 </label>
                 <label class="block">
                     <span class="mb-2 block font-sans text-sm font-bold text-ink-soft">{{ __('reader_auth.email') }}</span>
-                    <input name="email" type="email" autocomplete="email" required value="{{ old('email') }}" class="min-h-13 w-full rounded-[0.3rem] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
+                    <input name="email" type="email" autocomplete="email" required value="{{ old('email') }}" class="min-h-13 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
                     @error('email') <span class="mt-2 block text-sm text-danger" role="alert">{{ $message }}</span> @enderror
                 </label>
                 <label class="block">
                     <span class="mb-2 block font-sans text-sm font-bold text-ink-soft">{{ __('reader_auth.password') }}</span>
-                    <input name="password" type="password" autocomplete="new-password" required class="min-h-13 w-full rounded-[0.3rem] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
+                    <input name="password" type="password" autocomplete="new-password" required class="min-h-13 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
                     @error('password') <span class="mt-2 block text-sm text-danger" role="alert">{{ $message }}</span> @enderror
                 </label>
                 <label class="block">
                     <span class="mb-2 block font-sans text-sm font-bold text-ink-soft">{{ __('reader_auth.password_confirmation') }}</span>
-                    <input name="password_confirmation" type="password" autocomplete="new-password" required class="min-h-13 w-full rounded-[0.3rem] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
+                    <input name="password_confirmation" type="password" autocomplete="new-password" required class="min-h-13 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
                 </label>
                 <button class="button-primary w-full" type="submit">{{ __('reader_auth.create_account') }}</button>
             </form>

@@ -34,7 +34,7 @@
 
                 @if ($readerNotifications->isEmpty())
                     <div class="mt-6 flex items-start gap-4 border border-dashed border-ink/20 bg-canvas-bright p-5 sm:p-6">
-                        <div class="grid size-11 shrink-0 place-items-center rounded-[0.2rem] bg-violet-100 text-violet-700" aria-hidden="true">
+                        <div class="grid size-11 shrink-0 place-items-center rounded-[var(--control-radius)] bg-violet-100 text-violet-700" aria-hidden="true">
                             <x-phosphor-envelope-simple class="size-5" />
                         </div>
                         <div>
@@ -89,7 +89,7 @@
 
             @if ($bookmarks->isEmpty())
                 <section class="mt-10 border border-dashed border-violet-700/35 bg-canvas-bright p-8 text-center shadow-[0.65rem_0.65rem_0_rgba(109,70,146,0.10)] sm:p-14" aria-labelledby="reader-library-empty-title">
-                    <div class="mx-auto grid size-14 place-items-center rounded-[0.3rem] border border-violet-700/20 bg-violet-100 text-violet-700" aria-hidden="true"><x-phosphor-bookmark-simple class="size-7" /></div>
+                    <div class="mx-auto grid size-14 place-items-center rounded-[var(--control-radius)] border border-violet-700/20 bg-violet-100 text-violet-700" aria-hidden="true"><x-phosphor-bookmark-simple class="size-7" /></div>
                     <h2 id="reader-library-empty-title" class="mt-6 font-display text-2xl font-black text-ink">{{ __('reader_auth.library_empty_title') }}</h2>
                     <p class="mx-auto mt-3 max-w-lg leading-7 text-ink-muted">{{ __('reader_auth.library_empty_body') }}</p>
                     <a href="{{ localized_route('writing') }}" class="button-primary mt-6">{{ __('reader_auth.explore_writing') }}</a>

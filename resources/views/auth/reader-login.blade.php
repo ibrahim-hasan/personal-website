@@ -14,7 +14,7 @@
                 @csrf
                 <label class="block">
                     <span class="mb-2 block font-sans text-sm font-bold text-ink-soft">{{ __('reader_auth.email') }}</span>
-                    <input name="email" type="email" autocomplete="email" required value="{{ old('email') }}" class="min-h-13 w-full rounded-[0.3rem] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
+                    <input name="email" type="email" autocomplete="email" required value="{{ old('email') }}" class="min-h-13 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
                     @error('email') <span class="mt-2 block text-sm text-danger" role="alert">{{ $message }}</span> @enderror
                 </label>
                 <div class="block">
@@ -22,11 +22,11 @@
                         <label for="reader-password">{{ __('reader_auth.password') }}</label>
                         <a href="{{ localized_route('reader.password.request') }}" class="text-link inline-flex min-h-11 items-center px-1">{{ __('reader_auth.forgot_password') }}</a>
                     </div>
-                    <input id="reader-password" name="password" type="password" autocomplete="current-password" required class="min-h-13 w-full rounded-[0.3rem] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
+                    <input id="reader-password" name="password" type="password" autocomplete="current-password" required class="min-h-13 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
                     @error('password') <span class="mt-2 block text-sm text-danger" role="alert">{{ $message }}</span> @enderror
                 </div>
                 <label class="flex min-h-11 items-center gap-3 font-sans text-sm text-ink-soft">
-                    <input name="remember" type="checkbox" value="1" class="size-5 rounded-[0.2rem] border-ink/25 text-violet-700 focus:ring-violet-600">
+                    <input name="remember" type="checkbox" value="1" class="size-5 rounded-[var(--control-radius)] border-ink/25 text-violet-700 focus:ring-violet-600">
                     <span>{{ __('reader_auth.remember') }}</span>
                 </label>
                 <button class="button-primary w-full" type="submit">{{ __('reader_auth.login') }}</button>

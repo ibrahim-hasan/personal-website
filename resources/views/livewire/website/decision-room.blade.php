@@ -97,7 +97,7 @@
                                     wire:target="selectChallenge"
                                     aria-pressed="{{ $selectedChallenge === $challengeId ? 'true' : 'false' }}"
                                     @class([
-                                        'decision-room__option group flex min-h-44 flex-col justify-between gap-6 border p-5 text-start motion-safe:transition sm:p-6',
+                                        'decision-room__option group flex min-h-44 flex-col justify-between gap-6 rounded-[var(--control-radius)] border p-5 text-start motion-safe:transition sm:p-6',
                                         'border-violet-600 bg-violet-50 shadow-lg' => $selectedChallenge === $challengeId,
                                         'border-ink/15 bg-canvas-bright hover:border-violet-400 hover:bg-violet-50/60' => $selectedChallenge !== $challengeId,
                                     ])
@@ -105,7 +105,7 @@
                                     <span class="flex items-start justify-between gap-4">
                                         <span class="font-sans text-xs font-bold text-violet-700">{{ sprintf('%02d', $loop->iteration) }}</span>
                                         @if ($selectedChallenge === $challengeId)
-                                            <span class="bg-violet-700 px-2 py-1 font-sans text-[0.68rem] font-bold text-violet-50">
+                                            <span class="rounded-full bg-violet-700 px-2 py-1 font-sans text-[0.68rem] font-bold text-violet-50">
                                                 {{ $copy['selected'] }}
                                             </span>
                                         @endif
@@ -153,7 +153,7 @@
                                         wire:target="selectFriction"
                                         aria-pressed="{{ $primaryFriction === $frictionId ? 'true' : 'false' }}"
                                         @class([
-                                            'decision-room__choice min-h-16 border px-4 py-3 text-start font-body text-sm font-bold leading-6 motion-safe:transition',
+                                            'decision-room__choice min-h-16 rounded-[var(--control-radius)] border px-4 py-3 text-start font-body text-sm font-bold leading-6 motion-safe:transition',
                                             'border-violet-600 bg-violet-100/70 text-violet-900' => $primaryFriction === $frictionId,
                                             'border-ink/15 bg-canvas-bright text-ink-soft hover:border-violet-400 hover:bg-violet-50' => $primaryFriction !== $frictionId,
                                         ])
@@ -182,7 +182,7 @@
                                         wire:target="selectOutcome"
                                         aria-pressed="{{ $desiredOutcome === $outcomeId ? 'true' : 'false' }}"
                                         @class([
-                                            'decision-room__choice min-h-16 border px-4 py-3 text-start font-body text-sm font-bold leading-6 motion-safe:transition',
+                                            'decision-room__choice min-h-16 rounded-[var(--control-radius)] border px-4 py-3 text-start font-body text-sm font-bold leading-6 motion-safe:transition',
                                             'border-violet-600 bg-violet-100/70 text-violet-900' => $desiredOutcome === $outcomeId,
                                             'border-ink/15 bg-canvas-bright text-ink-soft hover:border-violet-400 hover:bg-violet-50' => $desiredOutcome !== $outcomeId,
                                         ])

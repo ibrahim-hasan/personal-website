@@ -116,7 +116,7 @@
     --family-body: 'Thmanyah Text', 'Noto Sans', Arial, ui-sans-serif, system-ui, sans-serif;
     --family-display: 'Thmanyah Display', 'Noto Sans', Arial, ui-sans-serif, system-ui, sans-serif;
     --scroll-progress: 0;
-    --control-radius: 0.3rem;
+    --control-radius: 0.25rem;
     --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
     --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -285,7 +285,7 @@ html[dir='rtl'] .font-body {
     background: var(--color-ink);
     color: var(--color-canvas-bright);
     padding: 0.8rem 1rem;
-    border-radius: 0.25rem;
+    border-radius: var(--control-radius);
     font-family: var(--family-ui);
     font-weight: 700;
     transition: translate 180ms ease;
@@ -2329,7 +2329,7 @@ html[dir='rtl'] .writing-audio-feature__copy strong {
 
 .publication-row__kind {
     padding: 0.28rem 0.55rem;
-    border-radius: 0.2rem;
+    border-radius: 999px;
     background: var(--color-violet-100);
     color: var(--color-violet-800);
     font-weight: 800;
@@ -2512,6 +2512,7 @@ html[dir='rtl'] .article-hero__copy h1 {
 .article-share__action {
     display: inline-flex;
     min-height: 2.75rem;
+    border-radius: var(--control-radius);
     align-items: center;
     justify-content: center;
     gap: 0.45rem;
@@ -2613,6 +2614,7 @@ html[dir='rtl'] .article-hero__copy h1 {
 
 .reader-mode-toggle {
     min-height: 2.75rem;
+    border-radius: var(--control-radius);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -2659,6 +2661,7 @@ html[dir='rtl'] .article-hero__copy h1 {
 .article-audio__toggle {
     width: 2.75rem;
     height: 2.75rem;
+    border-radius: var(--control-radius);
     display: inline-flex;
     align-items: center;
     justify-content: center;

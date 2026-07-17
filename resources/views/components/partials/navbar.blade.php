@@ -104,11 +104,11 @@
                                 <p class="mt-1 truncate font-sans text-xs text-ink-muted" dir="ltr">{{ auth()->user()->email }}</p>
                             </div>
                             <div class="grid gap-1 pt-2">
-                                <a href="{{ localized_route('reader.library') }}" wire:navigate @click="accountMenuOpen = false" class="flex min-h-11 items-center gap-3 px-3 font-sans text-sm font-bold text-ink transition hover:bg-violet-100 hover:text-violet-800">
+                                <a href="{{ localized_route('reader.library') }}" wire:navigate @click="accountMenuOpen = false" class="flex min-h-11 items-center gap-3 rounded-[var(--control-radius)] px-3 font-sans text-sm font-bold text-ink transition hover:bg-violet-100 hover:text-violet-800">
                                     <x-phosphor-bookmark-simple class="size-4" aria-hidden="true" />
                                     <span>{{ __('reader_auth.library_title') }}</span>
                                 </a>
-                                <a href="{{ localized_route('reader.account') }}" wire:navigate @click="accountMenuOpen = false" class="flex min-h-11 items-center gap-3 px-3 font-sans text-sm font-bold text-ink transition hover:bg-violet-100 hover:text-violet-800">
+                                <a href="{{ localized_route('reader.account') }}" wire:navigate @click="accountMenuOpen = false" class="flex min-h-11 items-center gap-3 rounded-[var(--control-radius)] px-3 font-sans text-sm font-bold text-ink transition hover:bg-violet-100 hover:text-violet-800">
                                     <x-phosphor-user-circle class="size-4" aria-hidden="true" />
                                     <span>{{ __('reader_auth.account_settings') }}</span>
                                 </a>
@@ -186,7 +186,7 @@
                         <h2 id="mobile-reader-account-title" class="mt-2 font-display text-2xl font-bold text-canvas-bright">{{ __('reader_auth.reader_account') }}</h2>
                         <div class="mt-5 grid grid-cols-2 gap-3">
                             <a href="{{ localized_route('reader.login') }}" wire:navigate @click="close(false)" class="button-light justify-center">{{ __('reader_auth.sign_in') }}</a>
-                            <a href="{{ localized_route('reader.register') }}" wire:navigate @click="close(false)" class="inline-flex min-h-11 items-center justify-center border border-canvas/30 px-4 font-sans text-sm font-bold text-canvas-bright transition hover:bg-canvas/10">{{ __('reader_auth.create_account') }}</a>
+                            <a href="{{ localized_route('reader.register') }}" wire:navigate @click="close(false)" class="inline-flex min-h-11 items-center justify-center rounded-[var(--control-radius)] border border-canvas/30 px-4 font-sans text-sm font-bold text-canvas-bright transition hover:bg-canvas/10">{{ __('reader_auth.create_account') }}</a>
                         </div>
                     </section>
                 @else
@@ -195,11 +195,11 @@
                         <h2 id="mobile-reader-account-title" class="mt-2 truncate font-display text-2xl font-bold text-canvas-bright">{{ auth()->user()->name }}</h2>
                         <p class="mt-1 truncate font-sans text-xs text-violet-200" dir="ltr">{{ auth()->user()->email }}</p>
                         <div class="mt-5 grid gap-2">
-                            <a href="{{ localized_route('reader.library') }}" wire:navigate @click="close(false)" class="flex min-h-11 items-center justify-between border border-canvas/20 px-4 font-sans text-sm font-bold text-canvas-bright transition hover:bg-canvas/10">
+                            <a href="{{ localized_route('reader.library') }}" wire:navigate @click="close(false)" class="flex min-h-11 items-center justify-between rounded-[var(--control-radius)] border border-canvas/20 px-4 font-sans text-sm font-bold text-canvas-bright transition hover:bg-canvas/10">
                                 <span>{{ __('reader_auth.library_title') }}</span>
                                 <x-phosphor-bookmark-simple class="size-4" aria-hidden="true" />
                             </a>
-                            <a href="{{ localized_route('reader.account') }}" wire:navigate @click="close(false)" class="flex min-h-11 items-center justify-between border border-canvas/20 px-4 font-sans text-sm font-bold text-canvas-bright transition hover:bg-canvas/10">
+                            <a href="{{ localized_route('reader.account') }}" wire:navigate @click="close(false)" class="flex min-h-11 items-center justify-between rounded-[var(--control-radius)] border border-canvas/20 px-4 font-sans text-sm font-bold text-canvas-bright transition hover:bg-canvas/10">
                                 <span>{{ __('reader_auth.account_settings') }}</span>
                                 <x-phosphor-user-circle class="size-4" aria-hidden="true" />
                             </a>

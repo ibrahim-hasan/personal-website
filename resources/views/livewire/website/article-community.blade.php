@@ -28,7 +28,7 @@
                         @else
                             @if (auth()->user()->hasVerifiedEmail())
                                 <button type="button" wire:click="toggleAppreciation" wire:loading.attr="disabled" wire:target="toggleAppreciation" @class([
-                                    'inline-flex min-h-12 items-center gap-2 rounded-[0.3rem] border px-5 py-3 font-sans text-sm font-bold transition-colors disabled:cursor-wait disabled:opacity-60',
+                                    'inline-flex min-h-12 items-center gap-2 rounded-[var(--control-radius)] border px-5 py-3 font-sans text-sm font-bold transition-colors disabled:cursor-wait disabled:opacity-60',
                                     'border-violet-700 bg-violet-700 text-violet-50' => $hasAppreciated,
                                     'border-ink bg-ink text-canvas-bright hover:border-violet-700 hover:bg-violet-700' => ! $hasAppreciated,
                                 ]) aria-pressed="{{ $hasAppreciated ? 'true' : 'false' }}">
@@ -36,7 +36,7 @@
                                     {{ trans_choice('community.appreciations', $article->appreciations_count, ['count' => $article->appreciations_count]) }}
                                 </button>
                                 <button type="button" wire:click="toggleBookmark" wire:loading.attr="disabled" wire:target="toggleBookmark" @class([
-                                    'inline-flex min-h-12 items-center gap-2 rounded-[0.3rem] border px-5 py-3 font-sans text-sm font-bold transition-colors disabled:cursor-wait disabled:opacity-60',
+                                    'inline-flex min-h-12 items-center gap-2 rounded-[var(--control-radius)] border px-5 py-3 font-sans text-sm font-bold transition-colors disabled:cursor-wait disabled:opacity-60',
                                     'border-violet-700 bg-violet-100 text-violet-900' => $hasBookmarked,
                                     'border-ink/25 bg-canvas-bright text-ink hover:border-violet-600 hover:text-violet-800' => ! $hasBookmarked,
                                 ]) aria-pressed="{{ $hasBookmarked ? 'true' : 'false' }}">
@@ -73,7 +73,7 @@
                         @if (auth()->user()->hasVerifiedEmail())
                             <form wire:submit="postComment" class="mt-6">
                                 <label for="article-comment" class="font-sans text-sm font-bold text-ink-soft">{{ __('community.add_thought') }}</label>
-                                <textarea id="article-comment" wire:model="commentBody" rows="4" maxlength="2000" class="mt-2 min-h-32 w-full resize-y rounded-[0.3rem] border border-ink/20 bg-canvas px-4 py-3 leading-7 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50" placeholder="{{ __('community.comment_placeholder') }}"></textarea>
+                                <textarea id="article-comment" wire:model="commentBody" rows="4" maxlength="2000" class="mt-2 min-h-32 w-full resize-y rounded-[var(--control-radius)] border border-ink/20 bg-canvas px-4 py-3 leading-7 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50" placeholder="{{ __('community.comment_placeholder') }}"></textarea>
                                 @error('commentBody') <p class="mt-2 text-sm text-danger" role="alert">{{ $message }}</p> @enderror
                                 <div class="mt-3 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                                     <p class="text-xs leading-5 text-ink-muted">{{ __('community.moderation_note') }}</p>
@@ -122,7 +122,7 @@
                                 @if ($replyTo === $comment->getKey())
                                     <form wire:submit="postReply" class="mt-4 border-s-2 border-violet-500 bg-violet-50 p-4">
                                         <label for="reply-{{ $comment->getKey() }}" class="sr-only">{{ __('community.reply') }}</label>
-                                        <textarea id="reply-{{ $comment->getKey() }}" wire:model="replyBody" rows="3" maxlength="2000" class="min-h-28 w-full rounded-[0.3rem] border border-ink/20 bg-canvas-bright px-4 py-3 leading-7 text-ink outline-none transition-colors focus-visible:border-violet-600" placeholder="{{ __('community.reply_placeholder') }}"></textarea>
+                                        <textarea id="reply-{{ $comment->getKey() }}" wire:model="replyBody" rows="3" maxlength="2000" class="min-h-28 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas-bright px-4 py-3 leading-7 text-ink outline-none transition-colors focus-visible:border-violet-600" placeholder="{{ __('community.reply_placeholder') }}"></textarea>
                                         @error('replyBody') <p class="mt-2 text-sm text-danger" role="alert">{{ $message }}</p> @enderror
                                         <div class="mt-3 flex justify-end gap-3">
                                             <button type="button" wire:click="$set('replyTo', null)" class="button-quiet min-h-11">{{ __('community.cancel') }}</button>
@@ -169,7 +169,7 @@
                         <p id="report-comment-description" class="mt-2 text-sm leading-6 text-ink-muted">{{ __('community.report_description') }}</p>
                         <label class="mt-5 block font-sans text-sm font-bold text-ink-soft">
                             {{ __('community.reason') }}
-                            <select wire:model="reportReason" class="mt-2 min-h-12 w-full rounded-[0.3rem] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
+                            <select wire:model="reportReason" class="mt-2 min-h-12 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
                                 @foreach (['spam', 'abuse', 'misinformation', 'privacy', 'other'] as $reason)
                                     <option value="{{ $reason }}">{{ __("community.reasons.{$reason}") }}</option>
                                 @endforeach
@@ -177,12 +177,12 @@
                         </label>
                         <label class="mt-4 block font-sans text-sm font-bold text-ink-soft">
                             {{ __('community.details_optional') }}
-                            <textarea wire:model="reportDetails" rows="3" maxlength="500" class="mt-2 min-h-28 w-full rounded-[0.3rem] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50"></textarea>
+                            <textarea wire:model="reportDetails" rows="3" maxlength="500" class="mt-2 min-h-28 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50"></textarea>
                         </label>
                         @error('reportDetails') <p class="mt-2 text-sm text-danger" role="alert">{{ $message }}</p> @enderror
                         <div class="mt-6 flex justify-end gap-3">
                             <button type="button" wire:click="$set('reportingComment', null)" class="button-quiet min-h-11">{{ __('community.cancel') }}</button>
-                            <button type="submit" wire:loading.attr="disabled" wire:target="submitReport" class="inline-flex min-h-11 items-center justify-center rounded-[0.3rem] bg-ink px-5 py-3 font-sans text-sm font-bold text-canvas-bright transition-colors hover:bg-danger disabled:opacity-60">{{ __('community.send_report') }}</button>
+                            <button type="submit" wire:loading.attr="disabled" wire:target="submitReport" class="inline-flex min-h-11 items-center justify-center rounded-[var(--control-radius)] bg-ink px-5 py-3 font-sans text-sm font-bold text-canvas-bright transition-colors hover:bg-danger disabled:opacity-60">{{ __('community.send_report') }}</button>
                         </div>
                     </form>
                 </div>
