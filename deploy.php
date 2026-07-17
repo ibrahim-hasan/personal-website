@@ -9,6 +9,7 @@ set('repository', 'git@github.com:ibrahim-hasan/personal-website.git');
 set('keep_releases', 5);
 set('php_fpm_version', '8.4');
 set('branch', 'production');
+set('writable_mode', 'chmod');
 
 set('shared_files', ['.env']);
 set('shared_dirs', ['storage']);
