@@ -165,7 +165,7 @@
                                 </label>
                                 @error('acknowledgement', 'accountDeletion') <span class="text-sm text-danger" role="alert">{{ $message }}</span> @enderror
 
-                                <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center border border-danger bg-danger px-5 py-3 font-sans text-sm font-black text-white transition hover:bg-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-fit">
+                                <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--control-radius)] border border-danger bg-danger px-5 py-3 font-sans text-sm font-black text-white transition hover:bg-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-fit">
                                     {{ __('reader_auth.delete_account') }}
                                 </button>
                             </form>

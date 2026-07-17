@@ -379,6 +379,54 @@ class PublicInteractionAccessibilityTest extends TestCase
         );
     }
 
+    public function test_public_controls_follow_the_corner_radius_contract(): void
+    {
+        $css = $this->readProjectFile('resources/css/app.css');
+        $navbar = $this->readProjectFile('resources/views/components/partials/navbar.blade.php');
+        $decisionRoom = $this->readProjectFile('resources/views/livewire/website/decision-room.blade.php');
+        $readerAccount = $this->readProjectFile('resources/views/website/reader-account.blade.php');
+
+        $this->assertStringContainsString('--control-radius: 0.25rem;', $css);
+
+        foreach ([
+            '.skip-link',
+            '.site-nav__account-trigger',
+            '.language-switch__action',
+            '.menu-toggle',
+            '.article-share__action',
+            '.reader-mode-toggle',
+            '.article-audio__toggle',
+            '.back-to-top',
+        ] as $selector) {
+            $this->assertMatchesRegularExpression(
+                '/'.preg_quote($selector, '/').'\s*\{[^}]*border-radius:\s*var\(--control-radius\);/s',
+                $css,
+                "{$selector} must use the canonical control radius.",
+            );
+        }
+
+        $this->assertMatchesRegularExpression(
+            '/\.publication-row__kind\s*\{[^}]*border-radius:\s*999px;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.publication-topics button\s*\{[^}]*border-radius:\s*999px;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.publication-topics__arrow\s*\{[^}]*border-radius:\s*50%;/s',
+            $css,
+        );
+
+        foreach ([$navbar, $decisionRoom, $readerAccount] as $markup) {
+            $this->assertStringContainsString('rounded-[var(--control-radius)]', $markup);
+            $this->assertStringNotContainsString('rounded-[0.2rem]', $markup);
+            $this->assertStringNotContainsString('rounded-[0.3rem]', $markup);
+        }
+
+        $this->assertStringContainsString('rounded-full', $decisionRoom);
+    }
+
     public function test_scroll_work_is_frame_throttled_and_reveals_use_the_observer_after_the_initial_pass(): void
     {
         $javascript = $this->readProjectFile('resources/js/app.js');

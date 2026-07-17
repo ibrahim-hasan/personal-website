@@ -557,6 +557,7 @@ html[dir='rtl'] .signal-label__line {
     height: 100%;
     display: none;
     place-items: center;
+    border-radius: var(--control-radius);
     background: transparent;
     color: var(--color-ink-soft);
     font-family: var(--family-ui);
@@ -670,6 +671,7 @@ html[dir='rtl'] .brand-mark__name {
     align-items: center;
     justify-content: center;
     gap: 0.45rem;
+    border-radius: var(--control-radius);
     padding-inline: 0.8rem;
     font-size: 0.75rem;
     font-weight: 800;

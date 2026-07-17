@@ -114,7 +114,7 @@
                                 </a>
                                 <form method="POST" action="{{ localized_route('reader.logout') }}">
                                     @csrf
-                                    <button type="submit" class="flex min-h-11 w-full items-center gap-3 px-3 font-sans text-sm font-bold text-ink transition hover:bg-violet-100 hover:text-violet-800">
+                                    <button type="submit" class="flex min-h-11 w-full items-center gap-3 rounded-[var(--control-radius)] px-3 font-sans text-sm font-bold text-ink transition hover:bg-violet-100 hover:text-violet-800">
                                         <x-phosphor-sign-out class="size-4 rtl:rotate-180" aria-hidden="true" />
                                         <span>{{ __('reader_auth.logout') }}</span>
                                     </button>
@@ -205,7 +205,7 @@
                             </a>
                             <form method="POST" action="{{ localized_route('reader.logout') }}">
                                 @csrf
-                                <button type="submit" @click="close(false)" class="flex min-h-11 w-full items-center justify-between border border-canvas/20 px-4 font-sans text-sm font-bold text-canvas-bright transition hover:bg-canvas/10">
+                                <button type="submit" @click="close(false)" class="flex min-h-11 w-full items-center justify-between rounded-[var(--control-radius)] border border-canvas/20 px-4 font-sans text-sm font-bold text-canvas-bright transition hover:bg-canvas/10">
                                     <span>{{ __('reader_auth.logout') }}</span>
                                     <x-phosphor-sign-out class="size-4 rtl:rotate-180" aria-hidden="true" />
                                 </button>
