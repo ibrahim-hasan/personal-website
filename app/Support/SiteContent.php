@@ -93,6 +93,7 @@ class SiteContent
                 'label' => ['ar' => 'البريد', 'en' => 'Email'],
                 'href' => 'mailto:'.$email,
                 'value' => $email,
+                'value_direction' => 'ltr',
             ],
         ];
 
@@ -113,6 +114,7 @@ class SiteContent
                 'label' => ['ar' => 'الهاتف', 'en' => 'Phone'],
                 'href' => 'tel:'.preg_replace('/[^+\d]/', '', $phone),
                 'value' => $phone,
+                'value_direction' => 'ltr',
             ];
         }
 

@@ -67,7 +67,22 @@ class PublicInteractionAccessibilityTest extends TestCase
             ->assertDontSee('class="statement-band"', false)
             ->assertSee('class="publication-row__meta"', false)
             ->assertSee('class="publication-row__kind"', false)
+            ->assertSee('wire:navigate class="featured-essay"', false)
             ->assertSee('decoding="async"', false);
+
+        $writing = $this->readProjectFile('resources/views/website/writing.blade.php');
+
+        $this->assertMatchesRegularExpression(
+            '/href="\{\{ \$article\[\'url\'\] \}\}"\s+wire:navigate\s+class="publication-row"/s',
+            $writing,
+        );
+
+        $home = $this->readProjectFile('resources/views/website/home.blade.php');
+        $library = $this->readProjectFile('resources/views/website/reader-library.blade.php');
+
+        $this->assertStringContainsString('href="{{ $audioArticle[\'url\'] }}" wire:navigate', $home);
+        $this->assertStringContainsString('href="{{ $article[\'url\'] }}" wire:navigate class="writing-row', $home);
+        $this->assertStringContainsString('href="{{ $article[\'url\'] }}" wire:navigate class="grid', $library);
     }
 
     public function test_motion_preserves_content_and_responsive_controls_remain_contained(): void
@@ -208,6 +223,10 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString('video.loop = false', $javascript);
         $this->assertStringContainsString('visibilityObserver.disconnect()', $javascript);
         $this->assertStringContainsString("document.querySelector('[data-site-audio-player]')", $javascript);
+        $this->assertStringContainsString('let isPlayerOpen = false', $this->readProjectFile('resources/js/article-reader.js'));
+        $this->assertStringContainsString('setPlayerVisibility(isPlayerOpen)', $this->readProjectFile('resources/js/article-reader.js'));
+        $this->assertStringContainsString('isPlayerOpen = false', $this->readProjectFile('resources/js/article-reader.js'));
+        $this->assertStringNotContainsString('setPlayerVisibility(playing)', $this->readProjectFile('resources/js/article-reader.js'));
         $this->assertStringContainsString("document.querySelector('[data-back-to-top-safe-zone]')", $javascript);
         $this->assertStringContainsString('Math.max(audioOffset, footerOffset)', $javascript);
         $this->assertStringContainsString("control.style.setProperty('--floating-footer-offset'", $javascript);

@@ -117,6 +117,7 @@ class GenerateArticleAudioSample implements ShouldBeUnique, ShouldQueue
                 'failed_at' => null,
                 'last_error' => null,
             ]);
+            $speech->forgetCheckpoint($result->checkpointKey);
             $samplePersisted = true;
         } catch (Throwable $exception) {
             if (! $samplePersisted && $disk->exists($path)) {

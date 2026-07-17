@@ -48,7 +48,9 @@
                         <a href="{{ $channel['href'] }}" class="channel-row" data-reveal>
                             <div>
                                 <span>{{ $channel['label'] }}</span>
-                                <strong>{{ $channel['value'] }}</strong>
+                                <strong>
+                                    <bdi dir="{{ $channel['value_direction'] ?? 'auto' }}">{{ $channel['value'] }}</bdi>
+                                </strong>
                             </div>
                             <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
                         </a>
@@ -56,7 +58,9 @@
                         <div class="channel-row channel-row--informational" data-reveal>
                             <div>
                                 <span>{{ $channel['label'] }}</span>
-                                <strong>{{ $channel['value'] }}</strong>
+                                <strong>
+                                    <bdi dir="{{ $channel['value_direction'] ?? 'auto' }}">{{ $channel['value'] }}</bdi>
+                                </strong>
                             </div>
                             <x-phosphor-clock class="h-5 w-5" aria-hidden="true" />
                         </div>

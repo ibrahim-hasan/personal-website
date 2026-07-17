@@ -328,7 +328,7 @@
                 <h2 class="display-section mt-6 max-w-[12ch]" data-reveal="headline">{{ __('site.home.writing_title') }}</h2>
                 <p class="copy-lead mt-7 max-w-[44ch]" data-reveal="copy">{{ __('site.home.writing_body') }}</p>
                 @if ($audioArticle)
-                    <a href="{{ $audioArticle['url'] }}" class="writing-audio-feature">
+                    <a href="{{ $audioArticle['url'] }}" wire:navigate class="writing-audio-feature">
                         <span class="writing-audio-feature__play" aria-hidden="true">
                             <x-phosphor-play class="h-5 w-5" />
                         </span>
@@ -353,7 +353,7 @@
             @if ($articles !== [])
                 <div class="writing-list">
                     @foreach ($articles as $article)
-                    <a href="{{ $article['url'] }}" class="writing-row writing-row--link" style="--reveal-index: {{ $loop->index }}" data-reveal="editorial-row">
+                    <a href="{{ $article['url'] }}" wire:navigate class="writing-row writing-row--link" style="--reveal-index: {{ $loop->index }}" data-reveal="editorial-row">
                         <div class="writing-row__content">
                             <div class="writing-row__meta">
                                 <span>{{ $article['type'] }}</span>

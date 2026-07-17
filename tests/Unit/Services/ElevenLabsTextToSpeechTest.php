@@ -8,6 +8,7 @@ use App\Services\ElevenLabs\ElevenLabsTextToSpeech;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -17,6 +18,7 @@ class ElevenLabsTextToSpeechTest extends TestCase
     {
         parent::setUp();
 
+        Storage::fake('local');
         config()->set('services.elevenlabs', [
             'api_key' => 'server-secret',
             'base_url' => 'https://api.elevenlabs.test/v1',
@@ -27,6 +29,7 @@ class ElevenLabsTextToSpeechTest extends TestCase
             'context_characters' => 30,
             'timeout' => 10,
             'connect_timeout' => 2,
+            'checkpoint_disk' => 'local',
             'voice_settings' => [
                 'stability' => 0.72,
                 'similarity_boost' => 0.78,
@@ -303,6 +306,60 @@ class ElevenLabsTextToSpeechTest extends TestCase
         Http::assertSentCount(1);
     }
 
+    public function test_it_resumes_from_persisted_segments_after_a_later_segment_times_out(): void
+    {
+        config()->set('services.elevenlabs.ffmpeg_binary', '');
+        $firstSegment = "\xFF\xFB".str_repeat('A', 250);
+        $secondSegment = "\xFF\xFB".str_repeat('B', 250);
+        $thirdSegment = "\xFF\xFB".str_repeat('C', 250);
+        $text = implode("\n\n", [
+            str_repeat('أ', 80).'.',
+            str_repeat('ب', 80).'.',
+            str_repeat('ت', 80).'.',
+        ]);
+
+        $providerRequests = 0;
+
+        Http::preventStrayRequests();
+        Http::fake(function () use (&$providerRequests, $firstSegment, $secondSegment, $thirdSegment) {
+            $providerRequests++;
+
+            if ($providerRequests === 2) {
+                return Http::failedConnection('The second segment timed out.');
+            }
+
+            $audio = match ($providerRequests) {
+                1 => $firstSegment,
+                3 => $secondSegment,
+                default => $thirdSegment,
+            };
+
+            return Http::response($audio, 200, [
+                'Content-Type' => 'audio/mpeg',
+                'request-id' => 'request-'.($providerRequests === 1 ? 1 : $providerRequests - 1),
+            ]);
+        });
+
+        try {
+            app(ElevenLabsTextToSpeech::class)->synthesize($text, 'ar');
+            $this->fail('The interrupted generation should throw a connection exception.');
+        } catch (ConnectionException) {
+            $this->assertCount(2, Storage::disk('local')->allFiles('article-audio/checkpoints'));
+        }
+
+        $result = app(ElevenLabsTextToSpeech::class)->synthesize($text, 'ar');
+
+        $this->assertSame(4, $providerRequests);
+        $this->assertSame($firstSegment.$secondSegment.$thirdSegment, $result->audio);
+        $this->assertSame(['request-1', 'request-2', 'request-3'], $result->requestIds);
+        $this->assertSame(3, $result->segmentCount);
+        $this->assertCount(6, Storage::disk('local')->allFiles('article-audio/checkpoints'));
+
+        app(ElevenLabsTextToSpeech::class)->forgetCheckpoint($result->checkpointKey);
+
+        $this->assertSame([], Storage::disk('local')->allFiles('article-audio/checkpoints'));
+    }
+
     public function test_it_reports_a_key_quota_error_as_quota_instead_of_invalid_credentials(): void
     {
         Http::preventStrayRequests();
@@ -340,5 +397,38 @@ class ElevenLabsTextToSpeechTest extends TestCase
 
         $this->assertSame($id3.$firstFrames.$secondFrames, $combined);
         $this->assertSame(1, substr_count($combined, 'ID3'));
+    }
+
+    public function test_mp3_concatenation_explicitly_selects_the_mp3_output_format_for_ffmpeg(): void
+    {
+        $binary = tempnam(sys_get_temp_dir(), 'fake-ffmpeg-');
+
+        $this->assertNotFalse($binary);
+
+        file_put_contents($binary, <<<'PHP'
+#!/usr/bin/env php
+<?php
+
+$arguments = array_slice($argv, 1);
+$inputFlag = array_search('-i', $arguments, true);
+$formatFlag = array_search('-f', $arguments, true);
+$output = $arguments[array_key_last($arguments)] ?? null;
+
+if ($inputFlag === false || $formatFlag === false || ($arguments[$formatFlag + 1] ?? null) !== 'mp3' || ! is_string($output)) {
+    exit(2);
+}
+
+file_put_contents($output, 'normalized:'.file_get_contents($arguments[$inputFlag + 1]));
+PHP);
+        chmod($binary, 0755);
+        config()->set('services.elevenlabs.ffmpeg_binary', $binary);
+
+        try {
+            $combined = (new Mp3Concatenator)->concatenate(['first-segment', 'second-segment']);
+
+            $this->assertSame('normalized:first-segmentsecond-segment', $combined);
+        } finally {
+            @unlink($binary);
+        }
     }
 }

@@ -15,6 +15,7 @@ class ElevenLabsTextToSpeech
     public function __construct(
         private readonly NarrationTextChunker $chunker,
         private readonly Mp3Concatenator $concatenator,
+        private readonly ElevenLabsSegmentCheckpointStore $checkpoints,
     ) {}
 
     public function synthesize(string $text, string $locale, ?string $modelId = null): SpeechSynthesisResult
@@ -44,8 +45,39 @@ class ElevenLabsTextToSpeech
 
         $audioSegments = [];
         $requestIds = [];
+        $outputFormat = (string) config('services.elevenlabs.output_format', 'mp3_44100_128');
+        $normalization = (string) config('services.elevenlabs.text_normalization', 'on');
+        $contextCharacters = (int) config('services.elevenlabs.context_characters', 400);
+        $checkpointKey = $this->checkpoints->key([
+            'version' => 1,
+            'text_hash' => hash('sha256', $text),
+            'chunk_hashes' => array_map(
+                fn (string $chunk): string => hash('sha256', $chunk),
+                $chunks,
+            ),
+            'locale' => $locale,
+            'voice_id' => $voiceId,
+            'model_id' => $modelId,
+            'output_format' => $outputFormat,
+            'voice_settings' => $profile['voice_settings'],
+            'text_normalization' => $normalization,
+            'context_characters' => $contextCharacters,
+        ]);
 
         foreach ($chunks as $index => $chunk) {
+            $textHash = hash('sha256', $chunk);
+            $restored = $this->checkpoints->restore($checkpointKey, $index, $textHash);
+
+            if ($restored !== null) {
+                $audioSegments[] = $restored['audio'];
+
+                if ($restored['request_id'] !== 'unavailable') {
+                    $requestIds[] = $restored['request_id'];
+                }
+
+                continue;
+            }
+
             $payload = [
                 'text' => $chunk,
                 'model_id' => $modelId,
@@ -56,15 +88,11 @@ class ElevenLabsTextToSpeech
                 $payload['language_code'] = $locale === 'ar' ? 'ar' : 'en';
             }
 
-            $normalization = (string) config('services.elevenlabs.text_normalization', 'on');
-
             if (in_array($normalization, ['auto', 'on', 'off'], true)) {
                 $payload['apply_text_normalization'] = $normalization;
             }
 
             if ($profile['supports_request_stitching']) {
-                $contextCharacters = (int) config('services.elevenlabs.context_characters', 400);
-
                 if ($index > 0) {
                     $payload['previous_text'] = mb_substr($chunks[$index - 1], -$contextCharacters);
                 }
@@ -74,7 +102,6 @@ class ElevenLabsTextToSpeech
                 }
             }
 
-            $outputFormat = (string) config('services.elevenlabs.output_format', 'mp3_44100_128');
             $response = Http::baseUrl(rtrim((string) config('services.elevenlabs.base_url'), '/'))
                 ->withHeaders([
                     'xi-api-key' => $apiKey,
@@ -98,8 +125,10 @@ class ElevenLabsTextToSpeech
                 throw new RuntimeException('ElevenLabs returned an invalid audio response.');
             }
 
-            $audioSegments[] = $response->body();
+            $audio = $response->body();
             $requestId = $this->requestId($response->headers());
+            $this->checkpoints->persist($checkpointKey, $index, $textHash, $audio, $requestId);
+            $audioSegments[] = $audio;
 
             if ($requestId !== 'unavailable') {
                 $requestIds[] = $requestId;
@@ -111,7 +140,13 @@ class ElevenLabsTextToSpeech
             requestIds: $requestIds,
             segmentCount: count($audioSegments),
             characterCount: mb_strlen($text),
+            checkpointKey: $checkpointKey,
         );
+    }
+
+    public function forgetCheckpoint(string $checkpointKey): void
+    {
+        $this->checkpoints->forget($checkpointKey);
     }
 
     public function voiceId(): string

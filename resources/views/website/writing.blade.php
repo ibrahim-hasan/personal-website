@@ -24,7 +24,7 @@
             </div>
 
             @if ($featuredArticle)
-                <a href="{{ $featuredArticle['url'] }}" class="featured-essay">
+                <a href="{{ $featuredArticle['url'] }}" wire:navigate class="featured-essay">
                 <figure>
                     <img
                         src="{{ $featuredArticle['image_url'] }}"
@@ -103,6 +103,7 @@
                 @foreach ($articles as $article)
                     <a
                         href="{{ $article['url'] }}"
+                        wire:navigate
                         class="publication-row"
                         x-show="matches(@js($article['topic_keys']))"
                         x-transition.opacity.duration.250ms

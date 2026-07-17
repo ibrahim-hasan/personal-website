@@ -76,6 +76,8 @@ class Mp3Concatenator
                 'copy',
                 '-write_xing',
                 '1',
+                '-f',
+                'mp3',
                 $output,
             ]);
             $process->setTimeout(120);

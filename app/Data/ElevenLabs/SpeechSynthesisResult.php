@@ -10,5 +10,6 @@ final readonly class SpeechSynthesisResult
         public array $requestIds,
         public int $segmentCount,
         public int $characterCount,
+        public string $checkpointKey,
     ) {}
 }

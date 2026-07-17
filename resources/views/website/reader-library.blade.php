@@ -98,7 +98,7 @@
                 <div class="mt-10 grid gap-5 md:grid-cols-2">
                     @foreach ($bookmarks as $article)
                         <article class="group overflow-hidden border border-ink/15 bg-canvas-bright transition-colors hover:border-violet-600/50">
-                            <a href="{{ $article['url'] }}" class="grid min-h-44 gap-0 sm:grid-cols-[9rem_1fr]">
+                            <a href="{{ $article['url'] }}" wire:navigate class="grid min-h-44 gap-0 sm:grid-cols-[9rem_1fr]">
                                 <img src="{{ asset($article['image']) }}" alt="" class="h-48 w-full object-cover sm:h-full" loading="lazy" decoding="async">
                                 <div class="flex min-w-0 flex-col p-6">
                                     <p class="font-sans text-xs font-bold text-violet-700">{{ $article['type'] }} · {{ $article['read_time'] }}</p>

@@ -81,6 +81,7 @@ return [
         'unique_for' => (int) env('ELEVENLABS_UNIQUE_FOR', 1800),
         'max_segments' => (int) env('ELEVENLABS_MAX_SEGMENTS', 3),
         'audio_disk' => env('ELEVENLABS_AUDIO_DISK', 'public'),
+        'checkpoint_disk' => env('ELEVENLABS_CHECKPOINT_DISK', 'local'),
         'queue_connection' => env('ELEVENLABS_QUEUE_CONNECTION', 'redis'),
         'queue' => env('ELEVENLABS_QUEUE', 'article-audio'),
         'voice_settings' => [

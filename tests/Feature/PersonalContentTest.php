@@ -195,10 +195,21 @@ class PersonalContentTest extends TestCase
 
         $this->assertSame('projects@example.com', $contact['email']);
         $this->assertSame('mailto:projects@example.com', $contact['channels'][0]['href']);
+        $this->assertSame('ltr', $contact['channels'][0]['value_direction']);
         $this->assertContains('tel:+905551234567', array_column($contact['channels'], 'href'));
         $this->assertContains('https://wa.me/905557654321', array_column($contact['channels'], 'href'));
         $this->assertContains('Response time', array_column($contact['channels'], 'label'));
         $this->assertContains('Usually within one business day', array_column($contact['channels'], 'value'));
         $this->assertNotContains('Location', array_column($contact['channels'], 'label'));
+
+        $phoneChannel = collect($contact['channels'])->firstWhere('href', 'tel:+905551234567');
+
+        $this->assertSame('ltr', $phoneChannel['value_direction']);
+
+        app()->setLocale('ar');
+
+        $this->get('/contact')
+            ->assertOk()
+            ->assertSee('<bdi dir="ltr">+90 555 123 45 67</bdi>', false);
     }
 }

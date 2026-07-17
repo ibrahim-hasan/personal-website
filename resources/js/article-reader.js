@@ -152,6 +152,7 @@ const initializeSiteAudioPlayer = () => {
     let durationHint = 0;
     let pendingRestoreTime = 0;
     let lastPersistedAt = 0;
+    let isPlayerOpen = false;
 
     const setStatus = (message) => {
         if (message) {
@@ -197,7 +198,7 @@ const initializeSiteAudioPlayer = () => {
         playIcon?.toggleAttribute('hidden', playing);
         pauseIcon?.toggleAttribute('hidden', ! playing);
         player.classList.toggle('is-playing', playing);
-        setPlayerVisibility(playing);
+        setPlayerVisibility(isPlayerOpen);
     };
 
     const updateProgress = () => {
@@ -212,7 +213,7 @@ const initializeSiteAudioPlayer = () => {
     };
 
     const persistState = (force = false) => {
-        if (! activeSource) {
+        if (! activeSource || ! isPlayerOpen) {
             return;
         }
 
@@ -247,9 +248,18 @@ const initializeSiteAudioPlayer = () => {
         pendingRestoreTime = 0;
     };
 
-    const activateSource = (source, { autoplay = false, reset = false, restoreTime = 0 } = {}) => {
+    const activateSource = (source, {
+        autoplay = false,
+        reset = false,
+        restoreTime = 0,
+        open = false,
+    } = {}) => {
         if (! source) {
             return;
+        }
+
+        if (open) {
+            isPlayerOpen = true;
         }
 
         const isSameSource = activeSource?.url === source.url;
@@ -309,7 +319,10 @@ const initializeSiteAudioPlayer = () => {
                 locale: stored.locale || '',
                 durationSeconds: Number(stored.durationSeconds) || 0,
                 labels: stored.labels || {},
-            }, { restoreTime: Number(stored.currentTime) || 0 });
+            }, {
+                restoreTime: Number(stored.currentTime) || 0,
+                open: true,
+            });
 
             return;
         }
@@ -346,6 +359,7 @@ const initializeSiteAudioPlayer = () => {
     });
 
     close?.addEventListener('click', () => {
+        isPlayerOpen = false;
         audio.pause();
         audio.removeAttribute('src');
         audio.load();
@@ -431,7 +445,11 @@ const initializeSiteAudioPlayer = () => {
             const source = sourceFromElement(sourceElement);
             const shouldReset = activeSource?.url !== source?.url || audio.ended;
 
-            activateSource(source, { autoplay: true, reset: shouldReset });
+            activateSource(source, {
+                autoplay: true,
+                reset: shouldReset,
+                open: true,
+            });
         });
     }
 

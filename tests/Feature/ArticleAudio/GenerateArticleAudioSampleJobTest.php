@@ -25,10 +25,12 @@ class GenerateArticleAudioSampleJobTest extends TestCase
 
         $this->seed(ArticleSeeder::class);
         Storage::fake('public');
+        Storage::fake('local');
         config()->set('services.elevenlabs.api_key', 'eleven-server-secret');
         config()->set('services.elevenlabs.voice_id', 'arabic-editorial-voice');
         config()->set('services.elevenlabs.base_url', 'https://api.elevenlabs.test/v1');
         config()->set('services.elevenlabs.audio_disk', 'public');
+        config()->set('services.elevenlabs.checkpoint_disk', 'local');
         config()->set('services.elevenlabs.sample_characters', 650);
     }
 
@@ -70,6 +72,7 @@ class GenerateArticleAudioSampleJobTest extends TestCase
         $this->assertSame(['sample-request-1'], $sample['request_ids']);
         $this->assertSame('arabic-editorial-voice', $sample['voice_id']);
         Storage::disk('public')->assertExists($sample['path']);
+        $this->assertSame([], Storage::disk('local')->allFiles('article-audio/checkpoints'));
         $this->assertNotNull($request);
         $this->assertSame('eleven_v3', $request['model_id']);
         $this->assertSame('ar', $request['language_code']);

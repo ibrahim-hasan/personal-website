@@ -125,6 +125,7 @@ class GenerateArticleAudio implements ShouldBeUnique, ShouldQueue
                 'failed_at' => null,
                 'last_error' => null,
             ])->save();
+            $speech->forgetCheckpoint($result->checkpointKey);
 
             if ($previousPath !== null && ($previousPath !== $path || $previousDisk !== $diskName)) {
                 Storage::disk($previousDisk)->delete($previousPath);
