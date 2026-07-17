@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Projects;
 
+use App\Filament\Resources\Concerns\UsesIdForAdminUrls;
 use App\Filament\Resources\Projects\Pages\CreateProject;
 use App\Filament\Resources\Projects\Pages\EditProject;
 use App\Filament\Resources\Projects\Pages\ListProjects;
@@ -17,6 +18,8 @@ use Filament\Tables\Table;
 
 class ProjectResource extends Resource
 {
+    use UsesIdForAdminUrls;
+
     protected static ?string $model = Project::class;
 
     protected static ?string $recordRouteKeyName = 'id';

@@ -45,7 +45,9 @@ class PersonalContentAdminTest extends TestCase
         $this->actingAs($admin)
             ->get('/admin/projects')
             ->assertOk()
-            ->assertSee($project->getTranslation('title', 'ar'));
+            ->assertSee($project->getTranslation('title', 'ar'))
+            ->assertSee('/admin/projects/'.$project->getKey().'/edit', false)
+            ->assertDontSee('/admin/projects/'.$project->getTranslation('slug', 'ar').'/edit', false);
 
         $this->actingAs($admin)
             ->get('/admin/projects/'.$project->getKey())

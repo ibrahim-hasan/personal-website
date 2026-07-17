@@ -7,6 +7,7 @@ use App\Filament\Resources\Articles\Pages\EditArticle;
 use App\Filament\Resources\Articles\Pages\ListArticles;
 use App\Filament\Resources\Articles\Schemas\ArticleForm;
 use App\Filament\Resources\Articles\Tables\ArticlesTable;
+use App\Filament\Resources\Concerns\UsesIdForAdminUrls;
 use App\Models\Article;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -15,6 +16,8 @@ use Filament\Tables\Table;
 
 class ArticleResource extends Resource
 {
+    use UsesIdForAdminUrls;
+
     protected static ?string $model = Article::class;
 
     protected static ?string $recordRouteKeyName = 'id';
