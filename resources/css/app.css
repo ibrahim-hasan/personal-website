@@ -5221,9 +5221,32 @@ html[dir='rtl'].motion-capable .manifesto-section__copy::before {
 }
 
 @media (min-width: 72rem) {
+    .site-nav > .site-container {
+        display: grid;
+        grid-template-columns: minmax(14rem, 1fr) auto minmax(18rem, 1fr);
+        gap: clamp(1.5rem, 3vw, 3.5rem);
+    }
+
+    .brand-mark {
+        min-width: 0;
+        justify-self: start;
+    }
+
     .site-nav__desktop-links,
     .site-nav__utility-rail {
         display: flex;
+    }
+
+    .site-nav__desktop-links {
+        min-width: max-content;
+        justify-self: center;
+        gap: clamp(1rem, 1.8vw, 1.75rem);
+        white-space: nowrap;
+    }
+
+    .site-nav__actions {
+        min-width: 0;
+        justify-self: end;
     }
 
     .site-nav__account,
