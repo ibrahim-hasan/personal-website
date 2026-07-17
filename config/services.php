@@ -75,7 +75,7 @@ return [
         'context_characters' => (int) env('ELEVENLABS_CONTEXT_CHARACTERS', 400),
         'sample_characters' => (int) env('ELEVENLABS_SAMPLE_CHARACTERS', 650),
         'text_normalization' => env('ELEVENLABS_TEXT_NORMALIZATION', 'on'),
-        'timeout' => (int) env('ELEVENLABS_TIMEOUT', 150),
+        'timeout' => (int) env('ELEVENLABS_TIMEOUT', 420),
         'connect_timeout' => (int) env('ELEVENLABS_CONNECT_TIMEOUT', 15),
         'job_timeout' => (int) env('ELEVENLABS_JOB_TIMEOUT', 1560),
         'unique_for' => (int) env('ELEVENLABS_UNIQUE_FOR', 1800),

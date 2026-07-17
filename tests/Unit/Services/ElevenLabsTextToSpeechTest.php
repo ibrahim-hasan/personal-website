@@ -5,9 +5,9 @@ namespace Tests\Unit\Services;
 use App\Exceptions\ElevenLabsRequestException;
 use App\Services\ArticleAudio\Mp3Concatenator;
 use App\Services\ElevenLabs\ElevenLabsTextToSpeech;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Sleep;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -106,7 +106,7 @@ class ElevenLabsTextToSpeechTest extends TestCase
         $this->assertArrayHasKey('previous_text', $requests[1]->data());
         $this->assertArrayHasKey('next_text', $requests[1]->data());
         $this->assertStringContainsString(
-            '/text-to-speech/calm-arabic-voice?output_format=mp3_44100_128',
+            '/text-to-speech/calm-arabic-voice/stream?output_format=mp3_44100_128',
             $requests[0]->url(),
         );
     }
@@ -148,7 +148,7 @@ class ElevenLabsTextToSpeechTest extends TestCase
 
         $this->assertNotNull($request);
         $this->assertStringContainsString(
-            '/text-to-speech/calm-arabic-voice?output_format=mp3_44100_128',
+            '/text-to-speech/calm-arabic-voice/stream?output_format=mp3_44100_128',
             $request->url(),
         );
         $this->assertSame('eleven_multilingual_v2', $request['model_id']);
@@ -260,33 +260,47 @@ class ElevenLabsTextToSpeechTest extends TestCase
         $this->assertSame(1, $requests);
     }
 
-    public function test_it_retries_transient_provider_failures_with_the_shared_backoff(): void
+    public function test_it_does_not_retry_a_provider_failure_for_a_paid_generation(): void
     {
         $requests = 0;
-        $segment = "\xFF\xFB".str_repeat('R', 250);
-        Sleep::fake();
+
+        Http::preventStrayRequests();
+        Http::fake(function () use (&$requests) {
+            $requests++;
+
+            return Http::response([
+                'detail' => [
+                    'code' => 'provider_unavailable',
+                    'request_id' => 'request-unavailable-503',
+                ],
+            ], 503);
+        });
 
         try {
-            Http::preventStrayRequests();
-            Http::fake(function () use (&$requests, $segment) {
-                $requests++;
-
-                return $requests < 3
-                    ? Http::response(['detail' => ['code' => 'provider_unavailable']], 503)
-                    : Http::response($segment, 200, ['Content-Type' => 'audio/mpeg']);
-            });
-
-            $result = app(ElevenLabsTextToSpeech::class)->synthesize('نص صالح للتوليد.', 'ar');
-
-            $this->assertSame(3, $requests);
-            $this->assertSame($segment, $result->audio);
-            Sleep::assertSequence([
-                Sleep::for(1200)->milliseconds(),
-                Sleep::for(3000)->milliseconds(),
-            ]);
-        } finally {
-            Sleep::fake(false);
+            app(ElevenLabsTextToSpeech::class)->synthesize('نص صالح للتوليد.', 'ar');
+            $this->fail('The provider failure should throw an exception.');
+        } catch (ElevenLabsRequestException $exception) {
+            $this->assertSame(503, $exception->httpStatus);
         }
+
+        $this->assertSame(1, $requests);
+    }
+
+    public function test_it_does_not_retry_an_ambiguous_generation_timeout(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake(Http::failedConnection(
+            'cURL error 28: Operation timed out after 420001 milliseconds with 0 bytes received',
+        ));
+
+        try {
+            app(ElevenLabsTextToSpeech::class)->synthesize('نص صالح للتوليد.', 'ar');
+            $this->fail('The timed-out generation should throw a connection exception.');
+        } catch (ConnectionException $exception) {
+            $this->assertStringContainsString('cURL error 28', $exception->getMessage());
+        }
+
+        Http::assertSentCount(1);
     }
 
     public function test_it_reports_a_key_quota_error_as_quota_instead_of_invalid_credentials(): void

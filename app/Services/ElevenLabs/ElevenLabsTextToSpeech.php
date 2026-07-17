@@ -83,12 +83,7 @@ class ElevenLabsTextToSpeech
                 ->asJson()
                 ->connectTimeout(ElevenLabsExecutionBudget::connectTimeout())
                 ->timeout(ElevenLabsExecutionBudget::providerTimeout())
-                ->retry(
-                    ElevenLabsExecutionBudget::retryDelays(),
-                    when: ElevenLabsExecutionBudget::shouldRetry(...),
-                    throw: false,
-                )
-                ->post('/text-to-speech/'.rawurlencode($voiceId).'?output_format='.rawurlencode($outputFormat), $payload);
+                ->post('/text-to-speech/'.rawurlencode($voiceId).'/stream?output_format='.rawurlencode($outputFormat), $payload);
 
             if (! $response->successful()) {
                 throw ElevenLabsRequestException::fromResponse(

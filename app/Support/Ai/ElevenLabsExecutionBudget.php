@@ -2,17 +2,11 @@
 
 namespace App\Support\Ai;
 
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\RequestException;
 use LogicException;
-use Throwable;
 
 final class ElevenLabsExecutionBudget
 {
-    /** @var list<int> */
-    private const RETRY_DELAYS_MILLISECONDS = [1200, 3000];
-
-    private const MAX_PROVIDER_TIMEOUT_SECONDS = 150;
+    private const MAX_PROVIDER_TIMEOUT_SECONDS = 600;
 
     private const DEFAULT_FULL_JOB_TIMEOUT_SECONDS = 1560;
 
@@ -25,7 +19,7 @@ final class ElevenLabsExecutionBudget
     public static function providerTimeout(): int
     {
         return max(1, min(
-            (int) config('services.elevenlabs.timeout', self::MAX_PROVIDER_TIMEOUT_SECONDS),
+            (int) config('services.elevenlabs.timeout', 420),
             self::MAX_PROVIDER_TIMEOUT_SECONDS,
         ));
     }
@@ -38,22 +32,14 @@ final class ElevenLabsExecutionBudget
         ));
     }
 
-    /** @return list<int> */
-    public static function retryDelays(): array
-    {
-        return self::RETRY_DELAYS_MILLISECONDS;
-    }
-
     public static function requestAttempts(): int
     {
-        return count(self::RETRY_DELAYS_MILLISECONDS) + 1;
+        return 1;
     }
 
     public static function requestBudgetSeconds(): int
     {
-        $retryDelaySeconds = (int) ceil(array_sum(self::RETRY_DELAYS_MILLISECONDS) / 1000);
-
-        return (self::requestAttempts() * self::providerTimeout()) + $retryDelaySeconds;
+        return self::providerTimeout();
     }
 
     public static function maxSegments(): int
@@ -99,16 +85,6 @@ final class ElevenLabsExecutionBudget
     public static function stalledAfterSeconds(): int
     {
         return self::uniqueFor(self::fullJobTimeout());
-    }
-
-    public static function shouldRetry(Throwable $exception): bool
-    {
-        if ($exception instanceof ConnectionException) {
-            return true;
-        }
-
-        return $exception instanceof RequestException
-            && in_array($exception->response->status(), [429, 500, 502, 503, 504], true);
     }
 
     private static function sampleMaxSegments(string $modelId): int

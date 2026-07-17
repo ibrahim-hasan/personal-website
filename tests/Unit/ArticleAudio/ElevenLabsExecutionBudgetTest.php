@@ -20,13 +20,13 @@ class ElevenLabsExecutionBudgetTest extends TestCase
         config()->set('services.elevenlabs.models.eleven_v3.max_characters', 4500);
         config()->set('queue.connections.database.retry_after', 1620);
 
-        $this->assertSame(150, ElevenLabsExecutionBudget::providerTimeout());
+        $this->assertSame(420, ElevenLabsExecutionBudget::providerTimeout());
         $this->assertSame(15, ElevenLabsExecutionBudget::connectTimeout());
-        $this->assertSame(3, ElevenLabsExecutionBudget::requestAttempts());
-        $this->assertSame(455, ElevenLabsExecutionBudget::requestBudgetSeconds());
-        $this->assertSame(1545, ElevenLabsExecutionBudget::minimumFullJobTimeout());
+        $this->assertSame(1, ElevenLabsExecutionBudget::requestAttempts());
+        $this->assertSame(420, ElevenLabsExecutionBudget::requestBudgetSeconds());
+        $this->assertSame(1440, ElevenLabsExecutionBudget::minimumFullJobTimeout());
         $this->assertSame(1560, ElevenLabsExecutionBudget::fullJobTimeout());
-        $this->assertSame(635, ElevenLabsExecutionBudget::sampleJobTimeout('eleven_v3'));
+        $this->assertSame(600, ElevenLabsExecutionBudget::sampleJobTimeout('eleven_v3'));
         $this->assertSame(1800, ElevenLabsExecutionBudget::uniqueFor(1560));
         $this->assertGreaterThan(
             ElevenLabsExecutionBudget::fullJobTimeout(),
