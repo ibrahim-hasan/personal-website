@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\SetLocale;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withSchedule(function (Schedule $schedule): void {
+        $schedule->command('horizon:snapshot')->everyFiveMinutes();
+    })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'localize' => LaravelLocalizationRoutes::class,

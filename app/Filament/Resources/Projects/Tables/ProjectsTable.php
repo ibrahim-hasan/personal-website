@@ -31,6 +31,7 @@ class ProjectsTable
                     ->label(__('admin.fields.project_image'))
                     ->collection(Project::IMAGE_COLLECTION)
                     ->conversion(Project::THUMBNAIL_CONVERSION)
+                    ->visibility('public')
                     ->square()
                     ->size(52),
                 TextColumn::make('title')

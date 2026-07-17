@@ -46,12 +46,14 @@ class ProjectInfolist
                             ->label(__('admin.fields.project_image'))
                             ->collection(Project::IMAGE_COLLECTION)
                             ->conversion(Project::IMAGE_CONVERSION)
+                            ->visibility('public')
                             ->imageSize(240)
                             ->columnSpan(2),
                         SpatieMediaLibraryImageEntry::make(Project::LOGO_COLLECTION)
                             ->label(__('admin.fields.project_logo'))
                             ->collection(Project::LOGO_COLLECTION)
                             ->conversion(Project::LOGO_CONVERSION)
+                            ->visibility('public')
                             ->imageSize(160)
                             ->columnSpan(2),
                     ]),

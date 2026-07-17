@@ -159,6 +159,7 @@ class ArticleForm
                                 ->label(__('editorial_admin.fields.image_path'))
                                 ->collection(Article::IMAGE_COLLECTION)
                                 ->conversion(Article::THUMBNAIL_CONVERSION)
+                                ->visibility('public')
                                 ->image()
                                 ->imageEditor()
                                 ->responsiveImages()

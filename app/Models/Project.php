@@ -119,10 +119,12 @@ class Project extends Model implements HasMedia, LocalizedUrlRoutable
         $acceptedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 
         $this->addMediaCollection(self::IMAGE_COLLECTION)
+            ->useDisk((string) config('media-library.disk_name'))
             ->acceptsMimeTypes($acceptedMimeTypes)
             ->singleFile();
 
         $this->addMediaCollection(self::LOGO_COLLECTION)
+            ->useDisk((string) config('media-library.disk_name'))
             ->acceptsMimeTypes($acceptedMimeTypes)
             ->singleFile();
     }
