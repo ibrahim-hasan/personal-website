@@ -37,6 +37,7 @@ task('artisan:filament-optimize', artisan('filament:optimize'));
 task('artisan:event-cache', artisan('event:cache'));
 task('artisan:view-cache', artisan('view:cache'));
 task('artisan:horizon-terminate', artisan('horizon:terminate'));
+task('artisan:schedule-interrupt', artisan('schedule:interrupt'));
 
 task('deploy:health-check', function (): void {
     $healthUrl = trim((string) getenv('DEPLOY_HEALTH_URL'));
@@ -58,4 +59,5 @@ before('deploy:symlink', 'artisan:event-cache');
 before('deploy:symlink', 'artisan:view-cache');
 
 after('deploy:symlink', 'artisan:horizon-terminate');
+after('deploy:symlink', 'artisan:schedule-interrupt');
 after('deploy:symlink', 'deploy:health-check');

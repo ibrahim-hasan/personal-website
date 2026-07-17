@@ -59,7 +59,7 @@ return [
         'seo_max_output_tokens' => (int) env('OPENAI_SEO_MAX_OUTPUT_TOKENS', 600),
         'seo_timeout' => (int) env('OPENAI_SEO_TIMEOUT', 20),
         'timeout' => (int) env('OPENAI_TIMEOUT', 180),
-        'queue_connection' => env('OPENAI_QUEUE_CONNECTION', 'database'),
+        'queue_connection' => env('OPENAI_QUEUE_CONNECTION', 'redis'),
         'queue' => env('OPENAI_QUEUE', 'article-audio'),
     ],
 
@@ -81,7 +81,7 @@ return [
         'unique_for' => (int) env('ELEVENLABS_UNIQUE_FOR', 1800),
         'max_segments' => (int) env('ELEVENLABS_MAX_SEGMENTS', 3),
         'audio_disk' => env('ELEVENLABS_AUDIO_DISK', 'public'),
-        'queue_connection' => env('ELEVENLABS_QUEUE_CONNECTION', 'database'),
+        'queue_connection' => env('ELEVENLABS_QUEUE_CONNECTION', 'redis'),
         'queue' => env('ELEVENLABS_QUEUE', 'article-audio'),
         'voice_settings' => [
             'stability' => (float) env('ELEVENLABS_STABILITY', 0.72),
