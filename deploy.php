@@ -39,13 +39,15 @@ task('artisan:view-cache', artisan('view:cache'));
 task('artisan:queue-restart', artisan('queue:restart'));
 
 task('deploy:health-check', function (): void {
-    $url = rtrim((string) getenv('APP_URL'), '/').'/up';
+    $healthUrl = trim((string) getenv('DEPLOY_HEALTH_URL'));
 
-    if ($url === '/up') {
-        throw new \RuntimeException('APP_URL must be configured for the deployment health check.');
+    if ($healthUrl === '') {
+        warning('DEPLOY_HEALTH_URL is not configured; skipping external health check until DNS is ready.');
+
+        return;
     }
 
-    run('curl --fail --silent --show-error --max-time 20 '.escapeshellarg($url));
+    run('curl --fail --silent --show-error --max-time 20 '.escapeshellarg($healthUrl));
 });
 
 after('deploy:failed', 'deploy:unlock');
