@@ -1,0 +1,58 @@
+<?php
+
+namespace Deployer;
+
+require 'recipe/laravel.php';
+
+set('application', 'ibrahim-website');
+set('repository', 'git@github.com:ibrahim-hasan/personal-website.git');
+set('keep_releases', 5);
+set('php_fpm_version', '8.4');
+set('branch', 'production');
+
+set('shared_files', ['.env']);
+set('shared_dirs', ['storage']);
+set('writable_dirs', [
+    'bootstrap/cache',
+    'storage',
+    'storage/app/private',
+    'storage/framework/cache',
+    'storage/framework/sessions',
+    'storage/framework/views',
+    'storage/logs',
+]);
+
+host('production')
+    ->setHostname((string) getenv('DEPLOY_HOST'))
+    ->setRemoteUser((string) (getenv('DEPLOY_USER') ?: 'ibrahim-production'))
+    ->setPort((int) (getenv('DEPLOY_PORT') ?: 22))
+    ->setDeployPath((string) (getenv('DEPLOY_PATH') ?: '/home/ibrahim-production/htdocs/ibrahimhasan.net'));
+
+task('deploy:upload-build', function (): void {
+    upload('public/build/', '{{release_path}}/public/build/');
+});
+
+task('artisan:filament-optimize', artisan('filament:optimize'));
+task('artisan:event-cache', artisan('event:cache'));
+task('artisan:view-cache', artisan('view:cache'));
+task('artisan:queue-restart', artisan('queue:restart'));
+
+task('deploy:health-check', function (): void {
+    $url = rtrim((string) getenv('APP_URL'), '/').'/up';
+
+    if ($url === '/up') {
+        throw new \RuntimeException('APP_URL must be configured for the deployment health check.');
+    }
+
+    run('curl --fail --silent --show-error --max-time 20 '.escapeshellarg($url));
+});
+
+after('deploy:failed', 'deploy:unlock');
+
+before('deploy:symlink', 'deploy:upload-build');
+before('deploy:symlink', 'artisan:filament-optimize');
+before('deploy:symlink', 'artisan:event-cache');
+before('deploy:symlink', 'artisan:view-cache');
+
+after('deploy:symlink', 'artisan:queue-restart');
+after('deploy:symlink', 'deploy:health-check');
