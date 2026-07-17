@@ -3,14 +3,18 @@
 namespace App\Filament\Pages;
 
 use App\Enums\ArticleAudioStatus;
+use App\Enums\ArticleNarrationStatus;
 use App\Models\ArticleAudio;
 use App\Models\ArticleNarration;
 use App\Services\ArticleAudio\ArticleAudioScript;
 use App\Services\ArticleAudio\ArticleNarrationScript;
+use App\Support\Ai\ElevenLabsExecutionBudget;
 use App\Support\Editorial\ArticleCatalog;
 use BackedEnum;
 use Filament\Pages\Page;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Locked;
 
 class ManageArticleAudio extends Page
 {
@@ -19,6 +23,31 @@ class ManageArticleAudio extends Page
     protected static ?int $navigationSort = 40;
 
     protected string $view = 'filament.pages.manage-article-audio';
+
+    #[Locked]
+    public bool $activeWork = false;
+
+    #[Locked]
+    public bool $observedActiveWork = false;
+
+    /**
+     * @var list<array{article_key: string, locale: string, source_hash: string}>
+     */
+    #[Locked]
+    public array $workTargets = [];
+
+    public function mount(): void
+    {
+        $this->workTargets = $this->buildWorkTargets();
+        $this->activeWork = $this->detectActiveWork();
+        $this->observedActiveWork = $this->activeWork;
+    }
+
+    public function pollWorkStatus(): void
+    {
+        $this->activeWork = $this->detectActiveWork();
+        $this->observedActiveWork = $this->observedActiveWork || $this->activeWork;
+    }
 
     public static function getNavigationGroup(): ?string
     {
@@ -155,6 +184,125 @@ class ManageArticleAudio extends Page
     public function canGenerate(): bool
     {
         return auth()->user()?->can('update articles') === true;
+    }
+
+    private function detectActiveWork(): bool
+    {
+        if ($this->workTargets === []) {
+            return false;
+        }
+
+        $audioQuery = ArticleAudio::query();
+        $this->constrainToActiveTargets($audioQuery, $this->workTargets);
+
+        $stalledAt = now()->subSeconds(ElevenLabsExecutionBudget::stalledAfterSeconds());
+        $audioIsGenerating = $audioQuery
+            ->where(function (Builder $query) use ($stalledAt): void {
+                $query
+                    ->where(function (Builder $query) use ($stalledAt): void {
+                        $query
+                            ->where('status', ArticleAudioStatus::Queued->value)
+                            ->where(function (Builder $query) use ($stalledAt): void {
+                                $query
+                                    ->where('queued_at', '>=', $stalledAt)
+                                    ->orWhere(function (Builder $query) use ($stalledAt): void {
+                                        $query
+                                            ->whereNull('queued_at')
+                                            ->where('updated_at', '>=', $stalledAt);
+                                    });
+                            });
+                    })
+                    ->orWhere(function (Builder $query) use ($stalledAt): void {
+                        $query
+                            ->where('status', ArticleAudioStatus::Processing->value)
+                            ->where(function (Builder $query) use ($stalledAt): void {
+                                $query
+                                    ->where('generation_started_at', '>=', $stalledAt)
+                                    ->orWhere(function (Builder $query) use ($stalledAt): void {
+                                        $query
+                                            ->whereNull('generation_started_at')
+                                            ->where('updated_at', '>=', $stalledAt);
+                                    });
+                            });
+                    });
+            })
+            ->exists();
+
+        if ($audioIsGenerating) {
+            return true;
+        }
+
+        $narrationQuery = ArticleNarration::query();
+        $this->constrainToActiveTargets($narrationQuery, $this->workTargets, includeSourceHash: true);
+
+        $preparationStalledAt = now()->subMinutes(10);
+        $configuredModelIds = array_map('strval', array_keys((array) config('services.elevenlabs.models', [])));
+
+        return $narrationQuery
+            ->where(function (Builder $query) use ($configuredModelIds, $preparationStalledAt): void {
+                $query->where(function (Builder $query) use ($preparationStalledAt): void {
+                    $query
+                        ->whereIn('status', [
+                            ArticleNarrationStatus::Queued->value,
+                            ArticleNarrationStatus::Preparing->value,
+                        ])
+                        ->where(function (Builder $query) use ($preparationStalledAt): void {
+                            $query
+                                ->where('preparation_started_at', '>=', $preparationStalledAt)
+                                ->orWhere(function (Builder $query) use ($preparationStalledAt): void {
+                                    $query
+                                        ->whereNull('preparation_started_at')
+                                        ->where('updated_at', '>=', $preparationStalledAt);
+                                });
+                        });
+                });
+
+                foreach ($configuredModelIds as $modelId) {
+                    $query->orWhereIn("samples->{$modelId}->status", ['queued', 'processing']);
+                }
+            })
+            ->exists();
+    }
+
+    /**
+     * @return list<array{article_key: string, locale: string, source_hash: string}>
+     */
+    private function buildWorkTargets(): array
+    {
+        $source = app(ArticleNarrationScript::class);
+        $targets = [];
+
+        foreach (app(ArticleCatalog::class)->all() as $article) {
+            foreach (['ar', 'en'] as $locale) {
+                $targets[] = [
+                    'article_key' => $article->key,
+                    'locale' => $locale,
+                    'source_hash' => $source->fingerprint($article, $locale),
+                ];
+            }
+        }
+
+        return $targets;
+    }
+
+    /**
+     * @param  list<array{article_key: string, locale: string, source_hash: string}>  $targets
+     */
+    private function constrainToActiveTargets(Builder $query, array $targets, bool $includeSourceHash = false): void
+    {
+        $query->where(function (Builder $query) use ($targets, $includeSourceHash): void {
+            foreach ($targets as $target) {
+                $query->orWhere(function (Builder $query) use ($target, $includeSourceHash): void {
+                    $query
+                        ->where('article_key', $target['article_key'])
+                        ->where('locale', $target['locale']);
+
+                    if ($includeSourceHash) {
+                        $query->where('source_hash', $target['source_hash']);
+                    }
+                });
+            }
+        });
     }
 
     private function trackStatusLabel(?ArticleAudio $track, bool $isStale): string

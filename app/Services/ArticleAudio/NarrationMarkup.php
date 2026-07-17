@@ -8,8 +8,8 @@ class NarrationMarkup
     {
         $prepared = $modelId === 'eleven_multilingual_v2'
             ? str_replace(
-                ['[thoughtful]', '[short pause]', '[long pause]'],
-                ['', '<break time="0.7s" />', '<break time="1.4s" />'],
+                ['[thoughtful]', '[short pause]', '[long pause]', '[exhales]'],
+                ['', '<break time="0.7s" />', '<break time="1.4s" />', ''],
                 $script,
             )
             : $script;

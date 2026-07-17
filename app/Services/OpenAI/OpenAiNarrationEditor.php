@@ -20,7 +20,7 @@ use Throwable;
 
 class OpenAiNarrationEditor implements NarrationEditor
 {
-    private const PROMPT_VERSION = 'arabic-editorial-v2';
+    private const PROMPT_VERSION = 'arabic-editorial-v3';
 
     public function __construct(
         private readonly NarrationDraftValidator $validator,
@@ -59,7 +59,7 @@ class OpenAiNarrationEditor implements NarrationEditor
         $payload = $response->toArray();
 
         $script = trim((string) ($payload['script'] ?? ''));
-        $this->validator->validate($script, $source);
+        $this->validator->validateGenerated($script, $source, $locale);
 
         return new NarrationDraft(
             script: $script,

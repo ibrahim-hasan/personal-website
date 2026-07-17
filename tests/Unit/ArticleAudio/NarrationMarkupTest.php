@@ -12,7 +12,7 @@ class NarrationMarkupTest extends TestCase
 {
     public function test_v3_keeps_expressive_tags_while_v2_uses_supported_break_markup(): void
     {
-        $script = '[thoughtful] بداية هادئة. [short pause] ثم فكرة ثانية. [long pause] وأخيراً الخلاصة.';
+        $script = '[thoughtful] بداية هادئة. [short pause] ثم فكرة ثانية. [exhales] [long pause] وأخيراً الخلاصة.';
         $markup = new NarrationMarkup;
 
         $v3 = $markup->forModel($script, 'eleven_v3');
@@ -21,6 +21,7 @@ class NarrationMarkupTest extends TestCase
         $this->assertSame($script, $v3);
         $this->assertStringNotContainsString('[thoughtful]', $v2);
         $this->assertStringNotContainsString('[short pause]', $v2);
+        $this->assertStringNotContainsString('[exhales]', $v2);
         $this->assertStringContainsString('<break time="0.7s" />', $v2);
         $this->assertStringContainsString('<break time="1.4s" />', $v2);
     }
@@ -49,6 +50,47 @@ class NarrationMarkupTest extends TestCase
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessage('source length');
 
-        $validator->validate('ملخص قصير جداً.', $source);
+        $validator->validate('مُلَخَّصٌ قَصِيرٌ جِدًّا.', $source);
+    }
+
+    public function test_validator_requires_pronunciation_focused_diacritics_for_arabic_only(): void
+    {
+        $validator = new NarrationDraftValidator;
+        $source = str_repeat('هذه جملة عربية تحافظ على المعنى الأصلي. ', 20);
+
+        $validator->validateGenerated(
+            str_repeat('هَذِهِ جُمْلَةٌ عَرَبِيَّةٌ تُحَافِظُ عَلَى المَعْنَى الأَصْلِيِّ. ', 20),
+            $source,
+            'ar',
+        );
+
+        $validator->validateGenerated(
+            'هَذَا نَصٌّ عَرَبِيٌّ وَاضِحٌ عَنْ OpenAI وَ ElevenLabs.',
+            'هذا نص عربي واضح عن OpenAI وElevenLabs.',
+            'ar',
+        );
+
+        $validator->validateGenerated(
+            str_repeat('This English sentence preserves the original meaning. ', 20),
+            str_repeat('This English sentence preserves the original meaning. ', 20),
+            'en',
+        );
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('pronunciation-focused diacritics');
+
+        $validator->validateGenerated($source, $source, 'ar');
+    }
+
+    public function test_validator_rejects_a_non_arabic_generated_script_for_the_arabic_locale(): void
+    {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('not predominantly Arabic');
+
+        (new NarrationDraftValidator)->validateGenerated(
+            'This response is written entirely in English.',
+            'هذه استجابة عربية قصيرة.',
+            'ar',
+        );
     }
 }

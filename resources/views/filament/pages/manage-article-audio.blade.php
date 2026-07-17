@@ -3,10 +3,10 @@
         $configuration = $this->configuration();
         $rows = $this->articleRows();
         $canGenerate = $this->canGenerate();
-        $hasActiveWork = collect($rows)->contains('has_active_work', true);
+        $hasActiveWork = $this->activeWork;
     @endphp
 
-    <div @if ($hasActiveWork) wire:poll.5s.visible @endif class="space-y-6">
+    <div class="space-y-6">
         <section class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900">
             <div class="grid gap-6 p-6 lg:grid-cols-[1.25fr_1fr]">
                 <div class="space-y-4">
@@ -59,12 +59,24 @@
                 </dl>
             </div>
 
-            @if ($hasActiveWork)
-                <div class="flex items-center gap-3 border-t border-info-200 bg-info-50 px-6 py-3 text-sm text-info-800 dark:border-info-500/20 dark:bg-info-500/10 dark:text-info-200">
+            @island(name: 'article-audio-progress')
+            @if ($this->activeWork)
+                <div wire:poll.5s.visible="pollWorkStatus" class="flex items-center gap-3 border-t border-info-200 bg-info-50 px-6 py-3 text-sm text-info-800 dark:border-info-500/20 dark:bg-info-500/10 dark:text-info-200">
                     <x-heroicon-o-arrow-path class="h-4 w-4 animate-spin" />
                     <span>{{ __('article_audio.page.auto_refresh_locked') }}</span>
                 </div>
+            @elseif ($this->observedActiveWork)
+                <div class="flex flex-wrap items-center justify-between gap-3 border-t border-success-200 bg-success-50 px-6 py-3 text-sm text-success-800 dark:border-success-500/20 dark:bg-success-500/10 dark:text-success-200">
+                    <span class="flex items-center gap-3">
+                        <x-heroicon-o-check-circle class="h-5 w-5" />
+                        <span>{{ __('article_audio.page.processing_complete') }}</span>
+                    </span>
+                    <a href="{{ \App\Filament\Pages\ManageArticleAudio::getUrl() }}" class="font-semibold underline decoration-success-400 underline-offset-4 hover:no-underline">
+                        {{ __('article_audio.actions.refresh_results') }}
+                    </a>
+                </div>
             @endif
+            @endisland
         </section>
 
         @unless ($canGenerate)
@@ -83,7 +95,7 @@
             </header>
 
             @foreach ($rows as $row)
-                <details class="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm open:border-primary-300 dark:border-white/10 dark:bg-gray-900 dark:open:border-primary-500/40">
+                <details wire:key="article-audio-{{ $row['key'] }}-{{ $row['locale'] }}" class="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm open:border-primary-300 dark:border-white/10 dark:bg-gray-900 dark:open:border-primary-500/40">
                     <summary class="flex cursor-pointer list-none flex-col gap-4 p-5 marker:hidden sm:flex-row sm:items-center sm:justify-between">
                         <div class="min-w-0">
                             <div class="flex flex-wrap items-center gap-2">

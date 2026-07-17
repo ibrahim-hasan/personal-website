@@ -7,6 +7,7 @@ use App\Filament\Pages\ManageArticleAudio;
 use App\Jobs\GenerateArticleAudio;
 use App\Jobs\GenerateArticleAudioSample;
 use App\Jobs\PrepareArticleNarration;
+use App\Models\ArticleAudio;
 use App\Models\ArticleNarration;
 use App\Models\User;
 use App\Services\ArticleAudio\ArticleNarrationScript;
@@ -14,8 +15,10 @@ use App\Support\Editorial\ArticleCatalog;
 use Database\Seeders\ArticleSeeder;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -138,6 +141,97 @@ class ArticleNarrationWorkflowTest extends TestCase
             ->assertSee(__('article_audio.actions.approve'))
             ->assertDontSee('openai-server-only-secret', false)
             ->assertDontSee('eleven-server-only-secret', false);
+    }
+
+    public function test_active_work_polling_is_isolated_from_the_interactive_page(): void
+    {
+        $editor = $this->editor();
+        $article = app(ArticleCatalog::class)->findByKey('ai-value');
+        $this->assertNotNull($article);
+        $sourceHash = app(ArticleNarrationScript::class)->fingerprint($article, 'ar');
+        $narration = ArticleNarration::factory()->preparing()->create([
+            'source_hash' => $sourceHash,
+        ]);
+
+        $this->actingAs($editor)
+            ->get(ManageArticleAudio::getUrl())
+            ->assertOk()
+            ->assertSee('wire:poll.5s.visible="pollWorkStatus"', false)
+            ->assertSee('wire:key="article-audio-ai-value-ar"', false)
+            ->assertDontSee('<div wire:poll.5s.visible class="space-y-6">', false);
+
+        $component = Livewire::actingAs($editor)
+            ->test(ManageArticleAudio::class)
+            ->assertSet('activeWork', true)
+            ->assertSet('observedActiveWork', true);
+
+        $narration->forceFill([
+            'status' => ArticleNarrationStatus::Draft,
+            'prepared_at' => now(),
+        ])->save();
+
+        $component
+            ->call('pollWorkStatus')
+            ->assertSet('activeWork', false)
+            ->assertSet('observedActiveWork', true);
+
+        $page = app(ManageArticleAudio::class);
+        $page->mount();
+
+        Event::fake([
+            'eloquent.retrieved: '.ArticleAudio::class,
+            'eloquent.retrieved: '.ArticleNarration::class,
+        ]);
+
+        $page->pollWorkStatus();
+
+        $this->assertFalse($page->activeWork);
+        Event::assertNotDispatched('eloquent.retrieved: '.ArticleAudio::class);
+        Event::assertNotDispatched('eloquent.retrieved: '.ArticleNarration::class);
+    }
+
+    public function test_stale_or_unconfigured_sample_work_does_not_lock_the_admin_page(): void
+    {
+        $editor = $this->editor();
+        $article = app(ArticleCatalog::class)->findByKey('ai-value');
+        $this->assertNotNull($article);
+        $sourceHash = app(ArticleNarrationScript::class)->fingerprint($article, 'ar');
+
+        $narration = ArticleNarration::factory()->create([
+            'source_hash' => 'stale-source-hash',
+            'samples' => [
+                'eleven_v3' => ['status' => 'processing'],
+            ],
+        ]);
+        ArticleAudio::factory()->queued()->create([
+            'article_key' => 'obsolete-article',
+            'queued_at' => now(),
+        ]);
+
+        Livewire::actingAs($editor)
+            ->test(ManageArticleAudio::class)
+            ->assertSet('activeWork', false);
+
+        $narration->forceFill([
+            'source_hash' => $sourceHash,
+            'samples' => [
+                'retired_model' => ['status' => 'processing'],
+            ],
+        ])->save();
+
+        Livewire::actingAs($editor)
+            ->test(ManageArticleAudio::class)
+            ->assertSet('activeWork', false);
+
+        $narration->forceFill([
+            'samples' => [
+                'eleven_v3' => ['status' => 'processing'],
+            ],
+        ])->save();
+
+        Livewire::actingAs($editor)
+            ->test(ManageArticleAudio::class)
+            ->assertSet('activeWork', true);
     }
 
     public function test_samples_require_the_current_shared_voice(): void
