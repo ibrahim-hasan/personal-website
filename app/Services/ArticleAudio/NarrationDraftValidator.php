@@ -6,8 +6,6 @@ use UnexpectedValueException;
 
 class NarrationDraftValidator
 {
-    private const MINIMUM_ARABIC_DIACRITIC_COVERAGE = 0.60;
-
     private const MINIMUM_ARABIC_WORD_COVERAGE = 0.50;
 
     private const ARABIC_DIACRITICS_PATTERN = '/[\x{064B}-\x{0652}\x{0670}]/u';
@@ -66,11 +64,11 @@ class NarrationDraftValidator
         if ($locale === 'ar') {
             $plainScript = preg_replace('/\[[^\]]+\]/u', '', $script) ?? $script;
 
-            $this->validateArabicDiacriticCoverage($plainScript);
+            $this->validateArabicLanguage($plainScript);
         }
     }
 
-    private function validateArabicDiacriticCoverage(string $script): void
+    private function validateArabicLanguage(string $script): void
     {
         preg_match_all(self::LEXICAL_WORD_PATTERN, $script, $lexicalMatches);
         preg_match_all(self::ARABIC_WORD_PATTERN, $script, $matches);
@@ -87,15 +85,6 @@ class NarrationDraftValidator
 
         if ($lexicalWords === [] || ($words === [] || (count($words) / count($lexicalWords)) < self::MINIMUM_ARABIC_WORD_COVERAGE)) {
             throw new UnexpectedValueException('The Arabic narration draft is not predominantly Arabic.');
-        }
-
-        $diacritizedWords = count(array_filter(
-            $words,
-            fn (string $word): bool => preg_match(self::ARABIC_DIACRITICS_PATTERN, $word) === 1,
-        ));
-
-        if (($diacritizedWords / count($words)) < self::MINIMUM_ARABIC_DIACRITIC_COVERAGE) {
-            throw new UnexpectedValueException('The Arabic narration draft does not contain enough pronunciation-focused diacritics.');
         }
     }
 

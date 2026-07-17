@@ -50,22 +50,22 @@ class NarrationMarkupTest extends TestCase
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessage('source length');
 
-        $validator->validate('مُلَخَّصٌ قَصِيرٌ جِدًّا.', $source);
+        $validator->validate('ملخص قصير جداً.', $source);
     }
 
-    public function test_validator_requires_pronunciation_focused_diacritics_for_arabic_only(): void
+    public function test_validator_allows_arabic_without_full_vocalization(): void
     {
         $validator = new NarrationDraftValidator;
         $source = str_repeat('هذه جملة عربية تحافظ على المعنى الأصلي. ', 20);
 
         $validator->validateGenerated(
-            str_repeat('هَذِهِ جُمْلَةٌ عَرَبِيَّةٌ تُحَافِظُ عَلَى المَعْنَى الأَصْلِيِّ. ', 20),
+            str_repeat('هذه جملة عربية تحافظ على المعنى الأصلي. ', 20),
             $source,
             'ar',
         );
 
         $validator->validateGenerated(
-            'هَذَا نَصٌّ عَرَبِيٌّ وَاضِحٌ عَنْ OpenAI وَ ElevenLabs.',
+            'هذا نص عربي واضح عن OpenAI وElevenLabs.',
             'هذا نص عربي واضح عن OpenAI وElevenLabs.',
             'ar',
         );
@@ -76,10 +76,7 @@ class NarrationMarkupTest extends TestCase
             'en',
         );
 
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionMessage('pronunciation-focused diacritics');
-
-        $validator->validateGenerated($source, $source, 'ar');
+        $this->addToAssertionCount(1);
     }
 
     public function test_validator_rejects_a_non_arabic_generated_script_for_the_arabic_locale(): void
