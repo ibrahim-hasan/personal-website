@@ -82,6 +82,7 @@ class ArticlePagesTest extends TestCase
         $arabicArticle = $article->localized('ar');
         $arabicUrl = $catalog->url($article, 'ar');
         $englishUrl = $catalog->url($article, 'en');
+        $qabilahUrl = 'https://qabilah.com/discover/following?'.http_build_query(['title' => $arabicArticle['title'], 'text' => $arabicArticle['summary'], 'url' => $arabicUrl], '', '&amp;', PHP_QUERY_RFC3986).'#write-post';
 
         $this->get(parse_url($arabicUrl, PHP_URL_PATH).'?utm_source=ignored')
             ->assertOk()
@@ -94,6 +95,7 @@ class ArticlePagesTest extends TestCase
             ->assertSee('نسخ الرابط', false)
             ->assertSee('https://www.linkedin.com/sharing/share-offsite/?url='.rawurlencode($arabicUrl), false)
             ->assertSee('https://wa.me/?text='.rawurlencode($arabicArticle['title']."\n".$arabicUrl), false)
+            ->assertSee($qabilahUrl, false)
             ->assertSee('target="_blank"', false)
             ->assertSee('rel="noopener noreferrer"', false)
             ->assertSee('width="1600"', false)
@@ -104,6 +106,7 @@ class ArticlePagesTest extends TestCase
             ->assertOk()
             ->assertSee('data-share-url="'.$englishUrl.'"', false)
             ->assertSee('Share article', false)
+            ->assertSee('Share on Qabilah', false)
             ->assertSee('Copy link', false);
     }
 

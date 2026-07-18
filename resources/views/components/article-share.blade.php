@@ -12,6 +12,11 @@
     $whatsAppUrl = 'https://wa.me/?'.http_build_query([
         'text' => $title."\n".$canonicalUrl,
     ], '', '&', PHP_QUERY_RFC3986);
+    $qabilahUrl = 'https://qabilah.com/discover/following?'.http_build_query([
+        'title' => $title,
+        'text' => $shareDescription,
+        'url' => $canonicalUrl,
+    ], '', '&', PHP_QUERY_RFC3986).'#write-post';
     $emailUrl = 'mailto:?'.http_build_query([
         'subject' => $title,
         'body' => $shareDescription."\n\n".$canonicalUrl,
@@ -61,6 +66,17 @@
         >
             <x-phosphor-linkedin-logo class="h-4 w-4" aria-hidden="true" />
             <span>{{ __('articles.share.linkedin_short') }}</span>
+        </a>
+
+        <a
+            href="{{ $qabilahUrl }}"
+            class="article-share__action"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="{{ __('articles.share.qabilah') }}"
+        >
+            <x-phosphor-share-network class="h-4 w-4" aria-hidden="true" />
+            <span>{{ __('articles.share.qabilah_short') }}</span>
         </a>
 
         <a

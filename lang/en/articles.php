@@ -64,6 +64,8 @@ return [
         'linkedin' => 'Share on LinkedIn',
         'linkedin_short' => 'LinkedIn',
         'whatsapp' => 'Share via WhatsApp',
+        'qabilah' => 'Share on Qabilah',
+        'qabilah_short' => 'Qabilah',
         'whatsapp_short' => 'WhatsApp',
         'email' => 'Share by email',
         'email_short' => 'Email',

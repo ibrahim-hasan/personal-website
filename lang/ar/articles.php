@@ -64,6 +64,8 @@ return [
         'linkedin' => 'شارك على لينكدإن',
         'linkedin_short' => 'لينكدإن',
         'whatsapp' => 'شارك عبر واتساب',
+        'qabilah' => 'شارك على قبيلة',
+        'qabilah_short' => 'قبيلة',
         'whatsapp_short' => 'واتساب',
         'email' => 'إرسال المقال بالبريد',
         'email_short' => 'البريد',
