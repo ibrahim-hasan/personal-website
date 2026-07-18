@@ -107,12 +107,12 @@ class GenerateArticleAudioJobTest extends TestCase
         $this->assertGreaterThan($job->timeout, $job->uniqueFor);
     }
 
-    public function test_job_can_generate_full_audio_without_a_sample_when_explicitly_requested(): void
+    public function test_job_can_generate_full_audio_without_a_sample_or_approval_when_explicitly_requested(): void
     {
         $article = app(ArticleCatalog::class)->findByKey('ai-value');
         $this->assertNotNull($article);
         $source = app(ArticleNarrationScript::class)->build($article, 'ar');
-        ArticleNarration::factory()->approved()->create([
+        ArticleNarration::factory()->create([
             'article_key' => $article->key,
             'locale' => 'ar',
             'source_hash' => hash('sha256', $source),
@@ -124,7 +124,7 @@ class GenerateArticleAudioJobTest extends TestCase
             'Content-Type' => 'audio/mpeg',
             'request-id' => 'eleven-request',
         ]));
-        $job = new GenerateArticleAudio($article->key, 'ar', 'eleven_multilingual_v2', true);
+        $job = new GenerateArticleAudio($article->key, 'ar', 'eleven_multilingual_v2', true, true);
         app()->call([$job, 'handle']);
         $audio = ArticleAudio::query()->where('article_key', $article->key)->where('locale', 'ar')->firstOrFail();
         $this->assertSame(ArticleAudioStatus::Ready, $audio->status);

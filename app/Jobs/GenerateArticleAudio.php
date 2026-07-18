@@ -35,6 +35,7 @@ class GenerateArticleAudio implements ShouldBeUnique, ShouldQueue
         public readonly string $locale,
         public readonly ?string $modelId = null,
         public readonly bool $skipSampleRequirement = false,
+        public readonly bool $skipNarrationApproval = false,
     ) {
         $this->timeout = ElevenLabsExecutionBudget::fullJobTimeout();
         $this->uniqueFor = ElevenLabsExecutionBudget::uniqueFor($this->timeout);
@@ -64,10 +65,10 @@ class GenerateArticleAudio implements ShouldBeUnique, ShouldQueue
             ['status' => ArticleAudioStatus::Queued, 'queued_at' => now()],
         );
         $modelId = $this->modelId ?: $audio->model_id ?: (string) config('services.elevenlabs.model_id');
-        $script = $scripts->approved($article, $this->locale, $modelId);
+        $script = $scripts->approved($article, $this->locale, $modelId, $this->skipNarrationApproval);
 
         if ($script === null) {
-            throw new RuntimeException('An approved current narration script is required.');
+            throw new RuntimeException('A current narration script is required.');
         }
 
         $narration = ArticleNarration::query()->find($script->narrationId);

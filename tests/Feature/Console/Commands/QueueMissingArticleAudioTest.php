@@ -89,6 +89,32 @@ class QueueMissingArticleAudioTest extends TestCase
         Bus::assertNotDispatched(GenerateArticleAudioSample::class);
     }
 
+    public function test_it_queues_current_drafts_only_when_approval_is_explicitly_skipped(): void
+    {
+        $article = app(ArticleCatalog::class)->findByKey('ai-value');
+        $this->assertNotNull($article);
+        $source = app(ArticleNarrationScript::class)->build($article, 'ar');
+        ArticleNarration::factory()->create([
+            'article_key' => $article->key,
+            'locale' => 'ar',
+            'source_hash' => hash('sha256', $source),
+            'script' => $source,
+        ]);
+        $this->artisan('articles:queue-missing-audio', ['--locale' => 'ar', '--skip-samples' => true])
+            ->expectsOutputToContain('Queued 0 full tracks')
+            ->assertExitCode(0);
+        Bus::assertNotDispatched(GenerateArticleAudio::class);
+        $this->artisan('articles:queue-missing-audio', ['--locale' => 'ar', '--skip-samples' => true, '--skip-approval' => true])
+            ->expectsOutputToContain('Queued 1 full tracks')
+            ->assertExitCode(0);
+        Bus::assertDispatched(
+            GenerateArticleAudio::class,
+            fn (GenerateArticleAudio $job): bool => $job->articleKey === $article->key
+                && $job->skipSampleRequirement
+                && $job->skipNarrationApproval,
+        );
+    }
+
     private function approvedNarration(Article $article, bool $withSample): ArticleNarration
     {
         $source = app(ArticleNarrationScript::class)->build($article, 'ar');

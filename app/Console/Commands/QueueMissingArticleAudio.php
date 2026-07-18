@@ -14,7 +14,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Bus;
 
-#[Signature('articles:queue-missing-audio {--locale=* : Limit generation to one or more locales (ar, en)} {--model= : The configured ElevenLabs model ID to use} {--skip-samples : Generate full tracks directly without requiring or creating samples}')]
+#[Signature('articles:queue-missing-audio {--locale=* : Limit generation to one or more locales (ar, en)} {--model= : The configured ElevenLabs model ID to use} {--skip-samples : Generate full tracks directly without requiring or creating samples} {--skip-approval : Generate full tracks from current narration drafts without editorial approval}')]
 #[Description('Queue full audio for published articles without a current voiced track')]
 class QueueMissingArticleAudio extends Command
 {
@@ -23,6 +23,7 @@ class QueueMissingArticleAudio extends Command
         $locales = $this->locales();
         $modelId = trim((string) ($this->option('model') ?: config('services.elevenlabs.model_id')));
         $skipSamples = (bool) $this->option('skip-samples');
+        $skipApproval = (bool) $this->option('skip-approval');
 
         if ($locales === null || ! $this->hasValidModel($modelId)) {
             return self::FAILURE;
@@ -36,7 +37,7 @@ class QueueMissingArticleAudio extends Command
 
         foreach ($articles->all() as $article) {
             foreach ($locales as $locale) {
-                $script = $scripts->approved($article, $locale, $modelId);
+                $script = $scripts->approved($article, $locale, $modelId, $skipApproval);
 
                 if ($script === null) {
                     $awaitingNarration++;
@@ -110,7 +111,7 @@ class QueueMissingArticleAudio extends Command
                     'last_error' => null,
                 ])->save();
 
-                GenerateArticleAudio::dispatch($article->key, $locale, $modelId, $skipSamples);
+                GenerateArticleAudio::dispatch($article->key, $locale, $modelId, $skipSamples, $skipApproval);
                 $queued++;
             }
         }

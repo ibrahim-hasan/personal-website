@@ -3,6 +3,7 @@
 namespace App\Services\ArticleAudio;
 
 use App\Data\ArticleAudio\ResolvedArticleAudioScript;
+use App\Enums\ArticleNarrationStatus;
 use App\Models\ArticleNarration;
 use App\Support\Editorial\Article;
 
@@ -13,13 +14,13 @@ class ArticleAudioScript
         private readonly NarrationMarkup $markup,
     ) {}
 
-    public function approved(Article $article, string $locale, string $modelId): ?ResolvedArticleAudioScript
+    public function approved(Article $article, string $locale, string $modelId, bool $allowCurrentDraft = false): ?ResolvedArticleAudioScript
     {
         $sourceHash = $this->source->fingerprint($article, $locale);
         $narration = ArticleNarration::query()
             ->where('article_key', $article->key)
             ->where('locale', $locale)
-            ->whereNotNull('approved_at')
+            ->when($allowCurrentDraft, fn ($query) => $query->whereIn('status', [ArticleNarrationStatus::Draft->value, ArticleNarrationStatus::Approved->value]), fn ($query) => $query->whereNotNull('approved_at'))
             ->where('source_hash', $sourceHash)
             ->whereNotNull('script')
             ->first();
