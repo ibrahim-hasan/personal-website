@@ -72,6 +72,23 @@ class QueueMissingArticleAudioTest extends TestCase
         ]);
     }
 
+    public function test_it_can_queue_full_tracks_without_creating_or_requiring_samples(): void
+    {
+        $article = app(ArticleCatalog::class)->findByKey('ai-value');
+        $this->assertNotNull($article);
+        $this->approvedNarration($article, withSample: false);
+        $this->artisan('articles:queue-missing-audio', ['--locale' => 'ar', '--skip-samples' => true])
+            ->expectsOutputToContain('Queued 1 full tracks and 0 sample-to-track pipelines')
+            ->assertExitCode(0);
+        Bus::assertDispatched(
+            GenerateArticleAudio::class,
+            fn (GenerateArticleAudio $job): bool => $job->articleKey === $article->key
+                && $job->locale === 'ar'
+                && $job->skipSampleRequirement,
+        );
+        Bus::assertNotDispatched(GenerateArticleAudioSample::class);
+    }
+
     private function approvedNarration(Article $article, bool $withSample): ArticleNarration
     {
         $source = app(ArticleNarrationScript::class)->build($article, 'ar');

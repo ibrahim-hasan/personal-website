@@ -107,6 +107,30 @@ class GenerateArticleAudioJobTest extends TestCase
         $this->assertGreaterThan($job->timeout, $job->uniqueFor);
     }
 
+    public function test_job_can_generate_full_audio_without_a_sample_when_explicitly_requested(): void
+    {
+        $article = app(ArticleCatalog::class)->findByKey('ai-value');
+        $this->assertNotNull($article);
+        $source = app(ArticleNarrationScript::class)->build($article, 'ar');
+        ArticleNarration::factory()->approved()->create([
+            'article_key' => $article->key,
+            'locale' => 'ar',
+            'source_hash' => hash('sha256', $source),
+            'script' => $source,
+        ]);
+        $segment = "\xFF\xFB".str_repeat('A', 600);
+        Http::preventStrayRequests();
+        Http::fake(fn () => Http::response($segment, 200, [
+            'Content-Type' => 'audio/mpeg',
+            'request-id' => 'eleven-request',
+        ]));
+        $job = new GenerateArticleAudio($article->key, 'ar', 'eleven_multilingual_v2', true);
+        app()->call([$job, 'handle']);
+        $audio = ArticleAudio::query()->where('article_key', $article->key)->where('locale', 'ar')->firstOrFail();
+        $this->assertSame(ArticleAudioStatus::Ready, $audio->status);
+        Http::assertSentCount(2);
+    }
+
     public function test_failed_job_records_a_sanitized_error_without_deleting_previous_audio(): void
     {
         Storage::disk('public')->put('article-audio/ar/previous.mp3', 'previous-audio');

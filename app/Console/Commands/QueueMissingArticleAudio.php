@@ -14,7 +14,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Bus;
 
-#[Signature('articles:queue-missing-audio {--locale=* : Limit generation to one or more locales (ar, en)} {--model= : The configured ElevenLabs model ID to use}')]
+#[Signature('articles:queue-missing-audio {--locale=* : Limit generation to one or more locales (ar, en)} {--model= : The configured ElevenLabs model ID to use} {--skip-samples : Generate full tracks directly without requiring or creating samples}')]
 #[Description('Queue full audio for published articles without a current voiced track')]
 class QueueMissingArticleAudio extends Command
 {
@@ -22,6 +22,7 @@ class QueueMissingArticleAudio extends Command
     {
         $locales = $this->locales();
         $modelId = trim((string) ($this->option('model') ?: config('services.elevenlabs.model_id')));
+        $skipSamples = (bool) $this->option('skip-samples');
 
         if ($locales === null || ! $this->hasValidModel($modelId)) {
             return self::FAILURE;
@@ -68,13 +69,13 @@ class QueueMissingArticleAudio extends Command
                     continue;
                 }
 
-                if ($narration->sampleIsGenerating($modelId)) {
+                if (! $skipSamples && $narration->sampleIsGenerating($modelId)) {
                     $active++;
 
                     continue;
                 }
 
-                if (! $narration->hasCurrentSample($modelId)) {
+                if (! $skipSamples && ! $narration->hasCurrentSample($modelId)) {
                     $narration->updateSample($modelId, [
                         'status' => 'queued',
                         'script_hash' => $narration->scriptFingerprint(),
@@ -109,7 +110,7 @@ class QueueMissingArticleAudio extends Command
                     'last_error' => null,
                 ])->save();
 
-                GenerateArticleAudio::dispatch($article->key, $locale, $modelId);
+                GenerateArticleAudio::dispatch($article->key, $locale, $modelId, $skipSamples);
                 $queued++;
             }
         }

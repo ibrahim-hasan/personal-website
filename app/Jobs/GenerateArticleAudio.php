@@ -34,6 +34,7 @@ class GenerateArticleAudio implements ShouldBeUnique, ShouldQueue
         public readonly string $articleKey,
         public readonly string $locale,
         public readonly ?string $modelId = null,
+        public readonly bool $skipSampleRequirement = false,
     ) {
         $this->timeout = ElevenLabsExecutionBudget::fullJobTimeout();
         $this->uniqueFor = ElevenLabsExecutionBudget::uniqueFor($this->timeout);
@@ -71,7 +72,11 @@ class GenerateArticleAudio implements ShouldBeUnique, ShouldQueue
 
         $narration = ArticleNarration::query()->find($script->narrationId);
 
-        if ($narration === null || ! $narration->hasCurrentSample($modelId)) {
+        if ($narration === null) {
+            throw new RuntimeException('An approved current narration script is required.');
+        }
+
+        if (! $this->skipSampleRequirement && ! $narration->hasCurrentSample($modelId)) {
             throw new RuntimeException('A current approved sample is required before full generation.');
         }
 
