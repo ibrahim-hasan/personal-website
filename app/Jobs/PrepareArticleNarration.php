@@ -6,6 +6,7 @@ use App\Contracts\ArticleAudio\NarrationEditor;
 use App\Enums\ArticleNarrationStatus;
 use App\Models\ArticleNarration;
 use App\Services\ArticleAudio\ArticleNarrationScript;
+use App\Services\ArticleAudio\NarrationDraftValidator;
 use App\Support\Ai\NarrationExecutionBudget;
 use App\Support\Editorial\ArticleCatalog;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -45,6 +46,7 @@ class PrepareArticleNarration implements ShouldBeUnique, ShouldQueue
         ArticleCatalog $articles,
         ArticleNarrationScript $source,
         NarrationEditor $editor,
+        NarrationDraftValidator $validator,
     ): void {
         $article = $articles->findByKey($this->articleKey);
 
@@ -67,6 +69,8 @@ class PrepareArticleNarration implements ShouldBeUnique, ShouldQueue
         ])->save();
 
         $draft = $editor->prepare($sourceText, $this->locale);
+
+        $validator->validateGenerated($draft->script, $sourceText, $this->locale);
 
         $narration->forceFill([
             'status' => ArticleNarrationStatus::Draft,

@@ -29,6 +29,10 @@ class GenerateArticleAudioEndpointTest extends TestCase
         $this->seed([ArticleSeeder::class, PermissionSeeder::class]);
         config()->set('services.elevenlabs.api_key', 'server-only-secret');
         config()->set('services.elevenlabs.voice_id', 'abcd1234voice5678wxyz');
+        config()->set('services.elevenlabs.voice_ids', [
+            'ar' => 'abcd1234voice5678wxyz',
+            'en' => 'american-english-voice',
+        ]);
         config()->set('services.elevenlabs.model_id', 'eleven_multilingual_v2');
         Queue::fake();
         Storage::fake('public');

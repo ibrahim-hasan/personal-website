@@ -66,6 +66,7 @@ return [
         'whatsapp' => 'شارك عبر واتساب',
         'qabilah' => 'شارك على قبيلة',
         'qabilah_short' => 'قبيلة',
+        'qabilah_copy_success' => 'فُتحت قبيلة. نص المنشور جاهز للصقه في محرر المنشور.',
         'whatsapp_short' => 'واتساب',
         'email' => 'إرسال المقال بالبريد',
         'email_short' => 'البريد',

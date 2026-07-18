@@ -259,6 +259,7 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString('window.requestAnimationFrame(updatePosition)', $javascript);
         $this->assertStringContainsString('@continue(current_locale() === $locale)', $this->readProjectFile('resources/views/components/partials/navbar.blade.php'));
         $this->assertStringContainsString('class="language-switch__action"', $this->readProjectFile('resources/views/components/partials/navbar.blade.php'));
+        $this->assertStringNotContainsString('auth()->user()->email', $this->readProjectFile('resources/views/components/partials/navbar.blade.php'));
         $this->assertStringNotContainsString('x-phosphor-translate', $this->readProjectFile('resources/views/components/partials/navbar.blade.php'));
         $this->assertMatchesRegularExpression(
             "/\\.language-switch__action:lang\\(ar\\)\\s*\\{[^}]*font-family:\\s*'Thmanyah Sans', 'Noto Sans'[^}]*font-weight:\\s*700;/s",
@@ -407,10 +408,18 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString('aria-live="polite"', $component);
         $this->assertSame(4, substr_count($component, 'rel="noopener noreferrer"'));
         $this->assertStringContainsString('https://qabilah.com/discover/following?', $component);
+        $this->assertStringContainsString('data-article-qabilah-share', $component);
+        $this->assertStringContainsString('x-phosphor-users-three', $component);
+        $this->assertStringContainsString('data-qabilah-copy-success', $component);
         $this->assertStringContainsString("await import('./article-share')", $application);
         $this->assertStringContainsString("typeof navigator.share === 'function'", $sharing);
         $this->assertStringContainsString('navigator.clipboard?.writeText', $sharing);
         $this->assertStringContainsString("document.execCommand('copy')", $sharing);
+        $this->assertStringContainsString("qabilahLink?.addEventListener('click'", $sharing);
+        $this->assertMatchesRegularExpression(
+            '/if \(nativeButton.*?\n        }\n\n        qabilahLink\?\.addEventListener/s',
+            $sharing,
+        );
         $this->assertStringContainsString('}, 2000);', $sharing);
         $this->assertStringContainsString('data-article-copy-success', $component);
         $this->assertStringContainsString('data-default-label=', $component);

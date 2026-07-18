@@ -122,7 +122,7 @@ class GenerateArticleAudio implements ShouldBeUnique, ShouldQueue
                 'character_count' => $result->characterCount,
                 'segment_count' => $result->segmentCount,
                 'content_hash' => $contentHash,
-                'voice_id' => $speech->voiceId(),
+                'voice_id' => $speech->voiceId($this->locale),
                 'model_id' => $modelId,
                 'output_format' => (string) config('services.elevenlabs.output_format'),
                 'voice_settings' => $speech->profile($modelId)['voice_settings'],

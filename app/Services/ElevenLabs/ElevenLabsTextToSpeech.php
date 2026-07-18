@@ -21,7 +21,7 @@ class ElevenLabsTextToSpeech
     public function synthesize(string $text, string $locale, ?string $modelId = null): SpeechSynthesisResult
     {
         $apiKey = (string) config('services.elevenlabs.api_key');
-        $voiceId = $this->voiceId();
+        $voiceId = $this->voiceId($locale);
         $modelId ??= (string) config('services.elevenlabs.model_id', 'eleven_multilingual_v2');
         $profile = $this->profile($modelId);
 
@@ -149,9 +149,11 @@ class ElevenLabsTextToSpeech
         $this->checkpoints->forget($checkpointKey);
     }
 
-    public function voiceId(): string
+    public function voiceId(string $locale = 'ar'): string
     {
-        return trim((string) config('services.elevenlabs.voice_id'));
+        return trim((string) (
+            config('services.elevenlabs.voice_ids.'.$locale) ?: config('services.elevenlabs.voice_id')
+        ));
     }
 
     /**

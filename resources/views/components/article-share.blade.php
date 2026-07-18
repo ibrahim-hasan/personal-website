@@ -74,8 +74,9 @@
             target="_blank"
             rel="noopener noreferrer"
             aria-label="{{ __('articles.share.qabilah') }}"
+            data-article-qabilah-share
         >
-            <x-phosphor-share-network class="h-4 w-4" aria-hidden="true" />
+            <x-phosphor-users-three class="h-4 w-4" aria-hidden="true" />
             <span>{{ __('articles.share.qabilah_short') }}</span>
         </a>
 
@@ -108,6 +109,7 @@
         data-copy-success="{{ __('articles.share.copied') }}"
         data-copy-error="{{ __('articles.share.copy_failed') }}"
         data-share-error="{{ __('articles.share.share_failed') }}"
+        data-qabilah-copy-success="{{ __('articles.share.qabilah_copy_success') }}"
         aria-live="polite"
         aria-atomic="true"
     ></p>

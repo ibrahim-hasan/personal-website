@@ -35,20 +35,20 @@ class NarrationMarkupTest extends TestCase
         $this->assertStringEndsWith('.', $excerpt);
     }
 
-    public function test_validator_rejects_unknown_tags_and_substantial_summarization(): void
+    public function test_validator_rejects_every_change_except_arabic_diacritics(): void
     {
         $validator = new NarrationDraftValidator;
         $source = str_repeat('هذه حقيقة يجب الحفاظ عليها. ', 30);
 
         try {
-            $validator->validate($source.' [whisper]', $source);
-            $this->fail('Unknown audio tags must be rejected.');
+            $validator->validate(str_replace('الحفاظ', 'تغيير', $source), $source);
+            $this->fail('Changed source text must be rejected.');
         } catch (UnexpectedValueException $exception) {
-            $this->assertStringContainsString('unsupported audio tag', $exception->getMessage());
+            $this->assertStringContainsString('only add Arabic diacritics', $exception->getMessage());
         }
 
         $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionMessage('source length');
+        $this->expectExceptionMessage('only add Arabic diacritics');
 
         $validator->validate('ملخص قصير جداً.', $source);
     }
@@ -61,6 +61,12 @@ class NarrationMarkupTest extends TestCase
         $validator->validateGenerated(
             str_repeat('هذه جملة عربية تحافظ على المعنى الأصلي. ', 20),
             $source,
+            'ar',
+        );
+
+        $validator->validateGenerated(
+            'هٰذِهِ جُمْلَةٌ عَرَبِيَّةٌ تُحافِظُ عَلَى المَعْنَى الأَصْلِيِّ.',
+            'هذه جملة عربية تحافظ على المعنى الأصلي.',
             'ar',
         );
 
@@ -82,7 +88,7 @@ class NarrationMarkupTest extends TestCase
     public function test_validator_rejects_a_non_arabic_generated_script_for_the_arabic_locale(): void
     {
         $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionMessage('not predominantly Arabic');
+        $this->expectExceptionMessage('only add Arabic diacritics');
 
         (new NarrationDraftValidator)->validateGenerated(
             'This response is written entirely in English.',

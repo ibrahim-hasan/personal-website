@@ -24,6 +24,10 @@ class ElevenLabsTextToSpeechTest extends TestCase
             'base_url' => 'https://api.elevenlabs.test/v1',
             'voice_id' => 'calm-arabic-voice',
             'model_id' => 'eleven_multilingual_v2',
+            'voice_ids' => [
+                'ar' => 'calm-arabic-voice',
+                'en' => 'american-english-voice',
+            ],
             'output_format' => 'mp3_44100_128',
             'max_characters' => 100,
             'context_characters' => 30,
@@ -135,7 +139,7 @@ class ElevenLabsTextToSpeechTest extends TestCase
         $this->assertSame(0.50, $request['voice_settings']['stability']);
     }
 
-    public function test_it_uses_the_same_configured_voice_for_english(): void
+    public function test_it_uses_the_configured_american_english_voice_for_english(): void
     {
         $request = null;
         $segment = "\xFF\xFB".str_repeat('A', 250);
@@ -147,15 +151,15 @@ class ElevenLabsTextToSpeechTest extends TestCase
             return Http::response($segment, 200, ['Content-Type' => 'audio/mpeg']);
         });
 
-        app(ElevenLabsTextToSpeech::class)->synthesize('An American English article.', 'en');
+        app(ElevenLabsTextToSpeech::class)->synthesize('An American English article.', 'en', 'eleven_v3');
 
         $this->assertNotNull($request);
         $this->assertStringContainsString(
-            '/text-to-speech/calm-arabic-voice/stream?output_format=mp3_44100_128',
+            '/text-to-speech/american-english-voice/stream?output_format=mp3_44100_128',
             $request->url(),
         );
-        $this->assertSame('eleven_multilingual_v2', $request['model_id']);
-        $this->assertArrayNotHasKey('language_code', $request->data());
+        $this->assertSame('eleven_v3', $request['model_id']);
+        $this->assertSame('en', $request['language_code']);
     }
 
     public function test_v3_omits_request_stitching_fields_when_an_article_needs_multiple_chunks(): void

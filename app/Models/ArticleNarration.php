@@ -106,7 +106,7 @@ class ArticleNarration extends Model
     {
         $sample = $this->sample($modelId);
         $sampleVoiceId = trim((string) data_get($sample, 'voice_id'));
-        $expectedVoiceId = trim((string) config('services.elevenlabs.voice_id'));
+        $expectedVoiceId = trim((string) (config('services.elevenlabs.voice_ids.'.$this->locale) ?: config('services.elevenlabs.voice_id')));
 
         if ($sampleVoiceId === '') {
             return false;

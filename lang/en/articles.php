@@ -66,6 +66,7 @@ return [
         'whatsapp' => 'Share via WhatsApp',
         'qabilah' => 'Share on Qabilah',
         'qabilah_short' => 'Qabilah',
+        'qabilah_copy_success' => 'Qabilah opened. The post text is ready to paste into the composer.',
         'whatsapp_short' => 'WhatsApp',
         'email' => 'Share by email',
         'email_short' => 'Email',

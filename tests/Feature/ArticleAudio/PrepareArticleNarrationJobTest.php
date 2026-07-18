@@ -42,7 +42,7 @@ class PrepareArticleNarrationJobTest extends TestCase
         $article = app(ArticleCatalog::class)->findByKey('ai-value');
         $this->assertNotNull($article);
         $source = app(ArticleNarrationScript::class)->build($article, 'ar');
-        $prepared = str_replace("\n\n", "\n\n[short pause]\n\n", $source);
+        $prepared = $source;
 
         app()->instance(NarrationEditor::class, new class($prepared) implements NarrationEditor
         {
@@ -52,7 +52,7 @@ class PrepareArticleNarrationJobTest extends TestCase
             {
                 return new NarrationDraft(
                     script: $this->script,
-                    notes: ['Adjusted pacing.'],
+                    notes: ['Added contextual Arabic diacritics.'],
                     pronunciationNotes: ['Clarified one acronym.'],
                     model: 'test-editor-model',
                     promptVersion: 'test-v1',
@@ -69,7 +69,7 @@ class PrepareArticleNarrationJobTest extends TestCase
         $this->assertSame(hash('sha256', $source), $narration->source_hash);
         $this->assertSame($prepared, $narration->script);
         $this->assertSame('test-editor-model', $narration->preparation_model);
-        $this->assertSame(['Adjusted pacing.'], $narration->preparation_notes);
+        $this->assertSame(['Added contextual Arabic diacritics.'], $narration->preparation_notes);
         $this->assertNull($narration->approved_at);
         $this->assertNotNull($narration->prepared_at);
     }

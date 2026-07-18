@@ -13,7 +13,7 @@ final class OpenAiModelPolicy
 
     /** @var array<string, string> */
     private const NARRATION_MODELS = [
-        'gpt-4.1' => 'GPT-4.1',
+        'gpt-5.6' => 'GPT-5.6',
     ];
 
     /** @return array<string, string> */
@@ -36,7 +36,7 @@ final class OpenAiModelPolicy
         return $this->resolve(
             $candidate,
             self::NARRATION_MODELS,
-            (string) config('services.openai.narration_model', 'gpt-4.1'),
+            (string) config('services.openai.narration_model', 'gpt-5.6'),
         );
     }
 

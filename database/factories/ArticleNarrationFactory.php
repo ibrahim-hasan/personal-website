@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\ArticleNarrationStatus;
 use App\Models\ArticleNarration;
+use App\Services\OpenAI\OpenAiNarrationEditor;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -25,9 +26,9 @@ class ArticleNarrationFactory extends Factory
             'status' => ArticleNarrationStatus::Draft,
             'source_hash' => hash('sha256', fake()->paragraph()),
             'script' => fake()->paragraphs(6, true),
-            'preparation_model' => 'gpt-5.6-terra',
-            'prompt_version' => 'arabic-editorial-v1',
-            'preparation_notes' => ['Improved pacing and sentence boundaries.'],
+            'preparation_model' => 'gpt-5.6',
+            'prompt_version' => OpenAiNarrationEditor::promptVersion(),
+            'preparation_notes' => ['Added contextual Arabic diacritics.'],
             'pronunciation_notes' => [],
             'samples' => [],
             'preparation_started_at' => now()->subMinute(),

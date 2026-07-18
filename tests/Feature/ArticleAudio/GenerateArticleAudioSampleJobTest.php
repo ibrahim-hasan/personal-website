@@ -28,6 +28,10 @@ class GenerateArticleAudioSampleJobTest extends TestCase
         Storage::fake('local');
         config()->set('services.elevenlabs.api_key', 'eleven-server-secret');
         config()->set('services.elevenlabs.voice_id', 'arabic-editorial-voice');
+        config()->set('services.elevenlabs.voice_ids', [
+            'ar' => 'arabic-editorial-voice',
+            'en' => 'american-english-voice',
+        ]);
         config()->set('services.elevenlabs.base_url', 'https://api.elevenlabs.test/v1');
         config()->set('services.elevenlabs.audio_disk', 'public');
         config()->set('services.elevenlabs.checkpoint_disk', 'local');

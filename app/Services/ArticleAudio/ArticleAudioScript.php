@@ -5,6 +5,7 @@ namespace App\Services\ArticleAudio;
 use App\Data\ArticleAudio\ResolvedArticleAudioScript;
 use App\Enums\ArticleNarrationStatus;
 use App\Models\ArticleNarration;
+use App\Services\OpenAI\OpenAiNarrationEditor;
 use App\Support\Editorial\Article;
 
 class ArticleAudioScript
@@ -23,6 +24,7 @@ class ArticleAudioScript
             ->when($allowCurrentDraft, fn ($query) => $query->whereIn('status', [ArticleNarrationStatus::Draft->value, ArticleNarrationStatus::Approved->value]), fn ($query) => $query->whereNotNull('approved_at'))
             ->where('source_hash', $sourceHash)
             ->whereNotNull('script')
+            ->where('prompt_version', OpenAiNarrationEditor::promptVersion())
             ->first();
 
         if ($narration === null || blank($narration->script)) {
@@ -33,7 +35,7 @@ class ArticleAudioScript
 
         return new ResolvedArticleAudioScript(
             text: $text,
-            contentHash: hash('sha256', $modelId."\0".(string) config('services.elevenlabs.voice_id')."\0".$text),
+            contentHash: hash('sha256', $modelId.chr(0).$this->voiceId($locale).chr(0).$text),
             sourceHash: $sourceHash,
             modelId: $modelId,
             narrationId: $narration->getKey(),
@@ -44,5 +46,12 @@ class ArticleAudioScript
     {
         return $this->approved($article, $locale, $modelId, allowCurrentDraft: true)?->contentHash
             ?? $this->source->fingerprint($article, $locale);
+    }
+
+    private function voiceId(string $locale): string
+    {
+        return trim((string) (
+            config('services.elevenlabs.voice_ids.'.$locale) ?: config('services.elevenlabs.voice_id')
+        ));
     }
 }

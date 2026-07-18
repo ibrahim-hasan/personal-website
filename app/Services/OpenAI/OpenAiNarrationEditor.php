@@ -20,7 +20,7 @@ use Throwable;
 
 class OpenAiNarrationEditor implements NarrationEditor
 {
-    private const PROMPT_VERSION = 'arabic-editorial-v5';
+    private const PROMPT_VERSION = 'strict-arabic-vocalization-v1';
 
     public function __construct(
         private readonly NarrationDraftValidator $validator,
@@ -68,6 +68,11 @@ class OpenAiNarrationEditor implements NarrationEditor
             model: $model,
             promptVersion: self::PROMPT_VERSION,
         );
+    }
+
+    public static function promptVersion(): string
+    {
+        return self::PROMPT_VERSION;
     }
 
     private function input(string $source, string $locale): string

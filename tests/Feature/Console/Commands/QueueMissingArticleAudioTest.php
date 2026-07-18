@@ -26,6 +26,10 @@ class QueueMissingArticleAudioTest extends TestCase
         $this->seed(ArticleSeeder::class);
         Bus::fake();
         config()->set('services.elevenlabs.voice_id', 'arabic-editorial-voice');
+        config()->set('services.elevenlabs.voice_ids', [
+            'ar' => 'arabic-editorial-voice',
+            'en' => 'american-english-voice',
+        ]);
         config()->set('services.elevenlabs.model_id', 'eleven_multilingual_v2');
     }
 

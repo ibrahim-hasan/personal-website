@@ -36,6 +36,10 @@ class ArticleNarrationWorkflowTest extends TestCase
         config()->set('ai.providers.openai.key', 'openai-server-only-secret');
         config()->set('services.elevenlabs.api_key', 'eleven-server-only-secret');
         config()->set('services.elevenlabs.voice_id', 'arabic-editorial-voice');
+        config()->set('services.elevenlabs.voice_ids', [
+            'ar' => 'arabic-editorial-voice',
+            'en' => 'american-english-voice',
+        ]);
     }
 
     public function test_editor_can_queue_ai_preparation_then_review_and_approve_the_draft(): void
@@ -65,7 +69,7 @@ class ArticleNarrationWorkflowTest extends TestCase
             'prepared_at' => now(),
         ])->save();
 
-        $reviewed = $source."\n\n[long pause]";
+        $reviewed = $source;
 
         $this->actingAs($editor)
             ->put(route('filament.admin.article-audio.narration.update', [
@@ -234,7 +238,7 @@ class ArticleNarrationWorkflowTest extends TestCase
             ->assertSet('activeWork', true);
     }
 
-    public function test_samples_require_the_current_shared_voice(): void
+    public function test_samples_require_the_current_locale_voice(): void
     {
         $narration = ArticleNarration::factory()->create([
             'article_key' => 'ai-value',
@@ -253,7 +257,7 @@ class ArticleNarrationWorkflowTest extends TestCase
         $this->assertFalse($narration->hasCurrentSample('eleven_v3'));
 
         $narration->updateSample('eleven_v3', [
-            'voice_id' => 'arabic-editorial-voice',
+            'voice_id' => 'american-english-voice',
         ]);
 
         $this->assertTrue($narration->hasCurrentSample('eleven_v3'));

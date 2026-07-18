@@ -53,7 +53,7 @@ return [
     ],
 
     'openai' => [
-        'narration_model' => env('OPENAI_NARRATION_MODEL', 'gpt-4.1'),
+        'narration_model' => env('OPENAI_NARRATION_MODEL', 'gpt-5.6'),
         'narration_max_output_tokens' => (int) env('OPENAI_NARRATION_MAX_OUTPUT_TOKENS', 20000),
         'seo_model' => env('OPENAI_SEO_MODEL', 'gpt-4o-mini'),
         'seo_max_output_tokens' => (int) env('OPENAI_SEO_MAX_OUTPUT_TOKENS', 600),
@@ -67,6 +67,10 @@ return [
         'api_key' => env('ELEVENLABS_API_KEY'),
         'base_url' => env('ELEVENLABS_BASE_URL', 'https://api.elevenlabs.io/v1'),
         'voice_id' => env('ELEVENLABS_VOICE_ID'),
+        'voice_ids' => [
+            'ar' => env('ELEVENLABS_AR_VOICE_ID') ?: env('ELEVENLABS_VOICE_ID'),
+            'en' => env('ELEVENLABS_EN_VOICE_ID', 'pNInz6obpgDQGcFmaJgB'),
+        ],
         'model_id' => env('ELEVENLABS_MODEL_ID', 'eleven_multilingual_v2'),
         'output_format' => env('ELEVENLABS_OUTPUT_FORMAT', 'mp3_44100_128'),
         'ffmpeg_binary' => env('ELEVENLABS_FFMPEG_BINARY', 'ffmpeg'),

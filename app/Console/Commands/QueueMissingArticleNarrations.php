@@ -6,6 +6,7 @@ use App\Enums\ArticleNarrationStatus;
 use App\Jobs\PrepareArticleNarration;
 use App\Models\ArticleNarration;
 use App\Services\ArticleAudio\ArticleNarrationScript;
+use App\Services\OpenAI\OpenAiNarrationEditor;
 use App\Support\Editorial\ArticleCatalog;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -92,6 +93,7 @@ class QueueMissingArticleNarrations extends Command
     {
         return $narration !== null
             && filled($narration->script)
+            && hash_equals($narration->prompt_version ?? '', OpenAiNarrationEditor::promptVersion())
             && in_array($narration->status, [ArticleNarrationStatus::Draft, ArticleNarrationStatus::Approved], true)
             && hash_equals((string) $narration->source_hash, $sourceHash);
     }

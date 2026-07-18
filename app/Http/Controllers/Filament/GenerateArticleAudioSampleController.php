@@ -27,7 +27,7 @@ class GenerateArticleAudioSampleController extends Controller
 
         abort_if($resolvedArticle === null || ! in_array($locale, ['ar', 'en'], true), 404);
 
-        if (blank(config('services.elevenlabs.api_key')) || blank($speech->voiceId())) {
+        if (blank(config('services.elevenlabs.api_key')) || blank($speech->voiceId($locale))) {
             Notification::make()
                 ->title(__('article_audio.notifications.configuration_missing'))
                 ->danger()

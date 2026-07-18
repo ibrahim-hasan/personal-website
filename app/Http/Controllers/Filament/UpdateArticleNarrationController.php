@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateArticleNarrationRequest;
 use App\Models\ArticleNarration;
 use App\Services\ArticleAudio\ArticleNarrationScript;
 use App\Services\ArticleAudio\NarrationDraftValidator;
+use App\Services\OpenAI\OpenAiNarrationEditor;
 use App\Support\Editorial\ArticleCatalog;
 use Filament\Notifications\Notification;
 use Illuminate\Http\RedirectResponse;
@@ -61,6 +62,7 @@ class UpdateArticleNarrationController extends Controller
             'script' => $script,
             'samples' => $scriptChanged ? [] : $narration->samples,
             'prepared_at' => $narration->prepared_at ?? now(),
+            'prompt_version' => OpenAiNarrationEditor::promptVersion(),
             'approved_at' => $isApproval ? now() : null,
             'failed_at' => null,
             'last_error' => null,

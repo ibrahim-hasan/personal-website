@@ -8,6 +8,7 @@ use App\Models\ArticleAudio;
 use App\Models\ArticleNarration;
 use App\Services\ArticleAudio\ArticleAudioScript;
 use App\Services\ArticleAudio\ArticleNarrationScript;
+use App\Services\OpenAI\OpenAiNarrationEditor;
 use App\Support\Ai\ElevenLabsExecutionBudget;
 use App\Support\Editorial\ArticleCatalog;
 use BackedEnum;
@@ -98,7 +99,8 @@ class ManageArticleAudio extends Page
                 $narration = $narrations->get($key);
                 $sourceHash = $source->fingerprint($article, $locale);
                 $narrationIsCurrent = $narration !== null
-                    && hash_equals((string) $narration->source_hash, $sourceHash);
+                    && hash_equals((string) $narration->source_hash, $sourceHash)
+                    && hash_equals((string) $narration->prompt_version, OpenAiNarrationEditor::promptVersion());
                 $trackModel = $track?->model_id ?: (string) config('services.elevenlabs.model_id');
                 $contentHash = $scripts->publicFingerprint($article, $locale, $trackModel);
                 $isStale = $track !== null && $track->isStale($contentHash);

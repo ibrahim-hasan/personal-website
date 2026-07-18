@@ -191,7 +191,6 @@
                     <section class="border border-canvas/20 bg-canvas/5 p-5" aria-labelledby="mobile-reader-account-title">
                         <p class="font-sans text-xs font-bold uppercase tracking-[0.12em] text-violet-300">{{ __('reader_auth.reader_account') }}</p>
                         <h2 id="mobile-reader-account-title" class="mt-2 truncate font-display text-2xl font-bold text-canvas-bright">{{ auth()->user()->name }}</h2>
-                        <p class="mt-1 truncate font-sans text-xs text-violet-200" dir="ltr">{{ auth()->user()->email }}</p>
                         <div class="mt-5 grid gap-2">
                             <a href="{{ localized_route('reader.library') }}" wire:navigate @click="close(false)" class="flex min-h-11 items-center justify-between rounded-[var(--control-radius)] border border-canvas/20 px-4 font-sans text-sm font-bold text-canvas-bright transition hover:bg-canvas/10">
                                 <span>{{ __('reader_auth.library_title') }}</span>

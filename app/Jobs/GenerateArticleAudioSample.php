@@ -109,7 +109,7 @@ class GenerateArticleAudioSample implements ShouldBeUnique, ShouldQueue
                 'disk' => $diskName,
                 'path' => $path,
                 'script_hash' => $scriptHash,
-                'voice_id' => $speech->voiceId(),
+                'voice_id' => $speech->voiceId($this->locale),
                 'character_count' => $result->characterCount,
                 'segment_count' => $result->segmentCount,
                 'request_ids' => $result->requestIds,
