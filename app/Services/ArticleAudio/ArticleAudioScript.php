@@ -42,7 +42,7 @@ class ArticleAudioScript
 
     public function publicFingerprint(Article $article, string $locale, string $modelId): string
     {
-        return $this->approved($article, $locale, $modelId)?->contentHash
+        return $this->approved($article, $locale, $modelId, allowCurrentDraft: true)?->contentHash
             ?? $this->source->fingerprint($article, $locale);
     }
 }

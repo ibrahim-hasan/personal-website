@@ -4,6 +4,8 @@ namespace Tests\Feature\Editorial;
 
 use App\Models\Article as ArticleRecord;
 use App\Models\ArticleAudio;
+use App\Models\ArticleNarration;
+use App\Services\ArticleAudio\ArticleAudioScript;
 use App\Services\ArticleAudio\ArticleNarrationScript;
 use App\Support\Editorial\ArticleCatalog;
 use Database\Seeders\ArticleSeeder;
@@ -205,7 +207,15 @@ class ArticlePagesTest extends TestCase
         Storage::fake('public');
         $catalog = app(ArticleCatalog::class);
         $article = $catalog->all()[0];
-        $hash = app(ArticleNarrationScript::class)->fingerprint($article, 'ar');
+        $source = app(ArticleNarrationScript::class)->build($article, 'ar');
+        ArticleNarration::factory()->create([
+            'article_key' => $article->key,
+            'locale' => 'ar',
+            'source_hash' => hash('sha256', $source),
+            'script' => $source,
+        ]);
+        $hash = app(ArticleAudioScript::class)->approved($article, 'ar', 'eleven_multilingual_v2', allowCurrentDraft: true)?->contentHash;
+        $this->assertNotNull($hash);
         $path = 'article-audio/ar/'.$article->key.'-'.$hash.'.mp3';
         Storage::disk('public')->put($path, 'mp3-content');
 
