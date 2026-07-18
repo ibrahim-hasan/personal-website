@@ -18,10 +18,10 @@ class SetLocale
         $supportedLocales = config('app.supported_locales', []);
         $availableLocales = array_keys($supportedLocales);
 
-        $locale = null;
+        $locale = $this->livewireSnapshotLocale($request, $availableLocales);
 
         $pathLocale = $request->segment(1);
-        if (is_string($pathLocale) && in_array($pathLocale, $availableLocales, true)) {
+        if (! is_string($locale) && is_string($pathLocale) && in_array($pathLocale, $availableLocales, true)) {
             $locale = $pathLocale;
             $request->session()->put('locale', $locale);
         }
@@ -59,6 +59,41 @@ class SetLocale
 
     protected function shouldUseStoredLocale(Request $request): bool
     {
-        return $request->is('admin', 'admin/*', 'livewire/*', 'lang/*', 'up');
+        return $request->is('admin', 'admin/*', 'livewire/*', 'livewire-*', 'livewire-*/*', 'lang/*', 'up');
+    }
+
+    /**
+     * Resolve the original page locale from a Livewire update snapshot.
+     *
+     * Livewire posts to a locale-free endpoint, so a reader's stored preference
+     * may differ from the page that initiated the update. This must run before
+     * route model binding rehydrates the original page route.
+     *
+     * @param  array<int, string>  $availableLocales
+     */
+    protected function livewireSnapshotLocale(Request $request, array $availableLocales): ?string
+    {
+        if (! $request->is('livewire/*')) {
+            return null;
+        }
+
+        $snapshot = $request->input('components.0.snapshot');
+
+        if (! is_string($snapshot)) {
+            return null;
+        }
+
+        $payload = json_decode($snapshot, true);
+        $path = is_array($payload) ? ($payload['memo']['path'] ?? null) : null;
+
+        if (! is_string($path)) {
+            return null;
+        }
+
+        $locale = explode('/', trim($path, '/'))[0] ?? null;
+
+        return is_string($locale) && in_array($locale, $availableLocales, true)
+            ? $locale
+            : null;
     }
 }

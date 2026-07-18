@@ -558,20 +558,52 @@ const initializePageMotion = (signal) => {
 
     methodSteps.forEach((step) => methodObserver.observe(step));
 
-    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches && ! window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         document.querySelectorAll('[data-magnetic]').forEach((element) => {
+            let animationFrame = null;
+            let targetX = 0;
+            let targetY = 0;
+
+            const updatePosition = () => {
+                element.style.setProperty('--magnetic-x', `${targetX.toFixed(2)}px`);
+                element.style.setProperty('--magnetic-y', `${targetY.toFixed(2)}px`);
+                element.style.setProperty('--magnetic-icon-x', `${(targetX * 0.22).toFixed(2)}px`);
+                element.style.setProperty('--magnetic-icon-y', `${(targetY * 0.22).toFixed(2)}px`);
+                animationFrame = null;
+            };
+
+            const resetPosition = () => {
+                targetX = 0;
+                targetY = 0;
+
+                if (animationFrame !== null) {
+                    window.cancelAnimationFrame(animationFrame);
+                }
+
+                updatePosition();
+            };
+
+            element.addEventListener('pointerenter', () => {
+                element.classList.add('is-magnetic-active');
+            }, { signal });
+
             element.addEventListener('pointermove', (event) => {
                 const bounds = element.getBoundingClientRect();
-                const x = (event.clientX - bounds.left - bounds.width / 2) * 0.12;
-                const y = (event.clientY - bounds.top - bounds.height / 2) * 0.12;
+                const relativeX = (event.clientX - bounds.left) / bounds.width - 0.5;
+                const relativeY = (event.clientY - bounds.top) / bounds.height - 0.5;
+                const proximity = Math.min(1, Math.hypot(relativeX, relativeY) * 2);
 
-                element.style.setProperty('--magnetic-x', `${x.toFixed(2)}px`);
-                element.style.setProperty('--magnetic-y', `${y.toFixed(2)}px`);
+                targetX = relativeX * 16 * proximity;
+                targetY = relativeY * 11 * proximity;
+
+                if (animationFrame === null) {
+                    animationFrame = window.requestAnimationFrame(updatePosition);
+                }
             }, { signal });
 
             element.addEventListener('pointerleave', () => {
-                element.style.setProperty('--magnetic-x', '0px');
-                element.style.setProperty('--magnetic-y', '0px');
+                element.classList.remove('is-magnetic-active');
+                resetPosition();
             }, { signal });
         });
 

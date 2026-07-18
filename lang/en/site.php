@@ -247,11 +247,10 @@ return [
         'social' => 'Across the web',
         'focus' => 'Focus',
         'contact' => 'Contact',
-        'contact_intro' => 'Bring the problem as it is. The first reply will focus on the context and the clearest useful next step.',
+        'contact_intro' => 'Bring the problem as it is. We will clarify the context and the next step.',
         'email_label' => 'Email directly',
-        'consultation_note' => 'For digital transformation, AI, product, data, and systems work.',
         'focus_items' => ['Digital transformation', 'AI adoption', 'Data governance', 'Systems & automation'],
         'project_intake' => 'Start a conversation',
-        'rights' => 'All rights reserved :year',
+        'rights_copy' => 'Ibrahim Hasan — All rights reserved',
     ],
 ];

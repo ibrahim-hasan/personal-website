@@ -104,17 +104,29 @@ class TypographyOverflowTest extends TestCase
         );
     }
 
-    public function test_desktop_navigation_reserves_columns_for_rtl_labels_and_actions(): void
+    public function test_full_desktop_navigation_waits_for_a_safe_bilingual_width(): void
     {
         $css = file_get_contents(dirname(__DIR__, 3).'/resources/css/app.css');
 
         $this->assertNotFalse($css);
+        $this->assertStringContainsString('@media (min-width: 90rem)', $css);
         $this->assertMatchesRegularExpression(
             '/\.site-nav > \.site-container\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(14rem, 1fr\) auto minmax\(18rem, 1fr\);/s',
             $css,
         );
         $this->assertMatchesRegularExpression(
             '/\.site-nav__desktop-links\s*\{[^}]*min-width:\s*max-content;[^}]*justify-self:\s*center;[^}]*white-space:\s*nowrap;/s',
+            $css,
+        );
+    }
+
+    public function test_english_type_uses_explicit_ui_body_and_display_font_stacks(): void
+    {
+        $css = file_get_contents(dirname(__DIR__, 3).'/resources/css/app.css');
+
+        $this->assertNotFalse($css);
+        $this->assertMatchesRegularExpression(
+            "/html\\[lang='en'\\]\\s*\\{[^}]*--family-ui:\\s*'Noto Sans',[^}]*--family-body:\\s*'Noto Sans',[^}]*--family-display:\\s*'Thmanyah Display',/s",
             $css,
         );
     }

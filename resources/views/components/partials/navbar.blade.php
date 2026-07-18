@@ -54,7 +54,6 @@
                     @foreach (config('app.supported_locales', []) as $locale => $language)
                         @continue(current_locale() === $locale)
                         <a href="{{ $alternateUrls[$locale] ?? localized_current_url($locale) }}" data-no-navigate class="language-switch__action" hreflang="{{ $locale }}" lang="{{ $locale }}">
-                            <x-phosphor-translate class="size-4" aria-hidden="true" />
                             <span>{{ $language['native'] }}</span>
                         </a>
                     @endforeach
@@ -101,7 +100,6 @@
                         >
                             <div class="border-b border-ink/10 px-3 pb-3">
                                 <p class="truncate font-display text-base font-bold text-ink">{{ auth()->user()->name }}</p>
-                                <p class="mt-1 truncate font-sans text-xs text-ink-muted" dir="ltr">{{ auth()->user()->email }}</p>
                             </div>
                             <div class="grid gap-1 pt-2">
                                 <a href="{{ localized_route('reader.library') }}" wire:navigate @click="accountMenuOpen = false" class="flex min-h-11 items-center gap-3 rounded-[var(--control-radius)] px-3 font-sans text-sm font-bold text-ink transition hover:bg-violet-100 hover:text-violet-800">
@@ -222,7 +220,6 @@
                     @foreach (config('app.supported_locales', []) as $locale => $language)
                         @continue(current_locale() === $locale)
                         <a href="{{ $alternateUrls[$locale] ?? localized_current_url($locale) }}" data-no-navigate class="mobile-menu__locale" hreflang="{{ $locale }}" lang="{{ $locale }}">
-                            <x-phosphor-translate class="size-4" aria-hidden="true" />
                             <span>{{ $language['native'] }}</span>
                         </a>
                     @endforeach

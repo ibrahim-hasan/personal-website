@@ -111,6 +111,7 @@ class WebsitePagesTest extends TestCase
             ->assertSee('At a professional event with From Scratch Solutions', false)
             ->assertSee('A moment between working sessions', false)
             ->assertSee('loading="lazy"', false)
+            ->assertDontSee('When the work moves fastest.', false)
             ->assertSee('images/brands/companies/code-moments-on-dark.svg', false)
             ->assertSee('images/brands/companies/from-scratch-on-dark.svg', false)
             ->assertDontSee('images/brands/companies/code-moments-on-light.svg', false)
@@ -123,6 +124,7 @@ class WebsitePagesTest extends TestCase
             ->assertOk()
             ->assertSee('صورة مهنية لإبراهيم حسن', false)
             ->assertSee('في فعالية مهنية مع فروم سكراتش سوليوشنز', false)
+            ->assertDontSee('عندما يتحرك العمل أسرع.', false)
             ->assertSee('لحظة بين جلسات العمل', false);
     }
 

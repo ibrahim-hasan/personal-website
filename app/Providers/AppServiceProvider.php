@@ -26,9 +26,11 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Livewire;
 use Mcamara\LaravelLocalization\Traits\LoadsTranslatedCachedRoutes;
 
 class AppServiceProvider extends ServiceProvider
@@ -55,9 +57,20 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->configureDefaults();
+        $this->configureLivewireUpdateRoute();
         $this->registerSuperAdminAccess();
         $this->registerPolicies();
         $this->registerReaderVerificationUrls();
+    }
+
+    /**
+     * Keep Livewire updates on a stable URL across cached route refreshes.
+     */
+    protected function configureLivewireUpdateRoute(): void
+    {
+        Livewire::setUpdateRoute(
+            fn ($handle) => Route::post('/livewire/update', $handle),
+        );
     }
 
     /**

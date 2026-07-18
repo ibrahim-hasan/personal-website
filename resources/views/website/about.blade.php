@@ -148,7 +148,27 @@
             <div class="perspective-grid">
                 @foreach ($lenses as $lens)
                     <article style="--reveal-index: {{ $loop->index }}" data-reveal="chapter">
-                        <span>{{ sprintf('%02d', $loop->iteration) }}</span>
+                        <div class="perspective-grid__head">
+                            <span class="perspective-grid__number">{{ sprintf('%02d', $loop->iteration) }}</span>
+                            <span class="perspective-grid__icon" aria-hidden="true">
+                                @switch($lens['id'])
+                                    @case('ai-adoption')
+                                        <x-phosphor-crosshair />
+                                        @break
+
+                                    @case('transformation')
+                                        <x-phosphor-share-network />
+                                        @break
+
+                                    @case('product')
+                                        <x-phosphor-strategy />
+                                        @break
+
+                                    @default
+                                        <x-phosphor-chart-line-up />
+                                @endswitch
+                            </span>
+                        </div>
                         <h3>{{ $lens['label'] }}</h3>
                         <p>{{ $lens['description'] }}</p>
                         <strong>{{ $lens['question'] }}</strong>
@@ -175,19 +195,6 @@
                     </article>
                 @endforeach
             </div>
-        </div>
-    </section>
-
-    <section class="section-compact">
-        <div class="site-container fit-statement">
-            <div>
-                <p class="signal-label">{{ __('site.about.fit_eyebrow') }}</p>
-                <h2 class="display-section mt-6 max-w-[14ch]" data-reveal="headline">{{ __('site.about.fit_title') }}</h2>
-            </div>
-            <a href="{{ localized_route('contact') }}#consultation" class="button-primary" data-magnetic>
-                <span>{{ __('site.actions.free_consultation') }}</span>
-                <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
-            </a>
         </div>
     </section>
 

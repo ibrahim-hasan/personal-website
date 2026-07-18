@@ -21,6 +21,6 @@ return [
     'localesOrder' => ['ar', 'en'],
     'localesMapping' => [],
     'utf8suffix' => env('LARAVELLOCALIZATION_UTF8SUFFIX', '.UTF-8'),
-    'urlsIgnored' => ['/admin', '/admin/*', '/livewire/*', '/up'],
+    'urlsIgnored' => ['/admin', '/admin/*', '/livewire/*', '/livewire-*', '/livewire-*/*', '/up'],
     'httpMethodsIgnored' => ['POST', 'PUT', 'PATCH', 'DELETE'],
 ];

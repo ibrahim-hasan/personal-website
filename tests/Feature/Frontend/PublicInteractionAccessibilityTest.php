@@ -83,6 +83,12 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString('href="{{ $audioArticle[\'url\'] }}" wire:navigate', $home);
         $this->assertStringContainsString('href="{{ $article[\'url\'] }}" wire:navigate class="writing-row', $home);
         $this->assertStringContainsString('href="{{ $article[\'url\'] }}" wire:navigate class="grid', $library);
+
+        $about = $this->readProjectFile('resources/views/website/about.blade.php');
+
+        $this->assertStringContainsString('class="perspective-grid__head"', $about);
+        $this->assertStringContainsString('class="perspective-grid__icon" aria-hidden="true"', $about);
+        $this->assertStringContainsString("@switch(\$lens['id'])", $about);
     }
 
     public function test_motion_preserves_content_and_responsive_controls_remain_contained(): void
@@ -105,6 +111,12 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString("control.classList.toggle('is-visible', shouldShow)", $javascript);
         $this->assertMatchesRegularExpression('/\.filter-bar-shell\s*\{[^}]*grid-template-columns:\s*2\.75rem minmax\(0, 1fr\) 2\.75rem;/s', $css);
         $this->assertMatchesRegularExpression('/\.filter-bar__arrow\s*\{[^}]*width:\s*2\.75rem;[^}]*height:\s*2\.75rem;/s', $css);
+        $this->assertMatchesRegularExpression('/\.work-archive__toolbar\s*\{[^}]*align-items:\s*center;[^}]*gap:\s*0\.5rem;[^}]*padding-block:\s*0\.5rem;[^}]*background:\s*var\(--color-canvas-bright\);/s', $css);
+        $this->assertDoesNotMatchRegularExpression('/\.work-archive__toolbar\s*\{[^}]*backdrop-filter:/s', $css);
+        $this->assertMatchesRegularExpression('/\.work-archive__toolbar > p\s*\{[^}]*font-size:\s*clamp\(0\.82rem, 0\.78rem \+ 0\.1vw, 0\.95rem\);[^}]*font-weight:\s*800;/s', $css);
+        $this->assertMatchesRegularExpression('/@media \(min-width: 48rem\)\s*\{\s*\.work-archive__toolbar\s*\{[^}]*grid-template-columns:\s*max-content minmax\(0, 1fr\);[^}]*column-gap:\s*clamp\(1rem, 2vw, 2rem\);/s', $css);
+        $this->assertMatchesRegularExpression('/\.filter-bar\s*\{[^}]*padding-block:\s*0\.25rem;/s', $css);
+        $this->assertMatchesRegularExpression('/\.consultation-form__footer \.button-light\s*\{[^}]*flex:\s*none;[^}]*white-space:\s*nowrap;/s', $css);
         $this->assertMatchesRegularExpression('/\.publication-topics\s*\{[^}]*overflow-x:\s*auto;/s', $css);
         $this->assertMatchesRegularExpression(
             '/\.publication-topics\s*\{[^}]*align-items:\s*center;[^}]*padding-block:\s*0\.525rem;/s',
@@ -114,9 +126,15 @@ class PublicInteractionAccessibilityTest extends TestCase
             '/\.publication-row__meta\s*\{[^}]*align-items:\s*baseline;[^}]*gap:\s*0\.45rem 0\.7rem;/s',
             $css,
         );
+        $this->assertMatchesRegularExpression('/\.publication-row__meta time,\s*\.publication-row__read-time\s*\{[^}]*color:\s*var\(--color-ink-soft\);/s', $css);
+        $this->assertMatchesRegularExpression('/\.perspective-grid__head\s*\{[^}]*justify-content:\s*space-between;/s', $css);
+        $this->assertMatchesRegularExpression('/\.perspective-grid__icon::before\s*\{[^}]*width:\s*2\.65rem;[^}]*height:\s*2\.65rem;[^}]*rotate:\s*45deg;/s', $css);
+        $this->assertMatchesRegularExpression('/\.perspective-grid__icon svg\s*\{[^}]*width:\s*1\.65rem;[^}]*height:\s*1\.65rem;/s', $css);
+        $this->assertMatchesRegularExpression('/\.publication-row__copy h3\s*\{[^}]*max-width:\s*48rem;[^}]*font-size:\s*clamp\(1\.65rem, 2\.8vw, 3rem\);[^}]*line-height:\s*1\.1;[^}]*text-wrap:\s*pretty;/s', $css);
+        $this->assertMatchesRegularExpression("/html\\[dir='rtl'\\] \\.publication-row__copy h3\\s*\\{[^}]*line-height:\\s*1\\.18;[^}]*letter-spacing:\\s*0;/s", $css);
         $this->assertStringContainsString('class="publication-row__read-time"', $this->readProjectFile('resources/views/website/writing.blade.php'));
         $this->assertMatchesRegularExpression('/\.publication-row\s*\{[^}]*padding-inline:\s*var\(--publication-row-inline\);/s', $css);
-        $this->assertMatchesRegularExpression('/\.publication-row::before,\s*\.publication-row:last-child::after\s*\{[^}]*inset-inline:\s*var\(--publication-row-inline\);/s', $css);
+        $this->assertMatchesRegularExpression('/\.publication-row::before,\s*\.publication-row:last-child::after\s*\{[^}]*inset-inline:\s*0;/s', $css);
         $this->assertDoesNotMatchRegularExpression('/\.publication-library__toolbar\s*\{[^}]*border-bottom:/s', $css);
         $this->assertStringContainsString(
             'data-reveal="editorial-row"',
@@ -143,6 +161,10 @@ class PublicInteractionAccessibilityTest extends TestCase
             $css,
         );
         $this->assertMatchesRegularExpression('/\.featured-essay\s*\{[^}]*min-width:\s*0;/s', $css);
+        $this->assertMatchesRegularExpression('/\.featured-essay\s*\{[^}]*border-block-end:\s*1px solid/s', $css);
+        $this->assertDoesNotMatchRegularExpression('/\.featured-essay\s*\{[^}]*border-block:\s*/s', $css);
+        $this->assertMatchesRegularExpression('/\.featured-essay__copy h2\s*\{[^}]*max-width:\s*none;[^}]*font-size:\s*clamp\(2rem, 3vw, 3\.2rem\);[^}]*line-height:\s*1\.1;[^}]*text-wrap:\s*pretty;/s', $css);
+        $this->assertMatchesRegularExpression("/html\\[dir='rtl'\\] \\.featured-essay__copy h2\\s*\\{[^}]*line-height:\\s*1\\.18;[^}]*letter-spacing:\\s*0;/s", $css);
         $this->assertMatchesRegularExpression(
             '/\.case-study__brand\s*\{[^}]*width:\s*7rem;[^}]*height:\s*4rem;/s',
             $css,
@@ -232,8 +254,16 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString("control.style.setProperty('--floating-footer-offset'", $javascript);
         $this->assertStringContainsString('new ResizeObserver(updateFloatingOffset)', $javascript);
         $this->assertStringContainsString('new MutationObserver(updateFloatingOffset)', $javascript);
+        $this->assertStringContainsString("window.matchMedia('(prefers-reduced-motion: reduce)').matches", $javascript);
+        $this->assertStringContainsString("element.classList.add('is-magnetic-active')", $javascript);
+        $this->assertStringContainsString('window.requestAnimationFrame(updatePosition)', $javascript);
         $this->assertStringContainsString('@continue(current_locale() === $locale)', $this->readProjectFile('resources/views/components/partials/navbar.blade.php'));
         $this->assertStringContainsString('class="language-switch__action"', $this->readProjectFile('resources/views/components/partials/navbar.blade.php'));
+        $this->assertStringNotContainsString('x-phosphor-translate', $this->readProjectFile('resources/views/components/partials/navbar.blade.php'));
+        $this->assertMatchesRegularExpression(
+            "/\\.language-switch__action:lang\\(ar\\)\\s*\\{[^}]*font-family:\\s*'Thmanyah Sans', 'Noto Sans'[^}]*font-weight:\\s*700;/s",
+            $css,
+        );
         $this->assertMatchesRegularExpression('/\.button-primary,[^{]+\{[^}]*border-radius:\s*var\(--control-radius\);/s', $css);
         $this->assertStringNotContainsString('heroStage', $javascript);
         $this->assertStringNotContainsString('precision-stage__control', $css);
@@ -341,7 +371,15 @@ class PublicInteractionAccessibilityTest extends TestCase
             $this->readProjectFile('resources/css/app.css'),
         );
         $this->assertMatchesRegularExpression(
-            '/@media \(min-width: 72rem\).*?\.site-nav__desktop-links,\s*\.site-nav__utility-rail\s*\{[^}]*display:\s*flex;/s',
+            '/@media \(min-width: 90rem\).*?\.site-nav__desktop-links,\s*\.site-nav__utility-rail\s*\{[^}]*display:\s*flex;/s',
+            $this->readProjectFile('resources/css/app.css'),
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media \(min-width: 90rem\).*?\.site-nav__desktop-links\s*\{[^}]*gap:\s*clamp\(1rem, 1\.5vw, 1\.5rem\);/s',
+            $this->readProjectFile('resources/css/app.css'),
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            "/html\\[dir='ltr'\\] \\.site-nav__desktop-links\\s*\\{[^}]*gap:/s",
             $this->readProjectFile('resources/css/app.css'),
         );
         $this->assertStringContainsString("localized_route('reader.account.destroy')", $account);
@@ -409,8 +447,6 @@ class PublicInteractionAccessibilityTest extends TestCase
 
         foreach ([
             '.skip-link',
-            '.site-nav__account-trigger',
-            '.language-switch__action',
             '.menu-toggle',
             '.article-share__action',
             '.reader-mode-toggle',
@@ -423,6 +459,64 @@ class PublicInteractionAccessibilityTest extends TestCase
                 "{$selector} must use the canonical control radius.",
             );
         }
+
+        $this->assertDoesNotMatchRegularExpression(
+            '/\.site-nav__account-trigger\s*\{[^}]*border-radius:/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.language-switch\s*\{[^}]*overflow:\s*hidden;[^}]*border-start-start-radius:\s*var\(--control-radius\);[^}]*border-end-start-radius:\s*var\(--control-radius\);/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.site-nav__utility-rail > \.site-nav__account-trigger\s*\{[^}]*border-start-end-radius:\s*var\(--control-radius\);[^}]*border-end-end-radius:\s*var\(--control-radius\);/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.site-nav__account > \.site-nav__account-trigger\s*\{[^}]*border-start-end-radius:\s*var\(--control-radius\);[^}]*border-end-end-radius:\s*var\(--control-radius\);/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\[data-magnetic\] > svg\s*\{[^}]*translate:\s*var\(--magnetic-icon-x\) var\(--magnetic-icon-y\);/s',
+            $css,
+        );
+        $this->assertDoesNotMatchRegularExpression('/html\[dir=.ltr.\] \.menu-toggle|html\[dir=.rtl.\] \.menu-toggle/', $css);
+        $this->assertMatchesRegularExpression(
+            '/\.menu-toggle:focus-visible\s*\{[^}]*box-shadow:\s*0 0 0 3px/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.menu-toggle\s*\{[^}]*transition:\s*none;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.menu-toggle:hover\s*\{[^}]*background:\s*var\(--color-violet-100\);[^}]*color:\s*var\(--color-violet-800\);/s',
+            $css,
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/\.language-switch__action\s*\{[^}]*border-radius:/s',
+            $css,
+        );
+        $this->assertStringNotContainsString("url('/fonts/noto-sans/", $css);
+        $this->assertStringContainsString("url('../fonts/noto-sans/NotoSans-700.ttf')", $css);
+        $this->assertFileExists(resource_path('fonts/noto-sans/NotoSans-700.ttf'));
+        $this->assertFileExists(resource_path('fonts/noto-sans/NotoSans-800.ttf'));
+        $this->assertMatchesRegularExpression(
+            '/\.footer-contact__email strong\s*\{[^}]*direction:\s*ltr;[^}]*justify-self:\s*start;[^}]*max-width:\s*100%;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.featured-essay figure\s*\{[^}]*aspect-ratio:\s*16\s*\/\s*9;[^}]*overflow:\s*hidden;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media \(min-width: 48rem\)\s*\{\s*\.featured-essay\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);[^}]*align-self:\s*start;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media \(min-width: 72rem\)\s*\{\s*\.publication-intro__grid\s*\{[^}]*align-items:\s*start;[^}]*\}\s*\.publication-intro__copy\s*\{[^}]*padding-block-start:\s*clamp\(7rem, 12vw, 10rem\);/s',
+            $css,
+        );
 
         $this->assertMatchesRegularExpression(
             '/\.publication-row__kind\s*\{[^}]*border-radius:\s*999px;/s',

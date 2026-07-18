@@ -42,7 +42,6 @@
         <div class="footer-contact">
             <h3 class="footer-label">{{ __('site.footer.contact') }}</h3>
             <p class="footer-contact__intro">{{ __('site.footer.contact_intro') }}</p>
-            <p class="footer-contact__note">{{ __('site.footer.consultation_note') }}</p>
             <a class="footer-contact__email" href="mailto:{{ $contact['email'] }}">
                 <span>{{ __('site.footer.email_label') }}</span>
                 <strong dir="ltr">{{ $contact['email'] }}</strong>
@@ -56,21 +55,44 @@
 
     <div class="border-t border-canvas/10">
         <div class="site-container site-footer__utility py-6 text-sm text-canvas/55" data-back-to-top-safe-zone>
-            <p>{{ __('site.footer.rights', ['year' => $year]) }}</p>
+            <p class="site-footer__rights">
+                <span>{{ __('site.footer.rights_copy') }}</span>
+                <span dir="ltr">© {{ $year }}</span>
+            </p>
 
             <nav class="footer-socials" aria-label="{{ __('site.footer.social') }}">
                 <span class="footer-socials__label">{{ __('site.footer.social') }}</span>
-                @foreach ($socialProfiles as $profile)
-                    <a
-                        href="{{ $profile['href'] }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="footer-socials__link"
-                    >
-                        <strong>{{ $profile['label'] }}</strong>
-                        <x-phosphor-arrow-up-right class="h-3.5 w-3.5 rtl:-rotate-90" aria-hidden="true" />
-                    </a>
-                @endforeach
+                <span class="footer-socials__links">
+                    @foreach ($socialProfiles as $profile)
+                        <a
+                            href="{{ $profile['href'] }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="footer-socials__link"
+                            aria-label="{{ $profile['label'] }}"
+                            title="{{ $profile['label'] }}"
+                        >
+                            @switch($profile['platform'])
+                                @case('linkedin')
+                                    <x-phosphor-linkedin-logo class="size-5" aria-hidden="true" />
+                                    @break
+                                @case('facebook')
+                                    <x-phosphor-facebook-logo class="size-5" aria-hidden="true" />
+                                    @break
+                                @case('twitter')
+                                    <x-phosphor-x-logo class="size-5" aria-hidden="true" />
+                                    @break
+                                @case('instagram')
+                                    <x-phosphor-instagram-logo class="size-5" aria-hidden="true" />
+                                    @break
+                                @case('youtube')
+                                    <x-phosphor-youtube-logo class="size-5" aria-hidden="true" />
+                                    @break
+                            @endswitch
+                            <span class="sr-only">{{ $profile['label'] }}</span>
+                        </a>
+                    @endforeach
+                </span>
             </nav>
         </div>
     </div>
