@@ -405,7 +405,8 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString('data-article-native-share', $component);
         $this->assertStringContainsString('data-article-copy-link', $component);
         $this->assertStringContainsString('aria-live="polite"', $component);
-        $this->assertSame(3, substr_count($component, 'rel="noopener noreferrer"'));
+        $this->assertSame(4, substr_count($component, 'rel="noopener noreferrer"'));
+        $this->assertStringContainsString('https://qabilah.com/discover/following?', $component);
         $this->assertStringContainsString("await import('./article-share')", $application);
         $this->assertStringContainsString("typeof navigator.share === 'function'", $sharing);
         $this->assertStringContainsString('navigator.clipboard?.writeText', $sharing);
