@@ -14,13 +14,7 @@ class NarrationDraftValidator
 
     private const LEXICAL_WORD_PATTERN = '/[\p{L}\p{M}]+/u';
 
-    /** @var list<string> */
-    private const ALLOWED_AUDIO_TAGS = [
-        '[thoughtful]',
-        '[short pause]',
-        '[long pause]',
-        '[exhales]',
-    ];
+    private const ALLOWED_AUDIO_TAGS_PATTERN = '/(?:[ \t]*\[(?:thoughtful|short pause|long pause|exhales)\][ \t]*)+/u';
 
     public function validate(string $script, string $source): void
     {
@@ -72,7 +66,7 @@ class NarrationDraftValidator
 
     private function withoutAllowedAudioTags(string $value): string
     {
-        return str_replace(self::ALLOWED_AUDIO_TAGS, '', $value);
+        return trim(preg_replace(self::ALLOWED_AUDIO_TAGS_PATTERN, ' ', $value) ?? $value);
     }
 
     /**

@@ -42,7 +42,7 @@ class OpenAiNarrationEditorTest extends TestCase
         $this->assertSame(['Added contextual Arabic diacritics.'], $draft->notes);
         $this->assertSame(['اقرأ AI: الذكاء الاصطناعي.'], $draft->pronunciationNotes);
         $this->assertSame('gpt-5.6', $draft->model);
-        $this->assertSame('strict-arabic-vocalization-v2', $draft->promptVersion);
+        $this->assertSame('strict-arabic-vocalization-v3', $draft->promptVersion);
 
         ArticleNarrationEditor::assertPrompted(function (AgentPrompt $prompt) use ($source): bool {
             return $prompt->provider->name() === 'openai'

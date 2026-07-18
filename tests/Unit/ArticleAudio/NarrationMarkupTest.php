@@ -85,7 +85,7 @@ class NarrationMarkupTest extends TestCase
         $this->addToAssertionCount(1);
 
         $validator->validateGenerated(
-            'هذه جملة عربية.[thoughtful][short pause] وهذه جملة ثانية.[long pause][exhales] الخلاصة.',
+            '[thoughtful] هذه جملة عربية. [short pause] وهذه جملة ثانية. [long pause] الخلاصة. [exhales]',
             'هذه جملة عربية. وهذه جملة ثانية. الخلاصة.',
             'ar',
         );
