@@ -35,7 +35,7 @@ class NarrationMarkupTest extends TestCase
         $this->assertStringEndsWith('.', $excerpt);
     }
 
-    public function test_validator_rejects_every_change_except_arabic_diacritics(): void
+    public function test_validator_rejects_every_change_except_arabic_diacritics_and_approved_audio_tags(): void
     {
         $validator = new NarrationDraftValidator;
         $source = str_repeat('هذه حقيقة يجب الحفاظ عليها. ', 30);
@@ -83,6 +83,12 @@ class NarrationMarkupTest extends TestCase
         );
 
         $this->addToAssertionCount(1);
+
+        $validator->validateGenerated(
+            'هذه جملة عربية.[thoughtful][short pause] وهذه جملة ثانية.[long pause][exhales] الخلاصة.',
+            'هذه جملة عربية. وهذه جملة ثانية. الخلاصة.',
+            'ar',
+        );
     }
 
     public function test_validator_rejects_a_non_arabic_generated_script_for_the_arabic_locale(): void

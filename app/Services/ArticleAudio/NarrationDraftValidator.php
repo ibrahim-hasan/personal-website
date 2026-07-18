@@ -14,6 +14,14 @@ class NarrationDraftValidator
 
     private const LEXICAL_WORD_PATTERN = '/[\p{L}\p{M}]+/u';
 
+    /** @var list<string> */
+    private const ALLOWED_AUDIO_TAGS = [
+        '[thoughtful]',
+        '[short pause]',
+        '[long pause]',
+        '[exhales]',
+    ];
+
     public function validate(string $script, string $source): void
     {
         $script = trim($script);
@@ -23,8 +31,8 @@ class NarrationDraftValidator
             throw new UnexpectedValueException('The narration draft is empty.');
         }
 
-        if (! hash_equals($this->withoutArabicDiacritics($source), $this->withoutArabicDiacritics($script))) {
-            throw new UnexpectedValueException('The narration draft may only add Arabic diacritics to the source text.');
+        if (! hash_equals($this->withoutArabicDiacritics($source), $this->withoutArabicDiacritics($this->withoutAllowedAudioTags($script)))) {
+            throw new UnexpectedValueException('The narration draft may only add Arabic diacritics and approved audio tags to the source text.');
         }
     }
 
@@ -33,7 +41,7 @@ class NarrationDraftValidator
         $this->validate($script, $source);
 
         if ($locale === 'ar') {
-            $this->validateArabicLanguage($script);
+            $this->validateArabicLanguage($this->withoutAllowedAudioTags($script));
         }
     }
 
@@ -60,6 +68,11 @@ class NarrationDraftValidator
     private function withoutArabicDiacritics(string $value): string
     {
         return preg_replace(self::ARABIC_DIACRITICS_PATTERN, '', $value) ?? $value;
+    }
+
+    private function withoutAllowedAudioTags(string $value): string
+    {
+        return str_replace(self::ALLOWED_AUDIO_TAGS, '', $value);
     }
 
     /**
