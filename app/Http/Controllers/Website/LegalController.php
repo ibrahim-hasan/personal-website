@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Http\Controllers\Website;
+
+use App\Http\Controllers\Controller;
+use App\Support\SiteContent;
+use Illuminate\View\View;
+
+class LegalController extends Controller
+{
+    public function privacy(): View
+    {
+        return $this->render('privacy');
+    }
+
+    public function terms(): View
+    {
+        return $this->render('terms');
+    }
+
+    public function cookies(): View
+    {
+        return $this->render('cookies_policy');
+    }
+
+    private function render(string $document): View
+    {
+        $contact = SiteContent::contact();
+
+        /** @var array{title: string, description: string, eyebrow: string, effective_date: string, introduction: string, sections: list<array{heading: string, paragraphs: list<string>, bullets?: list<string>, table?: array{headers: list<string>, rows: list<list<string>>}}>} $content */
+        $content = trans("legal.{$document}", ['email' => $contact['email']]);
+
+        return view('website.legal', [
+            'document' => $document,
+            'content' => $content,
+            'contact' => $contact,
+        ]);
+    }
+}

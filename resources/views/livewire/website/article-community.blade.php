@@ -76,7 +76,12 @@
                                 <textarea id="article-comment" wire:model="commentBody" rows="4" maxlength="2000" class="mt-2 min-h-32 w-full resize-y rounded-[var(--control-radius)] border border-ink/20 bg-canvas px-4 py-3 leading-7 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50" placeholder="{{ __('community.comment_placeholder') }}"></textarea>
                                 @error('commentBody') <p class="mt-2 text-sm text-danger" role="alert">{{ $message }}</p> @enderror
                                 <div class="mt-3 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                                    <p class="text-xs leading-5 text-ink-muted">{{ __('community.moderation_note') }}</p>
+                                    <p class="text-xs leading-5 text-ink-muted">
+                                        {!! __('community.contribution_notice', [
+                                            'terms' => '<a class="text-link" data-no-navigate href="'.e(localized_route('terms')).'">'.e(__('legal.documents.terms')).'</a>',
+                                            'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'">'.e(__('legal.documents.privacy')).'</a>',
+                                        ]) !!}
+                                    </p>
                                     <button type="submit" wire:loading.attr="disabled" wire:target="postComment" class="button-primary min-h-11 w-full shrink-0 disabled:cursor-wait disabled:opacity-60 sm:w-auto">
                                         <span wire:loading.remove wire:target="postComment">{{ __('community.publish') }}</span>
                                         <span wire:loading wire:target="postComment">{{ __('community.publishing') }}</span>
@@ -124,6 +129,12 @@
                                         <label for="reply-{{ $comment->getKey() }}" class="sr-only">{{ __('community.reply') }}</label>
                                         <textarea id="reply-{{ $comment->getKey() }}" wire:model="replyBody" rows="3" maxlength="2000" class="min-h-28 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas-bright px-4 py-3 leading-7 text-ink outline-none transition-colors focus-visible:border-violet-600" placeholder="{{ __('community.reply_placeholder') }}"></textarea>
                                         @error('replyBody') <p class="mt-2 text-sm text-danger" role="alert">{{ $message }}</p> @enderror
+                                        <p class="mt-2 text-xs leading-5 text-ink-muted">
+                                            {!! __('community.reply_notice', [
+                                                'terms' => '<a class="text-link" data-no-navigate href="'.e(localized_route('terms')).'">'.e(__('legal.documents.terms')).'</a>',
+                                                'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'">'.e(__('legal.documents.privacy')).'</a>',
+                                            ]) !!}
+                                        </p>
                                         <div class="mt-3 flex justify-end gap-3">
                                             <button type="button" wire:click="$set('replyTo', null)" class="button-quiet min-h-11">{{ __('community.cancel') }}</button>
                                             <button type="submit" wire:loading.attr="disabled" wire:target="postReply" class="button-primary min-h-11 disabled:opacity-60">{{ __('community.reply') }}</button>
@@ -180,6 +191,11 @@
                             <textarea wire:model="reportDetails" rows="3" maxlength="500" class="mt-2 min-h-28 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50"></textarea>
                         </label>
                         @error('reportDetails') <p class="mt-2 text-sm text-danger" role="alert">{{ $message }}</p> @enderror
+                        <p class="mt-3 text-xs leading-5 text-ink-muted">
+                            {!! __('community.report_notice', [
+                                'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'">'.e(__('legal.documents.privacy')).'</a>',
+                            ]) !!}
+                        </p>
                         <div class="mt-6 flex justify-end gap-3">
                             <button type="button" wire:click="$set('reportingComment', null)" class="button-quiet min-h-11">{{ __('community.cancel') }}</button>
                             <button type="submit" wire:loading.attr="disabled" wire:target="submitReport" class="inline-flex min-h-11 items-center justify-center rounded-[var(--control-radius)] bg-ink px-5 py-3 font-sans text-sm font-bold text-canvas-bright transition-colors hover:bg-danger disabled:opacity-60">{{ __('community.send_report') }}</button>

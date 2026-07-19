@@ -296,7 +296,12 @@ class ArticleCommunity extends Component
 
     private function enforceRateLimit(string $action, int $attempts, int $decaySeconds): void
     {
-        $key = "article-community:{$action}:".auth()->id().'|'.request()->ip();
+        $identity = auth()->id().'|'.request()->ip();
+        $key = "article-community:{$action}:".hash_hmac(
+            'sha256',
+            $identity,
+            (string) config('app.key'),
+        );
 
         if (! RateLimiter::attempt($key, $attempts, fn (): bool => true, $decaySeconds)) {
             throw ValidationException::withMessages([

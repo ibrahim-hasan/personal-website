@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Editorial;
 
+use App\Enums\CommentStatus;
 use App\Models\Article;
 use App\Models\ArticleAppreciation;
 use App\Models\ArticleBookmark;
@@ -185,6 +186,20 @@ class ReaderAccountTest extends TestCase
             'article_id' => $article->getKey(),
             'user_id' => $reader->getKey(),
         ]);
+        $pendingComment = Comment::factory()->create([
+            'article_id' => $article->getKey(),
+            'user_id' => $reader->getKey(),
+        ]);
+        $rejectedComment = Comment::factory()->create([
+            'article_id' => $article->getKey(),
+            'user_id' => $reader->getKey(),
+            'status' => CommentStatus::Rejected,
+        ]);
+        $deletedComment = Comment::factory()->approved()->create([
+            'article_id' => $article->getKey(),
+            'user_id' => $reader->getKey(),
+        ]);
+        $deletedComment->delete();
         $reportedComment = Comment::factory()->approved()->create(['article_id' => $article->getKey()]);
         ArticleBookmark::factory()->create([
             'article_id' => $article->getKey(),
@@ -234,6 +249,9 @@ class ReaderAccountTest extends TestCase
             'id' => $comment->getKey(),
             'user_id' => null,
         ]);
+        $this->assertDatabaseMissing('comments', ['id' => $pendingComment->getKey()]);
+        $this->assertDatabaseMissing('comments', ['id' => $rejectedComment->getKey()]);
+        $this->assertDatabaseMissing('comments', ['id' => $deletedComment->getKey()]);
         $this->assertDatabaseMissing('article_bookmarks', ['user_id' => $reader->getKey()]);
         $this->assertDatabaseMissing('article_appreciations', ['user_id' => $reader->getKey()]);
         $this->assertDatabaseMissing('article_reading_progress', ['user_id' => $reader->getKey()]);

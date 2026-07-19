@@ -27,6 +27,8 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
         'password',
         'locale_preference',
         'is_active',
+        'terms_accepted_at',
+        'terms_version',
     ];
 
     protected $hidden = [
@@ -46,6 +48,7 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
             'password' => 'hashed',
             'is_active' => 'boolean',
             'hero_video_seen_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
         ];
     }
 

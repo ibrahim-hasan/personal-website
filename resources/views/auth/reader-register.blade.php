@@ -27,6 +27,23 @@
                     <span class="mb-2 block font-sans text-sm font-bold text-ink-soft">{{ __('reader_auth.password_confirmation') }}</span>
                     <input name="password_confirmation" type="password" autocomplete="new-password" required class="min-h-13 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas px-4 py-3 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50">
                 </label>
+                <label class="flex items-start gap-3 text-sm leading-6 text-ink-muted">
+                    <input
+                        name="terms_accepted"
+                        type="checkbox"
+                        value="1"
+                        required
+                        @checked(old('terms_accepted'))
+                        class="mt-1 size-5 shrink-0 accent-violet-700"
+                    >
+                    <span>
+                        {!! __('reader_auth.terms_acceptance', [
+                            'terms' => '<a class="text-link" data-no-navigate href="'.e(localized_route('terms')).'">'.e(__('legal.documents.terms')).'</a>',
+                            'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'">'.e(__('legal.documents.privacy')).'</a>',
+                        ]) !!}
+                    </span>
+                </label>
+                @error('terms_accepted') <span class="-mt-3 block text-sm text-danger" role="alert">{{ $message }}</span> @enderror
                 <button class="button-primary w-full" type="submit">{{ __('reader_auth.create_account') }}</button>
             </form>
 

@@ -38,7 +38,6 @@ export const initializeArticleShare = (signal) => {
         const copyButton = share.querySelector('[data-article-copy-link]');
         const copyLabel = share.querySelector('[data-article-copy-label]');
         const status = share.querySelector('[data-article-share-status]');
-        const qabilahLink = share.querySelector('[data-article-qabilah-share]');
         const canonicalUrl = share.dataset.shareUrl;
         let copyResetTimer;
 
@@ -72,14 +71,6 @@ export const initializeArticleShare = (signal) => {
                 }
             }, { signal });
         }
-
-        qabilahLink?.addEventListener('click', async () => {
-            const copied = await copyText([shareData.title, shareData.text, shareData.url].filter(Boolean).join('\n\n'));
-
-            if (copied) {
-                announce(status?.dataset.qabilahCopySuccess || '');
-            }
-        }, { signal });
 
         copyButton?.addEventListener('click', async () => {
             const copied = await copyText(shareData.url);

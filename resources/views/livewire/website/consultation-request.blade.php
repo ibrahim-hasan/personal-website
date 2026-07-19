@@ -98,7 +98,11 @@
                     <span wire:loading wire:target="submit">{{ __('site.consultation.sending') }}</span>
                     <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" wire:loading.remove wire:target="submit" />
                 </button>
-                <p>{{ __('site.consultation.privacy') }}</p>
+                <p>
+                    {!! __('site.consultation.privacy', [
+                        'privacy' => '<a class="underline decoration-current/40 underline-offset-4 hover:decoration-current" data-no-navigate href="'.e(localized_route('privacy')).'">'.e(__('legal.documents.privacy')).'</a>',
+                    ]) !!}
+                </p>
             </div>
         </form>
     @endif

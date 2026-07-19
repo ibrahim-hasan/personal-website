@@ -137,6 +137,7 @@ return [
         'password' => 'password',
         'password_confirmation' => 'password confirmation',
         'remember' => 'remember me',
+        'terms_accepted' => 'Terms acceptance',
         'token' => 'reset token',
         'commentBody' => 'contribution',
         'replyBody' => 'reply',

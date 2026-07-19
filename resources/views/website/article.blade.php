@@ -13,7 +13,8 @@
     :articleTags="$article['topics']"
     :structuredData="$structuredData"
     bodyClass="article-surface"
-    activeMenu="true">
+    activeMenu="true"
+    :usesLivewire="true">
 
     <article
         class="article-page"

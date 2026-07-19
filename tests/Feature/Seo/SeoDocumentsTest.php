@@ -25,6 +25,9 @@ class SeoDocumentsTest extends TestCase
         'writing',
         'about',
         'contact',
+        'privacy',
+        'cookies',
+        'terms',
     ];
 
     protected function setUp(): void

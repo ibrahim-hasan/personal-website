@@ -10,7 +10,8 @@
 
 <x-layouts.front
     :title="__('site.home.title')"
-    :description="__('site.home.description')">
+    :description="__('site.home.description')"
+    :usesLivewire="true">
 
     <section class="precision-hero">
         <div class="precision-hero__halo" aria-hidden="true"></div>
@@ -60,6 +61,10 @@
                             class="precision-stage__video"
                             data-hero-video
                             data-viewed="{{ auth()->user()?->hero_video_seen_at !== null ? 'true' : 'false' }}"
+                            data-webm-src-high="{{ asset('videos/hero/ibrahim-hero.webm') }}"
+                            data-mp4-src-high="{{ asset('videos/hero/ibrahim-hero.mp4') }}"
+                            data-webm-src-compact="{{ asset('videos/hero/ibrahim-hero-0ab509e4.webm') }}"
+                            data-mp4-src-compact="{{ asset('videos/hero/ibrahim-hero-689778bf.mp4') }}"
                             @auth
                                 data-viewed-url="{{ localized_route('reader.hero-video.viewed') }}"
                             @endauth
@@ -67,13 +72,10 @@
                             height="1280"
                             muted
                             playsinline
-                            preload="metadata"
+                            preload="none"
                             poster="{{ asset('images/ibrahim/ibrahim-hero-video-poster.webp') }}"
                             aria-hidden="true"
-                        >
-                            <source src="{{ asset('videos/hero/ibrahim-hero.webm') }}" type="video/webm">
-                            <source src="{{ asset('videos/hero/ibrahim-hero.mp4') }}" type="video/mp4">
-                        </video>
+                        ></video>
 
                         <div class="precision-stage__finale" data-hero-video-finale aria-hidden="true" inert>
                             <span class="precision-stage__finale-mark" aria-hidden="true"></span>

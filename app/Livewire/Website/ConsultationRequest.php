@@ -71,7 +71,12 @@ class ConsultationRequest extends Component
         $payload['service_label'] = $service['name'] ?? __('site.consultation.general_service');
         $payload['locale'] = current_locale();
 
-        $rateLimitKey = 'consultation-request:'.Str::lower($payload['email']).'|'.request()->ip();
+        $rateLimitIdentity = Str::lower($payload['email']).'|'.request()->ip();
+        $rateLimitKey = 'consultation-request:'.hash_hmac(
+            'sha256',
+            $rateLimitIdentity,
+            (string) config('app.key'),
+        );
 
         try {
             $sent = RateLimiter::attempt(

@@ -60,6 +60,13 @@
                 <span dir="ltr">© {{ $year }}</span>
             </p>
 
+            <nav class="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm" aria-label="{{ __('site.footer.legal') }}">
+                <a class="footer-link" data-no-navigate href="{{ localized_route('privacy') }}">{{ __('site.footer.privacy_policy') }}</a>
+                <a class="footer-link" data-no-navigate href="{{ localized_route('cookies') }}">{{ __('site.footer.cookie_policy') }}</a>
+                <a class="footer-link" data-no-navigate href="{{ localized_route('terms') }}">{{ __('site.footer.terms_of_use') }}</a>
+                <button type="button" class="footer-link" data-open-cookie-preferences>{{ __('site.footer.cookie_preferences') }}</button>
+            </nav>
+
             <nav class="footer-socials" aria-label="{{ __('site.footer.social') }}">
                 <span class="footer-socials__label">{{ __('site.footer.social') }}</span>
                 <span class="footer-socials__links">

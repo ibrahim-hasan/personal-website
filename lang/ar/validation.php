@@ -137,6 +137,7 @@ return [
         'password' => 'كلمة المرور',
         'password_confirmation' => 'تأكيد كلمة المرور',
         'remember' => 'تذكرني',
+        'terms_accepted' => 'الموافقة على الشروط',
         'token' => 'رمز الاستعادة',
         'commentBody' => 'نص المشاركة',
         'replyBody' => 'نص الرد',

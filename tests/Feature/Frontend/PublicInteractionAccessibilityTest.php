@@ -21,8 +21,12 @@ class PublicInteractionAccessibilityTest extends TestCase
             ->assertSee('aria-hidden="true" tabindex="-1"', false)
             ->assertSee('Back to top', false)
             ->assertSee('aria-hidden="true"', false)
-            ->assertSee('type="video/webm"', false)
-            ->assertSee('type="video/mp4"', false)
+            ->assertSee('data-webm-src-high', false)
+            ->assertSee('data-mp4-src-high', false)
+            ->assertSee('data-webm-src-compact', false)
+            ->assertSee('data-mp4-src-compact', false)
+            ->assertSee('preload="none"', false)
+            ->assertDontSee('<source ', false)
             ->assertSee('x-ref="menuToggle"', false)
             ->assertSee('@keydown.tab="trapFocus($event)"', false)
             ->assertSee('role="dialog"', false)
@@ -32,6 +36,7 @@ class PublicInteractionAccessibilityTest extends TestCase
 
         $this->get('/en/services')
             ->assertOk()
+            ->assertSee('data-uses-livewire="false"', false)
             ->assertSee('role="tablist"', false)
             ->assertSee('@keydown="navigate($event)"', false)
             ->assertSee(':aria-selected=', false)
@@ -41,7 +46,8 @@ class PublicInteractionAccessibilityTest extends TestCase
             ->assertSee('role="tabpanel"', false)
             ->assertSee(':aria-labelledby="\'service-tab-\' + active"', false)
             ->assertDontSee('id="service-tab-"', false)
-            ->assertDontSee('service-tab-null', false);
+            ->assertDontSee('service-tab-null', false)
+            ->assertDontSee('livewire.min.js', false);
 
         $this->get('/en/work')
             ->assertOk()
@@ -233,12 +239,22 @@ class PublicInteractionAccessibilityTest extends TestCase
             $css,
         );
         $this->assertStringNotContainsString('precision-stage__orbit', $css);
-        $this->assertStringContainsString('navigator.connection?.saveData === true', $javascript);
+        $this->assertStringContainsString('connection?.saveData === true', $javascript);
+        $this->assertStringContainsString("['slow-2g', '2g', '3g']", $javascript);
+        $this->assertStringContainsString('shouldUseHighQualityVideo', $javascript);
+        $this->assertStringContainsString('video.dataset.webmSrcHigh', $javascript);
+        $this->assertStringContainsString('video.dataset.webmSrcCompact', $javascript);
         $this->assertStringContainsString("document.querySelectorAll('[data-hero-video]')", $javascript);
         $this->assertStringContainsString("window.sessionStorage.setItem(guestSeenKey, 'true')", $javascript);
         $this->assertStringContainsString('video.dataset.viewedUrl', $javascript);
         $this->assertStringContainsString("method: 'POST'", $javascript);
-        $this->assertStringContainsString('video.play().catch(() => {})', $javascript);
+        $this->assertStringContainsString('playVideo().catch(() => {})', $javascript);
+        $this->assertStringContainsString('video.canPlayType', $javascript);
+        $this->assertStringContainsString('video.load()', $javascript);
+        $this->assertStringContainsString("await import('alpinejs')", $javascript);
+        $this->assertStringContainsString("document.documentElement.dataset.usesLivewire === 'true'", $javascript);
+        $this->assertStringContainsString('autoplayDelay = window.setTimeout', $javascript);
+        $this->assertStringContainsString('window.requestIdleCallback(allowAutoplay', $javascript);
         $this->assertStringContainsString("video.addEventListener('ended', () =>", $javascript);
         $this->assertStringContainsString("stage?.classList.add('is-complete')", $javascript);
         $this->assertStringContainsString("finale?.removeAttribute('inert')", $javascript);
@@ -406,20 +422,14 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString('data-article-native-share', $component);
         $this->assertStringContainsString('data-article-copy-link', $component);
         $this->assertStringContainsString('aria-live="polite"', $component);
-        $this->assertSame(4, substr_count($component, 'rel="noopener noreferrer"'));
-        $this->assertStringContainsString('https://qabilah.com/discover/following?', $component);
-        $this->assertStringContainsString('data-article-qabilah-share', $component);
-        $this->assertStringContainsString('x-phosphor-users-three', $component);
-        $this->assertStringContainsString('data-qabilah-copy-success', $component);
+        $this->assertSame(3, substr_count($component, 'rel="noopener noreferrer"'));
+        $this->assertStringNotContainsString('qabilah.com', $component);
+        $this->assertStringNotContainsString('data-article-qabilah-share', $component);
         $this->assertStringContainsString("await import('./article-share')", $application);
         $this->assertStringContainsString("typeof navigator.share === 'function'", $sharing);
         $this->assertStringContainsString('navigator.clipboard?.writeText', $sharing);
         $this->assertStringContainsString("document.execCommand('copy')", $sharing);
-        $this->assertStringContainsString("qabilahLink?.addEventListener('click'", $sharing);
-        $this->assertMatchesRegularExpression(
-            '/if \(nativeButton.*?\n        }\n\n        qabilahLink\?\.addEventListener/s',
-            $sharing,
-        );
+        $this->assertStringNotContainsString('qabilahLink', $sharing);
         $this->assertStringContainsString('}, 2000);', $sharing);
         $this->assertStringContainsString('data-article-copy-success', $component);
         $this->assertStringContainsString('data-default-label=', $component);
@@ -508,9 +518,9 @@ class PublicInteractionAccessibilityTest extends TestCase
             $css,
         );
         $this->assertStringNotContainsString("url('/fonts/noto-sans/", $css);
-        $this->assertStringContainsString("url('../fonts/noto-sans/NotoSans-700.ttf')", $css);
-        $this->assertFileExists(resource_path('fonts/noto-sans/NotoSans-700.ttf'));
-        $this->assertFileExists(resource_path('fonts/noto-sans/NotoSans-800.ttf'));
+        $this->assertStringContainsString("url('../fonts/noto-sans/NotoSans-700.woff2')", $css);
+        $this->assertFileExists(resource_path('fonts/noto-sans/NotoSans-700.woff2'));
+        $this->assertFileExists(resource_path('fonts/noto-sans/NotoSans-800.woff2'));
         $this->assertMatchesRegularExpression(
             '/\.footer-contact__email strong\s*\{[^}]*direction:\s*ltr;[^}]*justify-self:\s*start;[^}]*max-width:\s*100%;/s',
             $css,

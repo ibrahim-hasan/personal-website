@@ -27,10 +27,13 @@ class AssetDeliveryTest extends TestCase
         $this->assertStringContainsString('stale-while-revalidate=86400', $serverRules);
     }
 
-    public function test_hero_video_fallbacks_stay_within_the_web_delivery_budget(): void
+    public function test_hero_video_adapts_between_high_quality_and_compact_delivery(): void
     {
-        $this->assertLessThan(6 * 1024 * 1024, filesize(public_path('videos/hero/ibrahim-hero.mp4')));
-        $this->assertLessThan(5 * 1024 * 1024, filesize(public_path('videos/hero/ibrahim-hero.webm')));
+        $this->assertLessThan(3.6 * 1024 * 1024, filesize(public_path('videos/hero/ibrahim-hero.mp4')));
+        $this->assertLessThan(4.5 * 1024 * 1024, filesize(public_path('videos/hero/ibrahim-hero.webm')));
+        $this->assertLessThan(2.1 * 1024 * 1024, filesize(public_path('videos/hero/ibrahim-hero-689778bf.mp4')));
+        $this->assertLessThan(1.8 * 1024 * 1024, filesize(public_path('videos/hero/ibrahim-hero-0ab509e4.webm')));
+        $this->assertLessThan(50 * 1024, filesize(public_path('images/ibrahim/ibrahim-hero-video-poster.webp')));
     }
 
     public function test_google_analytics_loader_is_part_of_the_frontend_bundle(): void
@@ -41,6 +44,7 @@ class AssetDeliveryTest extends TestCase
         $this->assertStringContainsString("import './google-analytics';", $entrypoint);
         $this->assertStringContainsString('meta[name="google-analytics-id"]', $loader);
         $this->assertStringContainsString('https://www.googletagmanager.com/gtag/js?id=', $loader);
-        $this->assertStringContainsString("window.gtag('config', measurementId);", $loader);
+        $this->assertStringContainsString("window.gtag('config', measurementId, {", $loader);
+        $this->assertStringContainsString('send_page_view: false', $loader);
     }
 }

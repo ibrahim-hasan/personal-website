@@ -6,6 +6,7 @@ return [
     'login_description' => 'Sign in to appreciate, save, and join thoughtful conversations around the writing.',
     'register_title' => 'Create your reader account',
     'register_description' => 'A lightweight account keeps your reading list, progress, and contributions together.',
+    'terms_acceptance' => 'I agree to the :terms and acknowledge the :privacy.',
     'name' => 'Name',
     'email' => 'Email address',
     'password' => 'Password',

@@ -24,6 +24,9 @@ class SeoDocumentService
         'writing',
         'about',
         'contact',
+        'privacy',
+        'cookies',
+        'terms',
     ];
 
     public function __construct(private readonly ArticleCatalog $articles) {}

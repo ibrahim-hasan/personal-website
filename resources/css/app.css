@@ -56,7 +56,7 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url('../fonts/noto-sans/NotoSans-400.ttf') format('truetype');
+    src: url('../fonts/noto-sans/NotoSans-400.woff2') format('woff2');
 }
 
 @font-face {
@@ -64,7 +64,7 @@
     font-style: normal;
     font-weight: 600;
     font-display: swap;
-    src: url('../fonts/noto-sans/NotoSans-600.ttf') format('truetype');
+    src: url('../fonts/noto-sans/NotoSans-600.woff2') format('woff2');
 }
 
 @font-face {
@@ -72,7 +72,7 @@
     font-style: normal;
     font-weight: 700;
     font-display: swap;
-    src: url('../fonts/noto-sans/NotoSans-700.ttf') format('truetype');
+    src: url('../fonts/noto-sans/NotoSans-700.woff2') format('woff2');
 }
 
 @font-face {
@@ -80,7 +80,7 @@
     font-style: normal;
     font-weight: 800;
     font-display: swap;
-    src: url('../fonts/noto-sans/NotoSans-800.ttf') format('truetype');
+    src: url('../fonts/noto-sans/NotoSans-800.woff2') format('woff2');
 }
 
 @theme inline {
@@ -141,7 +141,8 @@ html {
     scroll-padding-top: 6rem;
 }
 
-html.menu-open {
+html.menu-open,
+html.cookie-consent-open {
     overflow: hidden;
 }
 

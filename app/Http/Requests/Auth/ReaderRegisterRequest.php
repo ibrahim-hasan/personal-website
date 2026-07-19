@@ -21,6 +21,7 @@ class ReaderRegisterRequest extends FormRequest
             'name' => ['required', 'string', 'min:2', 'max:80'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)],
             'password' => ['required', 'confirmed', Password::defaults()],
+            'terms_accepted' => ['accepted'],
         ];
     }
 }

@@ -24,13 +24,29 @@ class ReaderAuthenticationTest extends TestCase
             'email' => 'reader@example.com',
             'password' => 'A-secure-reader-password!42',
             'password_confirmation' => 'A-secure-reader-password!42',
+            'terms_accepted' => '1',
         ])->assertRedirect('/reader/verify-email');
 
         $reader = User::query()->where('email', 'reader@example.com')->firstOrFail();
 
         $this->assertAuthenticatedAs($reader);
+        $this->assertNotNull($reader->terms_accepted_at);
+        $this->assertSame(config('legal.terms_version'), $reader->terms_version);
         $this->assertFalse($reader->canAccessPanel(filament()->getPanel('admin')));
         $this->get('/admin')->assertForbidden();
+    }
+
+    public function test_a_reader_must_explicitly_accept_the_current_terms_to_register(): void
+    {
+        $this->post('/en/reader/register', [
+            'name' => 'Thoughtful Reader',
+            'email' => 'reader@example.com',
+            'password' => 'A-secure-reader-password!42',
+            'password_confirmation' => 'A-secure-reader-password!42',
+        ])->assertSessionHasErrors('terms_accepted');
+
+        $this->assertDatabaseMissing('users', ['email' => 'reader@example.com']);
+        $this->assertGuest();
     }
 
     public function test_login_returns_a_verified_reader_to_the_original_article(): void

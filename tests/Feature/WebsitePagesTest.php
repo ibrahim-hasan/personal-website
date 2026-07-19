@@ -56,6 +56,8 @@ class WebsitePagesTest extends TestCase
     {
         $this->assertFileExists(public_path('videos/hero/ibrahim-hero.mp4'));
         $this->assertFileExists(public_path('videos/hero/ibrahim-hero.webm'));
+        $this->assertFileExists(public_path('videos/hero/ibrahim-hero-689778bf.mp4'));
+        $this->assertFileExists(public_path('videos/hero/ibrahim-hero-0ab509e4.webm'));
         $this->assertFileExists(public_path('images/ibrahim/ibrahim-hero-video-poster.webp'));
         $this->assertFileExists(public_path('images/ibrahim/ibrahim-formal-portrait.webp'));
         $this->assertFileExists(public_path('images/ibrahim/ibrahim-conference-event.webp'));
@@ -67,8 +69,14 @@ class WebsitePagesTest extends TestCase
             ->assertSee('rel="preload"', false)
             ->assertSee('as="image"', false)
             ->assertSee('fetchpriority="high"', false)
+            ->assertSee('data-webm-src-high', false)
+            ->assertSee('data-mp4-src-high', false)
+            ->assertSee('data-webm-src-compact', false)
+            ->assertSee('data-mp4-src-compact', false)
             ->assertSee('videos/hero/ibrahim-hero.webm', false)
             ->assertSee('videos/hero/ibrahim-hero.mp4', false)
+            ->assertSee('videos/hero/ibrahim-hero-0ab509e4.webm', false)
+            ->assertSee('videos/hero/ibrahim-hero-689778bf.mp4', false)
             ->assertSee('images/ibrahim/ibrahim-hero-video-poster.webp', false)
             ->assertSee('width="720"', false)
             ->assertSee('height="1280"', false)
@@ -144,7 +152,8 @@ class WebsitePagesTest extends TestCase
             ->assertOk()
             ->assertSee('precision-hero', false)
             ->assertSee('precision-stage', false)
-            ->assertSee('videos/hero/ibrahim-hero.webm', false)
+            ->assertSee('data-webm-src-high', false)
+            ->assertSee('data-webm-src-compact', false)
             ->assertSee('images/ibrahim/ibrahim-hero-video-poster.webp', false)
             ->assertSee('manifesto-section', false)
             ->assertSee('atlas-constellation', false)

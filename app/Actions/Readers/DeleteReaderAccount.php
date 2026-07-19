@@ -2,6 +2,7 @@
 
 namespace App\Actions\Readers;
 
+use App\Enums\CommentStatus;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Query\Builder;
@@ -25,6 +26,7 @@ class DeleteReaderAccount
             $this->deleteSessions($reader);
             $this->deletePasswordResetTokens($reader);
             $this->deleteAiConversationData($reader);
+            $this->deleteNonPublicContributions($reader);
 
             if (! $reader->delete()) {
                 throw new RuntimeException('The reader account could not be deleted.');
@@ -98,6 +100,18 @@ class DeleteReaderAccount
             ->table($conversationsTable)
             ->where('user_id', $reader->getKey())
             ->delete();
+    }
+
+    private function deleteNonPublicContributions(User $reader): void
+    {
+        $reader->comments()
+            ->withTrashed()
+            ->where(function (\Illuminate\Database\Eloquent\Builder $query): void {
+                $query
+                    ->where('status', '!=', CommentStatus::Approved->value)
+                    ->orWhereNotNull('deleted_at');
+            })
+            ->forceDelete();
     }
 
     /** @param callable(Builder): void $callback */

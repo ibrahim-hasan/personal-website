@@ -1,7 +1,8 @@
 <x-layouts.front
     :title="__('site.contact.title')"
     :description="__('site.contact.description')"
-    activeMenu="true">
+    activeMenu="true"
+    :usesLivewire="true">
 
     <section class="page-intro contact-intro">
         <div class="site-container page-intro__grid">

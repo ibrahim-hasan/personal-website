@@ -1,3 +1,4 @@
+import './cookie-consent';
 import './google-analytics';
 import './article-reader';
 
@@ -196,10 +197,31 @@ document.addEventListener('alpine:init', () => {
     }));
 });
 
+const startStandaloneAlpine = async () => {
+    if (document.documentElement.dataset.usesLivewire === 'true' || window.Livewire || window.Alpine) {
+        return;
+    }
+
+    const { default: Alpine } = await import('alpinejs');
+
+    if (window.Livewire || window.Alpine) {
+        return;
+    }
+
+    window.Alpine = Alpine;
+    Alpine.start();
+};
+
+void startStandaloneAlpine();
+
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 const initializeHeroVideos = (signal) => {
-    const shouldRemainStill = reducedMotion.matches || navigator.connection?.saveData === true;
+    const connection = navigator.connection;
+    const shouldRemainStill = reducedMotion.matches || connection?.saveData === true;
+    const hasSlowConnection = ['slow-2g', '2g', '3g'].includes(connection?.effectiveType);
+    const hasHighQualityViewport = window.matchMedia('(min-width: 64rem), (min-width: 48rem) and (min-resolution: 1.5dppx)').matches;
+    const shouldUseHighQualityVideo = ! hasSlowConnection && ! connection?.saveData && hasHighQualityViewport;
     const guestSeenKey = 'ibrahim.hero-video.seen.v1';
 
     document.querySelectorAll('[data-hero-video]').forEach((video) => {
@@ -207,6 +229,36 @@ const initializeHeroVideos = (signal) => {
         const finale = stage?.querySelector('[data-hero-video-finale]');
         const replay = stage?.querySelector('[data-hero-video-replay]');
         let restartFrame = null;
+        let sourceLoaded = false;
+        let isVisible = false;
+        let autoplayReady = false;
+        let autoplayDelay = null;
+        let idleCallback = null;
+
+        const loadVideoSource = () => {
+            if (sourceLoaded) {
+                return;
+            }
+
+            const supportsWebm = video.canPlayType('video/webm; codecs="vp9"') !== '';
+            const source = supportsWebm
+                ? (shouldUseHighQualityVideo ? video.dataset.webmSrcHigh : video.dataset.webmSrcCompact)
+                : (shouldUseHighQualityVideo ? video.dataset.mp4SrcHigh : video.dataset.mp4SrcCompact);
+
+            if (! source) {
+                return;
+            }
+
+            video.src = source;
+            video.load();
+            sourceLoaded = true;
+        };
+
+        const playVideo = () => {
+            loadVideoSource();
+
+            return video.play();
+        };
 
         const hasGuestSeenVideo = () => {
             try {
@@ -274,7 +326,7 @@ const initializeHeroVideos = (signal) => {
                 restartFrame = null;
 
                 try {
-                    await video.play();
+                    await playVideo();
                 } catch {
                     showFinale();
                 } finally {
@@ -302,9 +354,11 @@ const initializeHeroVideos = (signal) => {
 
         const visibilityObserver = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
+                isVisible = entry.isIntersecting;
+
                 if (entry.isIntersecting) {
-                    if (!video.ended && !stage?.classList.contains('is-complete')) {
-                        video.play().catch(() => {});
+                    if (autoplayReady && ! video.ended && ! stage?.classList.contains('is-complete')) {
+                        playVideo().catch(() => {});
                     }
 
                     return;
@@ -315,12 +369,52 @@ const initializeHeroVideos = (signal) => {
         }, { threshold: 0.25 });
 
         visibilityObserver.observe(video);
+
+        const allowAutoplay = () => {
+            if (signal.aborted) {
+                return;
+            }
+
+            autoplayReady = true;
+
+            if (isVisible && ! video.ended && ! stage?.classList.contains('is-complete')) {
+                playVideo().catch(() => {});
+            }
+        };
+        const scheduleIdlePlayback = () => {
+            autoplayDelay = window.setTimeout(() => {
+                autoplayDelay = null;
+
+                if ('requestIdleCallback' in window) {
+                    idleCallback = window.requestIdleCallback(allowAutoplay, { timeout: 2000 });
+
+                    return;
+                }
+
+                allowAutoplay();
+            }, 2500);
+        };
+
+        if (document.readyState === 'complete') {
+            scheduleIdlePlayback();
+        } else {
+            window.addEventListener('load', scheduleIdlePlayback, { once: true, signal });
+        }
+
         signal.addEventListener('abort', () => {
             visibilityObserver.disconnect();
             video.pause();
 
             if (restartFrame !== null) {
                 window.cancelAnimationFrame(restartFrame);
+            }
+
+            if (autoplayDelay !== null) {
+                window.clearTimeout(autoplayDelay);
+            }
+
+            if (idleCallback !== null && 'cancelIdleCallback' in window) {
+                window.cancelIdleCallback(idleCallback);
             }
         }, { once: true });
     });
@@ -436,12 +530,7 @@ const initializeBackToTop = (signal) => {
 
 const enableInternalNavigation = () => {
     document.querySelectorAll('a[href]').forEach((link) => {
-        if (
-            link.hasAttribute('wire:navigate')
-            || link.hasAttribute('download')
-            || link.target === '_blank'
-            || link.dataset.noNavigate !== undefined
-        ) {
+        if (link.hasAttribute('download') || link.target === '_blank') {
             return;
         }
 
@@ -457,8 +546,22 @@ const enableInternalNavigation = () => {
             && url.pathname === window.location.pathname
             && url.search === window.location.search
             && url.hash !== '';
+        const requiresFullNavigation = url.origin === window.location.origin
+            && /^\/(?:[a-z]{2}\/)?(?:privacy|terms|cookies|reader)(?:\/|$)|^\/admin(?:\/|$)/.test(url.pathname);
 
-        if (url.origin === window.location.origin && ! isHashOnly) {
+        if (requiresFullNavigation) {
+            link.removeAttribute('wire:navigate');
+            link.dataset.noNavigate = '';
+
+            return;
+        }
+
+        if (
+            url.origin === window.location.origin
+            && ! isHashOnly
+            && ! link.hasAttribute('wire:navigate')
+            && link.dataset.noNavigate === undefined
+        ) {
             link.setAttribute('wire:navigate', '');
         }
     });

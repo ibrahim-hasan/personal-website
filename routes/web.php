@@ -9,6 +9,7 @@ use App\Http\Controllers\Website\AboutController;
 use App\Http\Controllers\Website\ArticleController;
 use App\Http\Controllers\Website\ContactController;
 use App\Http\Controllers\Website\HomeController;
+use App\Http\Controllers\Website\LegalController;
 use App\Http\Controllers\Website\MarkHeroVideoViewedController;
 use App\Http\Controllers\Website\PortfolioController;
 use App\Http\Controllers\Website\ReaderAccountController;
@@ -63,6 +64,9 @@ $registerLocalizedRoutes = function (?string $routeLocale = null): void {
     Route::get('/writing/{article:slug}', ArticleController::class)->name('writing.show');
     Route::get('/about', AboutController::class)->name('about');
     Route::get('/contact', ContactController::class)->name('contact');
+    Route::get('/privacy', [LegalController::class, 'privacy'])->name('privacy');
+    Route::get('/cookies', [LegalController::class, 'cookies'])->name('cookies');
+    Route::get('/terms', [LegalController::class, 'terms'])->name('terms');
 
     Route::middleware('guest')->group(function (): void {
         Route::get('/reader/login', [ReaderSessionController::class, 'create'])->name('reader.login');

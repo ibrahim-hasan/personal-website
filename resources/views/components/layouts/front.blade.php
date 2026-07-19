@@ -19,9 +19,29 @@
     'schemaType' => 'WebPage',
     'structuredData' => null,
     'bodyClass' => null,
+    'usesLivewire' => false,
 ])
 
 @php
+    $routeNameParts = explode('.', (string) request()->route()?->getName());
+
+    if (in_array($routeNameParts[0] ?? null, array_keys(supported_locales()), true)) {
+        array_shift($routeNameParts);
+    }
+
+    $baseRouteName = implode('.', $routeNameParts);
+    $analyticsAllowedRoutes = [
+        'home',
+        'services',
+        'work',
+        'writing',
+        'writing.show',
+        'about',
+        'contact',
+    ];
+    $allowsAnalytics = in_array($baseRouteName, $analyticsAllowedRoutes, true);
+    $isSensitiveRoute = str_contains($baseRouteName, 'reader.')
+        || str_contains($baseRouteName, 'verification.');
     $seo = \App\Support\Seo\SeoMetadata::fromLayout(
         title: $title,
         description: $description,
@@ -45,13 +65,20 @@
 @endphp
 
 <!DOCTYPE html>
-<html lang="{{ $seo->locale }}" dir="{{ is_rtl($seo->locale) ? 'rtl' : 'ltr' }}" data-theme="light">
+<html
+    lang="{{ $seo->locale }}"
+    dir="{{ is_rtl($seo->locale) ? 'rtl' : 'ltr' }}"
+    data-theme="light"
+    data-uses-livewire="{{ $usesLivewire ? 'true' : 'false' }}"
+>
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#eceae6">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="referrer" content="{{ $isSensitiveRoute ? 'no-referrer' : 'strict-origin' }}">
+    <meta name="cookie-consent-version" content="{{ config('legal.cookie_consent_version') }}">
 
     <title>{{ $seo->title }}</title>
     <link rel="canonical" href="{{ $seo->canonicalUrl }}">
@@ -101,12 +128,14 @@
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
-    @if (app()->isProduction() && filled(config('services.google_analytics.measurement_id')))
+    @if ($allowsAnalytics && app()->isProduction() && filled(config('services.google_analytics.measurement_id')))
         <meta name="google-analytics-id" content="{{ config('services.google_analytics.measurement_id') }}">
     @endif
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @livewireStyles
+    @if ($usesLivewire)
+        @livewireStyles
+    @endif
     @stack('head')
 
     <script type="application/ld+json">{!! \Illuminate\Support\Js::encode($seo->structuredData, JSON_UNESCAPED_SLASHES) !!}</script>
@@ -127,6 +156,8 @@
 
     <x-partials.footer />
 
+    <x-partials.cookie-consent :autoOpen="! in_array($baseRouteName, ['privacy', 'cookies', 'terms'], true)" />
+
     <x-partials.article-audio-player />
 
     <button type="button" class="back-to-top" data-back-to-top aria-label="{{ __('site.layout.back_to_top') }}" aria-hidden="true" tabindex="-1">
@@ -134,7 +165,9 @@
         <x-phosphor-arrow-up class="h-4 w-4" aria-hidden="true" />
     </button>
 
-    @livewireScripts
+    @if ($usesLivewire)
+        @livewireScripts
+    @endif
     @stack('scripts')
 </body>
 

@@ -23,6 +23,8 @@ class ReaderRegistrationController extends Controller
             ...$request->safe()->only(['name', 'email', 'password']),
             'locale_preference' => app()->getLocale(),
             'is_active' => true,
+            'terms_accepted_at' => now(),
+            'terms_version' => config('legal.terms_version'),
         ]);
 
         event(new Registered($user));
