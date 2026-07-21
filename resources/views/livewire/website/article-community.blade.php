@@ -2,10 +2,10 @@
     class="relative overflow-clip border-y border-ink/15 bg-canvas py-16 sm:py-24"
     data-reader-secondary
     aria-labelledby="article-community-title"
-    @auth
+    @if ($canParticipate)
         x-data="{ lastSaved: 0, timer: null }"
         x-init="window.addEventListener('scroll', () => { clearTimeout(timer); timer = setTimeout(() => { const page = document.querySelector('[data-article-page]'); if (! page) return; const total = page.scrollHeight - window.innerHeight; const percent = total > 0 ? Math.min(100, Math.max(0, Math.round((window.scrollY - page.offsetTop) / total * 100))) : 100; if (percent >= lastSaved + 10 || percent >= 95) { lastSaved = percent; $wire.updateProgress(percent); } }, 500); }, { passive: true })"
-    @endauth
+    @endif
 >
     <div class="site-container">
         @if ($article)
@@ -26,7 +26,7 @@
                                 {{ __('community.save') }}
                             </a>
                         @else
-                            @if (auth()->user()->hasVerifiedEmail())
+                            @if ($canParticipate)
                                 <button type="button" wire:click="toggleAppreciation" wire:loading.attr="disabled" wire:target="toggleAppreciation" @class([
                                     'inline-flex min-h-12 items-center gap-2 rounded-[var(--control-radius)] border px-5 py-3 font-sans text-sm font-bold transition-colors disabled:cursor-wait disabled:opacity-60',
                                     'border-violet-700 bg-violet-700 text-violet-50' => $hasAppreciated,
@@ -48,6 +48,8 @@
                                         {{ __('community.open_library') }}
                                     </a>
                                 @endif
+                            @elseif (auth()->user()->hasVerifiedEmail())
+                                <a href="{{ $termsAcceptanceUrl }}" class="button-primary min-h-12">{{ __('community.accept_updated_terms') }}</a>
                             @else
                                 <a href="{{ $verifyUrl }}" class="button-primary min-h-12">{{ __('community.verify_to_join') }}</a>
                             @endif
@@ -70,7 +72,7 @@
                     </div>
 
                     @auth
-                        @if (auth()->user()->hasVerifiedEmail())
+                        @if ($canParticipate)
                             <form wire:submit="postComment" class="mt-6">
                                 <label for="article-comment" class="font-sans text-sm font-bold text-ink-soft">{{ __('community.add_thought') }}</label>
                                 <textarea id="article-comment" wire:model="commentBody" rows="4" maxlength="2000" class="mt-2 min-h-32 w-full resize-y rounded-[var(--control-radius)] border border-ink/20 bg-canvas px-4 py-3 leading-7 text-ink outline-none transition-colors focus-visible:border-violet-600 focus-visible:bg-violet-50" placeholder="{{ __('community.comment_placeholder') }}"></textarea>
@@ -88,6 +90,11 @@
                                     </button>
                                 </div>
                             </form>
+                        @elseif (auth()->user()->hasVerifiedEmail())
+                            <a href="{{ $termsAcceptanceUrl }}" class="mt-6 flex min-h-12 items-center justify-between gap-4 border border-dashed border-violet-600/50 bg-violet-50 px-5 py-4 font-sans text-sm font-bold text-violet-900 transition-colors hover:border-violet-700 hover:bg-violet-100">
+                                <span>{{ __('community.accept_terms_to_join') }}</span>
+                                <x-phosphor-arrow-up-right class="size-5 rtl:-rotate-90" />
+                            </a>
                         @endif
                     @else
                         <a href="{{ $loginUrl }}" class="mt-6 flex min-h-12 items-center justify-between gap-4 border border-dashed border-violet-600/50 bg-violet-50 px-5 py-4 font-sans text-sm font-bold text-violet-900 transition-colors hover:border-violet-700 hover:bg-violet-100">
@@ -107,22 +114,20 @@
                                             <time class="text-xs text-ink-muted" datetime="{{ $comment->created_at->toAtomString() }}">{{ $comment->created_at->diffForHumans() }}</time>
                                         </div>
                                     </div>
-                                    @auth
+                                    @if ($canParticipate)
                                         <div class="flex gap-1 font-sans text-xs font-bold text-ink-muted">
                                             <button type="button" wire:click="openReport({{ $comment->getKey() }})" class="inline-flex min-h-11 items-center px-2 transition-colors hover:text-danger">{{ __('community.report') }}</button>
                                             @can('delete', $comment)
                                                 <button type="button" wire:click="deleteComment({{ $comment->getKey() }})" wire:confirm="{{ __('community.delete_confirm') }}" class="inline-flex min-h-11 items-center px-2 transition-colors hover:text-danger">{{ __('community.delete') }}</button>
                                             @endcan
                                         </div>
-                                    @endauth
+                                    @endif
                                 </div>
                                 <p class="mt-4 whitespace-pre-line text-[0.98rem] leading-7 text-ink-soft">{{ $comment->body }}</p>
 
-                                @auth
-                                    @if (auth()->user()->hasVerifiedEmail())
-                                        <button type="button" wire:click="startReply({{ $comment->getKey() }})" class="mt-2 inline-flex min-h-11 items-center font-sans text-sm font-bold text-violet-700 underline decoration-violet-300 underline-offset-4 transition-colors hover:text-violet-900 hover:decoration-violet-700">{{ __('community.reply') }}</button>
-                                    @endif
-                                @endauth
+                                @if ($canParticipate)
+                                    <button type="button" wire:click="startReply({{ $comment->getKey() }})" class="mt-2 inline-flex min-h-11 items-center font-sans text-sm font-bold text-violet-700 underline decoration-violet-300 underline-offset-4 transition-colors hover:text-violet-900 hover:decoration-violet-700">{{ __('community.reply') }}</button>
+                                @endif
 
                                 @if ($replyTo === $comment->getKey())
                                     <form wire:submit="postReply" class="mt-4 border-s-2 border-violet-500 bg-violet-50 p-4">

@@ -2,7 +2,7 @@
     <link
         rel="preload"
         as="image"
-        href="{{ asset('images/ibrahim/ibrahim-hero-video-poster.webp') }}"
+        href="{{ asset('images/ibrahim/ibrahim-speaking-editorial.webp') }}"
         type="image/webp"
         fetchpriority="high"
     >
@@ -73,7 +73,7 @@
                             muted
                             playsinline
                             preload="none"
-                            poster="{{ asset('images/ibrahim/ibrahim-hero-video-poster.webp') }}"
+                            poster="{{ asset('images/ibrahim/ibrahim-speaking-editorial.webp') }}"
                             aria-hidden="true"
                         ></video>
 

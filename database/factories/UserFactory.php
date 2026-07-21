@@ -32,6 +32,8 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'locale_preference' => config('app.locale'),
             'is_active' => true,
+            'terms_accepted_at' => now(),
+            'terms_version' => config('legal.terms_version'),
         ];
     }
 

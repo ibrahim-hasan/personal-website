@@ -40,6 +40,9 @@
         'contact',
     ];
     $allowsAnalytics = in_array($baseRouteName, $analyticsAllowedRoutes, true);
+    $hasAnalyticsConfiguration = $allowsAnalytics
+        && app()->isProduction()
+        && filled(config('services.google_analytics.measurement_id'));
     $isSensitiveRoute = str_contains($baseRouteName, 'reader.')
         || str_contains($baseRouteName, 'verification.');
     $seo = \App\Support\Seo\SeoMetadata::fromLayout(
@@ -128,7 +131,7 @@
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
-    @if ($allowsAnalytics && app()->isProduction() && filled(config('services.google_analytics.measurement_id')))
+    @if ($hasAnalyticsConfiguration)
         <meta name="google-analytics-id" content="{{ config('services.google_analytics.measurement_id') }}">
     @endif
 
@@ -156,7 +159,7 @@
 
     <x-partials.footer />
 
-    <x-partials.cookie-consent :autoOpen="! in_array($baseRouteName, ['privacy', 'cookies', 'terms'], true)" />
+    <x-partials.cookie-consent :autoOpen="$hasAnalyticsConfiguration" />
 
     <x-partials.article-audio-player />
 

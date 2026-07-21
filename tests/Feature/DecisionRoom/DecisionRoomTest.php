@@ -68,21 +68,13 @@ class DecisionRoomTest extends TestCase
             ->assertSet('step', 2);
     }
 
-    public function test_complete_choices_generate_a_grounded_summary_and_consultation_url(): void
+    public function test_complete_choices_generate_a_grounded_summary_and_keep_consultation_context_out_of_the_url(): void
     {
         $context = implode("\n", [
             'Challenge: Product or platform direction',
             'Primary friction: The roadmap is not clearly tied to customer or business needs',
             'Desired outcome: A sharper product direction',
         ]);
-        $expectedUrl = localized_route('contact', [
-            'source' => 'decision-room',
-            'challenge' => 'product-platform',
-            'friction' => 'unclear-product-direction',
-            'outcome' => 'product-direction',
-            'service' => 'systems',
-            'context' => $context,
-        ]).'#consultation';
 
         Livewire::test(DecisionRoom::class)
             ->call('selectChallenge', 'product-platform')
@@ -95,12 +87,14 @@ class DecisionRoomTest extends TestCase
             ->assertSee('The roadmap is not clearly tied to customer or business needs')
             ->assertSee('A sharper product direction')
             ->assertSee('This is a conversation starter based only on your selections.')
-            ->assertSee($expectedUrl)
-            ->assertSeeHtml('data-no-navigate');
+            ->assertDontSee('source=decision-room')
+            ->call('startConsultation')
+            ->assertRedirect(localized_route('contact').'#consultation');
 
-        $this->assertStringContainsString('challenge=product-platform', $expectedUrl);
-        $this->assertStringContainsString('friction=unclear-product-direction', $expectedUrl);
-        $this->assertStringContainsString('outcome=product-direction', $expectedUrl);
+        $this->assertSame([
+            'service' => 'systems',
+            'context' => $context,
+        ], session('consultation.decision_room'));
     }
 
     public function test_recommendation_copy_is_localized_in_arabic(): void

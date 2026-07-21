@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\ReaderEmailVerificationController;
 use App\Http\Controllers\Auth\ReaderPasswordResetController;
 use App\Http\Controllers\Auth\ReaderRegistrationController;
 use App\Http\Controllers\Auth\ReaderSessionController;
+use App\Http\Controllers\Auth\ReaderTermsAcceptanceController;
 use App\Http\Controllers\LanguageSwitchController;
 use App\Http\Controllers\Website\AboutController;
 use App\Http\Controllers\Website\ArticleController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\Website\RobotsController;
 use App\Http\Controllers\Website\ServiceController;
 use App\Http\Controllers\Website\SitemapController;
 use App\Http\Controllers\Website\WritingController;
+use App\Http\Middleware\EnsureReaderAcceptedCurrentTerms;
 use App\Http\Middleware\EnsureReaderIsActive;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
@@ -104,25 +106,33 @@ $registerLocalizedRoutes = function (?string $routeLocale = null): void {
             return back()->with('status', 'verification-link-sent');
         })->middleware('throttle:6,1')->name('verification.send');
         Route::post('/reader/logout', [ReaderSessionController::class, 'destroy'])->name('reader.logout');
-        Route::post('/reader/hero-video/viewed', MarkHeroVideoViewedController::class)
+        Route::get('/reader/terms/accept', [ReaderTermsAcceptanceController::class, 'show'])
+            ->name('reader.terms.acceptance');
+        Route::post('/reader/terms/accept', [ReaderTermsAcceptanceController::class, 'store'])
             ->middleware('throttle:6,1')
-            ->name('reader.hero-video.viewed');
-        Route::get('/reader/account', [ReaderAccountController::class, 'show'])->name('reader.account');
-        Route::patch('/reader/account', [ReaderAccountController::class, 'update'])
-            ->middleware('throttle:10,1')
-            ->name('reader.account.update');
-        Route::put('/reader/account/password', ReaderPasswordController::class)
-            ->middleware('throttle:5,1')
-            ->name('reader.account.password.update');
+            ->name('reader.terms.acceptance.store');
         Route::delete('/reader/account', ReaderAccountDeletionController::class)
             ->middleware('throttle:3,1')
             ->name('reader.account.destroy');
-        Route::get('/reader/library', ReaderLibraryController::class)
-            ->middleware(EnsureEmailIsVerified::redirectTo($verificationNoticeRoute))
-            ->name('reader.library');
-        Route::post('/reader/notifications/{notification}/read', ReaderNotificationController::class)
-            ->middleware(EnsureEmailIsVerified::redirectTo($verificationNoticeRoute))
-            ->name('reader.notifications.read');
+
+        Route::middleware(EnsureReaderAcceptedCurrentTerms::class)->group(function () use ($verificationNoticeRoute): void {
+            Route::post('/reader/hero-video/viewed', MarkHeroVideoViewedController::class)
+                ->middleware('throttle:6,1')
+                ->name('reader.hero-video.viewed');
+            Route::get('/reader/account', [ReaderAccountController::class, 'show'])->name('reader.account');
+            Route::patch('/reader/account', [ReaderAccountController::class, 'update'])
+                ->middleware('throttle:10,1')
+                ->name('reader.account.update');
+            Route::put('/reader/account/password', ReaderPasswordController::class)
+                ->middleware('throttle:5,1')
+                ->name('reader.account.password.update');
+            Route::get('/reader/library', ReaderLibraryController::class)
+                ->middleware(EnsureEmailIsVerified::redirectTo($verificationNoticeRoute))
+                ->name('reader.library');
+            Route::post('/reader/notifications/{notification}/read', ReaderNotificationController::class)
+                ->middleware(EnsureEmailIsVerified::redirectTo($verificationNoticeRoute))
+                ->name('reader.notifications.read');
+        });
     });
 };
 

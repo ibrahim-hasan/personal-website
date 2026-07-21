@@ -22,6 +22,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('horizon:snapshot')->everyFiveMinutes();
+
+        if (config('legal.retention.enabled')) {
+            $schedule->command('privacy:purge-expired-data --force')
+                ->dailyAt('03:15')
+                ->environments(['production'])
+                ->withoutOverlapping();
+        }
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

@@ -218,7 +218,8 @@ class ArticleCommunity extends Component
         $article = $this->articleId > 0
             ? Article::query()->withCount('appreciations')->find($this->articleId)
             : null;
-        $userId = auth()->id();
+        $user = auth()->user();
+        $userId = $user?->getKey();
 
         return view('livewire.website.article-community', [
             'article' => $article,
@@ -231,7 +232,9 @@ class ArticleCommunity extends Component
                 : false,
             'loginUrl' => localized_route('reader.login', ['return' => $this->returnPath]),
             'verifyUrl' => localized_route('reader.verification.notice'),
+            'termsAcceptanceUrl' => localized_route('reader.terms.acceptance'),
             'libraryUrl' => localized_route('reader.library'),
+            'canParticipate' => $this->canParticipate($user),
         ]);
     }
 
@@ -270,11 +273,24 @@ class ArticleCommunity extends Component
             throw ValidationException::withMessages(['auth' => __('community.verify_required')]);
         }
 
+        if ($user->isReaderAccount() && ! $user->hasAcceptedCurrentTerms()) {
+            throw ValidationException::withMessages(['auth' => __('community.accept_terms_required')]);
+        }
+
         if ($this->articleId === 0 || ! Article::query()->whereKey($this->articleId)->published()->exists()) {
             abort(404);
         }
 
         return $user;
+    }
+
+    private function canParticipate(?User $user): bool
+    {
+        if (! $user || ! $user->is_active || ! $user->hasVerifiedEmail()) {
+            return false;
+        }
+
+        return ! $user->isReaderAccount() || $user->hasAcceptedCurrentTerms();
     }
 
     private function approvedRootComment(int $commentId): Comment

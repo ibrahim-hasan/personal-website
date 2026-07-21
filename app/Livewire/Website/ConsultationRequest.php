@@ -23,11 +23,13 @@ class ConsultationRequest extends Component
 
     public function mount(): void
     {
-        if (request()->string('source')->toString() !== 'decision-room') {
+        $handoff = session()->pull('consultation.decision_room');
+
+        if (! is_array($handoff)) {
             return;
         }
 
-        $serviceKey = request()->string('service')->toString();
+        $serviceKey = (string) ($handoff['service'] ?? '');
         $hasService = collect($this->availableServices())->contains(
             fn (array $service): bool => $service['key'] === $serviceKey,
         );
@@ -36,7 +38,7 @@ class ConsultationRequest extends Component
             $this->form->service = $serviceKey;
         }
 
-        $context = request()->string('context')
+        $context = str($handoff['context'] ?? '')
             ->stripTags()
             ->trim()
             ->limit(3000, '')

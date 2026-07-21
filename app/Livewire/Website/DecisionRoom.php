@@ -163,6 +163,26 @@ class DecisionRoom extends Component
         $this->desiredOutcome = null;
     }
 
+    public function startConsultation(): void
+    {
+        if (! $this->hasCompleteContext()) {
+            return;
+        }
+
+        $recommendation = $this->recommendation();
+
+        if ($recommendation === null || ! is_string($this->selectedChallenge)) {
+            return;
+        }
+
+        session()->put('consultation.decision_room', [
+            'service' => self::CONSULTATION_SERVICES[$this->selectedChallenge],
+            'context' => $this->consultationContext($recommendation),
+        ]);
+
+        $this->redirect(localized_route('contact').'#consultation', navigate: true);
+    }
+
     public function render(): View
     {
         $activeStep = $this->activeStep();
@@ -175,7 +195,6 @@ class DecisionRoom extends Component
             'outcomes' => $this->outcomeOptions(),
             'canShowRecommendation' => $this->hasCompleteContext(),
             'recommendation' => $activeStep === 3 ? $this->recommendation() : null,
-            'consultationUrl' => $activeStep === 3 ? $this->consultationUrl() : null,
             'directConsultationUrl' => localized_route('contact').'#consultation',
         ]);
     }
@@ -696,28 +715,6 @@ class DecisionRoom extends Component
             'friction' => $friction['label'],
             'outcome' => $outcome['label'],
         ];
-    }
-
-    private function consultationUrl(): ?string
-    {
-        if (! $this->hasCompleteContext()) {
-            return null;
-        }
-
-        $recommendation = $this->recommendation();
-
-        if ($recommendation === null || ! is_string($this->selectedChallenge)) {
-            return null;
-        }
-
-        return localized_route('contact', [
-            'source' => 'decision-room',
-            'challenge' => $this->selectedChallenge,
-            'friction' => $this->primaryFriction,
-            'outcome' => $this->desiredOutcome,
-            'service' => self::CONSULTATION_SERVICES[$this->selectedChallenge],
-            'context' => $this->consultationContext($recommendation),
-        ]).'#consultation';
     }
 
     /**

@@ -39,11 +39,15 @@
                     <span>
                         {!! __('reader_auth.terms_acceptance', [
                             'terms' => '<a class="text-link" data-no-navigate href="'.e(localized_route('terms')).'">'.e(__('legal.documents.terms')).'</a>',
-                            'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'">'.e(__('legal.documents.privacy')).'</a>',
                         ]) !!}
                     </span>
                 </label>
                 @error('terms_accepted') <span class="-mt-3 block text-sm text-danger" role="alert">{{ $message }}</span> @enderror
+                <p class="-mt-2 text-xs leading-5 text-ink-muted">
+                    {!! __('reader_auth.privacy_notice', [
+                        'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'">'.e(__('legal.documents.privacy')).'</a>',
+                    ]) !!}
+                </p>
                 <button class="button-primary w-full" type="submit">{{ __('reader_auth.create_account') }}</button>
             </form>
 

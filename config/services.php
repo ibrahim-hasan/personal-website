@@ -49,7 +49,7 @@ return [
     ],
 
     'google_analytics' => [
-        'measurement_id' => env('GOOGLE_ANALYTICS_MEASUREMENT_ID', 'G-L305M0T213'),
+        'measurement_id' => env('GOOGLE_ANALYTICS_MEASUREMENT_ID'),
     ],
 
     'openai' => [

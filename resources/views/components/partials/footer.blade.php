@@ -6,11 +6,11 @@
 
 <footer class="site-footer" aria-label="{{ __('site.footer.label') }}">
     <section class="site-footer__cta">
-        <div class="site-container grid gap-10 py-20 md:py-28 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div class="site-container site-footer__cta-layout">
             <h2 class="display-section max-w-4xl text-canvas">
                 {{ __('site.footer.cta_title') }}
             </h2>
-            <a href="{{ localized_route('contact') }}#consultation" wire:navigate class="button-light" data-magnetic>
+            <a href="{{ localized_route('contact') }}#consultation" wire:navigate class="button-light site-footer__cta-action" data-magnetic>
                 <span>{{ __('site.actions.free_consultation') }}</span>
                 <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
             </a>

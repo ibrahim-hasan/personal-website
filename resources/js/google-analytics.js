@@ -155,6 +155,10 @@ const revokeGoogleAnalytics = () => {
     lastTrackedLocation = null;
 };
 
+if (! hasAnalyticsConsent()) {
+    clearAnalyticsCookies();
+}
+
 initializeGoogleConsent();
 scheduleGoogleAnalytics();
 

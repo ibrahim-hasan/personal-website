@@ -34,6 +34,10 @@ class ReaderSessionController extends Controller
             return redirect()->to(localized_route('reader.verification.notice'));
         }
 
+        if ($reader->isReaderAccount() && ! $reader->hasAcceptedCurrentTerms()) {
+            return redirect()->to(localized_route('reader.terms.acceptance'));
+        }
+
         return redirect()->intended(localized_route('writing'));
     }
 

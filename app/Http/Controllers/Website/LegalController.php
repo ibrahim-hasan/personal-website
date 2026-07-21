@@ -26,9 +26,32 @@ class LegalController extends Controller
     private function render(string $document): View
     {
         $contact = SiteContent::contact();
+        $retention = config('legal.retention');
 
-        /** @var array{title: string, description: string, eyebrow: string, effective_date: string, introduction: string, sections: list<array{heading: string, paragraphs: list<string>, bullets?: list<string>, table?: array{headers: list<string>, rows: list<list<string>>}}>} $content */
-        $content = trans("legal.{$document}", ['email' => $contact['email']]);
+        /**
+         * @var array{
+         *     title: string,
+         *     description: string,
+         *     eyebrow: string,
+         *     effective_date: string,
+         *     introduction: string,
+         *     sections: list<array{
+         *         heading: string,
+         *         paragraphs?: list<string>,
+         *         bullets?: list<string>,
+         *         facts?: list<array{
+         *             title: string,
+         *             tokens?: list<string>,
+         *             values: list<array{label: string, value: string}>
+         *         }>
+         *     }>
+         * } $content
+         */
+        $content = trans("legal.{$document}", [
+            'email' => $contact['email'],
+            'archived_inquiries_days' => (string) $retention['archived_inquiries_days'],
+            'resolved_reports_days' => (string) $retention['resolved_reports_days'],
+        ]);
 
         return view('website.legal', [
             'document' => $document,

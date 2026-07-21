@@ -20,51 +20,61 @@
                     fetchpriority="high"
                     decoding="async"
                 >
-                <figcaption aria-hidden="true">IBRAHIM HASAN / STRATEGY IN PRACTICE</figcaption>
             </figure>
         </div>
     </section>
 
-    <section class="section-feature bg-canvas-bright">
-        <div class="site-container story-split">
+    <section class="about-background" aria-labelledby="about-background-title">
+        <div class="site-container about-background__grid">
             <div>
-                <p class="signal-label">{{ __('site.about.background_eyebrow') }}</p>
-                <h2 class="display-section mt-6 max-w-[13ch]" data-reveal="headline">{{ __('site.about.background_title') }}</h2>
+                <p class="signal-label signal-label--light">{{ __('site.about.background_eyebrow') }}</p>
+                <h2 id="about-background-title" class="display-section mt-6 max-w-[14ch] text-canvas" data-reveal="headline">{{ __('site.about.background_title') }}</h2>
             </div>
-            <p class="story-split__body" data-reveal="copy">{{ __('site.about.background_body') }}</p>
+            <p class="about-background__body" data-reveal="copy">{{ __('site.about.background_body') }}</p>
         </div>
     </section>
 
     <section class="about-moments" aria-labelledby="about-moments-title">
         <div class="site-container">
             <div class="about-moments__intro">
-                <h2 id="about-moments-title" class="display-section max-w-[13ch]" data-reveal="headline">{{ __('site.about.moments_title') }}</h2>
+                <div>
+                    <p class="signal-label">{{ __('site.about.moments_eyebrow') }}</p>
+                    <h2 id="about-moments-title" class="display-section mt-6 max-w-[14ch]" data-reveal="headline">{{ __('site.about.moments_title') }}</h2>
+                </div>
                 <p class="copy-lead max-w-[56ch]" data-reveal="copy">{{ __('site.about.moments_body') }}</p>
             </div>
 
             <div class="about-moments__grid">
                 <figure class="about-moment about-moment--conference" data-reveal="media">
-                    <img
-                        src="{{ asset('images/ibrahim/ibrahim-conference-event.webp') }}"
-                        alt="{{ __('site.about.conference_alt') }}"
-                        width="1800"
-                        height="2400"
-                        loading="lazy"
-                        decoding="async"
-                    >
-                    <figcaption>{{ __('site.about.conference_caption') }}</figcaption>
+                    <div class="about-moment__media">
+                        <img
+                            src="{{ asset('images/ibrahim/ibrahim-conference-event.webp') }}"
+                            alt="{{ __('site.about.conference_alt') }}"
+                            width="1800"
+                            height="2400"
+                            loading="lazy"
+                            decoding="async"
+                        >
+                    </div>
+                    <div class="about-moment__meta">
+                        <figcaption>{{ __('site.about.conference_caption') }}</figcaption>
+                    </div>
                 </figure>
 
                 <figure class="about-moment about-moment--candid" data-reveal="media">
-                    <img
-                        src="{{ asset('images/ibrahim/ibrahim-candid-session.webp') }}"
-                        alt="{{ __('site.about.candid_alt') }}"
-                        width="1800"
-                        height="2400"
-                        loading="lazy"
-                        decoding="async"
-                    >
-                    <figcaption>{{ __('site.about.candid_caption') }}</figcaption>
+                    <div class="about-moment__media">
+                        <img
+                            src="{{ asset('images/ibrahim/ibrahim-candid-session.webp') }}"
+                            alt="{{ __('site.about.candid_alt') }}"
+                            width="1800"
+                            height="2400"
+                            loading="lazy"
+                            decoding="async"
+                        >
+                    </div>
+                    <div class="about-moment__meta">
+                        <figcaption>{{ __('site.about.candid_caption') }}</figcaption>
+                    </div>
                 </figure>
             </div>
         </div>

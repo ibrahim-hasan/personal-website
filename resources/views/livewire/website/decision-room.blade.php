@@ -220,7 +220,7 @@
                 @endif
 
                 <div class="decision-room__live-region" aria-live="polite" aria-atomic="true">
-                    @if ($activeStep === 3 && $recommendation !== null && $consultationUrl !== null)
+                    @if ($activeStep === 3 && $recommendation !== null)
                         <article class="decision-room__summary">
                             <p class="font-sans text-xs font-bold uppercase tracking-[0.14em] text-violet-700">
                                 {{ $copy['recommendation_eyebrow'] }}
@@ -266,14 +266,16 @@
                                 >
                                     {{ $copy['back'] }}
                                 </button>
-                                <a
+                                <button
+                                    type="button"
                                     class="button-primary"
-                                    href="{{ $consultationUrl }}"
-                                    data-no-navigate
+                                    wire:click="startConsultation"
+                                    wire:loading.attr="disabled"
+                                    wire:target="startConsultation"
                                 >
                                     <span>{{ $copy['consultation'] }}</span>
                                     <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
-                                </a>
+                                </button>
                             </div>
                         </article>
                     @endif

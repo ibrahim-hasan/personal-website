@@ -60,39 +60,45 @@ document.addEventListener('click', (event) => {
     }
 
     event.preventDefault();
-    window.dispatchEvent(new CustomEvent('cookie-preferences-opened', {
-        detail: { trigger },
-    }));
+    window.dispatchEvent(new CustomEvent('cookie-preferences-opened'));
 });
 
 document.addEventListener('alpine:init', () => {
     const Alpine = window.Alpine;
 
-    Alpine.data('cookieConsent', ({ autoOpen = true } = {}) => ({
+    Alpine.data('cookieConsent', ({ autoOpen = false } = {}) => ({
         visible: autoOpen && currentConsent() === null,
+        showSettings: false,
         savedConsent: currentConsent(),
-        returnFocus: null,
+        analyticsEnabled: currentConsent() === 'accepted',
         openListener: null,
+        resizeObserver: null,
+        originalBodyPadding: '',
         init() {
-            this.openListener = (event) => this.open(event.detail?.trigger);
+            this.originalBodyPadding = document.body.style.paddingBlockEnd;
+            this.openListener = () => this.openSettings();
             window.addEventListener('cookie-preferences-opened', this.openListener);
-            this.$watch('visible', (isVisible) => this.updateModalState(isVisible));
-            this.updateModalState(this.visible);
-
-            if (this.visible) {
-                this.focusPrimaryAction();
+            if ('ResizeObserver' in window) {
+                this.resizeObserver = new ResizeObserver(() => this.updateConsentOffset());
+                this.resizeObserver.observe(this.$refs.surface);
             }
+            this.$watch('visible', (isVisible) => this.updateConsentState(isVisible));
+            this.$watch('showSettings', () => this.$nextTick(() => this.updateConsentOffset()));
+            this.updateConsentState(this.visible);
         },
         destroy() {
             window.removeEventListener('cookie-preferences-opened', this.openListener);
-            this.updateModalState(false);
+            this.resizeObserver?.disconnect();
+            document.documentElement.classList.remove('cookie-consent-visible');
+            document.body.style.paddingBlockEnd = this.originalBodyPadding;
         },
         choose(status) {
             saveConsent(status);
             this.savedConsent = status;
+            this.analyticsEnabled = status === 'accepted';
+            this.showSettings = false;
             this.visible = false;
             announceConsent(status);
-            this.restoreFocus();
         },
         accept() {
             this.choose('accepted');
@@ -100,65 +106,30 @@ document.addEventListener('alpine:init', () => {
         reject() {
             this.choose('rejected');
         },
-        open(trigger = null) {
-            this.returnFocus = trigger instanceof HTMLElement ? trigger : document.activeElement;
+        openSettings() {
             this.savedConsent = currentConsent();
+            this.analyticsEnabled = this.savedConsent === 'accepted';
+            this.showSettings = true;
             this.visible = true;
-            this.focusPrimaryAction();
         },
-        close() {
-            this.visible = false;
-            this.restoreFocus();
+        showChoices() {
+            this.showSettings = false;
         },
-        updateModalState(isVisible) {
-            document.documentElement.classList.toggle('cookie-consent-open', isVisible);
-
-            document.querySelectorAll('body > :not([data-cookie-consent]):not(script)').forEach((element) => {
-                if (isVisible && ! element.hasAttribute('inert')) {
-                    element.setAttribute('inert', '');
-                    element.dataset.cookieConsentInerted = '';
-                } else if (! isVisible && element.dataset.cookieConsentInerted !== undefined) {
-                    element.removeAttribute('inert');
-                    delete element.dataset.cookieConsentInerted;
-                }
-            });
+        saveSettings() {
+            this.choose(this.analyticsEnabled ? 'accepted' : 'rejected');
         },
-        focusPrimaryAction() {
-            this.$nextTick(() => {
-                const selectedAction = this.savedConsent === 'rejected'
-                    ? this.$refs.reject
-                    : this.$refs.accept;
-
-                selectedAction?.focus();
-            });
+        updateConsentState(isVisible) {
+            document.documentElement.classList.toggle('cookie-consent-visible', isVisible);
+            this.$nextTick(() => this.updateConsentOffset());
         },
-        restoreFocus() {
-            const target = this.returnFocus;
+        updateConsentOffset() {
+            const height = this.visible
+                ? Math.ceil(this.$refs.surface?.getBoundingClientRect().height ?? 0)
+                : 0;
 
-            this.$nextTick(() => {
-                if (target instanceof HTMLElement && target.isConnected) {
-                    target.focus();
-                }
-            });
-        },
-        trapFocus(event) {
-            const focusable = [...(this.$refs.dialog?.querySelectorAll('a[href], button:not([disabled])') ?? [])]
-                .filter((element) => element.offsetParent !== null);
-
-            if (focusable.length === 0) {
-                return;
-            }
-
-            const first = focusable[0];
-            const last = focusable[focusable.length - 1];
-
-            if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault();
-                last.focus();
-            } else if (! event.shiftKey && document.activeElement === last) {
-                event.preventDefault();
-                first.focus();
-            }
+            document.body.style.paddingBlockEnd = height > 0
+                ? `${height}px`
+                : this.originalBodyPadding;
         },
     }));
 });

@@ -123,6 +123,10 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertMatchesRegularExpression('/@media \(min-width: 48rem\)\s*\{\s*\.work-archive__toolbar\s*\{[^}]*grid-template-columns:\s*max-content minmax\(0, 1fr\);[^}]*column-gap:\s*clamp\(1rem, 2vw, 2rem\);/s', $css);
         $this->assertMatchesRegularExpression('/\.filter-bar\s*\{[^}]*padding-block:\s*0\.25rem;/s', $css);
         $this->assertMatchesRegularExpression('/\.consultation-form__footer \.button-light\s*\{[^}]*flex:\s*none;[^}]*white-space:\s*nowrap;/s', $css);
+        $this->assertMatchesRegularExpression('/\.site-footer__cta-layout\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);[^}]*align-items:\s*start;[^}]*gap:\s*clamp\(2\.5rem, 4vw, 4\.5rem\);/s', $css);
+        $this->assertMatchesRegularExpression('/\.site-footer__cta-action\s*\{[^}]*inline-size:\s*min\(100%, 22rem\);[^}]*min-block-size:\s*clamp\(4rem, 4\.5vw, 4\.5rem\);[^}]*justify-content:\s*space-between;/s', $css);
+        $this->assertMatchesRegularExpression('/@media \(min-width: 64rem\)\s*\{\s*\.site-footer__cta-layout\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) clamp\(18rem, 22vw, 22rem\);[^}]*align-items:\s*center;/s', $css);
+        $this->assertMatchesRegularExpression('/@media \(min-width: 64rem\)\s*\{.*?\.site-footer__cta-action\s*\{[^}]*inline-size:\s*100%;[^}]*justify-self:\s*stretch;/s', $css);
         $this->assertMatchesRegularExpression('/\.publication-topics\s*\{[^}]*overflow-x:\s*auto;/s', $css);
         $this->assertMatchesRegularExpression(
             '/\.publication-topics\s*\{[^}]*align-items:\s*center;[^}]*padding-block:\s*0\.525rem;/s',
@@ -289,6 +293,11 @@ class PublicInteractionAccessibilityTest extends TestCase
             "/html\\[lang='en'\\] \\.decision-room__title\\s*\\{[^}]*max-width:\\s*100%;[^}]*font-size:\\s*clamp\\(2rem, 3vw, 3rem\\);/s",
             $css,
         );
+        $this->assertMatchesRegularExpression(
+            '/\\.decision-room-band\\s*\\{[^}]*background:\\s*var\\(--color-canvas-deep\\);/s',
+            $css,
+        );
+        $this->assertStringNotContainsString('linear-gradient(90deg, transparent 49.9%', $css);
         $this->assertMatchesRegularExpression(
             '/\.hero-sequence__steps::before\s*\{[^}]*background:\s*linear-gradient/s',
             $css,

@@ -26,7 +26,7 @@ class WebsitePagesTest extends TestCase
             '/services' => ['الخدمات', 'مساعدة مركزة حيث يلتقي العمل بالتقنية', 'استراتيجية التحول الرقمي'],
             '/work' => ['أعمال مختارة', 'الموسوعة الرقمية'],
             '/writing' => ['التقنية بلغة الأعمال', 'من تجربة الذكاء الاصطناعي إلى تحقيق القيمة'],
-            '/about' => ['أعمل حيث يلتقي العمل بالتقنية', 'كود مومنتس'],
+            '/about' => ['أعمل حيث يلتقي العمل بالتقنية', 'من هندسة الميكاترونيكس إلى بناء البرمجيات وقيادة التنفيذ.', 'بدأتُ مسيرتي المهنية في هندسة الميكاترونيكس', 'وكان مشروع تخرجي طائرة رباعية من دون طيار', 'المنهج يظهر في أرض الواقع.', 'كود مومنتس'],
             '/contact' => ['أخبرني بالمشكلة التي تريد حلّها', 'أرسل طلب الاستشارة'],
         ];
 
@@ -71,7 +71,7 @@ class WebsitePagesTest extends TestCase
         $this->assertFileExists(public_path('videos/hero/ibrahim-hero.webm'));
         $this->assertFileExists(public_path('videos/hero/ibrahim-hero-689778bf.mp4'));
         $this->assertFileExists(public_path('videos/hero/ibrahim-hero-0ab509e4.webm'));
-        $this->assertFileExists(public_path('images/ibrahim/ibrahim-hero-video-poster.webp'));
+        $this->assertFileExists(public_path('images/ibrahim/ibrahim-speaking-editorial.webp'));
         $this->assertFileExists(public_path('images/ibrahim/ibrahim-formal-portrait.webp'));
         $this->assertFileExists(public_path('images/ibrahim/ibrahim-conference-event.webp'));
         $this->assertFileExists(public_path('images/ibrahim/ibrahim-candid-session.webp'));
@@ -90,7 +90,7 @@ class WebsitePagesTest extends TestCase
             ->assertSee('videos/hero/ibrahim-hero.mp4', false)
             ->assertSee('videos/hero/ibrahim-hero-0ab509e4.webm', false)
             ->assertSee('videos/hero/ibrahim-hero-689778bf.mp4', false)
-            ->assertSee('images/ibrahim/ibrahim-hero-video-poster.webp', false)
+            ->assertSee('images/ibrahim/ibrahim-speaking-editorial.webp', false)
             ->assertSee('width="720"', false)
             ->assertSee('height="1280"', false)
             ->assertSee('muted', false)
@@ -143,8 +143,12 @@ class WebsitePagesTest extends TestCase
             ->assertSee('images/ibrahim/ibrahim-conference-event.webp', false)
             ->assertSee('images/ibrahim/ibrahim-candid-session.webp', false)
             ->assertSee('Professional portrait of Ibrahim Hasan', false)
+            ->assertSee('From mechatronics to software and delivery leadership.', false)
+            ->assertSee('I began my career in mechatronics engineering', false)
+            ->assertSee('My graduation project was a quadcopter', false)
+            ->assertSee('The method shows up in the real work.', false)
             ->assertSee('At a professional event with From Scratch Solutions', false)
-            ->assertSee('A moment between working sessions', false)
+            ->assertSee('A moment between sessions at a professional gathering', false)
             ->assertSee('loading="lazy"', false)
             ->assertDontSee('When the work moves fastest.', false)
             ->assertSee('images/brands/companies/code-moments-on-dark.svg', false)
@@ -153,14 +157,17 @@ class WebsitePagesTest extends TestCase
             ->assertSee('Code Moments', false)
             ->assertDontSee('Toolkit', false)
             ->assertDontSee('Portrait space — to be art-directed later', false)
+            ->assertDontSee('IBRAHIM HASAN / STRATEGY IN PRACTICE', false)
             ->assertDontSee('images/ibrahim/ibrahim-hasan-portrait.png', false);
 
         $this->get('/about')
             ->assertOk()
             ->assertSee('صورة مهنية لإبراهيم حسن', false)
+            ->assertSee('من هندسة الميكاترونيكس إلى بناء البرمجيات وقيادة التنفيذ.', false)
+            ->assertSee('المنهج يظهر في أرض الواقع.', false)
             ->assertSee('في فعالية مهنية مع فروم سكراتش سوليوشنز', false)
             ->assertDontSee('عندما يتحرك العمل أسرع.', false)
-            ->assertSee('لحظة بين جلسات العمل', false);
+            ->assertSee('لقطة بين جلسات العمل في لقاء مهني', false);
     }
 
     public function test_writing_library_uses_precise_taxonomy_and_one_footer_cta(): void
@@ -170,7 +177,9 @@ class WebsitePagesTest extends TestCase
             ->assertSee('دليل تصميم سير العمل', false)
             ->assertDontSee('مقال تصميمي', false)
             ->assertDontSee('الكتابة الجيدة لا تعرض المعرفة فقط', false)
-            ->assertSee('site-footer__cta', false);
+            ->assertSee('site-footer__cta', false)
+            ->assertSee('site-footer__cta-layout', false)
+            ->assertSee('site-footer__cta-action', false);
     }
 
     public function test_homepage_includes_the_precision_motion_composition(): void
@@ -181,7 +190,7 @@ class WebsitePagesTest extends TestCase
             ->assertSee('precision-stage', false)
             ->assertSee('data-webm-src-high', false)
             ->assertSee('data-webm-src-compact', false)
-            ->assertSee('images/ibrahim/ibrahim-hero-video-poster.webp', false)
+            ->assertSee('images/ibrahim/ibrahim-speaking-editorial.webp', false)
             ->assertSee('manifesto-section', false)
             ->assertSee('atlas-constellation', false)
             ->assertSee('decision-room', false)

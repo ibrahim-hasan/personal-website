@@ -33,7 +33,7 @@ class AssetDeliveryTest extends TestCase
         $this->assertLessThan(4.5 * 1024 * 1024, filesize(public_path('videos/hero/ibrahim-hero.webm')));
         $this->assertLessThan(2.1 * 1024 * 1024, filesize(public_path('videos/hero/ibrahim-hero-689778bf.mp4')));
         $this->assertLessThan(1.8 * 1024 * 1024, filesize(public_path('videos/hero/ibrahim-hero-0ab509e4.webm')));
-        $this->assertLessThan(50 * 1024, filesize(public_path('images/ibrahim/ibrahim-hero-video-poster.webp')));
+        $this->assertLessThan(50 * 1024, filesize(public_path('images/ibrahim/ibrahim-speaking-editorial.webp')));
     }
 
     public function test_google_analytics_loader_is_part_of_the_frontend_bundle(): void

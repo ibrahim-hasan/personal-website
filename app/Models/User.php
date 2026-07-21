@@ -95,6 +95,17 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
         return ! $this->roles()->exists() && ! $this->permissions()->exists();
     }
 
+    public function hasAcceptedCurrentTerms(): bool
+    {
+        $currentVersion = config('legal.terms_version');
+
+        return is_string($currentVersion)
+            && $currentVersion !== ''
+            && $this->terms_accepted_at !== null
+            && is_string($this->terms_version)
+            && hash_equals($currentVersion, $this->terms_version);
+    }
+
     public function sendPasswordResetNotification($token): void
     {
         $notification = request()->is('admin/*')
