@@ -71,7 +71,7 @@ final class PortfolioAtlas
     }
 
     /**
-     * @return list<array{id: string, name: string, relationship: string, summary: string, logo_on_light: string, logo_on_dark: string, logo_alt: string, logo_on_light_width: int, logo_on_light_height: int, logo_on_dark_width: int, logo_on_dark_height: int, focus: list<string>}>
+     * @return list<array{id: string, role: string, name: string, relationship: string, tagline: string, summary: string, logo_on_light: string, logo_on_dark: string, logo_alt: string, logo_on_light_width: int, logo_on_light_height: int, logo_on_dark_width: int, logo_on_dark_height: int, focus: list<string>, action: array{label: string, url: ?string, external: bool}}>
      */
     public static function companies(): array
     {
@@ -101,39 +101,20 @@ final class PortfolioAtlas
     {
         $companies = [
             [
-                'id' => 'code-moments',
-                'name' => ['ar' => 'كود مومنتس', 'en' => 'Code Moments'],
-                'relationship' => [
-                    'ar' => 'الرئيس التنفيذي',
-                    'en' => 'Chief Executive Officer',
-                ],
-                'summary' => [
-                    'ar' => 'في كود مومنتس أقود الشركة من فهم احتياج العمل إلى بناء منتجات وأنظمة رقمية متقنة، مع إبقاء القرار التجاري وجودة التنفيذ والتطوير المستمر في مسار واحد.',
-                    'en' => 'At Code Moments, I lead the company from understanding the business need through building polished digital products and systems, keeping commercial judgment, delivery quality, and continuous improvement on one path.',
-                ],
-                'logo_on_light' => 'images/brands/companies/code-moments-on-light.svg',
-                'logo_on_dark' => 'images/brands/companies/code-moments-on-dark.svg',
-                'logo_alt' => ['ar' => 'شعار كود مومنتس', 'en' => 'Code Moments logo'],
-                'logo_on_light_width' => 94,
-                'logo_on_light_height' => 34,
-                'logo_on_dark_width' => 133,
-                'logo_on_dark_height' => 48,
-                'focus' => [
-                    ['ar' => 'تحويل الاحتياج إلى خارطة منتج', 'en' => 'Turn needs into a product roadmap'],
-                    ['ar' => 'مواءمة القرار التجاري والتنفيذ', 'en' => 'Align commercial decisions and delivery'],
-                    ['ar' => 'بناء نظام جودة وتحسين مستمر', 'en' => 'Build a system for quality and iteration'],
-                ],
-            ],
-            [
                 'id' => 'from-scratch',
+                'role' => ['ar' => 'تأسيس', 'en' => 'Founding'],
                 'name' => ['ar' => 'فروم سكراتش', 'en' => 'From Scratch'],
                 'relationship' => [
                     'ar' => 'الشريك المؤسس والرئيس التنفيذي',
                     'en' => 'Co-founder & Chief Executive Officer',
                 ],
+                'tagline' => [
+                    'ar' => 'أبني الشركة، لا المنتج فقط.',
+                    'en' => 'I build the company, not just the product.',
+                ],
                 'summary' => [
-                    'ar' => 'شاركت في تأسيس فروم سكراتش وقيادة نموها وتسليم منتجات رقمية لقطاعات متعددة؛ تجربة رسّخت لدي أن التقنية الجيدة تبدأ بفهم التشغيل وتنتهي بنظام يستطيع الفريق الاعتماد عليه.',
-                    'en' => 'I co-founded From Scratch and led its growth and delivery across digital products in multiple sectors—an experience that reinforced a simple principle: good technology starts with understanding operations and ends with a system the team can rely on.',
+                    'ar' => 'بصفتي شريكاً مؤسساً، أقود نمو فروم سكراتش وتسليم منتجات رقمية عبر قطاعات متعددة. دوري يتجاوز إدارة المشاريع إلى بناء الفريق ونظام التشغيل ومعايير الجودة التي تحوّل الخبرة المتراكمة إلى قدرة يمكن الاعتماد عليها وتوسيعها.',
+                    'en' => 'As co-founder, I lead From Scratch’s growth and the delivery of digital products across multiple sectors. My role goes beyond running projects to building the team, the operating model, and the quality standards that turn accumulated experience into a dependable, scalable capability.',
                 ],
                 'logo_on_light' => 'images/brands/companies/from-scratch-on-light.svg',
                 'logo_on_dark' => 'images/brands/companies/from-scratch-on-dark.svg',
@@ -143,21 +124,65 @@ final class PortfolioAtlas
                 'logo_on_dark_width' => 136,
                 'logo_on_dark_height' => 74,
                 'focus' => [
-                    ['ar' => 'بناء نموذج تشغيل قابل للتوسع', 'en' => 'Build a scalable operating model'],
-                    ['ar' => 'تسليم منتجات عبر قطاعات متعددة', 'en' => 'Deliver products across multiple sectors'],
-                    ['ar' => 'تحويل الخبرة إلى أنظمة يعتمد عليها', 'en' => 'Turn experience into dependable systems'],
+                    ['ar' => 'بناء نموذج تشغيل يدعم النمو', 'en' => 'An operating model built to support growth'],
+                    ['ar' => 'تسليم منتجات عبر قطاعات متعددة', 'en' => 'Products delivered across multiple sectors'],
+                    ['ar' => 'تحويل الخبرة إلى أنظمة قابلة للتوسّع', 'en' => 'Experience turned into scalable systems'],
+                ],
+                'action' => [
+                    'label' => ['ar' => 'تعرّف على فروم سكراتش', 'en' => 'Discover From Scratch'],
+                    'url' => 'https://fromscratch-solutions.com',
+                    'external' => true,
+                ],
+            ],
+            [
+                'id' => 'code-moments',
+                'role' => ['ar' => 'قيادة', 'en' => 'Leadership'],
+                'name' => ['ar' => 'كود مومنتس', 'en' => 'Code Moments'],
+                'relationship' => [
+                    'ar' => 'المؤسس والرئيس التنفيذي',
+                    'en' => 'Founder & Chief Executive Officer',
+                ],
+                'tagline' => [
+                    'ar' => 'أحوّل الاستراتيجية إلى منتج يعمل.',
+                    'en' => 'I turn strategy into a product that works.',
+                ],
+                'summary' => [
+                    'ar' => 'في كود مومنتس أقود دورة المنتج كاملة: من فهم الهدف التجاري وتحديد الأولويات، إلى التصميم والهندسة والإطلاق والتحسين. أربط القرار التجاري بالتنفيذ والجودة في مسار واحد، حتى تتحول الاستراتيجية إلى منتج يعمل ويتطور.',
+                    'en' => 'At Code Moments I lead the full product cycle: from understanding the commercial goal and setting priorities, through design, engineering, launch, and improvement. I connect the business decision to execution and quality on one track, so strategy becomes a product that works and evolves.',
+                ],
+                'logo_on_light' => 'images/brands/companies/code-moments-on-light.svg',
+                'logo_on_dark' => 'images/brands/companies/code-moments-on-dark.svg',
+                'logo_alt' => ['ar' => 'شعار كود مومنتس', 'en' => 'Code Moments logo'],
+                'logo_on_light_width' => 94,
+                'logo_on_light_height' => 34,
+                'logo_on_dark_width' => 133,
+                'logo_on_dark_height' => 48,
+                'focus' => [
+                    ['ar' => 'تحويل الهدف إلى خارطة منتج', 'en' => 'Turning the goal into a product roadmap'],
+                    ['ar' => 'تسليم منضبط من الفكرة إلى التشغيل', 'en' => 'Disciplined delivery from idea to operation'],
+                    ['ar' => 'جودة قابلة للقياس والتحسين', 'en' => 'Quality that can be measured and improved'],
+                ],
+                'action' => [
+                    'label' => ['ar' => 'تعرّف على كود مومنتس', 'en' => 'Discover Code Moments'],
+                    'url' => 'https://codemoments.com',
+                    'external' => true,
                 ],
             ],
             [
                 'id' => 'independent-strategic-practice',
-                'name' => ['ar' => 'ممارسة إبراهيم الاستراتيجية المستقلة', 'en' => 'Ibrahim’s Independent Strategic Practice'],
+                'role' => ['ar' => 'استراتيجية', 'en' => 'Strategy'],
+                'name' => ['ar' => 'الخبرة التقنية مع العملاء', 'en' => 'Technical Expertise with Clients'],
                 'relationship' => [
-                    'ar' => 'ممارسة استراتيجية مستقلة',
-                    'en' => 'Independent strategic practice',
+                    'ar' => 'عمل مباشر مع أصحاب القرار والفرق التقنية',
+                    'en' => 'Working directly with decision-makers and technical teams',
+                ],
+                'tagline' => [
+                    'ar' => 'أبدأ من المشكلة، لا من الأداة.',
+                    'en' => 'I start from the problem, not the tool.',
                 ],
                 'summary' => [
-                    'ar' => 'أعمل مباشرة مع أصحاب القرار من موقع معماري حلول للتحول الرقمي والذكاء الاصطناعي: أبدأ من العملية والقرار والبيانات والمخاطر، ثم أحدد التقنية التي تستحق البناء والقياس.',
-                    'en' => 'I work directly with decision-makers as an AI and digital transformation architect: starting with the process, decision, data, and risk, then identifying the technology worth building and measuring.',
+                    'ar' => 'أحدّد أين يفيد الذكاء الاصطناعي فعلاً، وما يستحق بناءه، وكيف يتم التحول الرقمي بالشكل الصحيح.',
+                    'en' => 'I define where AI truly helps, what is worth building, and how digital transformation is done right.',
                 ],
                 'logo_on_light' => '',
                 'logo_on_dark' => '',
@@ -167,19 +192,17 @@ final class PortfolioAtlas
                 'logo_on_dark_width' => 0,
                 'logo_on_dark_height' => 0,
                 'focus' => [
-                    ['ar' => 'تحديد القرار قبل اختيار التقنية', 'en' => 'Define the decision before the technology'],
-                    ['ar' => 'ضبط مخاطر البيانات والذكاء الاصطناعي', 'en' => 'Control data and AI risk'],
-                    ['ar' => 'ربط الاستثمار بأثر قابل للقياس', 'en' => 'Connect investment to measurable impact'],
+                    ['ar' => 'تقييم جدوى حالات استخدام الذكاء الاصطناعي', 'en' => 'Assessing the viability of AI use cases'],
+                    ['ar' => 'تصميم المنتجات والأنظمة البرمجية', 'en' => 'Designing products and software systems'],
+                    ['ar' => 'وضع خارطة تنفيذ للتحول الرقمي', 'en' => 'An execution roadmap for digital transformation'],
+                ],
+                'action' => [
+                    'label' => ['ar' => 'اطلب استشارة مجانية', 'en' => 'Request a free consultation'],
+                    'url' => null,
+                    'external' => false,
                 ],
             ],
         ];
-
-        $order = ['from-scratch' => 0, 'code-moments' => 1, 'independent-strategic-practice' => 2];
-
-        usort(
-            $companies,
-            static fn (array $first, array $second): int => $order[$first['id']] <=> $order[$second['id']],
-        );
 
         return $companies;
     }

@@ -293,7 +293,6 @@ class PublicInteractionAccessibilityTest extends TestCase
             '/\.hero-sequence__steps::before\s*\{[^}]*background:\s*linear-gradient/s',
             $css,
         );
-        $this->assertStringContainsString('.atlas-chapter:not(:first-child)::before', $css);
         $this->assertMatchesRegularExpression(
             '/\.experience-stage::after\s*\{[^}]*inset-inline:\s*0;[^}]*width:\s*100%;[^}]*background-size:\s*0 1px, 100% 1px;/s',
             $css,
@@ -308,10 +307,6 @@ class PublicInteractionAccessibilityTest extends TestCase
         );
         $this->assertMatchesRegularExpression(
             '/\.site-nav--scrolled\s*\{[^}]*border-bottom-color:/s',
-            $css,
-        );
-        $this->assertMatchesRegularExpression(
-            '/\.atlas-chapter::before\s*\{[^}]*z-index:\s*3;/s',
             $css,
         );
         $this->assertMatchesRegularExpression(

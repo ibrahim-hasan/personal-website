@@ -137,11 +137,54 @@ class TypographyOverflowTest extends TestCase
 
         $this->assertNotFalse($css);
         $this->assertMatchesRegularExpression(
-            '/\.atlas-chapter__brand\s*\{[^}]*width:\s*min\(100%, 14rem\);[^}]*height:\s*7rem;/s',
+            '/\.atlas-chapter__brand\s*\{[^}]*height:\s*7rem;/s',
             $css,
         );
         $this->assertMatchesRegularExpression(
-            '/\.atlas-chapter__brand img\s*\{[^}]*width:\s*auto;[^}]*height:\s*4\.5rem;/s',
+            '/\.atlas-chapter__brand img\s*\{[^}]*height:\s*6rem;/s',
+            $css,
+        );
+    }
+
+    public function test_practice_atlas_progresses_from_one_to_two_to_three_peer_cards(): void
+    {
+        $css = file_get_contents(dirname(__DIR__, 3).'/resources/css/app.css');
+
+        $this->assertNotFalse($css);
+        $this->assertMatchesRegularExpression(
+            '/@media \(min-width: 48rem\)\s*\{.*?\.atlas-constellation\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);[^}]*align-items:\s*stretch;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.atlas-chapter--featured\s*\{[^}]*display:\s*grid;[^}]*grid-column:\s*1 \/ -1;[^}]*grid-template-columns:\s*minmax\(0, 1\.1fr\) minmax\(14rem, 0\.9fr\);[^}]*align-items:\s*center;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media \(min-width: 80rem\)\s*\{.*?\.atlas-constellation\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\);/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media \(min-width: 80rem\)\s*\{.*?\.atlas-chapter--featured\s*\{[^}]*display:\s*flex;[^}]*grid-column:\s*auto;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media \(min-width: 80rem\)\s*\{.*?\.atlas-chapter--featured \.atlas-chapter__content\s*\{[^}]*display:\s*flex;[^}]*gap:\s*0;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media \(min-width: 80rem\)\s*\{.*?\.atlas-chapter--featured \.atlas-chapter__focus\s*\{[^}]*margin-top:\s*1\.5rem;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.atlas-chapter:not\(\.atlas-chapter--featured\)\s*\{[^}]*min-height:\s*clamp\(31rem, 42vw, 36rem\);/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.atlas-chapter:not\(\.atlas-chapter--featured\) \.atlas-chapter__action\s*\{[^}]*margin-top:\s*auto;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.atlas-chapter:not\(\.atlas-chapter--featured\) \.atlas-chapter__copy\s*\{[^}]*margin-block-end:\s*clamp\(2\.25rem, 3\.6vw, 3\.5rem\);/s',
             $css,
         );
     }

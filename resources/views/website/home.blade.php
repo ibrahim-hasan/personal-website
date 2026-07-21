@@ -141,9 +141,12 @@
 
             <div class="atlas-constellation">
                 @foreach ($companies as $company)
-                    <article class="atlas-chapter" style="--atlas-index: {{ $loop->index }}; --reveal-index: {{ $loop->index }}" data-reveal="chapter">
+                    <article @class([
+                        'atlas-chapter',
+                        'atlas-chapter--featured' => $loop->last,
+                    ]) style="--atlas-index: {{ $loop->index }}; --reveal-index: {{ $loop->index }}" data-reveal="chapter">
                         <div class="atlas-chapter__head">
-                            <span>{{ sprintf('%02d', $loop->iteration) }}</span>
+                            <span class="atlas-chapter__role">{{ $company['role'] }}</span>
                             <p>{{ $company['relationship'] }}</p>
                         </div>
                         @if ($company['logo_on_light'] !== '')
@@ -162,15 +165,39 @@
                                 >
                             </div>
                         @endif
-                        <h3>{{ $company['name'] }}</h3>
-                        <p class="atlas-chapter__summary">{{ $company['summary'] }}</p>
-                        <div class="atlas-chapter__focus">
-                            <span>{{ __('site.home.atlas_focus') }}</span>
-                            <ul>
-                                @foreach ($company['focus'] as $focus)
-                                    <li>{{ $focus }}</li>
-                                @endforeach
-                            </ul>
+                        @php
+                            $actionUrl = $company['action']['external']
+                                ? $company['action']['url']
+                                : localized_route('contact') . '#consultation';
+                        @endphp
+                        <div class="atlas-chapter__content">
+                            <div class="atlas-chapter__copy">
+                                <h3>{{ $company['name'] }}</h3>
+                                <p class="atlas-chapter__tagline">{{ $company['tagline'] }}</p>
+                                <p class="atlas-chapter__summary">{{ $company['summary'] }}</p>
+                            </div>
+                            @if ($loop->last)
+                                <div class="atlas-chapter__focus">
+                                    <span>{{ __('site.home.atlas_focus_personal') }}</span>
+                                    <ul>
+                                        @foreach ($company['focus'] as $focus)
+                                            <li>{{ $focus }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                            <a
+                                href="{{ $actionUrl }}"
+                                @class([
+                                    'atlas-chapter__action',
+                                    $loop->last ? 'button-outline-light' : 'button-primary',
+                                ])
+                                @if ($company['action']['external']) target="_blank" rel="noopener noreferrer" @endif
+                                data-magnetic
+                            >
+                                {{ $company['action']['label'] }}
+                                <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
+                            </a>
                         </div>
                     </article>
                 @endforeach

@@ -47,7 +47,7 @@ class PortfolioAtlasTest extends TestCase
 
             $this->assertResolvedItems(
                 PortfolioAtlas::companies(),
-                ['id', 'name', 'relationship', 'summary'],
+                ['id', 'role', 'name', 'relationship', 'tagline', 'summary'],
                 'focus',
             );
             $this->assertResolvedItems(
@@ -107,9 +107,9 @@ class PortfolioAtlasTest extends TestCase
 
         $companies = collect(PortfolioAtlas::companies())->keyBy('id');
 
-        $this->assertSame('Turn needs into a product roadmap', $companies['code-moments']['focus'][0]);
-        $this->assertSame('Build a scalable operating model', $companies['from-scratch']['focus'][0]);
-        $this->assertSame('Define the decision before the technology', $companies['independent-strategic-practice']['focus'][0]);
+        $this->assertSame('Turning the goal into a product roadmap', $companies['code-moments']['focus'][0]);
+        $this->assertSame('An operating model built to support growth', $companies['from-scratch']['focus'][0]);
+        $this->assertSame('Assessing the viability of AI use cases', $companies['independent-strategic-practice']['focus'][0]);
     }
 
     public function test_from_scratch_precedes_code_moments_in_the_company_chapters(): void
@@ -118,6 +118,20 @@ class PortfolioAtlasTest extends TestCase
             ['from-scratch', 'code-moments', 'independent-strategic-practice'],
             array_column(PortfolioAtlas::companies(), 'id'),
         );
+    }
+
+    public function test_company_actions_link_external_sites_or_the_consultation_route(): void
+    {
+        app()->setLocale('en');
+
+        $companies = collect(PortfolioAtlas::companies())->keyBy('id');
+
+        $this->assertSame('https://fromscratch-solutions.com', $companies['from-scratch']['action']['url']);
+        $this->assertTrue($companies['from-scratch']['action']['external']);
+        $this->assertSame('https://codemoments.com', $companies['code-moments']['action']['url']);
+        $this->assertTrue($companies['code-moments']['action']['external']);
+        $this->assertNull($companies['independent-strategic-practice']['action']['url']);
+        $this->assertFalse($companies['independent-strategic-practice']['action']['external']);
     }
 
     public function test_public_content_does_not_expose_banned_technical_terms(): void
@@ -162,9 +176,10 @@ class PortfolioAtlasTest extends TestCase
 
         $companies = collect(PortfolioAtlas::companies())->keyBy('id');
 
-        $this->assertSame('Chief Executive Officer', $companies['code-moments']['relationship']);
+        $this->assertSame('Founder & Chief Executive Officer', $companies['code-moments']['relationship']);
         $this->assertSame('From Scratch', $companies['from-scratch']['name']);
         $this->assertSame('Co-founder & Chief Executive Officer', $companies['from-scratch']['relationship']);
+        $this->assertSame('Technical Expertise with Clients', $companies['independent-strategic-practice']['name']);
         foreach (['code-moments', 'from-scratch'] as $companyId) {
             foreach (['logo_on_light', 'logo_on_dark'] as $logoVariant) {
                 $logoPath = $companies[$companyId][$logoVariant];
