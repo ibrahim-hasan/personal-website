@@ -141,8 +141,7 @@ html {
     scroll-padding-top: 6rem;
 }
 
-html.menu-open,
-html.cookie-consent-open {
+html.menu-open {
     overflow: hidden;
 }
 
@@ -2651,6 +2650,31 @@ html[dir='rtl'] .article-hero__copy h1 {
 
 .article-share__status:empty {
     display: none;
+}
+
+@media (max-width: 39.999rem) {
+    .article-share {
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+        gap: 0.8rem;
+    }
+
+    .article-share__actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        justify-content: stretch;
+        gap: 0.5rem;
+    }
+
+    .article-share__action {
+        width: 100%;
+        min-height: 3rem;
+        padding-inline: 0.6rem;
+    }
+
+    .article-share__action--primary {
+        grid-column: 1 / -1;
+    }
 }
 
 @media (hover: hover) and (pointer: fine) {

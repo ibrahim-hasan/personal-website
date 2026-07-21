@@ -248,6 +248,8 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString('shouldUseHighQualityVideo', $javascript);
         $this->assertStringContainsString('video.dataset.webmSrcHigh', $javascript);
         $this->assertStringContainsString('video.dataset.webmSrcCompact', $javascript);
+        $this->assertStringContainsString("document.documentElement.classList.contains('cookie-consent-visible')", $javascript);
+        $this->assertStringContainsString("window.addEventListener('cookie-consent-visibility-changed'", $javascript);
         $this->assertStringContainsString("document.querySelectorAll('[data-hero-video]')", $javascript);
         $this->assertStringContainsString("window.sessionStorage.setItem(guestSeenKey, 'true')", $javascript);
         $this->assertStringContainsString('video.dataset.viewedUrl', $javascript);
@@ -444,6 +446,18 @@ class PublicInteractionAccessibilityTest extends TestCase
         );
         $this->assertMatchesRegularExpression(
             '/\.article-share\s*\{[^}]*grid-template-columns:\s*auto minmax\(0, 1fr\);/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media \(max-width: 39\.999rem\)\s*\{\s*\.article-share\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);[^}]*align-items:\s*start;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media \(max-width: 39\.999rem\)\s*\{.*?\.article-share__actions\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media \(max-width: 39\.999rem\)\s*\{.*?\.article-share__action--primary\s*\{[^}]*grid-column:\s*1 \/ -1;/s',
             $css,
         );
         $this->assertMatchesRegularExpression(

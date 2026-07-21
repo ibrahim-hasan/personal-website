@@ -72,25 +72,15 @@ document.addEventListener('alpine:init', () => {
         savedConsent: currentConsent(),
         analyticsEnabled: currentConsent() === 'accepted',
         openListener: null,
-        resizeObserver: null,
-        originalBodyPadding: '',
         init() {
-            this.originalBodyPadding = document.body.style.paddingBlockEnd;
             this.openListener = () => this.openSettings();
             window.addEventListener('cookie-preferences-opened', this.openListener);
-            if ('ResizeObserver' in window) {
-                this.resizeObserver = new ResizeObserver(() => this.updateConsentOffset());
-                this.resizeObserver.observe(this.$refs.surface);
-            }
             this.$watch('visible', (isVisible) => this.updateConsentState(isVisible));
-            this.$watch('showSettings', () => this.$nextTick(() => this.updateConsentOffset()));
             this.updateConsentState(this.visible);
         },
         destroy() {
             window.removeEventListener('cookie-preferences-opened', this.openListener);
-            this.resizeObserver?.disconnect();
             document.documentElement.classList.remove('cookie-consent-visible');
-            document.body.style.paddingBlockEnd = this.originalBodyPadding;
         },
         choose(status) {
             saveConsent(status);
@@ -120,16 +110,9 @@ document.addEventListener('alpine:init', () => {
         },
         updateConsentState(isVisible) {
             document.documentElement.classList.toggle('cookie-consent-visible', isVisible);
-            this.$nextTick(() => this.updateConsentOffset());
-        },
-        updateConsentOffset() {
-            const height = this.visible
-                ? Math.ceil(this.$refs.surface?.getBoundingClientRect().height ?? 0)
-                : 0;
-
-            document.body.style.paddingBlockEnd = height > 0
-                ? `${height}px`
-                : this.originalBodyPadding;
+            window.dispatchEvent(new CustomEvent('cookie-consent-visibility-changed', {
+                detail: { visible: isVisible },
+            }));
         },
     }));
 });

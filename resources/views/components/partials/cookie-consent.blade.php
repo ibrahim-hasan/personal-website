@@ -7,14 +7,14 @@
     x-cloak
     x-show="visible"
     x-transition.opacity
-    class="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:px-6 sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+    class="cookie-consent pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:px-6 sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
     data-cookie-consent
     data-cookie-consent-auto-open="{{ $autoOpen ? 'true' : 'false' }}"
     :data-cookie-consent-status="savedConsent ?? 'unset'"
 >
     <section
         x-ref="surface"
-        class="pointer-events-auto mx-auto w-full max-w-5xl border border-ink/15 bg-canvas-bright px-4 py-4 sm:px-5"
+        class="cookie-consent__surface pointer-events-auto mx-auto w-full max-w-5xl border border-ink/15 bg-canvas-bright px-4 py-4 sm:px-5"
         role="region"
         :aria-labelledby="showSettings ? 'cookie-consent-settings-title' : 'cookie-consent-title'"
         :aria-describedby="showSettings ? 'cookie-consent-settings-description' : 'cookie-consent-description'"

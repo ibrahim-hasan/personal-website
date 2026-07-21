@@ -479,7 +479,8 @@ const initializeBackToTop = (signal) => {
     const updateVisibility = () => {
         visibilityFrame = null;
         updateFloatingOffset();
-        const shouldShow = window.scrollY > Math.max(window.innerHeight * 0.7, 520);
+        const shouldShow = window.scrollY > Math.max(window.innerHeight * 0.7, 520)
+            && ! document.documentElement.classList.contains('cookie-consent-visible');
 
         control.classList.toggle('is-visible', shouldShow);
         control.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
@@ -518,6 +519,7 @@ const initializeBackToTop = (signal) => {
     }
     window.addEventListener('scroll', queueVisibilityUpdate, { passive: true, signal });
     window.addEventListener('resize', queueVisibilityUpdate, { passive: true, signal });
+    window.addEventListener('cookie-consent-visibility-changed', queueVisibilityUpdate, { signal });
     signal.addEventListener('abort', () => {
         if (visibilityFrame !== null) {
             window.cancelAnimationFrame(visibilityFrame);

@@ -102,12 +102,16 @@ class LegalPagesTest extends TestCase
         $this->assertStringContainsString("currentConsent() === 'accepted'", $analytics);
         $this->assertStringContainsString('showSettings', $consent);
         $this->assertStringContainsString('cookie-consent-visible', $consent);
+        $this->assertStringContainsString('cookie-consent-visibility-changed', $consent);
+        $this->assertStringNotContainsString('paddingBlockEnd', $consent);
+        $this->assertStringNotContainsString('ResizeObserver', $consent);
         $this->assertStringNotContainsString('trapFocus', $consent);
         $this->assertStringNotContainsString('restoreFocus', $consent);
         $this->assertStringNotContainsString('cookieConsentInerted', $consent);
         $this->assertStringNotContainsString('cookie-consent-open', $consent);
         $this->assertStringNotContainsString('querySelectorAll(\'body >', $consent);
         $this->assertStringContainsString('role="region"', $consentView);
+        $this->assertStringContainsString('cookie-consent__surface', $consentView);
         $this->assertStringContainsString('sm:flex-row', $consentView);
         $this->assertStringNotContainsString('max-w-6xl', $consentView);
         $this->assertStringNotContainsString('font-display text-2xl', $consentView);
