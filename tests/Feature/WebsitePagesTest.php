@@ -22,8 +22,8 @@ class WebsitePagesTest extends TestCase
     public function test_public_pages_render_the_ibrahim_site(): void
     {
         $pages = [
-            '/' => ['إبراهيم حسن', 'إلى أثرٍ يُقاس'],
-            '/services' => ['مساعدة مركزة حيث يلتقي العمل بالتقنية', 'استراتيجية التحول الرقمي'],
+            '/' => ['إبراهيم حسن', 'إلى أثرٍ يُقاس', 'الخدمات', 'أربعة مجالات للعمل. منهج واحد لا يفصل العمل عن التقنية.'],
+            '/services' => ['الخدمات', 'مساعدة مركزة حيث يلتقي العمل بالتقنية', 'استراتيجية التحول الرقمي'],
             '/work' => ['أعمال مختارة', 'الموسوعة الرقمية'],
             '/writing' => ['التقنية بلغة الأعمال', 'من تجربة الذكاء الاصطناعي إلى تحقيق القيمة'],
             '/about' => ['أعمل حيث يلتقي العمل بالتقنية', 'كود مومنتس'],
@@ -39,6 +39,19 @@ class WebsitePagesTest extends TestCase
                 $response->assertSee($text, false);
             }
         }
+    }
+
+    public function test_service_information_architecture_uses_clear_localized_labels(): void
+    {
+        $this->get('/en')
+            ->assertOk()
+            ->assertSee('Services', false)
+            ->assertSee('Four areas of work. One mindset that never separates business from technology.', false);
+
+        $this->get('/en/services')
+            ->assertOk()
+            ->assertSee('Services', false)
+            ->assertSee('Service areas', false);
     }
 
     public function test_services_method_uses_distinct_geometric_step_icons(): void

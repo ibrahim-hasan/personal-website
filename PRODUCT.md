@@ -89,7 +89,7 @@ Sign in → create or edit localized content → upload managed media → review
 
 ### Public website
 
-- Home, practice/services, selected work, writing library, article pages, about, and consultation entry points.
+- Home, services, selected work, writing library, article pages, about, and consultation entry points.
 - Responsive navigation, language switching, mobile menu, footer, and go-to-top behavior.
 - Purposeful motion with reduced-motion support.
 
