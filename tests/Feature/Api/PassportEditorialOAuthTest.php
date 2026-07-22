@@ -34,6 +34,24 @@ class PassportEditorialOAuthTest extends TestCase
         $this->assertSame(['articles:read'], Token::query()->sole()->scopes);
     }
 
+    public function test_a_client_credentials_token_can_access_a_scoped_editorial_api_route(): void
+    {
+        $this->configurePassportKeys();
+        $client = app(ClientRepository::class)->createClientCredentialsGrantClient('Editorial API client');
+        $client->forceFill(['scopes' => ['articles:read']])->save();
+
+        $token = $this->post('/oauth/token', [
+            'grant_type' => 'client_credentials',
+            'client_id' => $client->getKey(),
+            'client_secret' => $client->plainSecret,
+            'scope' => 'articles:read',
+        ])->assertOk()->json('access_token');
+
+        $this->withToken($token)
+            ->getJson('/api/v1/articles')
+            ->assertOk();
+    }
+
     public function test_a_public_browser_client_uses_pkce_authorization_code_and_refresh_grants(): void
     {
         $client = app(ClientRepository::class)->createAuthorizationCodeGrantClient(

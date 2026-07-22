@@ -52,8 +52,10 @@ class EnsureArticleScope
         }
 
         $user = Auth::guard('api')->user();
+        $isClientCredentialsToken = $client->hasGrantType('client_credentials')
+            && (string) $token->oauth_user_id === (string) $token->oauth_client_id;
 
-        if (filled($token->oauth_user_id) && ($user === null || ! $user->is_active || ! $this->userCanUseScopes($user, $scopes))) {
+        if (! $isClientCredentialsToken && filled($token->oauth_user_id) && ($user === null || ! $user->is_active || ! $this->userCanUseScopes($user, $scopes))) {
             throw new AuthenticationException;
         }
 
