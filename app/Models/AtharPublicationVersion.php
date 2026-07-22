@@ -69,8 +69,20 @@ class AtharPublicationVersion extends Model
                     ->whereNotExists(fn ($query) => $query->from('athar_publication_consent_events as restores')
                         ->whereColumn('restores.publication_version_id', 'withdrawals.publication_version_id')
                         ->where('restores.event_type', 'restored')
-                        ->whereColumn('restores.occurred_at', '>', 'withdrawals.occurred_at'))
-                    ->whereColumn('withdrawals.occurred_at', '>', 'athar_publication_consent_events.occurred_at'))
+                        ->where(function ($query): void {
+                            $query->whereColumn('restores.occurred_at', '>', 'withdrawals.occurred_at')
+                                ->orWhere(function ($query): void {
+                                    $query->whereColumn('restores.occurred_at', 'withdrawals.occurred_at')
+                                        ->whereColumn('restores.id', '>', 'withdrawals.id');
+                                });
+                        }))
+                    ->where(function ($query): void {
+                        $query->whereColumn('withdrawals.occurred_at', '>', 'athar_publication_consent_events.occurred_at')
+                            ->orWhere(function ($query): void {
+                                $query->whereColumn('withdrawals.occurred_at', 'athar_publication_consent_events.occurred_at')
+                                    ->whereColumn('withdrawals.id', '>', 'athar_publication_consent_events.id');
+                            });
+                    }))
                 ->exists();
     }
 }

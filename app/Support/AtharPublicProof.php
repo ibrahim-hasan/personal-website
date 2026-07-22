@@ -39,9 +39,13 @@ final class AtharPublicProof
                         ->where('event_type', AtharConsentEventType::Withdrawn)
                         ->filter(fn ($withdrawn) => $version->consentEvents
                             ->where('event_type', AtharConsentEventType::Restored)
-                            ->where('occurred_at', '>', $withdrawn->occurred_at)
+                            ->filter(fn ($restored) => $restored->occurred_at->gt($withdrawn->occurred_at)
+                                || ($restored->occurred_at->equalTo($withdrawn->occurred_at)
+                                    && $restored->getKey() > $withdrawn->getKey()))
                             ->isEmpty())
-                        ->where('occurred_at', '>', $approved->occurred_at)
+                        ->filter(fn ($withdrawn) => $withdrawn->occurred_at->gt($approved->occurred_at)
+                            || ($withdrawn->occurred_at->equalTo($approved->occurred_at)
+                                && $withdrawn->getKey() > $approved->getKey()))
                         ->isNotEmpty();
 
                 return $approved !== null && ! $withdrawn;
