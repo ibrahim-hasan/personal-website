@@ -154,6 +154,14 @@ Sign in → create or edit localized content → upload managed media → review
 - Decision-room output must carry its selected context into the consultation flow.
 - Proof should come from project narratives, operating detail, and thoughtful content. Public client logos, testimonials, and metrics require explicit, truthful source material.
 
+### Permissioned contributor proof
+
+- Athar is a private, contributor-led reflection flow designed to make publication consideration easy without making it automatic. The contributor sends their own words for review, may keep them private, and must approve the exact public version before anything appears.
+- Athar invitations use one private bearer link as the access credential. Email is optional delivery convenience: the admin may send the same link by email, while the admin always receives a copyable opaque link. The public form stays calm and uncluttered; privacy is enforced by the opaque token, expiry, revocation, no-store headers, and the localized privacy notice.
+- Only text selected or edited by the contributor may be attributed to them publicly. Ibrahim may add a clearly separate factual work-context line, never a silent rewrite.
+- One exact approved proof card may appear on one named website placement only. Any material change, new language, or new placement requires a new exact approval.
+- Contributors can withdraw website publication through a simple self-service path. Private-data deletion follows the reviewed retention policy as a separate request.
+
 ## SEO, discoverability, and performance
 
 - Every indexable page needs a unique localized title, description, canonical URL, and hreflang set.

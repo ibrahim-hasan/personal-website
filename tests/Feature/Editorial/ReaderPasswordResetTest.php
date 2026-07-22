@@ -121,7 +121,14 @@ class ReaderPasswordResetTest extends TestCase
 
         $admin->sendPasswordResetNotification('admin-reset-token');
 
-        Notification::assertSentTo($admin, AdminResetPasswordNotification::class);
+        Notification::assertSentTo(
+            $admin,
+            AdminResetPasswordNotification::class,
+            function (AdminResetPasswordNotification $notification) use ($admin): bool {
+                return $notification->toMail($admin)->actionUrl === $notification->url
+                    && str_contains($notification->url, '/admin/password-reset/reset');
+            },
+        );
         Notification::assertNotSentTo($admin, ReaderResetPasswordNotification::class);
     }
 }

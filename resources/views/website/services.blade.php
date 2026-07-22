@@ -133,4 +133,6 @@
         </div>
     </section>
 
+    <x-athar.proof :cards="$athar" placement="services" />
+
 </x-layouts.front>

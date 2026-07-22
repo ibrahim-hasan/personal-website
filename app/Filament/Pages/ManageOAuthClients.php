@@ -13,11 +13,11 @@ class ManageOAuthClients extends Page
 {
     /** @var array<string, string> */
     public const array AVAILABLE_SCOPES = [
-        'articles:read' => 'Read articles and drafts',
-        'articles:write' => 'Create and update drafts',
-        'articles:publish' => 'Publish and unpublish articles',
-        'articles:archive' => 'Archive and restore articles',
-        'media:write' => 'Upload and remove article media',
+        'articles:read' => 'admin.oauth_clients.scopes.articles_read',
+        'articles:write' => 'admin.oauth_clients.scopes.articles_write',
+        'articles:publish' => 'admin.oauth_clients.scopes.articles_publish',
+        'articles:archive' => 'admin.oauth_clients.scopes.articles_archive',
+        'media:write' => 'admin.oauth_clients.scopes.media_write',
     ];
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-key';
@@ -54,7 +54,12 @@ class ManageOAuthClients extends Page
 
     public static function getNavigationLabel(): string
     {
-        return 'OAuth Clients';
+        return __('admin.oauth_clients.navigation_label');
+    }
+
+    public function getTitle(): string
+    {
+        return __('admin.oauth_clients.title');
     }
 
     public static function canAccess(): bool
@@ -80,14 +85,14 @@ class ManageOAuthClients extends Page
             ->all();
 
         if ($validated['type'] === 'browser' && $redirectUris === []) {
-            $this->addError('data.redirect_uris', 'At least one exact HTTPS redirect URI is required for a browser client.');
+            $this->addError('data.redirect_uris', __('admin.oauth_clients.validation.browser_redirect_uri_required'));
 
             return;
         }
 
         foreach ($redirectUris as $redirectUri) {
             if (! filter_var($redirectUri, FILTER_VALIDATE_URL) || ! str_starts_with($redirectUri, 'https://')) {
-                $this->addError('data.redirect_uris', 'Every redirect URI must be an exact HTTPS URL.');
+                $this->addError('data.redirect_uris', __('admin.oauth_clients.validation.redirect_uri_must_be_https'));
 
                 return;
             }
@@ -107,7 +112,7 @@ class ManageOAuthClients extends Page
             'scopes' => ['articles:read', 'articles:write'],
         ];
 
-        Notification::make()->title('OAuth client created')->success()->send();
+        Notification::make()->title(__('admin.oauth_clients.notifications.created'))->success()->send();
     }
 
     public function rotateSecret(string $clientId, ClientRepository $clients): void
@@ -116,7 +121,7 @@ class ManageOAuthClients extends Page
         $client = Client::query()->where('revoked', false)->findOrFail($clientId);
 
         if (! in_array('client_credentials', $client->grant_types, true)) {
-            Notification::make()->title('Public PKCE clients do not have a secret to rotate.')->warning()->send();
+            Notification::make()->title(__('admin.oauth_clients.notifications.pkce_client_has_no_secret'))->warning()->send();
 
             return;
         }
@@ -125,7 +130,7 @@ class ManageOAuthClients extends Page
         $this->issuedClientId = (string) $client->getKey();
         $this->issuedClientSecret = $client->plainSecret;
 
-        Notification::make()->title('Client secret rotated.')->success()->send();
+        Notification::make()->title(__('admin.oauth_clients.notifications.secret_rotated'))->success()->send();
     }
 
     public function revokeClient(string $clientId, ClientRepository $clients): void
@@ -134,7 +139,7 @@ class ManageOAuthClients extends Page
         $client = Client::query()->where('revoked', false)->findOrFail($clientId);
         $clients->delete($client);
 
-        Notification::make()->title('Client and its tokens were revoked.')->success()->send();
+        Notification::make()->title(__('admin.oauth_clients.notifications.client_revoked'))->success()->send();
     }
 
     public function revokeTokens(string $clientId): void
@@ -146,7 +151,7 @@ class ManageOAuthClients extends Page
             $token->revoke();
         });
 
-        Notification::make()->title('All active tokens for this client were revoked.')->success()->send();
+        Notification::make()->title(__('admin.oauth_clients.notifications.tokens_revoked'))->success()->send();
     }
 
     public function editClient(string $clientId): void
@@ -178,14 +183,14 @@ class ManageOAuthClients extends Page
             ->all();
 
         if (in_array('authorization_code', $client->grant_types, true) && $redirectUris === []) {
-            $this->addError('editData.redirect_uris', 'At least one exact HTTPS redirect URI is required for a PKCE client.');
+            $this->addError('editData.redirect_uris', __('admin.oauth_clients.validation.pkce_redirect_uri_required'));
 
             return;
         }
 
         foreach ($redirectUris as $redirectUri) {
             if (! filter_var($redirectUri, FILTER_VALIDATE_URL) || ! str_starts_with($redirectUri, 'https://')) {
-                $this->addError('editData.redirect_uris', 'Every redirect URI must be an exact HTTPS URL.');
+                $this->addError('editData.redirect_uris', __('admin.oauth_clients.validation.redirect_uri_must_be_https'));
 
                 return;
             }
@@ -198,7 +203,15 @@ class ManageOAuthClients extends Page
         ])->save();
         $this->editingClientId = null;
 
-        Notification::make()->title('OAuth client updated.')->success()->send();
+        Notification::make()->title(__('admin.oauth_clients.notifications.updated'))->success()->send();
+    }
+
+    /** @return array<string, string> */
+    public static function scopeLabels(): array
+    {
+        return collect(self::AVAILABLE_SCOPES)
+            ->map(fn (string $translation): string => __($translation))
+            ->all();
     }
 
     /** @return Collection<int, Client> */

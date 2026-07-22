@@ -45,7 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName(__('admin.brand.name'))
             ->brandLogo(fn () => view('filament.partials.auth-brand-logo'))
             ->brandLogoHeight('2.75rem')
-            ->favicon(asset('images/ibrahim/ibrahim-systems-portrait-compact.webp'))
+            ->favicon(asset('favicon.svg'))
             ->font(
                 'Agt Rafeeq Sans',
                 url: asset('fonts/agt-rafeeq/admin-font.css'),

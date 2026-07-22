@@ -58,4 +58,6 @@
         </div>
     </section>
 
+    <x-athar.proof :cards="$athar" placement="about" />
+
 </x-layouts.front>

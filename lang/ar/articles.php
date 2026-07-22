@@ -76,6 +76,10 @@ return [
         'operations' => 'العمليات',
         'products' => 'المنتجات الرقمية',
         'leadership' => 'القيادة',
+        'artificial-intelligence' => 'الذكاء الاصطناعي',
+        'product-strategy' => 'استراتيجية المنتج',
+        'saas' => 'البرمجيات كخدمة',
+        'competitive-advantage' => 'الميزة التنافسية',
     ],
     'articles' => [
         'ai-value' => [

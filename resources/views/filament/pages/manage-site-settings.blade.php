@@ -55,7 +55,7 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-primary-800 dark:text-gray-100">{{ __('admin.settings.contact_information') }}</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('Maintain the direct contact channels shown on the website.') }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('admin.settings.contact_information_hint') }}</p>
                     </div>
                 </div>
             </div>

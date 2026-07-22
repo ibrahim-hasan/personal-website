@@ -26,6 +26,7 @@ return [
         'save_preferences' => 'Save choice',
     ],
     'privacy' => [
+        'athar_short_prefix' => 'Read',
         'eyebrow' => 'Privacy notice',
         'title' => 'Privacy',
         'description' => 'How ibrahimhasan.net handles the personal data needed for its public site and reader features.',
@@ -163,6 +164,13 @@ return [
                 'heading' => 'Change your choice',
                 'paragraphs' => [
                     'Use Cookie preferences in the footer or on this page to allow analytics or keep only necessary storage. Choosing necessary storage stops future site-initiated analytics collection and removes Google Analytics cookies that this site can access. For questions, email :email.',
+                ],
+            ],
+            [
+                'heading' => 'Private Athar notes and website publication',
+                'paragraphs' => [
+                    'An Athar invitation uses a private link, and Ibrahim may send that same link by email when he chooses. Possession of the link is the access credential, so it must not be forwarded. Your private reflection, draft, sealed source, and consent evidence are processed to receive and protect your note. Nothing is published automatically.',
+                    'If you choose publication, you approve one exact text card, one named website page, selected languages, and a display-name choice. The card is not reused for social media, proposals, talks, or other channels. You can stop showing the text on the site at any time through the private management link. A separate deletion request covers the private note and follows the configured retention period.',
                 ],
             ],
         ],

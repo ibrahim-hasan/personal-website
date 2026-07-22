@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AtharController;
 use App\Http\Controllers\Auth\ReaderEmailVerificationController;
 use App\Http\Controllers\Auth\ReaderPasswordResetController;
 use App\Http\Controllers\Auth\ReaderRegistrationController;
@@ -69,6 +70,19 @@ $registerLocalizedRoutes = function (?string $routeLocale = null): void {
     Route::get('/privacy', [LegalController::class, 'privacy'])->name('privacy');
     Route::get('/cookies', [LegalController::class, 'cookies'])->name('cookies');
     Route::get('/terms', [LegalController::class, 'terms'])->name('terms');
+
+    Route::prefix('/athar/{token}')->group(function (): void {
+        Route::get('/', [AtharController::class, 'show'])->name('athar.show');
+        Route::post('/code', [AtharController::class, 'requestCode'])->middleware('throttle:athar-code')->name('athar.code');
+        Route::post('/verify', [AtharController::class, 'verifyCode'])->middleware('throttle:athar-code')->name('athar.verify');
+        Route::post('/draft', [AtharController::class, 'saveDraft'])->middleware('throttle:athar-write')->name('athar.draft');
+        Route::post('/submit', [AtharController::class, 'seal'])->middleware('throttle:athar-write')->name('athar.submit');
+        Route::post('/approve', [AtharController::class, 'approve'])->middleware('throttle:athar-write')->name('athar.approve');
+        Route::post('/withdraw', [AtharController::class, 'withdraw'])->middleware('throttle:athar-write')->name('athar.withdraw');
+        Route::post('/deletion', [AtharController::class, 'deletion'])->middleware('throttle:athar-write')->name('athar.deletion');
+        Route::post('/deletion/cancel', [AtharController::class, 'cancelDeletion'])->middleware('throttle:athar-write')->name('athar.deletion.cancel');
+        Route::post('/restore', [AtharController::class, 'restore'])->middleware('throttle:athar-write')->name('athar.restore');
+    });
 
     Route::middleware('guest')->group(function (): void {
         Route::get('/reader/login', [ReaderSessionController::class, 'create'])->name('reader.login');

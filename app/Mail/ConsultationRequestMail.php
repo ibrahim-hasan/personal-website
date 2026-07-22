@@ -17,6 +17,7 @@ class ConsultationRequestMail extends Mailable implements ShouldQueue
     /** @param array{name: string, email: string, company: string|null, service: string, service_label: string, challenge: string, locale: string} $consultation */
     public function __construct(public array $consultation)
     {
+        $this->locale($this->consultation['locale']);
         $this->afterCommit();
     }
 
@@ -39,7 +40,7 @@ class ConsultationRequestMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.consultation-request',
+            markdown: 'emails.consultation-request',
             with: [
                 'consultation' => $this->consultation,
             ],

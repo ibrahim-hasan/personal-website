@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use App\Contracts\ArticleAudio\NarrationEditor;
 use App\Models\Article;
+use App\Models\AtharContribution;
+use App\Models\AtharInvitation;
+use App\Models\AtharPublicationVersion;
 use App\Models\Comment;
 use App\Models\ContactInquiry;
 use App\Models\Project;
@@ -11,7 +14,11 @@ use App\Models\Role;
 use App\Models\Service;
 use App\Models\Setting;
 use App\Models\User;
+use App\Notifications\Auth\AdminResetPasswordNotification;
 use App\Policies\ArticlePolicy;
+use App\Policies\AtharContributionPolicy;
+use App\Policies\AtharInvitationPolicy;
+use App\Policies\AtharPublicationVersionPolicy;
 use App\Policies\CommentPolicy;
 use App\Policies\ContactInquiryPolicy;
 use App\Policies\ProjectPolicy;
@@ -21,6 +28,7 @@ use App\Policies\SettingPolicy;
 use App\Policies\UserPolicy;
 use App\Services\OpenAI\OpenAiNarrationEditor;
 use Carbon\CarbonImmutable;
+use Filament\Auth\Notifications\ResetPassword as FilamentResetPasswordNotification;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider;
@@ -49,6 +57,7 @@ class AppServiceProvider extends ServiceProvider
         require_once app_path('Support/helpers.php');
 
         $this->app->bind(NarrationEditor::class, OpenAiNarrationEditor::class);
+        $this->app->bind(FilamentResetPasswordNotification::class, AdminResetPasswordNotification::class);
     }
 
     /**
@@ -110,6 +119,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('editorial-api-upload', function (Request $request): Limit {
             return Limit::perHour(10)->by($this->rateLimitKey($request));
         });
+
+        RateLimiter::for('athar-code', fn (Request $request): Limit => Limit::perMinute(5)->by($request->ip().'|'.$request->route('token')));
+        RateLimiter::for('athar-write', fn (Request $request): Limit => Limit::perMinute(12)->by($request->ip().'|'.$request->route('token')));
     }
 
     protected function configurePassport(): void
@@ -139,6 +151,9 @@ class AppServiceProvider extends ServiceProvider
     protected function registerPolicies(): void
     {
         Gate::policy(Service::class, ServicePolicy::class);
+        Gate::policy(AtharInvitation::class, AtharInvitationPolicy::class);
+        Gate::policy(AtharContribution::class, AtharContributionPolicy::class);
+        Gate::policy(AtharPublicationVersion::class, AtharPublicationVersionPolicy::class);
         Gate::policy(Article::class, ArticlePolicy::class);
         Gate::policy(Comment::class, CommentPolicy::class);
         Gate::policy(ContactInquiry::class, ContactInquiryPolicy::class);

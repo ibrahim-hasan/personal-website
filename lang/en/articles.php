@@ -76,6 +76,10 @@ return [
         'operations' => 'Operations',
         'products' => 'Digital products',
         'leadership' => 'Leadership',
+        'artificial-intelligence' => 'Artificial intelligence',
+        'product-strategy' => 'Product strategy',
+        'saas' => 'SaaS',
+        'competitive-advantage' => 'Competitive advantage',
     ],
     'articles' => [
         'ai-value' => [

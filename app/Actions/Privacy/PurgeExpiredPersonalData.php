@@ -2,6 +2,7 @@
 
 namespace App\Actions\Privacy;
 
+use App\Actions\Athar\PurgeExpiredAtharData;
 use App\Enums\CommentReportStatus;
 use App\Enums\ContactInquiryStatus;
 use App\Models\CommentReport;
@@ -12,17 +13,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class PurgeExpiredPersonalData
 {
-    /** @return array{archived_inquiries: int, resolved_reports: int} */
-    public function preview(): array
+    /** @return array{archived_inquiries: int, resolved_reports: int, athar_challenges: int, athar_contributions: int} */
+    public function preview(?PurgeExpiredAtharData $athar = null): array
     {
         return [
             'archived_inquiries' => $this->expiredArchivedInquiries()->count(),
             'resolved_reports' => $this->expiredResolvedReports()->count(),
+            'athar_challenges' => $athar?->preview()['challenges'] ?? 0,
+            'athar_contributions' => $athar?->preview()['contributions'] ?? 0,
         ];
     }
 
-    /** @return array{archived_inquiries: int, resolved_reports: int} */
-    public function purge(): array
+    /** @return array{archived_inquiries: int, resolved_reports: int, athar_challenges: int, athar_contributions: int} */
+    public function purge(?PurgeExpiredAtharData $athar = null): array
     {
         return [
             'archived_inquiries' => $this->deleteInChunks(
@@ -33,7 +36,16 @@ class PurgeExpiredPersonalData
                 $this->expiredResolvedReports(),
                 CommentReport::class,
             ),
+            ...($athar === null ? ['athar_challenges' => 0, 'athar_contributions' => 0] : $this->atharPurge($athar)),
         ];
+    }
+
+    /** @return array{athar_challenges: int, athar_contributions: int} */
+    private function atharPurge(PurgeExpiredAtharData $athar): array
+    {
+        $purged = $athar->purge();
+
+        return ['athar_challenges' => $purged['challenges'], 'athar_contributions' => $purged['contributions']];
     }
 
     /** @return Builder<ContactInquiry> */

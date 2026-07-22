@@ -103,6 +103,96 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
+    Alpine.data('atharProof', ({ count }) => ({
+        count,
+        active: 0,
+        paused: false,
+        hoverPaused: false,
+        timer: null,
+        init() {
+            if (this.count > 1 && ! window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                this.startAutoplay();
+            }
+        },
+        displayPosition() {
+            return `${this.active + 1} / ${this.count}`;
+        },
+        next() {
+            this.active = (this.active + 1) % this.count;
+        },
+        previous() {
+            this.active = (this.active - 1 + this.count) % this.count;
+        },
+        startAutoplay() {
+            this.stopAutoplay();
+            this.timer = window.setInterval(() => {
+                if (! this.paused && ! this.hoverPaused) {
+                    this.next();
+                }
+            }, 7000);
+        },
+        stopAutoplay() {
+            if (this.timer !== null) {
+                window.clearInterval(this.timer);
+                this.timer = null;
+            }
+        },
+        pauseForHover() {
+            this.hoverPaused = true;
+        },
+        resumeAfterHover() {
+            this.hoverPaused = false;
+        },
+        toggleAutoplay() {
+            this.paused = ! this.paused;
+        },
+    }));
+
+    Alpine.data('atharReflection', ({ max, messages }) => ({
+        max,
+        messages,
+        count: 0,
+        progress: 0,
+        message: messages.start,
+        init() {
+            this.update(this.$refs.field?.value ?? '');
+        },
+        update(value) {
+            this.count = [...value].length;
+            this.progress = Math.min(100, (this.count / this.max) * 100);
+            this.message = this.getMessage();
+        },
+        getMessage() {
+            if (this.count === 0) {
+                return this.messages.start;
+            }
+
+            if (this.count < 120) {
+                return this.messages.beginning;
+            }
+
+            if (this.count < 300) {
+                return this.messages.growing;
+            }
+
+            if (this.count < 600) {
+                return this.messages.rich;
+            }
+
+            if (this.count < 900) {
+                return this.messages.deep;
+            }
+
+            return this.messages.complete;
+        },
+        formattedCount() {
+            return new Intl.NumberFormat(document.documentElement.lang || undefined).format(this.count);
+        },
+        formattedMax() {
+            return new Intl.NumberFormat(document.documentElement.lang || undefined).format(this.max);
+        },
+    }));
+
     Alpine.data('serviceTabs', ({ services }) => ({
         services,
         active: services[0]?.id ?? null,

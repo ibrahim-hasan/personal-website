@@ -152,4 +152,6 @@
         </section>
     @endif
 
+    <x-athar.proof :cards="$athar" placement="work" />
+
 </x-layouts.front>

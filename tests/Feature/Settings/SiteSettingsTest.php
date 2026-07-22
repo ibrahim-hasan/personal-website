@@ -39,6 +39,17 @@ class SiteSettingsTest extends TestCase
         $this->assertSame(trans('site.about.body', [], 'en'), $biography['en']);
     }
 
+    public function test_contact_information_hint_is_translated_in_arabic(): void
+    {
+        app()->setLocale('ar');
+        $user = $this->settingsAdministrator();
+
+        Livewire::actingAs($user)
+            ->test(ManageSiteSettings::class)
+            ->assertSee('أدر قنوات التواصل المباشر الظاهرة على الموقع.')
+            ->assertDontSee('Maintain the direct contact channels shown on the website.');
+    }
+
     public function test_biography_setting_migration_preserves_existing_profile_content(): void
     {
         $biography = json_encode([

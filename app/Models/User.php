@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Notifications\Auth\AdminResetPasswordNotification;
 use App\Notifications\Auth\ReaderResetPasswordNotification;
+use App\Notifications\Auth\ReaderVerifyEmailNotification;
 use Database\Factories\UserFactory;
+use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
@@ -80,7 +82,8 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
             || $this->can('view_any contact_inquiries')
             || $this->can('view_any settings')
             || $this->can('view_any users')
-            || $this->can('view_any roles');
+            || $this->can('view_any roles')
+            || $this->can('view_any athar_invitations');
     }
 
     public function preferredLocale(): string
@@ -110,11 +113,21 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
 
     public function sendPasswordResetNotification($token): void
     {
-        $notification = request()->is('admin/*')
-            ? new AdminResetPasswordNotification($token)
-            : new ReaderResetPasswordNotification($token);
+        if (request()->is('admin/*')) {
+            $notification = new AdminResetPasswordNotification($token);
+            $notification->url = Filament::getResetPasswordUrl($token, $this);
 
-        $this->notify($notification);
+            $this->notify($notification);
+
+            return;
+        }
+
+        $this->notify(new ReaderResetPasswordNotification($token));
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new ReaderVerifyEmailNotification);
     }
 
     /** @return HasMany<Comment, $this> */

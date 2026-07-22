@@ -30,6 +30,31 @@ class ArticleCatalogDatabaseTest extends TestCase
         $this->assertSame('مقال-من-قاعدة-البيانات', $catalog->all()[0]->slug('ar'));
     }
 
+    public function test_editorial_topic_keys_are_presented_with_bilingual_labels(): void
+    {
+        $stored = Article::factory()->create([
+            'key' => 'ai-product-moat',
+            'topic_keys' => [
+                'artificial-intelligence',
+                'product-strategy',
+                'saas',
+                'competitive-advantage',
+            ],
+        ]);
+
+        $article = app(ArticleCatalog::class)->findByKey($stored->key);
+
+        $this->assertNotNull($article);
+        $this->assertSame(
+            ['الذكاء الاصطناعي', 'استراتيجية المنتج', 'البرمجيات كخدمة', 'الميزة التنافسية'],
+            $article->localized('ar')['topics'],
+        );
+        $this->assertSame(
+            ['Artificial intelligence', 'Product strategy', 'SaaS', 'Competitive advantage'],
+            $article->localized('en')['topics'],
+        );
+    }
+
     public function test_an_existing_database_catalog_does_not_fall_back_when_every_article_is_a_draft(): void
     {
         Article::factory()->create(['is_published' => false]);

@@ -2,14 +2,11 @@
 
 namespace App\Notifications\Auth;
 
-use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Bus\Queueable;
+use Filament\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
 
 class AdminResetPasswordNotification extends ResetPassword
 {
-    use Queueable;
-
     public function toMail($notifiable): MailMessage
     {
         $url = $this->resetUrl($notifiable);

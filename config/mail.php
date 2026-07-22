@@ -115,4 +115,23 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Markdown Mail Settings
+    |--------------------------------------------------------------------------
+    |
+    | Transactional messages share the same rendered shell. The theme is
+    | converted to inline styles by Laravel so it remains reliable in email
+    | clients while retaining the website's visual language.
+    |
+    */
+
+    'markdown' => [
+        'theme' => 'ibrahim',
+
+        'paths' => [
+            resource_path('views/vendor/mail'),
+        ],
+    ],
+
 ];

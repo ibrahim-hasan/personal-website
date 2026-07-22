@@ -11,6 +11,7 @@ class WebsitePagesTest extends TestCase
         $this->assertFileExists(public_path('favicon.svg'));
         $this->assertFileExists(public_path('apple-touch-icon.png'));
         $this->assertStringContainsString('#7d53cd', file_get_contents(public_path('favicon.svg')));
+        $this->assertStringContainsString("->favicon(asset('favicon.svg'))", file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php')));
 
         $this->get('/')
             ->assertOk()
@@ -63,6 +64,21 @@ class WebsitePagesTest extends TestCase
             ->assertSee('method-band__icon--prioritize', false)
             ->assertSee('method-band__icon--measure', false)
             ->assertSee('aria-hidden="true"', false);
+    }
+
+    public function test_athar_proof_cards_keep_their_own_language_direction(): void
+    {
+        $arabicPage = view('components.athar.proof', [
+            'cards' => [['text' => 'An English endorsement.', 'context' => '', 'name' => '', 'locale' => 'en']],
+        ])->render();
+        $englishPage = view('components.athar.proof', [
+            'cards' => [['text' => 'شهادة عربية.', 'context' => '', 'name' => '', 'locale' => 'ar']],
+        ])->render();
+
+        $this->assertStringContainsString('dir="ltr"', $arabicPage);
+        $this->assertStringContainsString('lang="en"', $arabicPage);
+        $this->assertStringContainsString('dir="rtl"', $englishPage);
+        $this->assertStringContainsString('lang="ar"', $englishPage);
     }
 
     public function test_homepage_uses_optimized_hero_video_and_project_evidence_without_placeholders(): void

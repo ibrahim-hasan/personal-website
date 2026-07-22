@@ -3,8 +3,8 @@
 namespace Tests\Feature\Editorial;
 
 use App\Models\User;
+use App\Notifications\Auth\ReaderVerifyEmailNotification;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
@@ -109,8 +109,8 @@ class ReaderAuthenticationTest extends TestCase
         $verificationUrl = null;
         Notification::assertSentTo(
             $reader,
-            VerifyEmail::class,
-            function (VerifyEmail $notification) use ($reader, &$verificationUrl): bool {
+            ReaderVerifyEmailNotification::class,
+            function (ReaderVerifyEmailNotification $notification) use ($reader, &$verificationUrl): bool {
                 $verificationUrl = $notification->toMail($reader)->actionUrl;
 
                 return is_string($verificationUrl)
