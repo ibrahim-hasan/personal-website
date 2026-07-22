@@ -3,6 +3,8 @@
 namespace Tests\Feature\Api;
 
 use App\Http\Middleware\EnsureArticleScope;
+use App\Models\EditorialApiAuditLog;
+use App\Services\EditorialApi\Audit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Laravel\Passport\Client;
@@ -92,6 +94,26 @@ class PassportEditorialOAuthTest extends TestCase
             fn () => response()->json(),
             'articles:write',
         );
+    }
+
+    public function test_a_client_credentials_token_is_audited_without_a_user_id(): void
+    {
+        $client = app(ClientRepository::class)->createClientCredentialsGrantClient('Audit client');
+        $token = new Token([
+            'oauth_client_id' => $client->getKey(),
+            'oauth_user_id' => $client->getKey(),
+        ]);
+        $request = Request::create('/api/v1/articles', 'POST', server: ['REMOTE_ADDR' => '127.0.0.1']);
+        $request->attributes->set('editorial_api_client', $client);
+        $request->attributes->set('editorial_api_token', $token);
+        $request->attributes->set('editorial_api_request_id', '2117bc20-9323-4bb2-9fc6-1db8699f73e7');
+
+        app(Audit::class)->record($request, 'article.created', 'success');
+
+        $audit = EditorialApiAuditLog::query()->sole();
+
+        $this->assertSame($client->getKey(), $audit->client_id);
+        $this->assertNull($audit->user_id);
     }
 
     private function configurePassportKeys(): void

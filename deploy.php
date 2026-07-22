@@ -45,7 +45,7 @@ task('artisan:passport-keys', function (): void {
     }
 
     run('chmod 600 {{deploy_path}}/shared/storage/oauth-private.key');
-    run('chmod 644 {{deploy_path}}/shared/storage/oauth-public.key');
+    run('chmod 600 {{deploy_path}}/shared/storage/oauth-public.key');
 });
 
 task('deploy:health-check', function (): void {
