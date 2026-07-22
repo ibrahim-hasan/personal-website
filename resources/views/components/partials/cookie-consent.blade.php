@@ -29,7 +29,7 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2 sm:justify-end">
-                <button type="button" class="button-quiet min-h-11 px-4" @click="accept">{{ __('legal.cookies.accept') }}</button>
+                <button type="button" class="button-primary min-h-11 px-4" @click="accept">{{ __('legal.cookies.accept') }}</button>
                 <button type="button" class="button-quiet min-h-11 px-4" @click="reject">{{ __('legal.cookies.reject') }}</button>
                 <button type="button" class="inline-flex min-h-11 items-center px-2 font-sans text-sm font-bold text-violet-700 underline decoration-violet-700/30 underline-offset-4 hover:decoration-violet-700" @click="openSettings">{{ __('legal.cookies.settings') }}</button>
             </div>

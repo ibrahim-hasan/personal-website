@@ -24,183 +24,33 @@
         </div>
     </section>
 
-    <section class="about-background" aria-labelledby="about-background-title">
-        <div class="site-container about-background__grid">
+    <section class="about-journey" aria-labelledby="about-journey-title">
+        <div class="site-container about-journey__grid">
             <div>
-                <p class="signal-label signal-label--light">{{ __('site.about.background_eyebrow') }}</p>
-                <h2 id="about-background-title" class="display-section mt-6 max-w-[14ch] text-canvas" data-reveal="headline">{{ __('site.about.background_title') }}</h2>
+                <p class="signal-label signal-label--light">{{ __('site.about.journey_eyebrow') }}</p>
+                <h2 id="about-journey-title" class="display-section mt-6 max-w-[14ch] text-canvas" data-reveal="headline">{{ __('site.about.journey_title') }}</h2>
             </div>
-            <p class="about-background__body" data-reveal="copy">{{ __('site.about.background_body') }}</p>
+            <p class="about-journey__body" data-reveal="copy">{{ __('site.about.journey_body') }}</p>
         </div>
     </section>
 
-    <section class="about-moments" aria-labelledby="about-moments-title">
-        <div class="site-container">
-            <div class="about-moments__intro">
+    <section class="section-standard about-current-work" aria-labelledby="about-current-work-title">
+        <div class="site-container about-current-work__grid editorial-sidebar">
+            <div class="about-current-work__intro editorial-sidebar__intro">
                 <div>
-                    <p class="signal-label">{{ __('site.about.moments_eyebrow') }}</p>
-                    <h2 id="about-moments-title" class="display-section mt-6 max-w-[14ch]" data-reveal="headline">{{ __('site.about.moments_title') }}</h2>
+                    <p class="signal-label">{{ __('site.about.current_work_eyebrow') }}</p>
+                    <h2 id="about-current-work-title" class="display-section mt-6 max-w-[14ch]" data-reveal="headline">{{ __('site.about.current_work_title') }}</h2>
                 </div>
-                <p class="copy-lead max-w-[56ch]" data-reveal="copy">{{ __('site.about.moments_body') }}</p>
+                <p class="copy-lead mt-7 max-w-[48ch]" data-reveal="copy">{{ __('site.about.current_work_body') }}</p>
             </div>
 
-            <div class="about-moments__grid">
-                <figure class="about-moment about-moment--conference" data-reveal="media">
-                    <div class="about-moment__media">
-                        <img
-                            src="{{ asset('images/ibrahim/ibrahim-conference-event.webp') }}"
-                            alt="{{ __('site.about.conference_alt') }}"
-                            width="1800"
-                            height="2400"
-                            loading="lazy"
-                            decoding="async"
-                        >
-                    </div>
-                    <div class="about-moment__meta">
-                        <figcaption>{{ __('site.about.conference_caption') }}</figcaption>
-                    </div>
-                </figure>
-
-                <figure class="about-moment about-moment--candid" data-reveal="media">
-                    <div class="about-moment__media">
-                        <img
-                            src="{{ asset('images/ibrahim/ibrahim-candid-session.webp') }}"
-                            alt="{{ __('site.about.candid_alt') }}"
-                            width="1800"
-                            height="2400"
-                            loading="lazy"
-                            decoding="async"
-                        >
-                    </div>
-                    <div class="about-moment__meta">
-                        <figcaption>{{ __('site.about.candid_caption') }}</figcaption>
-                    </div>
-                </figure>
-            </div>
-        </div>
-    </section>
-
-    <section class="about-chapters">
-        <div class="site-container">
-            <div class="about-chapters__intro">
-                <div>
-                    <p class="signal-label signal-label--light">{{ __('site.about.companies_eyebrow') }}</p>
-                    <h2 class="display-section mt-6 max-w-[13ch] text-canvas" data-reveal="headline">{{ __('site.about.companies_title') }}</h2>
-                </div>
-                <p class="copy-lead max-w-[52ch] text-violet-100 lg:justify-self-end" data-reveal="copy">{{ __('site.about.companies_body') }}</p>
-            </div>
-
-            <div class="about-chapters__list">
+            <div class="about-current-work__list">
                 @foreach ($companies as $company)
-                    <article style="--reveal-index: {{ $loop->index }}" data-reveal="chapter">
-                        <div class="about-chapters__number">{{ sprintf('%02d', $loop->iteration) }}</div>
-                        <div class="about-chapters__copy">
-                            @if ($company['logo_on_dark'] !== '')
-                                <div class="about-chapters__brand">
-                                    <img
-                                        src="{{ asset($company['logo_on_dark']) }}"
-                                        alt="{{ $company['logo_alt'] }}"
-                                        width="{{ $company['logo_on_dark_width'] }}"
-                                        height="{{ $company['logo_on_dark_height'] }}"
-                                        loading="lazy"
-                                        decoding="async"
-                                    >
-                                </div>
-                            @endif
-                            <p>{{ $company['relationship'] }}</p>
-                            <h3>{{ $company['name'] }}</h3>
-                            <span>{{ $company['summary'] }}</span>
-                        </div>
-                        <div class="about-chapters__focus">
-                            <p>{{ __('site.about.focus_label') }}</p>
-                            <ul>
-                                @foreach ($company['focus'] as $focus)
-                                    <li>{{ $focus }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    </article>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
-    <section class="section-standard about-trajectory">
-        <div class="site-container narrative-rail">
-            <div class="narrative-rail__intro">
-                <p class="signal-label">{{ __('site.about.trajectory_eyebrow') }}</p>
-                <h2 class="display-section mt-6 max-w-[13ch]" data-reveal="headline">{{ __('site.about.trajectory_title') }}</h2>
-            </div>
-            <ol class="about-trajectory__list">
-                @foreach ($experience as $stage)
-                    <li style="--reveal-index: {{ $loop->index }}" data-reveal="step">
-                        <span>{{ $stage['step'] }}</span>
+                    <article data-reveal="row">
+                        <p class="about-current-work__role">{{ $company['relationship'] }}</p>
                         <div>
-                            <h3>{{ $stage['title'] }}</h3>
-                            <p>{{ $stage['summary'] }}</p>
-                        </div>
-                    </li>
-                @endforeach
-            </ol>
-        </div>
-    </section>
-
-    <section class="perspective-band">
-        <div class="site-container">
-            <div class="section-split">
-                <div>
-                    <p class="signal-label signal-label--light">{{ __('site.about.lenses_eyebrow') }}</p>
-                    <h2 class="display-section mt-6 max-w-[13ch] text-canvas" data-reveal="headline">{{ __('site.about.lenses_title') }}</h2>
-                </div>
-                <p class="copy-lead max-w-[52ch] text-canvas/70 lg:justify-self-end" data-reveal="copy">{{ __('site.about.fit_body') }}</p>
-            </div>
-
-            <div class="perspective-grid">
-                @foreach ($lenses as $lens)
-                    <article style="--reveal-index: {{ $loop->index }}" data-reveal="chapter">
-                        <div class="perspective-grid__head">
-                            <span class="perspective-grid__number">{{ sprintf('%02d', $loop->iteration) }}</span>
-                            <span class="perspective-grid__icon" aria-hidden="true">
-                                @switch($lens['id'])
-                                    @case('ai-adoption')
-                                        <x-phosphor-crosshair />
-                                        @break
-
-                                    @case('transformation')
-                                        <x-phosphor-share-network />
-                                        @break
-
-                                    @case('product')
-                                        <x-phosphor-strategy />
-                                        @break
-
-                                    @default
-                                        <x-phosphor-chart-line-up />
-                                @endswitch
-                            </span>
-                        </div>
-                        <h3>{{ $lens['label'] }}</h3>
-                        <p>{{ $lens['description'] }}</p>
-                        <strong>{{ $lens['question'] }}</strong>
-                    </article>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
-    <section class="section-standard principles-section">
-        <div class="site-container narrative-rail">
-            <div class="narrative-rail__intro">
-                <p class="signal-label">{{ __('site.about.principles_eyebrow') }}</p>
-                <h2 class="display-section mt-6 max-w-[13ch]" data-reveal="headline">{{ __('site.about.principles_title') }}</h2>
-            </div>
-            <div class="principle-list">
-                @foreach ($process as $step)
-                    <article class="principle-row" style="--reveal-index: {{ $loop->index }}" data-reveal="row">
-                        <span>{{ $step['step'] }}</span>
-                        <div>
-                            <h3>{{ $step['title'] }}</h3>
-                            <p>{{ $step['body'] }}</p>
+                            <h3>{{ __('site.about.current_work_items.'.$company['id'].'.title') }}</h3>
+                            <p>{{ __('site.about.current_work_items.'.$company['id'].'.body') }}</p>
                         </div>
                     </article>
                 @endforeach

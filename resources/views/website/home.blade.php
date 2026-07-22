@@ -57,6 +57,16 @@
                     data-depth="portrait"
                 >
                     <div class="precision-stage__media relative isolate overflow-hidden">
+                        <img
+                            class="precision-stage__poster"
+                            src="{{ asset('images/ibrahim/ibrahim-speaking-editorial.webp') }}"
+                            alt=""
+                            width="720"
+                            height="1280"
+                            fetchpriority="high"
+                            decoding="async"
+                            aria-hidden="true"
+                        >
                         <video
                             class="precision-stage__video"
                             data-hero-video

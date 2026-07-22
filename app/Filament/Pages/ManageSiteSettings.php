@@ -122,8 +122,8 @@ class ManageSiteSettings extends Page implements HasForms
     public static function defaultAboutBiography(): array
     {
         return [
-            'ar' => 'يبني إبراهيم حسن منتجات عملية باستخدام Laravel وDjango والذكاء الاصطناعي، مع تركيز على لوحات الإدارة، مساعدات الدعم، الأتمتة، ومسارات النشر التي يمكن التحقق منها في المتصفح.',
-            'en' => 'Ibrahim Hasan builds practical Laravel, Django, and AI-enabled products with a focus on admin systems, support assistants, automation, deployment paths, and browser-verified production behavior.',
+            'ar' => (string) trans('site.about.body', [], 'ar'),
+            'en' => (string) trans('site.about.body', [], 'en'),
         ];
     }
 

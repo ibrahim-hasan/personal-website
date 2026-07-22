@@ -26,6 +26,23 @@ class PersonalContentTest extends TestCase
         );
     }
 
+    public function test_process_copy_keeps_the_digital_decision_concise_in_both_locales(): void
+    {
+        app()->setLocale('ar');
+
+        $arabicStep = collect(SiteContent::process())->firstWhere('step', '03');
+
+        $this->assertSame('تحديد دور الرقمنة والأتمتة والذكاء الاصطناعي', $arabicStep['title']);
+        $this->assertSame('نحدد الأنسب: ذكاء اصطناعي، أو نظام أفضل، أو تحسين جودة البيانات؛ بحسب الأثر والكلفة والمخاطر.', $arabicStep['body']);
+
+        app()->setLocale('en');
+
+        $englishStep = collect(SiteContent::process())->firstWhere('step', '03');
+
+        $this->assertSame('Choose the role of systems, automation, and AI', $englishStep['title']);
+        $this->assertSame('Choose between AI, a better system, and improving data quality based on impact, cost, and risk.', $englishStep['body']);
+    }
+
     public function test_data_governance_copy_migration_is_reversible_and_preserves_english(): void
     {
         $service = Service::factory()->create([

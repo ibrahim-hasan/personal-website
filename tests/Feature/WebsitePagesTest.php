@@ -24,9 +24,9 @@ class WebsitePagesTest extends TestCase
         $pages = [
             '/' => ['إبراهيم حسن', 'إلى أثرٍ يُقاس', 'الخدمات', 'أربعة مجالات للعمل. منهج واحد لا يفصل العمل عن التقنية.'],
             '/services' => ['الخدمات', 'مساعدة مركزة حيث يلتقي العمل بالتقنية', 'استراتيجية التحول الرقمي'],
-            '/work' => ['أعمال مختارة', 'الموسوعة الرقمية'],
+            '/work' => ['أعمال مختارة', 'ما الذي تغيّر، ولماذا؟', 'حالات مختارة عبر قطاعات مختلفة. في كل حالة: السياق التشغيلي، والتحدي، وما تغيّر، والأثر العملي.', 'الموسوعة الرقمية'],
             '/writing' => ['التقنية بلغة الأعمال', 'من تجربة الذكاء الاصطناعي إلى تحقيق القيمة'],
-            '/about' => ['أعمل حيث يلتقي العمل بالتقنية', 'من هندسة الميكاترونيكس إلى بناء البرمجيات وقيادة التنفيذ.', 'بدأتُ مسيرتي المهنية في هندسة الميكاترونيكس', 'وكان مشروع تخرجي طائرة رباعية من دون طيار', 'المنهج يظهر في أرض الواقع.', 'كود مومنتس'],
+            '/about' => ['أبني أنظمة رقمية يُعتمد عليها.', 'كيف بدأ المسار.', 'بدأتُ في هندسة الميكاترونيكس', 'مشروع تخرجي طائرة رباعية من دون طيار', 'ما أعمل عليه اليوم.', 'كود مومنتس'],
             '/contact' => ['أخبرني بالمشكلة التي تريد حلّها', 'أرسل طلب الاستشارة'],
         ];
 
@@ -140,22 +140,20 @@ class WebsitePagesTest extends TestCase
         $this->get('/en/about')
             ->assertOk()
             ->assertSee('images/ibrahim/ibrahim-formal-portrait.webp', false)
-            ->assertSee('images/ibrahim/ibrahim-conference-event.webp', false)
-            ->assertSee('images/ibrahim/ibrahim-candid-session.webp', false)
             ->assertSee('Professional portrait of Ibrahim Hasan', false)
-            ->assertSee('From mechatronics to software and delivery leadership.', false)
-            ->assertSee('I began my career in mechatronics engineering', false)
+            ->assertSee('Building dependable digital systems.', false)
+            ->assertSee('Where the path began.', false)
+            ->assertSee('I began in mechatronics engineering', false)
             ->assertSee('My graduation project was a quadcopter', false)
-            ->assertSee('The method shows up in the real work.', false)
-            ->assertSee('At a professional event with From Scratch Solutions', false)
-            ->assertSee('A moment between sessions at a professional gathering', false)
-            ->assertSee('loading="lazy"', false)
-            ->assertDontSee('When the work moves fastest.', false)
-            ->assertSee('images/brands/companies/code-moments-on-dark.svg', false)
-            ->assertSee('images/brands/companies/from-scratch-on-dark.svg', false)
-            ->assertDontSee('images/brands/companies/code-moments-on-light.svg', false)
+            ->assertSee('Where I work today.', false)
             ->assertSee('Code Moments', false)
-            ->assertDontSee('Toolkit', false)
+            ->assertSee('From Scratch', false)
+            ->assertSee('Independent strategic practice', false)
+            ->assertDontSee('The method shows up in the real work.', false)
+            ->assertDontSee('Four lenses for one integrated decision.', false)
+            ->assertDontSee('How I prefer to handle serious work.', false)
+            ->assertDontSee('images/ibrahim/ibrahim-conference-event.webp', false)
+            ->assertDontSee('images/ibrahim/ibrahim-candid-session.webp', false)
             ->assertDontSee('Portrait space — to be art-directed later', false)
             ->assertDontSee('IBRAHIM HASAN / STRATEGY IN PRACTICE', false)
             ->assertDontSee('images/ibrahim/ibrahim-hasan-portrait.png', false);
@@ -163,11 +161,17 @@ class WebsitePagesTest extends TestCase
         $this->get('/about')
             ->assertOk()
             ->assertSee('صورة مهنية لإبراهيم حسن', false)
-            ->assertSee('من هندسة الميكاترونيكس إلى بناء البرمجيات وقيادة التنفيذ.', false)
-            ->assertSee('المنهج يظهر في أرض الواقع.', false)
-            ->assertSee('في فعالية مهنية مع فروم سكراتش سوليوشنز', false)
-            ->assertDontSee('عندما يتحرك العمل أسرع.', false)
-            ->assertSee('لقطة بين جلسات العمل في لقاء مهني', false);
+            ->assertSee('أبني أنظمة رقمية يُعتمد عليها.', false)
+            ->assertSee('كيف بدأ المسار.', false)
+            ->assertSee('ما أعمل عليه اليوم.', false)
+            ->assertSee('فروم سكراتش', false)
+            ->assertSee('كود مومنتس', false)
+            ->assertSee('عمل استشاري مستقل', false)
+            ->assertDontSee('المنهج يظهر في أرض الواقع.', false)
+            ->assertDontSee('أربع عدسات لقرار واحد متكامل.', false)
+            ->assertDontSee('كيف أفضل التعامل مع العمل الجاد.', false)
+            ->assertDontSee('images/ibrahim/ibrahim-conference-event.webp', false)
+            ->assertDontSee('images/ibrahim/ibrahim-candid-session.webp', false);
     }
 
     public function test_writing_library_uses_precise_taxonomy_and_one_footer_cta(): void
@@ -239,9 +243,9 @@ class WebsitePagesTest extends TestCase
         $pages = [
             '/en' => ['Ibrahim Hasan', 'to impact you can measure'],
             '/en/services' => ['Focused help where business', 'Digital Transformation Strategy'],
-            '/en/work' => ['Selected work', 'Digi Pedia'],
+            '/en/work' => ['Selected work', 'What changed—and why.', 'Selected cases across distinct sectors. Each sets out the operating context, challenge, what changed, and practical impact.', 'Digi Pedia'],
             '/en/writing' => ['Technology in the language of business', 'From AI Experiment to Business Value'],
-            '/en/about' => ['I work where business meets technology', 'Code Moments'],
+            '/en/about' => ['Building dependable digital systems', 'Code Moments'],
             '/en/contact' => ['Tell me the problem you want to solve', 'Send consultation request'],
         ];
 

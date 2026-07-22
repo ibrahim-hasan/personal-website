@@ -990,7 +990,7 @@ html[dir='rtl'] .brand-mark__name {
 
 .precision-stage__media::before {
     position: absolute;
-    z-index: 1;
+    z-index: 3;
     inset: 0;
     pointer-events: none;
     content: '';
@@ -1003,20 +1003,44 @@ html[dir='rtl'] .brand-mark__name {
 }
 
 .precision-stage__video {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
     width: 100%;
     height: 100%;
     display: block;
     object-fit: cover;
     object-position: center;
+    opacity: 0;
     filter: saturate(0.94) contrast(1.03) brightness(0.98);
     translate: var(--depth-x) var(--depth-y);
     scale: 1.018;
-    transition: translate 560ms var(--ease-out-expo), scale 720ms var(--ease-out-expo), filter 600ms ease, opacity 420ms ease;
+    transition: translate 560ms var(--ease-out-expo), scale 720ms var(--ease-out-expo), filter 600ms ease, opacity 700ms ease;
+}
+
+.precision-stage__poster {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    filter: saturate(0.94) contrast(1.03) brightness(0.98);
+    transition: opacity 700ms ease;
+}
+
+.precision-stage__media.is-playing .precision-stage__video {
+    opacity: 1;
+}
+
+.precision-stage__media.is-playing .precision-stage__poster {
+    opacity: 0;
 }
 
 .precision-stage__finale {
     position: absolute;
-    z-index: 2;
+    z-index: 4;
     inset: 0;
     display: flex;
     flex-direction: column;
@@ -1175,6 +1199,11 @@ html[dir='rtl'] .precision-stage__finale strong {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .precision-stage__video,
+    .precision-stage__poster {
+        transition: none;
+    }
+
     .precision-stage__finale-mark,
     .precision-stage__finale p,
     .precision-stage__finale strong,
@@ -1185,7 +1214,7 @@ html[dir='rtl'] .precision-stage__finale strong {
 
 .precision-stage__media::after {
     position: absolute;
-    z-index: 1;
+    z-index: 3;
     inset: 0;
     pointer-events: none;
     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-canvas-bright) 18%, transparent);
@@ -1299,7 +1328,7 @@ html[dir='rtl'] .precision-stage__finale strong {
     background: var(--color-violet-600);
 }
 
-:where(.manifesto-section, .page-intro--violet, .experience-trajectory, .about-chapters)::after {
+:where(.manifesto-section, .page-intro--violet, .experience-trajectory)::after {
     position: absolute;
     z-index: 0;
     inset-block: 0;
@@ -1317,7 +1346,7 @@ html[dir='rtl'] .precision-stage__finale strong {
     mask-image: linear-gradient(-90deg, black 0%, black 58%, transparent 100%);
 }
 
-html[dir='rtl'] :where(.manifesto-section, .page-intro--violet, .experience-trajectory, .about-chapters)::after {
+html[dir='rtl'] :where(.manifesto-section, .page-intro--violet, .experience-trajectory)::after {
     right: auto;
     left: 0;
     background-position: left center;
@@ -1325,7 +1354,7 @@ html[dir='rtl'] :where(.manifesto-section, .page-intro--violet, .experience-traj
     mask-image: linear-gradient(90deg, black 0%, black 58%, transparent 100%);
 }
 
-:where(.manifesto-section, .page-intro--violet, .experience-trajectory, .about-chapters) > .site-container {
+:where(.manifesto-section, .page-intro--violet, .experience-trajectory) > .site-container {
     position: relative;
     z-index: 1;
 }
@@ -1384,16 +1413,14 @@ html[dir='rtl'] :where(.manifesto-section, .page-intro--violet, .experience-traj
     color: var(--color-violet-700);
 }
 
-.method-step h3,
-.principle-row h3 {
+.method-step h3 {
     font-family: var(--family-display);
     font-size: clamp(1.65rem, 2.4vw, 2.45rem);
     font-weight: 900;
     line-height: 1.1;
 }
 
-.method-step p,
-.principle-row p {
+.method-step p {
     max-width: 56ch;
     margin-top: 0.7rem;
     font-size: 1rem;
@@ -2093,24 +2120,6 @@ html[dir='rtl'] .writing-audio-feature__copy strong {
     line-height: 1.38;
     color: var(--color-ink-soft);
     text-wrap: pretty;
-}
-
-.principle-list {
-    border-top: 1px solid color-mix(in oklab, var(--color-ink) 24%, transparent);
-}
-
-.principle-row {
-    display: grid;
-    grid-template-columns: 3rem 1fr;
-    gap: 1.25rem;
-    padding-block: 2rem;
-    border-bottom: 1px solid color-mix(in oklab, var(--color-ink) 24%, transparent);
-}
-
-.principle-row > span {
-    font-family: var(--family-ui);
-    font-size: 0.75rem;
-    color: var(--color-violet-700);
 }
 
 .toolkit-cloud {
@@ -3646,8 +3655,7 @@ html[data-reader-mode] .article-prose {
     mask-image: linear-gradient(to bottom, transparent, black 16%, black 84%, transparent);
 }
 
-.atlas-intro,
-.about-chapters__intro {
+.atlas-intro {
     position: relative;
     z-index: 1;
     display: grid;
@@ -4139,46 +4147,32 @@ html[lang='en'] .decision-room__title {
 
 .about-teaser__portrait {
     --portrait-gutter: clamp(0.7rem, 1.4vw, 1rem);
-    --portrait-rail: clamp(2.35rem, 5vw, 3.5rem);
     width: min(100%, 31rem);
     aspect-ratio: 4 / 5;
     isolation: isolate;
     padding: var(--portrait-gutter);
-    padding-inline-end: var(--portrait-rail);
     border-color: color-mix(in oklab, var(--color-ink) 38%, transparent);
     background-color: var(--color-ink);
-    background-image:
-        linear-gradient(145deg, color-mix(in oklab, var(--color-violet-700) 38%, transparent), transparent 64%),
-        url('../../public/images/brand/ibrahim-geometric-pattern.svg');
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover, auto 116%;
     box-shadow: 0.8rem 0.8rem 0 var(--color-violet-300);
-}
-
-html[dir='rtl'] .about-teaser__portrait {
-    background-position: center;
 }
 
 .about-teaser__portrait::before {
     position: absolute;
-    z-index: 3;
-    inset-block-start: 50%;
-    inset-inline-end: calc((var(--portrait-rail) - 0.8rem) / 2);
-    width: 0.8rem;
-    height: 0.8rem;
-    border: 1px solid var(--color-violet-200);
-    background: var(--color-violet-500);
+    z-index: 0;
+    inset: 0;
+    pointer-events: none;
     content: '';
-    rotate: 45deg;
-    translate: 50% -50%;
+    opacity: 0.34;
+    background-image: url('../../public/images/brand/ibrahim-geometric-pattern.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: auto 116%;
 }
 
 .about-teaser__portrait::after {
     z-index: 2;
     inset-block: var(--portrait-gutter);
-    inset-inline-start: var(--portrait-gutter);
-    inset-inline-end: var(--portrait-rail);
+    inset-inline: var(--portrait-gutter);
     background:
         linear-gradient(135deg, color-mix(in oklab, var(--color-violet-700) 18%, transparent), transparent 54%),
         linear-gradient(to top, color-mix(in oklab, var(--color-ink) 42%, transparent), transparent 48%);
@@ -4209,14 +4203,14 @@ html[dir='rtl'] .about-intro__portrait {
     object-position: 48% center;
 }
 
-.about-background {
+.about-journey {
     position: relative;
     overflow: hidden;
     padding-block: clamp(5rem, 9vw, 8rem);
     background: var(--color-violet-800);
 }
 
-.about-background::before {
+.about-journey::before {
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -4227,7 +4221,7 @@ html[dir='rtl'] .about-intro__portrait {
     background-size: auto 132%;
 }
 
-.about-background__grid {
+.about-journey__grid {
     position: relative;
     z-index: 1;
     display: grid;
@@ -4235,12 +4229,7 @@ html[dir='rtl'] .about-intro__portrait {
     align-items: end;
 }
 
-.about-moment__meta {
-    display: flex;
-    align-items: center;
-}
-
-.about-background__body {
+.about-journey__body {
     max-width: 58ch;
     font-family: var(--family-editorial);
     font-size: clamp(1.1rem, 1.02rem + 0.28vw, 1.35rem);
@@ -4248,281 +4237,44 @@ html[dir='rtl'] .about-intro__portrait {
     color: color-mix(in oklab, var(--color-canvas) 82%, transparent);
 }
 
-.about-moments {
-    padding-block: clamp(5rem, 9vw, 8rem);
+.about-current-work {
     background: var(--color-canvas-bright);
 }
 
-.about-moments__intro {
+.about-current-work__list {
+    border-block-start: 1px solid color-mix(in oklab, var(--color-ink) 24%, transparent);
+}
+
+.about-current-work__list > article {
     display: grid;
-    gap: 1.5rem;
-    align-items: end;
+    gap: 0.7rem;
+    padding-block: clamp(1.75rem, 3vw, 2.5rem);
+    border-block-end: 1px solid color-mix(in oklab, var(--color-ink) 24%, transparent);
 }
 
-.about-moments__grid {
-    display: grid;
-    gap: 1.25rem;
-    margin-top: clamp(3rem, 7vw, 6rem);
-}
-
-.about-moment {
-    display: grid;
-    gap: 0.9rem;
-}
-
-.about-moment--conference .about-moment__media {
-    aspect-ratio: 3 / 4;
-}
-
-.about-moment--candid .about-moment__media {
-    aspect-ratio: 4 / 3;
-}
-
-.about-moment__media {
-    position: relative;
-    overflow: hidden;
-    background: var(--color-ink);
-}
-
-.about-moment img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: scale 700ms var(--ease-out-expo);
-}
-
-.about-moment--conference img {
-    object-position: center;
-}
-
-.about-moment--candid img {
-    object-position: center 38%;
-}
-
-.about-moment__meta {
-    min-height: 2.25rem;
-    padding-block-start: 0.85rem;
-    border-block-start: 1px solid color-mix(in oklab, var(--color-ink) 20%, transparent);
-}
-
-.about-moment figcaption {
-    max-width: 36ch;
+.about-current-work__role {
     font-family: var(--family-ui);
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 700;
     line-height: 1.5;
-    color: var(--color-ink-soft);
-}
-
-.about-chapters,
-.perspective-band {
-    padding-block: clamp(6rem, 11vw, 10rem);
-    background: var(--color-ink);
-    color: var(--color-canvas);
-}
-
-.about-chapters {
-    --brand-pattern-opacity: 0.065;
-    --brand-pattern-width: min(44%, 44rem);
-    position: relative;
-    isolation: isolate;
-}
-
-.about-chapters__list {
-    margin-top: clamp(4rem, 8vw, 7rem);
-    border-block-start: 1px solid color-mix(in oklab, var(--color-canvas) 17%, transparent);
-}
-
-.about-chapters__list > article {
-    display: grid;
-    grid-template-columns: 3rem minmax(0, 1fr);
-    gap: 1.5rem;
-    padding-block: 2.25rem;
-    border-block-end: 1px solid color-mix(in oklab, var(--color-canvas) 17%, transparent);
-}
-
-.about-chapters__number,
-.about-chapters__copy > p,
-.about-chapters__focus > p {
-    font-family: var(--family-ui);
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--color-violet-300);
-}
-
-.about-chapters__copy h3 {
-    margin-top: 0.65rem;
-    font-family: var(--family-display);
-    font-size: clamp(2rem, 3.5vw, 3.5rem);
-    font-weight: 900;
-    line-height: 1.08;
-}
-
-.about-chapters__brand {
-    width: min(100%, 10rem);
-    min-height: 3.5rem;
-    display: flex;
-    align-items: center;
-    margin-block-end: 1.2rem;
-}
-
-.about-chapters__brand img {
-    width: auto;
-    max-width: 100%;
-    max-height: 3.5rem;
-    object-fit: contain;
-}
-
-.about-chapters__copy > span {
-    display: block;
-    max-width: 62ch;
-    margin-top: 0.9rem;
-    font-size: 1rem;
-    line-height: 1.72;
-    color: color-mix(in oklab, var(--color-canvas) 67%, transparent);
-}
-
-.about-chapters__focus {
-    grid-column: 2;
-}
-
-.about-chapters__focus ul {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.55rem;
-    margin-top: 0.85rem;
-}
-
-.about-chapters__focus li {
-    padding: 0.45rem 0.7rem;
-    border: 1px solid color-mix(in oklab, var(--color-canvas) 18%, transparent);
-    font-family: var(--family-ui);
-    font-size: 0.72rem;
-    color: var(--color-violet-100);
-}
-
-.about-trajectory {
-    background: var(--color-canvas-bright);
-}
-
-.about-trajectory__list {
-    counter-reset: stage;
-    border-block-start: 1px solid color-mix(in oklab, var(--color-ink) 22%, transparent);
-}
-
-.about-trajectory__list li {
-    display: grid;
-    grid-template-columns: 3rem 1fr;
-    gap: 1.25rem;
-    padding-block: 2rem;
-    border-block-end: 1px solid color-mix(in oklab, var(--color-ink) 22%, transparent);
-}
-
-.about-trajectory__list li > span {
-    font-family: var(--family-ui);
-    font-size: 0.72rem;
-    font-weight: 700;
     color: var(--color-violet-700);
 }
 
-.about-trajectory__list h3 {
+.about-current-work__list h3 {
     font-family: var(--family-display);
-    font-size: clamp(1.7rem, 2.6vw, 2.7rem);
+    font-size: clamp(1.75rem, 2.75vw, 2.75rem);
     font-weight: 900;
     line-height: 1.12;
+    text-wrap: balance;
 }
 
-.about-trajectory__list p {
-    max-width: 58ch;
+.about-current-work__list div > p {
+    max-width: 60ch;
     margin-top: 0.7rem;
     font-size: 1rem;
     line-height: 1.72;
-    color: var(--color-ink-muted);
-}
-
-.perspective-band {
-    background: var(--color-violet-800);
-}
-
-.perspective-grid {
-    display: grid;
-    margin-top: clamp(3.5rem, 7vw, 6rem);
-    border-block-start: 1px solid color-mix(in oklab, var(--color-canvas) 20%, transparent);
-    border-inline-start: 1px solid color-mix(in oklab, var(--color-canvas) 20%, transparent);
-}
-
-.perspective-grid article {
-    min-height: 21rem;
-    display: flex;
-    flex-direction: column;
-    padding: 1.5rem;
-    border-inline-end: 1px solid color-mix(in oklab, var(--color-canvas) 20%, transparent);
-    border-block-end: 1px solid color-mix(in oklab, var(--color-canvas) 20%, transparent);
-}
-
-.perspective-grid__head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-}
-
-.perspective-grid__number {
-    font-family: var(--family-ui);
-    font-size: 0.72rem;
-    color: var(--color-violet-300);
-}
-
-.perspective-grid__icon {
-    position: relative;
-    isolation: isolate;
-    display: grid;
-    width: 3.5rem;
-    height: 3.5rem;
-    flex: 0 0 auto;
-    place-items: center;
-    color: var(--color-canvas);
-}
-
-.perspective-grid__icon::before {
-    position: absolute;
-    z-index: -1;
-    width: 2.65rem;
-    height: 2.65rem;
-    border: 1px solid color-mix(in oklab, var(--color-violet-300) 72%, transparent);
-    content: '';
-    rotate: 45deg;
-    background: color-mix(in oklab, var(--color-violet-700) 68%, transparent);
-}
-
-.perspective-grid__icon svg {
-    width: 1.65rem;
-    height: 1.65rem;
-    stroke-width: 1.65;
-}
-
-.perspective-grid h3 {
-    margin-top: 1.5rem;
-    font-family: var(--family-display);
-    font-size: clamp(1.8rem, 2.8vw, 2.8rem);
-    font-weight: 900;
-    line-height: 1.08;
-}
-
-.perspective-grid p {
-    margin-top: 0.85rem;
-    font-size: 0.95rem;
-    line-height: 1.7;
-    color: var(--color-violet-100);
-}
-
-.perspective-grid strong {
-    margin-top: auto;
-    padding-top: 2rem;
-    font-family: var(--family-body);
-    font-size: 1rem;
-    line-height: 1.65;
-    color: var(--color-canvas);
+    color: var(--color-ink-soft);
+    text-wrap: pretty;
 }
 
 .work-archive {
@@ -4603,16 +4355,15 @@ html[dir='rtl'] .about-intro__portrait {
         justify-self: start;
     }
 
-    .atlas-intro,
-    .about-chapters__intro {
+    .atlas-intro {
         grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.75fr);
     }
 
-    .about-background__grid {
+    .about-journey__grid {
         grid-template-columns: minmax(0, 0.9fr) minmax(20rem, 0.78fr);
     }
 
-    .about-background__body {
+    .about-journey__body {
         justify-self: end;
     }
 
@@ -4673,44 +4424,7 @@ html[dir='rtl'] .about-intro__portrait {
         margin-top: auto;
     }
 
-    .about-moments__intro {
-        grid-template-columns: minmax(0, 0.8fr) minmax(18rem, 0.65fr);
-    }
-
-    .about-moments__intro > p {
-        justify-self: end;
-    }
-
-    .about-moments__grid {
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-        align-items: end;
-        gap: clamp(1.25rem, 3vw, 3rem);
-    }
-
-    .about-moment--conference {
-        grid-column: 1 / span 5;
-    }
-
-    .about-moment--candid {
-        grid-column: 6 / span 7;
-        margin-block-end: clamp(2rem, 6vw, 5rem);
-    }
-
     .project-atlas__copy dl {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .about-chapters__list > article {
-        grid-template-columns: 4rem minmax(18rem, 1fr) minmax(14rem, 0.55fr);
-        gap: 2rem;
-        align-items: start;
-    }
-
-    .about-chapters__focus {
-        grid-column: auto;
-    }
-
-    .perspective-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
@@ -4792,9 +4506,6 @@ html[dir='rtl'] .about-intro__portrait {
         justify-self: center;
     }
 
-    .perspective-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -4856,13 +4567,6 @@ html[dir='rtl'] .about-intro__portrait {
         translate: -0.25rem calc(-50% - 0.25rem);
     }
 
-    .perspective-grid article {
-        transition: background-color 260ms ease, color 260ms ease;
-    }
-
-    .perspective-grid article:hover {
-        background: var(--color-violet-700);
-    }
 }
 
 @media (max-width: 63.999rem) {
@@ -5882,10 +5586,6 @@ html[dir='rtl'].motion-capable .manifesto-section__copy::before {
 }
 
 @media (hover: hover) and (pointer: fine) {
-    .about-moment:hover img {
-        scale: 1.025;
-    }
-
     .filter-bar button:not(.is-active):hover,
     .publication-topics button:not(.is-active):hover,
     .service-index__item:not(.is-active):hover {

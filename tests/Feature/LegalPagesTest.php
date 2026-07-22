@@ -113,6 +113,8 @@ class LegalPagesTest extends TestCase
         $this->assertStringContainsString('role="region"', $consentView);
         $this->assertStringContainsString('cookie-consent__surface', $consentView);
         $this->assertStringContainsString('sm:flex-row', $consentView);
+        $this->assertStringContainsString('class="button-primary min-h-11 px-4" @click="accept"', $consentView);
+        $this->assertStringContainsString('class="button-quiet min-h-11 px-4" @click="reject"', $consentView);
         $this->assertStringNotContainsString('max-w-6xl', $consentView);
         $this->assertStringNotContainsString('font-display text-2xl', $consentView);
         $this->assertStringNotContainsString('aria-modal', $consentView);

@@ -305,6 +305,10 @@ const initializeHeroVideos = (signal) => {
         video.muted = true;
         video.loop = false;
 
+        video.addEventListener('playing', () => {
+            stage?.classList.add('is-playing');
+        }, { signal });
+
         video.addEventListener('ended', () => {
             showFinale();
             markVideoSeen();
@@ -319,6 +323,7 @@ const initializeHeroVideos = (signal) => {
 
             stage.classList.add('is-restarting');
             hideFinale();
+            stage.classList.remove('is-playing');
             video.pause();
             video.currentTime = 0;
 

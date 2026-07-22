@@ -13,10 +13,7 @@ class AboutController extends Controller
     {
         return view('website.about', [
             'biography' => SiteContent::aboutBiography(),
-            'process' => SiteContent::process(),
             'companies' => PortfolioAtlas::companies(),
-            'experience' => PortfolioAtlas::experience(),
-            'lenses' => PortfolioAtlas::lenses(),
         ]);
     }
 }

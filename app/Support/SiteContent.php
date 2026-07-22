@@ -438,8 +438,8 @@ class SiteContent
                 'title' => ['ar' => 'متى نستخدم الذكاء الاصطناعي ومتى لا نستخدمه', 'en' => 'When to Use AI and When Not To'],
                 'type' => ['ar' => 'رأي عملي', 'en' => 'Practical opinion'],
                 'summary' => [
-                    'ar' => 'ليست كل مشكلة تحتاج ذكاءً اصطناعياً. أحياناً نظام أفضل أو بيانات أنظف تحل المشكلة بكلفة أقل.',
-                    'en' => 'Not every problem needs AI. Sometimes a better system or cleaner data solves it at lower cost.',
+                    'ar' => 'ليست كل مشكلة تحتاج ذكاءً اصطناعياً. أحياناً يكفي نظام أفضل أو تحسين جودة البيانات لحل المشكلة بكلفة أقل.',
+                    'en' => 'Not every problem needs AI. Sometimes a better system or better data quality solves it at lower cost.',
                 ],
                 'read_time' => ['ar' => '6 دقائق', 'en' => '6 min'],
             ],
@@ -469,7 +469,7 @@ class SiteContent
         return [
             ['step' => '01', 'title' => ['ar' => 'فهم المشكلة قبل الحل', 'en' => 'Understand the problem first'], 'body' => ['ar' => 'ما المشكلة التشغيلية أو التجارية؟ أين الهدر أو التعطل؟ ما القرار المطلوب تحسينه؟', 'en' => 'What is the operational or business problem? Where is the waste or friction? What decision needs improving?']],
             ['step' => '02', 'title' => ['ar' => 'تحليل العملية والبيانات', 'en' => 'Map the process and the data'], 'body' => ['ar' => 'أرسم العملية الحالية، تدفق البيانات، نقاط القرار، والمخاطر قبل التفكير في أي تقنية.', 'en' => 'I map the current process, data flow, decision points, and risks before thinking about any technology.']],
-            ['step' => '03', 'title' => ['ar' => 'تحديد ما يُرقمن ويؤتمت ويدعم بالذكاء الاصطناعي', 'en' => 'Decide what to digitize, automate, or support with AI'], 'body' => ['ar' => 'هل نحتاج ذكاءً اصطناعياً، أم نظاماً أفضل، أم بيانات أنظف؟ الترتيب يُبنى على الأثر والكلفة والمخاطر.', 'en' => 'Do we need AI, a better system, or cleaner data? The order is built on impact, cost, and risk.']],
+            ['step' => '03', 'title' => ['ar' => 'تحديد دور الرقمنة والأتمتة والذكاء الاصطناعي', 'en' => 'Choose the role of systems, automation, and AI'], 'body' => ['ar' => 'نحدد الأنسب: ذكاء اصطناعي، أو نظام أفضل، أو تحسين جودة البيانات؛ بحسب الأثر والكلفة والمخاطر.', 'en' => 'Choose between AI, a better system, and improving data quality based on impact, cost, and risk.']],
             ['step' => '04', 'title' => ['ar' => 'بناء حل قابل للصيانة والقياس', 'en' => 'Build maintainable and measurable'], 'body' => ['ar' => 'أبني حلاً يمكن صيانته وتوسعته وقياس أثره، مع توثيق واضح وتسليم يمكن لفريقك متابعته.', 'en' => 'I build a solution that can be maintained, scaled, and measured, with clear documentation your team can follow.']],
         ];
     }

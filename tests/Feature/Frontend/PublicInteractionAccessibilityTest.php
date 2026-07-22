@@ -15,6 +15,7 @@ class PublicInteractionAccessibilityTest extends TestCase
             ->assertSee('data-hero-video', false)
             ->assertSee('data-hero-video-finale', false)
             ->assertSee('data-hero-video-replay', false)
+            ->assertSee('class="precision-stage__poster"', false)
             ->assertSee('aria-hidden="true" inert', false)
             ->assertSee('data-back-to-top', false)
             ->assertSee('data-back-to-top-safe-zone', false)
@@ -92,9 +93,10 @@ class PublicInteractionAccessibilityTest extends TestCase
 
         $about = $this->readProjectFile('resources/views/website/about.blade.php');
 
-        $this->assertStringContainsString('class="perspective-grid__head"', $about);
-        $this->assertStringContainsString('class="perspective-grid__icon" aria-hidden="true"', $about);
-        $this->assertStringContainsString("@switch(\$lens['id'])", $about);
+        $this->assertStringContainsString('aria-labelledby="about-current-work-title"', $about);
+        $this->assertStringContainsString('class="about-current-work__list"', $about);
+        $this->assertStringContainsString('@foreach ($companies as $company)', $about);
+        $this->assertStringNotContainsString("@switch(\$lens['id'])", $about);
     }
 
     public function test_motion_preserves_content_and_responsive_controls_remain_contained(): void
@@ -137,9 +139,9 @@ class PublicInteractionAccessibilityTest extends TestCase
             $css,
         );
         $this->assertMatchesRegularExpression('/\.publication-row__meta time,\s*\.publication-row__read-time\s*\{[^}]*color:\s*var\(--color-ink-soft\);/s', $css);
-        $this->assertMatchesRegularExpression('/\.perspective-grid__head\s*\{[^}]*justify-content:\s*space-between;/s', $css);
-        $this->assertMatchesRegularExpression('/\.perspective-grid__icon::before\s*\{[^}]*width:\s*2\.65rem;[^}]*height:\s*2\.65rem;[^}]*rotate:\s*45deg;/s', $css);
-        $this->assertMatchesRegularExpression('/\.perspective-grid__icon svg\s*\{[^}]*width:\s*1\.65rem;[^}]*height:\s*1\.65rem;/s', $css);
+        $this->assertMatchesRegularExpression('/\.about-current-work__list\s*\{[^}]*border-block-start:\s*1px solid/s', $css);
+        $this->assertMatchesRegularExpression('/\.about-current-work__list > article\s*\{[^}]*padding-block:\s*clamp\(1\.75rem, 3vw, 2\.5rem\);/s', $css);
+        $this->assertMatchesRegularExpression('/\.about-current-work__role\s*\{[^}]*font-weight:\s*700;[^}]*color:\s*var\(--color-violet-700\);/s', $css);
         $this->assertMatchesRegularExpression('/\.publication-row__copy h3\s*\{[^}]*max-width:\s*48rem;[^}]*font-size:\s*clamp\(1\.65rem, 2\.8vw, 3rem\);[^}]*line-height:\s*1\.1;[^}]*text-wrap:\s*pretty;/s', $css);
         $this->assertMatchesRegularExpression("/html\\[dir='rtl'\\] \\.publication-row__copy h3\\s*\\{[^}]*line-height:\\s*1\\.18;[^}]*letter-spacing:\\s*0;/s", $css);
         $this->assertStringContainsString('class="publication-row__read-time"', $this->readProjectFile('resources/views/website/writing.blade.php'));
@@ -184,9 +186,14 @@ class PublicInteractionAccessibilityTest extends TestCase
             $css,
         );
         $this->assertMatchesRegularExpression(
-            '/\.about-teaser__portrait\s*\{[^}]*padding-inline-end:\s*var\(--portrait-rail\);[^}]*ibrahim-geometric-pattern\.svg[^}]*background-repeat:\s*no-repeat;/s',
+            '/\.about-teaser__portrait\s*\{[^}]*padding:\s*var\(--portrait-gutter\);[^}]*background-color:\s*var\(--color-ink\);/s',
             $css,
         );
+        $this->assertMatchesRegularExpression(
+            '/\.about-teaser__portrait::before\s*\{[^}]*inset:\s*0;[^}]*opacity:\s*0\.34;[^}]*ibrahim-geometric-pattern\.svg[^}]*background-position:\s*center;/s',
+            $css,
+        );
+        $this->assertStringNotContainsString('--portrait-rail', $css);
         $this->assertMatchesRegularExpression(
             '/\.about-teaser__portrait > img\s*\{[^}]*translate:\s*none;[^}]*filter:\s*none;/s',
             $css,
@@ -231,6 +238,14 @@ class PublicInteractionAccessibilityTest extends TestCase
             $css,
         );
         $this->assertMatchesRegularExpression(
+            '/\.precision-stage__poster\s*\{[^}]*object-fit:\s*cover;[^}]*opacity 700ms ease;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.precision-stage__media\.is-playing \.precision-stage__video\s*\{[^}]*opacity:\s*1;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
             '/@media \(min-width: 64rem\)\s*\{.*?\.precision-stage\s*\{[^}]*width:\s*min\(100%, 24rem\);/s',
             $css,
         );
@@ -252,6 +267,8 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString("window.addEventListener('cookie-consent-visibility-changed'", $javascript);
         $this->assertStringContainsString("document.querySelectorAll('[data-hero-video]')", $javascript);
         $this->assertStringContainsString("window.sessionStorage.setItem(guestSeenKey, 'true')", $javascript);
+        $this->assertStringContainsString("stage?.classList.add('is-playing')", $javascript);
+        $this->assertStringContainsString("stage.classList.remove('is-playing')", $javascript);
         $this->assertStringContainsString('video.dataset.viewedUrl', $javascript);
         $this->assertStringContainsString("method: 'POST'", $javascript);
         $this->assertStringContainsString('playVideo().catch(() => {})', $javascript);

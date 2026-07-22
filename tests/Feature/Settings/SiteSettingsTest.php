@@ -31,6 +31,14 @@ class SiteSettingsTest extends TestCase
         $this->assertSame('Updated English profile summary', $stored['en']);
     }
 
+    public function test_default_biography_uses_the_current_localized_about_copy(): void
+    {
+        $biography = ManageSiteSettings::defaultAboutBiography();
+
+        $this->assertSame(trans('site.about.body', [], 'ar'), $biography['ar']);
+        $this->assertSame(trans('site.about.body', [], 'en'), $biography['en']);
+    }
+
     public function test_biography_setting_migration_preserves_existing_profile_content(): void
     {
         $biography = json_encode([
