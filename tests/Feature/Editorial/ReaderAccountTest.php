@@ -11,7 +11,7 @@ use App\Models\Comment;
 use App\Models\CommentReport;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Notifications\Auth\ReaderVerifyEmailNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -123,7 +123,7 @@ class ReaderAccountTest extends TestCase
         $reader->refresh();
         $this->assertSame('new-reader@example.com', $reader->email);
         $this->assertFalse($reader->hasVerifiedEmail());
-        Notification::assertSentTo($reader, VerifyEmail::class);
+        Notification::assertSentTo($reader, ReaderVerifyEmailNotification::class);
     }
 
     public function test_profile_email_must_remain_unique(): void

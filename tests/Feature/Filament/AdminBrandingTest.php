@@ -26,7 +26,7 @@ class AdminBrandingTest extends TestCase
             ->assertSee(__('admin.brand.owner'))
             ->assertSee('لوحة تحكم')
             ->assertDontSee('لوحة تحكم موقع إبراهيم حسن')
-            ->assertSee('ibrahim-systems-portrait-compact.webp', escape: false)
+            ->assertSee('ibrahim-admin-wordmark.svg', escape: false)
             ->assertDontSee('manage-layers-section-bg.svg', escape: false)
             ->assertDontSee('logo-dark.svg', escape: false);
     }

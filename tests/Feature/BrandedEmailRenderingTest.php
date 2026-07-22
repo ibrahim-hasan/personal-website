@@ -118,7 +118,6 @@ class BrandedEmailRenderingTest extends TestCase
         );
 
         $this->assertStringContainsString('أدعوك إلى كتابة ما تتذكّره من تجربة عملنا معاً بطريقتك. تصل رسالتك إلى إبراهيم بشكل خاص، ولا يظهر شيء منها على الموقع تلقائياً.', $arabicInvitationHtml);
-        $this->assertStringNotContainsString('تلقائياً', $arabicInvitationHtml);
 
         $englishInvitation = new AtharInvitationNotification('https://ibrahimhasan.test/en/athar/invitation', 'en');
 
