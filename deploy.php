@@ -42,9 +42,10 @@ task('artisan:schedule-interrupt', artisan('schedule:interrupt'));
 task('artisan:passport-keys', function (): void {
     if (! test('[ -f {{deploy_path}}/shared/storage/oauth-private.key ] && [ -f {{deploy_path}}/shared/storage/oauth-public.key ]')) {
         run('cd {{release_path}} && {{bin/php}} artisan passport:keys --force --no-interaction');
-        run('chmod 600 {{deploy_path}}/shared/storage/oauth-private.key');
-        run('chmod 644 {{deploy_path}}/shared/storage/oauth-public.key');
     }
+
+    run('chmod 600 {{deploy_path}}/shared/storage/oauth-private.key');
+    run('chmod 644 {{deploy_path}}/shared/storage/oauth-public.key');
 });
 
 task('deploy:health-check', function (): void {
