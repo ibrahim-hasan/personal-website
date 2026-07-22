@@ -5,12 +5,17 @@
         @if (isset($version) && in_array($version?->status->value, ['draft', 'awaiting_approval'], true))
             @php($payloadLocale = array_key_first($version->public_payload))
             @php($payload = $version->public_payload[$payloadLocale] ?? [])
-            <div class="athar-preview" dir="{{ $payloadLocale }}" lang="{{ $payloadLocale }}">
-                <p class="athar-help">{{ $version->status->value === 'awaiting_approval' ? __('athar.approval.words') : __('athar.receipt.preview_label') }}</p>
+            <div class="athar-final-preview-wrap" x-data="atharReflection({ max: {{ \App\Support\AtharTextLimits::PUBLIC_MAX }}, messages: @js(__('athar.approval.counter')) })" x-init="init()">
+                <div class="athar-final-preview" dir="{{ $payloadLocale }}" lang="{{ $payloadLocale }}">
+                    <p class="athar-final-preview__label">{{ $version->status->value === 'awaiting_approval' ? __('athar.approval.words') : __('athar.receipt.preview_label') }}</p>
+                    <blockquote class="athar-final-preview__quote" x-text="text">{{ $payload['text'] ?? '' }}</blockquote>
+                    @if (filled($payload['context'] ?? ''))<p class="athar-final-preview__context-label">{{ __('athar.approval.context') }}</p><p class="athar-final-preview__context">{{ $payload['context'] }}</p>@endif
+                </div>
                 @if ($version->status->value === 'awaiting_approval')
-                    <p class="athar-help">{{ __('athar.approval.edit_hint') }}</p>
-                    <div class="athar-approval-editor" x-data="atharReflection({ max: {{ \App\Support\AtharTextLimits::PUBLIC_MAX }}, messages: @js(__('athar.approval.counter')) })" x-init="init()">
-                        <textarea form="athar-receipt-approval-form" class="athar-preview__editor" name="text" rows="7" maxlength="{{ \App\Support\AtharTextLimits::PUBLIC_MAX }}" required x-ref="field" @input="update($event.target.value)" aria-describedby="athar-approval-meter">{{ $payload['text'] ?? '' }}</textarea>
+                    <div class="athar-approval-editor">
+                        <label for="athar-approval-text">{{ __('athar.approval.edit') }}</label>
+                        <p class="athar-help">{{ __('athar.approval.edit_hint') }}</p>
+                        <textarea id="athar-approval-text" form="athar-receipt-approval-form" class="athar-preview__editor" name="text" rows="7" maxlength="{{ \App\Support\AtharTextLimits::PUBLIC_MAX }}" required x-ref="field" @input="update($event.target.value)" aria-describedby="athar-approval-meter">{{ $payload['text'] ?? '' }}</textarea>
                         <div id="athar-approval-meter" class="athar-writing-meter" aria-live="polite">
                             <span class="athar-writing-meter__message" x-text="message">{{ __('athar.approval.counter.start') }}</span>
                             <span class="athar-writing-meter__count"><strong x-text="formattedCount()">0</strong> / <span x-text="formattedMax()">{{ \App\Support\AtharTextLimits::PUBLIC_MAX }}</span></span>
@@ -18,9 +23,14 @@
                         <div class="athar-writing-meter__track" aria-hidden="true"><span :style="`width: ${progress}%`"></span></div>
                     </div>
                 @else
-                    <blockquote>{{ $payload['text'] ?? '' }}</blockquote>
+                    <p class="athar-help">{{ __('athar.receipt.preview_label') }}</p>
                 @endif
-                @if (filled($payload['context'] ?? ''))<p class="athar-help">{{ __('athar.approval.context') }}</p><p>{{ $payload['context'] }}</p>@endif
+            </div>
+        @else
+            <div class="athar-receipt-waiting" role="status">
+                <span class="athar-receipt-waiting__mark" aria-hidden="true"></span>
+                <p class="athar-receipt-waiting__label">{{ __('athar.receipt.waiting_label') }}</p>
+                <p>{{ __('athar.receipt.waiting_body') }}</p>
             </div>
         @endif
         @if (isset($version) && $version?->status->value === 'awaiting_approval')

@@ -143,6 +143,7 @@ p.sub {
     border: 1px solid #ded8e6;
     border-radius: 10px;
     margin: 28px auto 0;
+    max-width: 100%;
     padding: 0;
     width: 600px;
 }
@@ -167,6 +168,7 @@ p.sub {
 
 .button {
     -webkit-text-size-adjust: none;
+    box-sizing: border-box;
     border-radius: 6px;
     color: #ffffff;
     display: inline-block;
@@ -174,6 +176,7 @@ p.sub {
     font-weight: 700;
     line-height: 1.2;
     padding: 16px 22px;
+    max-width: 100%;
     text-decoration: none;
 }
 

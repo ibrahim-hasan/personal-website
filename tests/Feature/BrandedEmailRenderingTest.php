@@ -209,6 +209,8 @@ class BrandedEmailRenderingTest extends TestCase
         $this->assertStringContainsString('background-color: #190f32', $html);
         $this->assertStringContainsString('thmanyah-text-regular.woff2', $html);
         $this->assertStringContainsString('NotoSans-400.woff2', $html);
+        $this->assertStringContainsString('box-sizing: border-box', $html);
+        $this->assertStringContainsString('max-width: 100% !important', $html);
         $this->assertStringNotContainsString('Strategic technology practice', $html);
         $this->assertStringNotContainsString('ممارسة استراتيجية في التقنية', $html);
 

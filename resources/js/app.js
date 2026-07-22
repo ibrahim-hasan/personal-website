@@ -151,6 +151,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('atharReflection', ({ max, messages }) => ({
         max,
         messages,
+        text: '',
         count: 0,
         progress: 0,
         message: messages.start,
@@ -158,6 +159,7 @@ document.addEventListener('alpine:init', () => {
             this.update(this.$refs.field?.value ?? '');
         },
         update(value) {
+            this.text = value;
             this.count = [...value].length;
             this.progress = Math.min(100, (this.count / this.max) * 100);
             this.message = this.getMessage();

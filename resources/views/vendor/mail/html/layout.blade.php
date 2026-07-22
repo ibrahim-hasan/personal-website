@@ -63,6 +63,7 @@
         @media only screen and (max-width: 600px) {
             .inner-body,
             .footer {
+                max-width: 100% !important;
                 width: 100% !important;
             }
 
@@ -77,7 +78,20 @@
 
         @media only screen and (max-width: 480px) {
             .button {
+                box-sizing: border-box !important;
                 display: block !important;
+                width: 100% !important;
+            }
+
+            .action,
+            .action > tbody,
+            .action > tbody > tr,
+            .action > tbody > tr > td,
+            .action table,
+            .action table > tbody,
+            .action table > tbody > tr,
+            .action table > tbody > tr > td {
+                max-width: 100% !important;
                 width: 100% !important;
             }
         }

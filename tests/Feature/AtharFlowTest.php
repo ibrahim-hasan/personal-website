@@ -61,6 +61,7 @@ class AtharFlowTest extends TestCase
         $this->get(route('athar.show', ['token' => $token, 'choose' => '1']))
             ->assertOk()
             ->assertSee(__('athar.receipt.body'))
+            ->assertSee(__('athar.receipt.waiting_label'))
             ->assertDontSee(__('athar.public_choice.title'))
             ->assertDontSee('name="request_suggestion"', false)
             ->assertDontSee('athar.choose', false);
@@ -72,7 +73,9 @@ class AtharFlowTest extends TestCase
             ->assertOk()
             ->assertSee(__('athar.receipt.ready_body'))
             ->assertSee(__('athar.approval.words'))
+            ->assertSee('class="athar-final-preview"', false)
             ->assertSee('name="text"', false)
+            ->assertSee(__('athar.approval.edit'), false)
             ->assertSee('maxlength="900"', false)
             ->assertSee('A thoughtful note about the work.', false);
         $this->from(route('athar.show', ['token' => $token]))
@@ -85,6 +88,7 @@ class AtharFlowTest extends TestCase
         $this->get(route('athar.show', ['token' => $token]))
             ->assertOk()
             ->assertSee(__('athar.published.words'))
+            ->assertSee('class="athar-final-preview athar-final-preview--readonly"', false)
             ->assertSee('A clearer endorsement after review.', false)
             ->assertDontSee('name="text"', false);
         $this->get(route('en.about'))->assertOk()->assertSee('A clearer endorsement after review.');

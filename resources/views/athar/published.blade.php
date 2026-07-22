@@ -3,9 +3,13 @@
         @if ($version->status->value === 'published')
             <h1 id="athar-published-title">{{ __('athar.published.title') }}</h1>
             <p class="athar-lead">{{ __('athar.published.body') }}</p>
-            @php($payloadLocale = array_key_first($version->public_payload))
-            @php($payload = $version->public_payload[app()->getLocale()] ?? $version->public_payload[$payloadLocale] ?? [])
-            <div class="athar-preview athar-preview--readonly" dir="{{ $payloadLocale }}" lang="{{ $payloadLocale }}"><p class="athar-help">{{ __('athar.published.words') }}</p><blockquote>{{ $payload['text'] ?? '' }}</blockquote>@if (filled($payload['context'] ?? ''))<p class="athar-help">{{ __('athar.published.context') }}</p><p>{{ $payload['context'] }}</p>@endif</div>
+            @php($payloadLocale = isset($version->public_payload[app()->getLocale()]) ? app()->getLocale() : array_key_first($version->public_payload))
+            @php($payload = $version->public_payload[$payloadLocale] ?? [])
+            <div class="athar-final-preview athar-final-preview--readonly" dir="{{ $payloadLocale }}" lang="{{ $payloadLocale }}">
+                <p class="athar-final-preview__label">{{ __('athar.published.words') }}</p>
+                <blockquote class="athar-final-preview__quote">{{ $payload['text'] ?? '' }}</blockquote>
+                @if (filled($payload['context'] ?? ''))<p class="athar-final-preview__context-label">{{ __('athar.published.context') }}</p><p class="athar-final-preview__context">{{ $payload['context'] }}</p>@endif
+            </div>
             <details class="athar-confirm">
                 <summary class="athar-button athar-button--quiet">{{ __('athar.published.withdraw') }}</summary>
                 <p>{{ __('athar.published.withdraw_body', ['page' => $version->placement->label()]) }}</p>

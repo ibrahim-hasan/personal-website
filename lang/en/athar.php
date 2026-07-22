@@ -51,7 +51,9 @@ return [
         'title' => 'Your words reached Ibrahim',
         'body' => 'Thank you for sharing them. Ibrahim will shape them into an endorsement and send it to you for review. Nothing will appear on the site until you explicitly approve it.',
         'ready_body' => 'Ibrahim has prepared the proposed endorsement. Review it, edit it if you wish, and approve exactly how it appears below.',
-        'preview_label' => 'Proposed endorsement',
+        'preview_label' => 'Preview as it will appear on the site',
+        'waiting_label' => 'The final text will appear here',
+        'waiting_body' => 'Ibrahim is preparing the endorsement from your words. Once it is ready, you will see the same preview visitors will see and can edit it before approving publication.',
     ],
     'public_choice' => [
         'title' => 'Choose what may appear on the site',
