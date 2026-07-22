@@ -72,6 +72,7 @@ class Article extends Model implements HasMedia, LocalizedUrlRoutable
         'featured',
         'source_url',
         'is_published',
+        'editorial_revision',
     ];
 
     /**
@@ -85,6 +86,7 @@ class Article extends Model implements HasMedia, LocalizedUrlRoutable
             'topic_keys' => 'array',
             'featured' => 'boolean',
             'is_published' => 'boolean',
+            'editorial_revision' => 'integer',
         ];
     }
 

@@ -27,6 +27,11 @@ class ArticlePolicy
         return $user->hasRole('super_admin') || $user->can('update articles');
     }
 
+    public function publish(User $user, Article $article): bool
+    {
+        return $user->hasRole('super_admin') || $user->can('publish articles');
+    }
+
     public function delete(User $user, Article $article): bool
     {
         return $user->hasRole('super_admin') || $user->can('delete articles');

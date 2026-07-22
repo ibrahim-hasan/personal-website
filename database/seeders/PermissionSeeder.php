@@ -22,5 +22,7 @@ class PermissionSeeder extends Seeder
                 );
             }
         }
+
+        Permission::firstOrCreate(['name' => 'publish articles', 'guard_name' => 'web']);
     }
 }

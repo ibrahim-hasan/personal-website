@@ -22,14 +22,18 @@ use App\Policies\UserPolicy;
 use App\Services\OpenAI\OpenAiNarrationEditor;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Passport\Passport;
 use Livewire\Livewire;
 use Mcamara\LaravelLocalization\Traits\LoadsTranslatedCachedRoutes;
 
@@ -57,6 +61,7 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->configureDefaults();
+        $this->configurePassport();
         $this->configureLivewireUpdateRoute();
         $this->registerSuperAdminAccess();
         $this->registerPolicies();
@@ -93,6 +98,42 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+
+        RateLimiter::for('editorial-api-read', function (Request $request): Limit {
+            return Limit::perMinute(120)->by($this->rateLimitKey($request));
+        });
+
+        RateLimiter::for('editorial-api-write', function (Request $request): Limit {
+            return Limit::perMinute(30)->by($this->rateLimitKey($request));
+        });
+
+        RateLimiter::for('editorial-api-upload', function (Request $request): Limit {
+            return Limit::perHour(10)->by($this->rateLimitKey($request));
+        });
+    }
+
+    protected function configurePassport(): void
+    {
+        Passport::tokensCan([
+            'articles:read' => 'Read editorial articles.',
+            'articles:write' => 'Create and update editorial drafts.',
+            'articles:publish' => 'Publish or unpublish editorial articles.',
+            'articles:archive' => 'Archive or restore editorial articles.',
+            'media:write' => 'Upload or remove editorial media.',
+        ]);
+        Passport::tokensExpireIn(now()->addMinutes(15));
+        Passport::clientCredentialsTokensExpireIn(now()->addMinutes(15));
+        Passport::refreshTokensExpireIn(now()->addDays(30));
+        Passport::$deviceCodeGrantEnabled = false;
+        Passport::loadKeysFrom(storage_path());
+        Passport::authorizationView(fn (array $parameters) => view('mcp.authorize', $parameters));
+    }
+
+    protected function rateLimitKey(Request $request): string
+    {
+        $clientId = (string) optional($request->attributes->get('editorial_api_client'))->getKey();
+
+        return hash('sha256', $clientId.'|'.$request->ip());
     }
 
     protected function registerPolicies(): void

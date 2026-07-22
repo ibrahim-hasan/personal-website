@@ -12,11 +12,9 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Gate;
 
 class ArticlesTable
 {
@@ -56,9 +54,9 @@ class ArticlesTable
                 IconColumn::make('featured')
                     ->label(__('editorial_admin.fields.featured'))
                     ->boolean(),
-                ToggleColumn::make('is_published')
+                IconColumn::make('is_published')
                     ->label(__('editorial_admin.fields.published'))
-                    ->disabled(fn (Article $record): bool => Gate::denies('update', $record)),
+                    ->boolean(),
                 TextColumn::make('updated_at')
                     ->label(__('editorial_admin.fields.updated_at'))
                     ->since()

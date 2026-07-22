@@ -39,6 +39,14 @@ task('artisan:view-cache', artisan('view:cache'));
 task('artisan:horizon-terminate', artisan('horizon:terminate'));
 task('artisan:schedule-interrupt', artisan('schedule:interrupt'));
 
+task('artisan:passport-keys', function (): void {
+    if (! test('[ -f {{deploy_path}}/shared/storage/oauth-private.key ] && [ -f {{deploy_path}}/shared/storage/oauth-public.key ]')) {
+        run('cd {{release_path}} && {{bin/php}} artisan passport:keys --force --no-interaction');
+        run('chmod 600 {{deploy_path}}/shared/storage/oauth-private.key');
+        run('chmod 644 {{deploy_path}}/shared/storage/oauth-public.key');
+    }
+});
+
 task('deploy:health-check', function (): void {
     $healthUrl = trim((string) getenv('DEPLOY_HEALTH_URL'));
 
@@ -57,6 +65,7 @@ before('deploy:symlink', 'deploy:upload-build');
 before('deploy:symlink', 'artisan:filament-optimize');
 before('deploy:symlink', 'artisan:event-cache');
 before('deploy:symlink', 'artisan:view-cache');
+before('deploy:symlink', 'artisan:passport-keys');
 
 after('deploy:symlink', 'artisan:horizon-terminate');
 after('deploy:symlink', 'artisan:schedule-interrupt');
