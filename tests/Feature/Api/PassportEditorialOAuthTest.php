@@ -2,10 +2,16 @@
 
 namespace Tests\Feature\Api;
 
+use App\Http\Middleware\EnsureArticleScope;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Laravel\Passport\Client;
 use Laravel\Passport\ClientRepository;
+use Laravel\Passport\Exceptions\AuthenticationException;
 use Laravel\Passport\Token;
+use League\OAuth2\Server\Exception\OAuthServerException;
+use League\OAuth2\Server\ResourceServer;
+use Mockery;
 use Tests\TestCase;
 
 class PassportEditorialOAuthTest extends TestCase
@@ -66,6 +72,26 @@ class PassportEditorialOAuthTest extends TestCase
         $this->assertContains('authorization_code', $client->grant_types);
         $this->assertContains('refresh_token', $client->grant_types);
         $this->assertSame(['articles:read'], $client->fresh()->scopes);
+    }
+
+    public function test_an_oauth_server_token_validation_failure_is_rejected(): void
+    {
+        $server = Mockery::mock(ResourceServer::class);
+        $server->shouldReceive('validateAuthenticatedRequest')
+            ->once()
+            ->andThrow(OAuthServerException::accessDenied('Token signature verification failed.'));
+        app()->instance(ResourceServer::class, $server);
+        $request = Request::create('/api/v1/articles', 'POST');
+        $request->headers->set('Authorization', 'Bearer token-that-must-not-be-logged');
+        $request->attributes->set('editorial_api_request_id', 'fbd3d1e5-a0be-45a9-bbe1-1ca2b9d2c7a8');
+
+        $this->expectException(AuthenticationException::class);
+
+        (new EnsureArticleScope(app(ClientRepository::class)))->handle(
+            $request,
+            fn () => response()->json(),
+            'articles:write',
+        );
     }
 
     private function configurePassportKeys(): void

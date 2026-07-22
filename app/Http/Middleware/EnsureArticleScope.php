@@ -5,10 +5,12 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Laravel\Passport\AccessToken;
 use Laravel\Passport\ClientRepository;
 use Laravel\Passport\Exceptions\AuthenticationException;
 use Laravel\Passport\Exceptions\MissingScopeException;
+use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\ResourceServer;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,7 +36,13 @@ class EnsureArticleScope
 
         try {
             $psrRequest = app(ResourceServer::class)->validateAuthenticatedRequest($psrRequest);
-        } catch (\Throwable) {
+        } catch (OAuthServerException $exception) {
+            Log::notice('editorial_api_token_validation_failed', [
+                'request_id' => $request->attributes->get('editorial_api_request_id'),
+                'exception' => $exception::class,
+                'reason' => $exception->getMessage(),
+            ]);
+
             throw new AuthenticationException;
         }
 
