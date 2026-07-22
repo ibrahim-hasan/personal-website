@@ -12,10 +12,13 @@ use Illuminate\Support\Facades\DB;
 class CreateContributorPublicNote
 {
     /** @param array<string, array<string, string>> $payload */
-    public function handle(AtharContribution $contribution, array $payload, AtharPublicationOrigin $origin = AtharPublicationOrigin::ContributorEdited): AtharPublicationVersion
+    public function handle(AtharContribution $contribution, array $payload, AtharPublicationOrigin $origin = AtharPublicationOrigin::ContributorSelected): AtharPublicationVersion
     {
         return DB::transaction(function () use ($contribution, $payload, $origin): AtharPublicationVersion {
-            $record = $contribution->lockForUpdate()->firstOrFail();
+            $record = AtharContribution::query()
+                ->whereKey($contribution->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
             abort_unless($record->sealed(), 404);
             $version = (int) $record->publicationVersions()->max('version') + 1;
             $hash = hash('sha256', json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));

@@ -117,7 +117,15 @@ class BrandedEmailRenderingTest extends TestCase
             'ar',
         );
 
-        $this->assertStringContainsString('أدعوك إلى كتابة ما تتذكّره من تجربة عملنا معاً بطريقتك. تصل رسالتك إلى إبراهيم بشكل خاص، ولا يظهر شيء منها على الموقع تلقائياً.', $arabicInvitationHtml);
+        $this->assertStringContainsString('أدعوك إلى كتابة ما تتذكّره من تجربة عملنا معاً بطريقتك. تصلني رسالتك بشكل خاص، ولن يظهر شيء منها على موقعي تلقائياً.', $arabicInvitationHtml);
+
+        $arabicApprovalHtml = $this->renderMailMessage(
+            (new AtharApprovalNotification('https://ibrahimhasan.test/athar/approval', 'ar'))->toMail($recipient),
+            'ar',
+        );
+
+        $this->assertStringContainsString('مراجعة النص', $arabicApprovalHtml);
+        $this->assertStringNotContainsString('أوافق على نشر النص كما يظهر أعلاه', $arabicApprovalHtml);
 
         $englishInvitation = new AtharInvitationNotification('https://ibrahimhasan.test/en/athar/invitation', 'en');
 

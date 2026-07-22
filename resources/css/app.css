@@ -1274,19 +1274,15 @@ html[dir='rtl'] .precision-stage__finale strong {
 .athar-preview blockquote + .athar-help { margin-top: 1.5rem; }
 .athar-preview blockquote { font-size: 1.25rem; }
 .athar-final-preview-wrap { display: grid; gap: 1rem; margin-top: 2rem; }
-.athar-final-preview { position: relative; overflow: hidden; min-height: 17rem; padding: clamp(1.5rem, 4vw, 3rem); background: var(--color-violet-700); color: var(--color-canvas-bright); isolation: isolate; }
+.athar-final-preview { position: relative; overflow: hidden; min-height: 17rem; padding: clamp(1.5rem, 4vw, 3rem); background: var(--color-violet-700); color: var(--color-canvas-bright); text-align: center; isolation: isolate; }
 .athar-final-preview::before, .athar-final-preview::after { position: absolute; z-index: -1; border: 1px solid color-mix(in oklab, var(--color-canvas-bright) 24%, transparent); content: ''; transform: rotate(45deg); }
 .athar-final-preview::before { width: 15rem; height: 15rem; inset-block-start: -8rem; inset-inline-end: -5rem; }
 .athar-final-preview::after { width: 4rem; height: 4rem; inset-block-end: -2rem; inset-inline-start: 12%; }
 .athar-final-preview__label { color: var(--color-violet-100); font-family: var(--family-ui); font-size: .78rem; font-weight: 800; }
-.athar-final-preview__quote { max-width: 30ch; margin: 1.5rem 0 0; white-space: pre-wrap; font-size: clamp(1.35rem, 3vw, 2.15rem); line-height: 1.45; text-wrap: pretty; }
+.athar-final-preview__quote { max-width: 30ch; margin: 1.5rem auto 0; white-space: pre-wrap; font-size: clamp(1.35rem, 3vw, 2.15rem); line-height: 1.45; text-wrap: pretty; }
 .athar-final-preview__context-label { margin-top: 1.5rem; color: var(--color-violet-100); font-family: var(--family-ui); font-size: .75rem; font-weight: 800; }
-.athar-final-preview__context { max-width: 55ch; margin-top: .35rem; color: color-mix(in oklab, var(--color-canvas-bright) 78%, transparent); line-height: 1.65; }
+.athar-final-preview__context { max-width: 55ch; margin: .35rem auto 0; color: color-mix(in oklab, var(--color-canvas-bright) 78%, transparent); line-height: 1.65; }
 .athar-final-preview--readonly { margin-top: 2rem; }
-.athar-receipt-waiting { display: grid; gap: .5rem; margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--color-violet-200); background: var(--color-violet-50); text-align: start; }
-.athar-receipt-waiting__mark { width: .7rem; height: .7rem; border-radius: 50%; background: var(--color-violet-500); box-shadow: 0 0 0 .45rem var(--color-violet-100); }
-.athar-receipt-waiting__label { margin-top: .5rem; font-family: var(--family-ui); font-weight: 800; }
-.athar-receipt-waiting p:last-child { color: var(--color-ink-soft); line-height: 1.7; }
 .athar-preview__editor { display: block; width: 100%; min-height: 12rem; margin-top: .5rem; border: 1px solid color-mix(in oklab, var(--color-ink) 24%, transparent); border-radius: var(--control-radius); background: var(--color-canvas-bright); padding: 1rem; color: var(--color-ink); font: inherit; line-height: 1.8; resize: vertical; }
 .athar-preview__editor:focus { outline: 2px solid var(--color-violet-500); outline-offset: 3px; border-color: var(--color-violet-600); }
 .athar-scope { color: var(--color-ink-soft); font-size: .9rem; line-height: 1.7; }

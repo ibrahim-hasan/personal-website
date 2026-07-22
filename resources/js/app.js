@@ -148,15 +148,15 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
-    Alpine.data('atharReflection', ({ max, messages }) => ({
+    Alpine.data('atharReflection', ({ max, messages, initial = '' }) => ({
         max,
         messages,
-        text: '',
+        text: initial,
         count: 0,
         progress: 0,
         message: messages.start,
         init() {
-            this.update(this.$refs.field?.value ?? '');
+            this.update(this.$refs.field?.value || this.text);
         },
         update(value) {
             this.text = value;
@@ -165,23 +165,27 @@ document.addEventListener('alpine:init', () => {
             this.message = this.getMessage();
         },
         getMessage() {
+            const ranges = this.max <= 350
+                ? [60, 120, 200, 280]
+                : [120, 300, 600, 900];
+
             if (this.count === 0) {
                 return this.messages.start;
             }
 
-            if (this.count < 120) {
+            if (this.count < ranges[0]) {
                 return this.messages.beginning;
             }
 
-            if (this.count < 300) {
+            if (this.count < ranges[1]) {
                 return this.messages.growing;
             }
 
-            if (this.count < 600) {
+            if (this.count < ranges[2]) {
                 return this.messages.rich;
             }
 
-            if (this.count < 900) {
+            if (this.count < ranges[3]) {
                 return this.messages.deep;
             }
 

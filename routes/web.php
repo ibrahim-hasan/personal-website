@@ -78,6 +78,7 @@ $registerLocalizedRoutes = function (?string $routeLocale = null): void {
         Route::post('/draft', [AtharController::class, 'saveDraft'])->middleware('throttle:athar-write')->name('athar.draft');
         Route::post('/submit', [AtharController::class, 'seal'])->middleware('throttle:athar-write')->name('athar.submit');
         Route::post('/approve', [AtharController::class, 'approve'])->middleware('throttle:athar-write')->name('athar.approve');
+        Route::post('/approval-draft', [AtharController::class, 'saveApprovalDraft'])->middleware('throttle:athar-write')->name('athar.approval.draft');
         Route::post('/withdraw', [AtharController::class, 'withdraw'])->middleware('throttle:athar-write')->name('athar.withdraw');
         Route::post('/deletion', [AtharController::class, 'deletion'])->middleware('throttle:athar-write')->name('athar.deletion');
         Route::post('/deletion/cancel', [AtharController::class, 'cancelDeletion'])->middleware('throttle:athar-write')->name('athar.deletion.cancel');

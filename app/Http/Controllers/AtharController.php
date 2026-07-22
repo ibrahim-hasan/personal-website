@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Actions\Athar\ApproveAndPublishAtharVersion;
 use App\Actions\Athar\CancelAtharPrivateDataDeletion;
+use App\Actions\Athar\CreateContributorPublicNote;
 use App\Actions\Athar\IssueAtharAccessChallenge;
 use App\Actions\Athar\RequestAtharPrivateDataDeletion;
 use App\Actions\Athar\RestoreAtharPublication;
 use App\Actions\Athar\SaveAtharContributionDraft;
+use App\Actions\Athar\SaveAtharPublicationDraft;
 use App\Actions\Athar\SealAtharContribution;
+use App\Actions\Athar\SendAtharApproval;
 use App\Actions\Athar\VerifyAtharAccessChallenge;
 use App\Actions\Athar\WithdrawAtharPublication;
 use App\Enums\AtharContributionStatus;
@@ -24,7 +27,7 @@ use Illuminate\View\View;
 
 class AtharController extends Controller
 {
-    public function show(Request $request, string $token): View
+    public function show(Request $request, string $token, CreateContributorPublicNote $createPublication, SendAtharApproval $sendApproval): View
     {
         $invitation = AtharAccess::invitation($token);
         if ($invitation === null || ! $invitation->isAccessible()) {
@@ -38,14 +41,21 @@ class AtharController extends Controller
         if ($contribution->status === AtharContributionStatus::Draft) {
             return view('athar.reflection', ['invitation' => $invitation, 'contribution' => $contribution]);
         }
-        if (in_array($contribution->status, [AtharContributionStatus::Submitted, AtharContributionStatus::Private, AtharContributionStatus::PublicChoice, AtharContributionStatus::AwaitingSuggestion], true)) {
+        if ($version === null && $contribution->sealed()) {
+            $version = $createPublication->handle($contribution, [
+                $invitation->preferred_locale => [
+                    'text' => (string) data_get($contribution->sealed_payload, 'freeform'),
+                    'context' => '',
+                ],
+            ]);
+            $sendApproval->handle($version);
+        }
+        if ($version !== null && in_array($version->status->value, ['draft', 'awaiting_approval'], true)) {
             return view('athar.receipt', ['invitation' => $invitation, 'contribution' => $contribution, 'version' => $version]);
         }
-        if ($version === null || $version->status->value === 'draft') {
-            return view('athar.receipt', ['invitation' => $invitation, 'contribution' => $contribution, 'version' => $version]);
-        }
-        if ($version->status->value === 'awaiting_approval') {
-            return view('athar.receipt', ['invitation' => $invitation, 'contribution' => $contribution, 'version' => $version]);
+
+        if ($version === null) {
+            return view('athar.unavailable');
         }
 
         return view('athar.published', ['invitation' => $invitation, 'contribution' => $contribution, 'version' => $version]);
@@ -124,6 +134,16 @@ class AtharController extends Controller
         $approve->handle($version, $request);
 
         return redirect()->route('athar.show', ['token' => $token]);
+    }
+
+    public function saveApprovalDraft(Request $request, string $token, SaveAtharPublicationDraft $save): RedirectResponse
+    {
+        $invitation = $this->verifiedInvitation($request, $token);
+        $version = $this->contribution($invitation)->publicationVersions()->latest('version')->firstOrFail();
+        $data = Validator::make($request->all(), ['text' => ['nullable', 'string', 'max:'.AtharTextLimits::PUBLIC_MAX]])->validate();
+        $save->handle($version, (string) ($data['text'] ?? ''));
+
+        return back()->with('status', __('athar.approval.draft_saved'));
     }
 
     public function withdraw(Request $request, string $token, WithdrawAtharPublication $withdraw): RedirectResponse

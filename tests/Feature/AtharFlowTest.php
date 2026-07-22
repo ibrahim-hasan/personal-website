@@ -60,24 +60,36 @@ class AtharFlowTest extends TestCase
         $this->post(route('athar.submit', ['token' => $token]), ['freeform' => 'A thoughtful note about the work.'])->assertRedirect();
         $this->get(route('athar.show', ['token' => $token, 'choose' => '1']))
             ->assertOk()
-            ->assertSee(__('athar.receipt.body'))
-            ->assertSee(__('athar.receipt.waiting_label'))
+            ->assertSee(__('athar.receipt.ready_body'))
+            ->assertSee(__('athar.receipt.title'))
+            ->assertSee('A thoughtful note about the work.', false)
+            ->assertSee(__('athar.approval.edit'))
             ->assertDontSee(__('athar.public_choice.title'))
             ->assertDontSee('name="request_suggestion"', false)
             ->assertDontSee('athar.choose', false);
 
         $contribution = AtharContribution::query()->where('invitation_id', $invitation->getKey())->firstOrFail();
-        $version = app(PrepareAtharPublicationVersion::class)->handle($contribution, ['en' => ['text' => 'A thoughtful note about the work.', 'context' => 'A verified context.']], AtharPlacement::About, null, AtharIdentityDisplay::FirstName, $creator);
-        app(SendAtharApproval::class)->handle($version);
+        $version = $contribution->publicationVersions()->latest('version')->firstOrFail();
+        $this->assertSame('awaiting_approval', $version->status->value);
         $this->get(route('athar.show', ['token' => $token]))
             ->assertOk()
             ->assertSee(__('athar.receipt.ready_body'))
             ->assertSee(__('athar.approval.words'))
             ->assertSee('class="athar-final-preview"', false)
+            ->assertSee('x-text="text"', false)
             ->assertSee('name="text"', false)
             ->assertSee(__('athar.approval.edit'), false)
-            ->assertSee('maxlength="900"', false)
+            ->assertSee('maxlength="350"', false)
             ->assertSee('A thoughtful note about the work.', false);
+        $this->post(route('athar.approval.draft', ['token' => $token]), ['text' => 'A saved endorsement draft.'])
+            ->assertRedirect()
+            ->assertSessionHas('status', __('athar.approval.draft_saved'));
+        $this->assertSame('awaiting_approval', $version->fresh()->status->value);
+        $this->assertSame('A saved endorsement draft.', data_get($version->fresh()->public_payload, 'en.text'));
+        $this->get(route('athar.show', ['token' => $token]))
+            ->assertSee('A saved endorsement draft.', false)
+            ->assertSee(__('athar.approval.save_draft'))
+            ->assertDontSee(__('athar.approval.private'));
         $this->from(route('athar.show', ['token' => $token]))
             ->post(route('athar.approve', ['token' => $token]))
             ->assertSessionHasErrors('consent');
@@ -115,6 +127,36 @@ class AtharFlowTest extends TestCase
         $this->get(route('athar.show', ['token' => str_repeat('x', 64)]))->assertOk()->assertSee(__('athar.unavailable.title'));
     }
 
+    public function test_a_sealed_contribution_without_a_version_opens_directly_in_approval_preview(): void
+    {
+        Notification::fake();
+        $creator = User::factory()->create();
+        $created = app(CreateAtharInvitation::class)->handle($creator, [
+            'email' => '',
+            'send_email' => false,
+            'relationship' => AtharRelationship::Friend,
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+        $contribution = $created['invitation']->contribution()->create([
+            'status' => 'submitted',
+            'sealed_payload' => ['freeform' => 'A legacy note that should be visible for approval.'],
+            'source_hash' => hash('sha256', 'legacy-source'),
+            'submitted_at' => now(),
+        ]);
+
+        $this->get($created['url'])
+            ->assertOk()
+            ->assertSee('A legacy note that should be visible for approval.', false)
+            ->assertSee(__('athar.approval.edit'))
+            ->assertDontSee('سيظهر النص النهائي هنا');
+
+        $this->assertDatabaseHas('athar_publication_versions', [
+            'contribution_id' => $contribution->getKey(),
+            'status' => 'awaiting_approval',
+        ]);
+    }
+
     public function test_submission_seals_the_requested_contribution_when_other_contributions_exist(): void
     {
         Notification::fake();
@@ -140,7 +182,7 @@ class AtharFlowTest extends TestCase
 
         $this->assertDatabaseHas('athar_contributions', [
             'invitation_id' => $second['invitation']->getKey(),
-            'status' => 'submitted',
+            'status' => 'awaiting_approval',
         ]);
         $this->assertDatabaseHas('athar_contributions', [
             'invitation_id' => $first['invitation']->getKey(),
@@ -187,7 +229,7 @@ class AtharFlowTest extends TestCase
             ->assertRedirect();
         $this->assertDatabaseHas('athar_contributions', [
             'invitation_id' => $invitation->getKey(),
-            'status' => 'submitted',
+            'status' => 'awaiting_approval',
         ]);
         Notification::assertNothingSent();
     }

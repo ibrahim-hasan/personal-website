@@ -98,7 +98,7 @@ class AtharAdminLocalizationTest extends TestCase
             ->assertDontSee('admin.fields.email');
     }
 
-    public function test_prepare_action_prefills_the_sealed_words_and_blocks_duplicate_versions(): void
+    public function test_admin_no_longer_has_a_prepare_publication_action(): void
     {
         $this->seed([PermissionSeeder::class, RoleSeeder::class]);
         $admin = User::factory()->create();
@@ -108,25 +108,11 @@ class AtharAdminLocalizationTest extends TestCase
             'preferred_locale' => 'ar',
             'personal_reason' => 'سياق أعدّه إبراهيم للمراجعة.',
         ]);
-        $invitation->contribution()->create([
-            'status' => AtharContributionStatus::Submitted,
-            'sealed_payload' => ['freeform' => 'هذه الكلمات التي كتبها الشخص المدعو.'],
-            'source_hash' => hash('sha256', 'sealed-source'),
-            'submitted_at' => now(),
-        ]);
-
         $this->bootAdminPanel();
 
         Livewire::actingAs($admin)
             ->test(ListAtharInvitations::class)
-            ->assertTableActionVisible('prepare_publication', $invitation)
-            ->mountTableAction('prepare_publication', $invitation)
-            ->assertTableActionDataSet([
-                'locale' => 'ar',
-                'text' => 'هذه الكلمات التي كتبها الشخص المدعو.',
-                'context' => '',
-                'identity_display' => 'anonymous',
-            ]);
+            ->assertTableActionDoesNotExist('prepare_publication');
     }
 
     private function bootAdminPanel(): void

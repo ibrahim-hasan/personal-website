@@ -28,6 +28,6 @@ class AtharApprovalNotification extends Notification implements ShouldQueue
             ? __('athar.placements.about', locale: $this->language)
             : __('athar.placements.'.$this->placement, locale: $this->language);
 
-        return (new MailMessage)->subject(__('athar.mail.approval_subject', locale: $this->language))->greeting(__('athar.approval.title', locale: $this->language))->line(__('athar.approval.scope', ['page' => $page], $this->language))->action(__('athar.approval.publish', locale: $this->language), $this->url);
+        return (new MailMessage)->subject(__('athar.mail.approval_subject', locale: $this->language))->greeting(__('athar.approval.title', locale: $this->language))->line(__('athar.approval.scope', ['page' => $page], $this->language))->action(__('athar.mail.approval_action', locale: $this->language), $this->url);
     }
 }
