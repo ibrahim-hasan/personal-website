@@ -7,6 +7,7 @@ use App\Notifications\Auth\ReaderVerifyEmailNotification;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
@@ -179,6 +180,63 @@ class ReaderAuthenticationTest extends TestCase
             'password' => 'reader-password',
         ])->assertSessionHasErrors('email');
 
+        $this->assertGuest();
+    }
+
+    public function test_a_reader_can_register_with_a_valid_turnstile_token_when_enabled(): void
+    {
+        Notification::fake();
+        config()->set('services.turnstile.secret', 'test-secret');
+        Http::fake([
+            'challenges.cloudflare.com/*' => Http::response(['success' => true], 200),
+        ]);
+
+        $this->post('/reader/register', [
+            'name' => 'Human Reader',
+            'email' => 'human@example.com',
+            'password' => 'A-secure-reader-password!42',
+            'password_confirmation' => 'A-secure-reader-password!42',
+            'terms_accepted' => '1',
+            'cf-turnstile-response' => 'verified-by-cloudflare',
+        ])->assertRedirect('/reader/verify-email');
+
+        $this->assertDatabaseHas('users', ['email' => 'human@example.com']);
+    }
+
+    public function test_registration_is_rejected_when_the_turnstile_token_fails_verification(): void
+    {
+        config()->set('services.turnstile.secret', 'test-secret');
+        Http::fake([
+            'challenges.cloudflare.com/*' => Http::response(['success' => false], 200),
+        ]);
+
+        $this->post('/reader/register', [
+            'name' => 'Bot Reader',
+            'email' => 'bot@example.com',
+            'password' => 'A-secure-reader-password!42',
+            'password_confirmation' => 'A-secure-reader-password!42',
+            'terms_accepted' => '1',
+            'cf-turnstile-response' => 'forged-token',
+        ])->assertSessionHasErrors('cf-turnstile-response');
+
+        $this->assertDatabaseMissing('users', ['email' => 'bot@example.com']);
+        $this->assertGuest();
+    }
+
+    public function test_registration_is_rejected_without_a_turnstile_token_when_enabled(): void
+    {
+        config()->set('services.turnstile.secret', 'test-secret');
+        Http::fake();
+
+        $this->post('/reader/register', [
+            'name' => 'Tokenless Reader',
+            'email' => 'tokenless@example.com',
+            'password' => 'A-secure-reader-password!42',
+            'password_confirmation' => 'A-secure-reader-password!42',
+            'terms_accepted' => '1',
+        ])->assertSessionHasErrors('cf-turnstile-response');
+
+        Http::assertNothingSent();
         $this->assertGuest();
     }
 }

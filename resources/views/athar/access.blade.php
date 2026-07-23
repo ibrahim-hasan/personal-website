@@ -24,6 +24,8 @@
                 <input id="email" name="email" type="email" autocomplete="email" required autofocus>
                 <p class="athar-help">{{ __('athar.access.email_help') }}</p>
                 @error('email')<p class="athar-error" role="alert">{{ $message }}</p>@enderror
+                <x-turnstile.widget />
+                @error('turnstile')<p class="athar-error" role="alert">{{ $message }}</p>@enderror
                 <button class="athar-button" type="submit">{{ __('athar.access.send_code') }}</button>
             </form>
         @endif

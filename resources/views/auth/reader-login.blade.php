@@ -29,6 +29,8 @@
                     <input name="remember" type="checkbox" value="1" class="size-5 rounded-[var(--control-radius)] border-ink/25 text-violet-700 focus:ring-violet-600">
                     <span>{{ __('reader_auth.remember') }}</span>
                 </label>
+                <x-turnstile.widget class="flex justify-center" />
+                @error('cf-turnstile-response') <span class="-mt-3 block text-sm text-danger" role="alert">{{ $message }}</span> @enderror
                 <button class="button-primary w-full" type="submit">{{ __('reader_auth.login') }}</button>
             </form>
 

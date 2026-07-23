@@ -20,6 +20,7 @@ use App\Models\AtharContribution;
 use App\Models\AtharInvitation;
 use App\Support\AtharAccess;
 use App\Support\AtharTextLimits;
+use App\Support\Turnstile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -27,6 +28,8 @@ use Illuminate\View\View;
 
 class AtharController extends Controller
 {
+    public function __construct(private readonly Turnstile $turnstile) {}
+
     public function show(Request $request, string $token, CreateContributorPublicNote $createPublication, SendAtharApproval $sendApproval): View
     {
         $invitation = AtharAccess::invitation($token);
@@ -69,6 +72,11 @@ class AtharController extends Controller
         }
         if ($invitation->delivery_mode === AtharInvitationDeliveryMode::Link) {
             return redirect()->route('athar.show', ['token' => $token]);
+        }
+
+        if ($this->turnstile->enabled()
+            && ! $this->turnstile->verify((string) $request->input('cf-turnstile-response'), $this->turnstile->clientIp($request))) {
+            return back()->withErrors(['turnstile' => __('validation.turnstile')]);
         }
 
         $isResend = $request->session()->get('athar.code_sent') === $invitation->getKey()

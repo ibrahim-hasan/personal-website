@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use App\Models\User;
+use App\Rules\TurnstileToken;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -22,6 +23,7 @@ class ReaderRegisterRequest extends FormRequest
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)],
             'password' => ['required', 'confirmed', Password::defaults()],
             'terms_accepted' => ['accepted'],
+            'cf-turnstile-response' => app(TurnstileToken::class)->enabled() ? ['required', new TurnstileToken] : ['nullable'],
         ];
     }
 }

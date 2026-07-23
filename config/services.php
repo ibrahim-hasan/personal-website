@@ -14,6 +14,11 @@ return [
     |
     */
 
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY', '0x4AAAAAAD7klHv6MV4R4CK2'),
+        'secret' => env('TURNSTILE_SECRET'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

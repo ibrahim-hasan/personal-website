@@ -6,10 +6,12 @@ use App\Livewire\Forms\ConsultationRequestFormData;
 use App\Mail\ConsultationRequestMail;
 use App\Models\ContactInquiry;
 use App\Support\SiteContent;
+use App\Support\Turnstile;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Throwable;
 
@@ -20,6 +22,19 @@ class ConsultationRequest extends Component
     public bool $submitted = false;
 
     public string $errorMessage = '';
+
+    /**
+     * Cloudflare Turnstile token. Populated from the widget's data-callback,
+     * verified against siteverify before the consultation is stored or mailed.
+     * Left empty in dev/tests when Turnstile is not configured.
+     */
+    public string $turnstileToken = '';
+
+    #[On('turnstile-resolved')]
+    public function setTurnstileToken(string $token = ''): void
+    {
+        $this->turnstileToken = $token;
+    }
 
     public function mount(): void
     {
@@ -58,12 +73,20 @@ class ConsultationRequest extends Component
         $this->form->validateOnly(Str::after($property, 'form.'));
     }
 
-    public function submit(): void
+    public function submit(Turnstile $turnstile): void
     {
         $this->errorMessage = '';
 
         if (filled($this->form->website)) {
             $this->submitted = true;
+
+            return;
+        }
+
+        if ($turnstile->enabled()
+            && ! $turnstile->verify($this->turnstileToken, $turnstile->clientIp(request()))) {
+            $this->errorMessage = __('validation.turnstile');
+            $this->dispatch('turnstile-reset');
 
             return;
         }

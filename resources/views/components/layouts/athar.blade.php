@@ -10,6 +10,7 @@
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     <title>{{ $title ? $title.' · ' : '' }}{{ __('athar.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('head')
 </head>
 <body class="athar-shell">
     <main class="athar-frame">
@@ -36,5 +37,6 @@
         </div>
         {{ $slot }}
     </main>
+    @stack('scripts')
 </body>
 </html>

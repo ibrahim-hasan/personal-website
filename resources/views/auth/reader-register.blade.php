@@ -48,6 +48,8 @@
                         'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'">'.e(__('legal.documents.privacy')).'</a>',
                     ]) !!}
                 </p>
+                <x-turnstile.widget class="flex justify-center" />
+                @error('cf-turnstile-response') <span class="-mt-3 block text-sm text-danger" role="alert">{{ $message }}</span> @enderror
                 <button class="button-primary w-full" type="submit">{{ __('reader_auth.create_account') }}</button>
             </form>
 

@@ -130,6 +130,8 @@ return [
     'url' => 'The :attribute field must be a valid URL.',
     'uuid' => 'The :attribute field must be a valid UUID.',
 
+    'turnstile' => 'Please confirm you are not a robot.',
+
     'attributes' => [
         'name' => 'name',
         'slug' => 'slug',

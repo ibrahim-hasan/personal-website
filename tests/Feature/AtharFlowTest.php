@@ -13,6 +13,7 @@ use App\Models\AtharContribution;
 use App\Models\User;
 use App\Notifications\AtharInvitationNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -293,5 +294,34 @@ class AtharFlowTest extends TestCase
         $this->assertSame('awaiting_approval', $version->fresh()->status->value);
         $this->assertSame('awaiting_approval', $contribution->fresh()->status->value);
         Notification::assertNothingSent();
+    }
+
+    public function test_the_access_code_request_is_blocked_when_the_turnstile_token_fails(): void
+    {
+        Notification::fake();
+        config()->set('services.turnstile.secret', 'test-secret');
+        Http::fake([
+            'challenges.cloudflare.com/*' => Http::response(['success' => false], 200),
+        ]);
+
+        $creator = User::factory()->create();
+        $created = app(CreateAtharInvitation::class)->handle($creator, [
+            'email' => 'friend@example.com',
+            'recipient_name' => 'Amina Noor',
+            'relationship' => AtharRelationship::FormerClient,
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+
+        // Without a verified session, the access form is shown. A failing
+        // Turnstile token must short-circuit before any access code is issued.
+        $this->post(route('athar.code', ['token' => $created['token']]), [
+            'email' => 'friend@example.com',
+            'cf-turnstile-response' => 'forged-token',
+        ])->assertSessionHasErrors('turnstile');
+
+        $this->assertDatabaseMissing('athar_access_challenges', [
+            'invitation_id' => $created['invitation']->getKey(),
+        ]);
     }
 }

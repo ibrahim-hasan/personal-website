@@ -6,6 +6,7 @@ use App\Livewire\Website\ConsultationRequest;
 use App\Mail\ConsultationRequestMail;
 use Database\Seeders\ServiceSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -113,5 +114,46 @@ class ConsultationRequestTest extends TestCase
                 $this->assertSame('حقل المجال الأقرب مطلوب.', $component->errors()->first('form.service'));
                 $this->assertSame('حقل وصف التحدّي مطلوب.', $component->errors()->first('form.challenge'));
             });
+    }
+
+    public function test_a_consultation_is_blocked_when_the_turnstile_token_fails_verification(): void
+    {
+        Mail::fake();
+        config()->set('services.turnstile.secret', 'test-secret');
+        Http::fake([
+            'challenges.cloudflare.com/*' => Http::response(['success' => false], 200),
+        ]);
+
+        Livewire::test(ConsultationRequest::class)
+            ->set('turnstileToken', 'forged-token')
+            ->set('form.name', 'Ibrahim Test')
+            ->set('form.email', 'project@example.com')
+            ->set('form.service', 'ai-adoption')
+            ->set('form.challenge', 'We need a dependable internal AI assistant grounded in our operating knowledge.')
+            ->call('submit')
+            ->assertHasNoErrors(['form.name', 'form.email', 'form.service', 'form.challenge'])
+            ->assertSet('submitted', false)
+            ->assertSet('errorMessage', __('validation.turnstile'));
+
+        Mail::assertNothingOutgoing();
+        $this->assertDatabaseMissing('contact_inquiries', ['email' => 'project@example.com']);
+    }
+
+    public function test_a_consultation_is_blocked_without_a_turnstile_token_when_enabled(): void
+    {
+        Mail::fake();
+        config()->set('services.turnstile.secret', 'test-secret');
+        Http::fake();
+
+        Livewire::test(ConsultationRequest::class)
+            ->set('form.name', 'Ibrahim Test')
+            ->set('form.email', 'project@example.com')
+            ->set('form.service', 'ai-adoption')
+            ->set('form.challenge', 'We need a dependable internal AI assistant grounded in our operating knowledge.')
+            ->call('submit')
+            ->assertSet('submitted', false);
+
+        Http::assertNothingSent();
+        $this->assertDatabaseMissing('contact_inquiries', ['email' => 'project@example.com']);
     }
 }
