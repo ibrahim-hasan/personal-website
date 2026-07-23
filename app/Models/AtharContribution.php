@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\AtharContributionStatus;
-use App\Enums\AtharResponseMode;
 use Database\Factories\AtharContributionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +14,7 @@ class AtharContribution extends Model
     /** @use HasFactory<AtharContributionFactory> */
     use HasFactory;
 
-    protected $fillable = ['invitation_id', 'status', 'draft_payload', 'sealed_payload', 'source_hash', 'response_mode', 'requested_suggestion', 'draft_updated_at', 'submitted_at', 'deletion_requested_at', 'deleted_at'];
+    protected $fillable = ['invitation_id', 'status', 'draft_payload', 'sealed_payload', 'source_hash', 'draft_updated_at', 'submitted_at', 'deletion_requested_at', 'deleted_at'];
 
     protected $hidden = ['draft_payload', 'sealed_payload', 'source_hash'];
 
@@ -23,10 +22,8 @@ class AtharContribution extends Model
     {
         return [
             'status' => AtharContributionStatus::class,
-            'response_mode' => AtharResponseMode::class,
             'draft_payload' => 'encrypted:array',
             'sealed_payload' => 'encrypted:array',
-            'requested_suggestion' => 'boolean',
             'draft_updated_at' => 'datetime',
             'submitted_at' => 'datetime',
             'deletion_requested_at' => 'datetime',

@@ -54,35 +54,4 @@ class AtharPublicationVersion extends Model
     {
         return $this->hasMany(AtharPublicationConsentEvent::class, 'publication_version_id');
     }
-
-    public function isPublicFor(string $locale): bool
-    {
-        return $this->status === AtharPublicationStatus::Published
-            && $this->withdrawn_at === null
-            && in_array($locale, $this->approved_locales ?? [], true)
-            && $this->consentEvents()
-                ->where('event_type', 'approved')
-                ->where('snapshot_hash', $this->snapshot_hash)
-                ->whereNotExists(fn ($query) => $query->from('athar_publication_consent_events as withdrawals')
-                    ->whereColumn('withdrawals.publication_version_id', 'athar_publication_consent_events.publication_version_id')
-                    ->where('withdrawals.event_type', 'withdrawn')
-                    ->whereNotExists(fn ($query) => $query->from('athar_publication_consent_events as restores')
-                        ->whereColumn('restores.publication_version_id', 'withdrawals.publication_version_id')
-                        ->where('restores.event_type', 'restored')
-                        ->where(function ($query): void {
-                            $query->whereColumn('restores.occurred_at', '>', 'withdrawals.occurred_at')
-                                ->orWhere(function ($query): void {
-                                    $query->whereColumn('restores.occurred_at', 'withdrawals.occurred_at')
-                                        ->whereColumn('restores.id', '>', 'withdrawals.id');
-                                });
-                        }))
-                    ->where(function ($query): void {
-                        $query->whereColumn('withdrawals.occurred_at', '>', 'athar_publication_consent_events.occurred_at')
-                            ->orWhere(function ($query): void {
-                                $query->whereColumn('withdrawals.occurred_at', 'athar_publication_consent_events.occurred_at')
-                                    ->whereColumn('withdrawals.id', '>', 'athar_publication_consent_events.id');
-                            });
-                    }))
-                ->exists();
-    }
 }

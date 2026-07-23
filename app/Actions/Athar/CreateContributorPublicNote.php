@@ -22,7 +22,7 @@ class CreateContributorPublicNote
             abort_unless($record->sealed(), 404);
             $version = (int) $record->publicationVersions()->max('version') + 1;
             $hash = hash('sha256', json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
-            $publication = $record->publicationVersions()->create(['version' => $version, 'status' => AtharPublicationStatus::Draft, 'origin' => $origin, 'public_payload' => $payload, 'snapshot_hash' => $hash, 'placement' => $record->invitation->placement, 'placement_key' => $record->invitation->placement_key, 'approved_locales' => array_keys($payload), 'identity_display' => 'anonymous']);
+            $publication = $record->publicationVersions()->create(['version' => $version, 'status' => AtharPublicationStatus::Draft, 'origin' => $origin, 'public_payload' => $payload, 'snapshot_hash' => $hash, 'placement' => $record->invitation->placement, 'placement_key' => $record->invitation->placement_key, 'approved_locales' => array_keys($payload), 'identity_display' => $record->invitation->identity_display]);
             $record->forceFill(['status' => AtharContributionStatus::AwaitingApproval])->save();
 
             return $publication;

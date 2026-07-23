@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\AtharIdentityDisplay;
 use App\Enums\AtharInvitationDeliveryMode;
 use App\Enums\AtharInvitationStatus;
 use App\Enums\AtharPlacement;
@@ -38,8 +39,8 @@ class AtharInvitationFactory extends Factory
             'relationship' => AtharRelationship::FormerClient,
             'preferred_locale' => 'en',
             'personal_reason' => fake()->sentence(),
-            'prompt_snapshot' => [],
             'placement' => AtharPlacement::About,
+            'identity_display' => AtharIdentityDisplay::Anonymous,
             'status' => AtharInvitationStatus::Sent,
             'expires_at' => now()->addDays(14),
             'sent_at' => now(),

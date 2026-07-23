@@ -36,6 +36,10 @@ return Application::configure(basePath: dirname(__DIR__))
             ->dailyAt('03:25')
             ->environments(['production'])
             ->withoutOverlapping();
+        $schedule->command('athar:expire-invitations')
+            ->dailyAt('03:10')
+            ->environments(['production'])
+            ->withoutOverlapping();
 
         if (config('legal.retention.enabled')) {
             $schedule->command('privacy:purge-expired-data --force')

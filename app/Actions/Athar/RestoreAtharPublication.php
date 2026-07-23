@@ -29,7 +29,7 @@ class RestoreAtharPublication
                 'placement_key' => $record->placement_key,
                 'identity_display' => $record->identity_display,
                 'privacy_notice_version' => config('legal.privacy_version'),
-                'verification_method' => 'email_code',
+                'verification_method' => AtharAccess::verificationMethod($record->contribution->invitation),
                 'ip_hash' => hash_hmac('sha256', (string) $request->ip(), (string) config('app.key')),
                 'user_agent_hash' => hash('sha256', (string) $request->userAgent()),
                 'occurred_at' => now(),

@@ -21,4 +21,9 @@ class AtharPublicationVersionPolicy
     {
         return $user->can('publish athar_publications');
     }
+
+    public function hide(User $user, AtharPublicationVersion $version): bool
+    {
+        return $user->can('publish athar_publications');
+    }
 }

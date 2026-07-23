@@ -47,6 +47,21 @@ class AtharInvitationInfolist
                     TextEntry::make('created_at')
                         ->label(__('admin.fields.created_at'))
                         ->dateTime(),
+                    TextEntry::make('sent_at')
+                        ->label(__('admin.fields.sent_at'))
+                        ->dateTime()
+                        ->placeholder('—'),
+                    TextEntry::make('verified_at')
+                        ->label(__('admin.fields.verified_at'))
+                        ->dateTime()
+                        ->placeholder('—'),
+                    TextEntry::make('revoked_at')
+                        ->label(__('admin.fields.revoked_at'))
+                        ->dateTime()
+                        ->placeholder('—'),
+                    TextEntry::make('creator.name')
+                        ->label(__('admin.fields.created_by'))
+                        ->placeholder('—'),
                     TextEntry::make('share_url')
                         ->label(__('admin.fields.share_link'))
                         ->getStateUsing(fn (AtharInvitation $record): ?string => filled($record->token_ciphertext)

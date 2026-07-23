@@ -2,12 +2,14 @@
 
 namespace App\Actions\Athar;
 
+use App\Enums\AtharIdentityDisplay;
 use App\Enums\AtharInvitationDeliveryMode;
 use App\Enums\AtharInvitationStatus;
 use App\Models\AtharInvitation;
 use App\Models\User;
 use App\Notifications\AtharInvitationNotification;
 use App\Support\AtharAccess;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
@@ -15,6 +17,13 @@ use Illuminate\Validation\ValidationException;
 
 class CreateAtharInvitation
 {
+    /**
+     * Furthest an invitation may remain valid from creation.
+     */
+    private const int MAX_EXPIRY_DAYS = 90;
+
+    private const int DEFAULT_EXPIRY_DAYS = 14;
+
     /** @param array<string, mixed> $attributes */
     public function handle(User $creator, array $attributes, ?bool $sendEmail = null): array
     {
@@ -40,9 +49,9 @@ class CreateAtharInvitation
             'email_hash' => $email === null ? null : hash_hmac('sha256', $email, (string) config('app.key')), 'email' => $email,
             'recipient_name' => $attributes['recipient_name'] ?? null, 'relationship' => $attributes['relationship'],
             'preferred_locale' => $attributes['preferred_locale'] ?? default_locale(),
-            'personal_reason' => $attributes['personal_reason'] ?? null, 'prompt_snapshot' => $attributes['prompt_snapshot'] ?? null,
-            'placement' => $attributes['placement'], 'placement_key' => $attributes['placement_key'] ?? null,
-            'status' => AtharInvitationStatus::Sent, 'expires_at' => $attributes['expires_at'] ?? now()->addDays(14), 'sent_at' => $sendEmail ? now() : null,
+            'personal_reason' => $attributes['personal_reason'] ?? null,
+            'placement' => $attributes['placement'], 'placement_key' => $attributes['placement_key'] ?? null, 'identity_display' => $attributes['identity_display'] ?? AtharIdentityDisplay::Anonymous,
+            'status' => AtharInvitationStatus::Sent, 'expires_at' => $this->resolveExpiry($attributes['expires_at'] ?? null), 'sent_at' => $sendEmail ? now() : null,
         ]));
 
         if ($sendEmail) {
@@ -53,5 +62,23 @@ class CreateAtharInvitation
         }
 
         return ['invitation' => $invitation, 'token' => $token, 'url' => $shareUrl, 'send_email' => $sendEmail];
+    }
+
+    /**
+     * Resolve the invitation expiry, defaulting to a fortnight and clamping to
+     * the configured maximum so a token can never outlive the hard ceiling.
+     */
+    private function resolveExpiry(mixed $expiresAt): CarbonInterface
+    {
+        $max = now()->addDays(self::MAX_EXPIRY_DAYS);
+        $default = now()->addDays(self::DEFAULT_EXPIRY_DAYS);
+
+        $resolved = match (true) {
+            $expiresAt instanceof CarbonInterface => $expiresAt,
+            is_string($expiresAt) && $expiresAt !== '' => now()->parse($expiresAt),
+            default => $default,
+        };
+
+        return $resolved->isFuture() ? $resolved->min($max) : $default;
     }
 }

@@ -16,13 +16,16 @@ use App\Actions\Athar\VerifyAtharAccessChallenge;
 use App\Actions\Athar\WithdrawAtharPublication;
 use App\Enums\AtharContributionStatus;
 use App\Enums\AtharInvitationDeliveryMode;
+use App\Enums\AtharPublicationStatus;
 use App\Models\AtharContribution;
 use App\Models\AtharInvitation;
+use App\Models\AtharPublicationVersion;
 use App\Support\AtharAccess;
 use App\Support\AtharTextLimits;
 use App\Support\Turnstile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
@@ -37,7 +40,10 @@ class AtharController extends Controller
             return view('athar.unavailable');
         }
         if (! AtharAccess::verified($request, $invitation)) {
-            return view('athar.unavailable');
+            return view('athar.access', [
+                'invitation' => $invitation,
+                'codeSent' => $request->session()->get('athar.code_sent') === $invitation->getKey(),
+            ]);
         }
         $contribution = AtharContribution::query()->firstOrCreate(['invitation_id' => $invitation->getKey()], ['status' => AtharContributionStatus::Draft]);
         $version = $contribution->publicationVersions()->latest('version')->first();
@@ -45,13 +51,23 @@ class AtharController extends Controller
             return view('athar.reflection', ['invitation' => $invitation, 'contribution' => $contribution]);
         }
         if ($version === null && $contribution->sealed()) {
-            $version = $createPublication->handle($contribution, [
-                $invitation->preferred_locale => [
-                    'text' => (string) data_get($contribution->sealed_payload, 'freeform'),
-                    'context' => '',
-                ],
-            ]);
-            $sendApproval->handle($version);
+            // A sealed contribution should always have a version (SealAtharContribution
+            // creates one in its transaction), but legacy data may not. Recover it here,
+            // guarded by a lock so concurrent requests cannot stack duplicate versions.
+            $version = DB::transaction(function () use ($contribution, $invitation, $createPublication): ?AtharPublicationVersion {
+                $fresh = AtharContribution::query()->whereKey($contribution->getKey())->lockForUpdate()->firstOrFail();
+
+                return $fresh->publicationVersions()->latest('version')->first()
+                    ?? $createPublication->handle($fresh, [
+                        $invitation->preferred_locale => [
+                            'text' => (string) data_get($fresh->sealed_payload, 'freeform'),
+                            'context' => '',
+                        ],
+                    ]);
+            });
+            if ($version !== null && $version->status === AtharPublicationStatus::Draft) {
+                $sendApproval->handle($version);
+            }
         }
         if ($version !== null && in_array($version->status->value, ['draft', 'awaiting_approval'], true)) {
             return view('athar.receipt', ['invitation' => $invitation, 'contribution' => $contribution, 'version' => $version]);

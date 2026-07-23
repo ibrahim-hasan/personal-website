@@ -3,15 +3,17 @@
 namespace Tests\Feature;
 
 use App\Actions\Athar\CreateAtharInvitation;
-use App\Actions\Athar\PrepareAtharPublicationVersion;
+use App\Actions\Athar\CreateContributorPublicNote;
 use App\Actions\Athar\SendAtharApproval;
-use App\Enums\AtharIdentityDisplay;
 use App\Enums\AtharInvitationDeliveryMode;
 use App\Enums\AtharPlacement;
 use App\Enums\AtharRelationship;
+use App\Models\AtharAccessChallenge;
 use App\Models\AtharContribution;
+use App\Models\AtharInvitation;
 use App\Models\User;
 use App\Notifications\AtharInvitationNotification;
+use App\Support\AtharAccess;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
@@ -21,6 +23,23 @@ use Tests\TestCase;
 class AtharFlowTest extends TestCase
 {
     use RefreshDatabase;
+
+    /**
+     * Drive the real six-digit-code verification HTTP path for an email-mode
+     * invitation so the session grant is established for subsequent writes.
+     */
+    private function grantAtharSession(string $token, AtharInvitation $invitation, string $code = '123456'): void
+    {
+        AtharAccessChallenge::query()->create([
+            'invitation_id' => $invitation->getKey(),
+            'code_hash' => AtharAccess::codeHash($code),
+            'expires_at' => now()->addMinutes(10),
+            'requested_at' => now(),
+            'ip_hash' => hash_hmac('sha256', '127.0.0.1', (string) config('app.key')),
+        ]);
+
+        $this->post(route('athar.verify', ['token' => $token]), ['code' => $code])->assertRedirect();
+    }
 
     public function test_private_flow_opens_from_the_invitation_link_and_publishes_only_the_approved_snapshot(): void
     {
@@ -44,20 +63,28 @@ class AtharFlowTest extends TestCase
             ->assertHeader('Referrer-Policy', 'no-referrer')
             ->assertSee('href="'.asset('favicon.svg').'" type="image/svg+xml"', false)
             ->assertSee('href="'.asset('apple-touch-icon.png').'"', false)
+            ->assertSee(__('athar.access.title'))
+            ->assertSee('name="email"', false)
+            ->assertSee('lang="en"', false)
+            ->assertDontSee('lang="ar" hreflang="ar"', false)
+            ->assertDontSee('athar-mark__feature', false)
+            ->assertDontSee('هذا رابط خاص للوصول إلى الرسالة')
+            ->assertDontSee('سؤال مساعد')
+            ->assertDontSee('friend@example.com');
+        $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
+
+        $this->grantAtharSession($token, $invitation);
+
+        $response = $this->get(route('athar.show', ['token' => $token]));
+        $response
+            ->assertOk()
             ->assertSee(__('athar.reflection.title'))
             ->assertSee(__('athar.reflection.body'))
             ->assertSee(__('athar.reflection.review'))
             ->assertDontSee('ما الذي بقي معك من تجربتنا؟')
             ->assertSee('lang="en"', false)
-            ->assertDontSee('lang="ar" hreflang="ar"', false)
-            ->assertDontSee('athar-mark__feature', false)
-            ->assertDontSee('class="athar-kicker"', false)
-            ->assertDontSee('هذا رابط خاص للوصول إلى الرسالة')
-            ->assertDontSee('سؤال مساعد')
-            ->assertDontSee('friend@example.com')
             ->assertDontSee('name="email"', false);
         $this->assertStringContainsString('maxlength="2000"', $response->getContent());
-        $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
         $this->post(route('athar.submit', ['token' => $token]), ['freeform' => 'A thoughtful note about the work.'])->assertRedirect();
         $this->get(route('athar.show', ['token' => $token, 'choose' => '1']))
             ->assertOk()
@@ -178,6 +205,8 @@ class AtharFlowTest extends TestCase
         ]);
         $first['invitation']->contribution()->create(['status' => 'draft']);
 
+        $this->grantAtharSession($second['token'], $second['invitation']);
+
         $this->post(route('athar.submit', ['token' => $second['token']]), ['freeform' => 'The note for the second person.'])
             ->assertRedirect();
 
@@ -281,13 +310,9 @@ class AtharFlowTest extends TestCase
             'submitted_at' => now(),
         ]);
 
-        $version = app(PrepareAtharPublicationVersion::class)->handle(
+        $version = app(CreateContributorPublicNote::class)->handle(
             $contribution,
             ['en' => ['text' => 'A thoughtful note shared by link.', 'context' => 'Services context.']],
-            AtharPlacement::Services,
-            null,
-            AtharIdentityDisplay::Anonymous,
-            $creator,
         );
         app(SendAtharApproval::class)->handle($version);
 
@@ -323,5 +348,137 @@ class AtharFlowTest extends TestCase
         $this->assertDatabaseMissing('athar_access_challenges', [
             'invitation_id' => $created['invitation']->getKey(),
         ]);
+    }
+
+    public function test_email_mode_writes_are_blocked_until_the_access_code_is_verified(): void
+    {
+        Notification::fake();
+        $creator = User::factory()->create();
+        $created = app(CreateAtharInvitation::class)->handle($creator, [
+            'email' => 'friend@example.com',
+            'relationship' => AtharRelationship::FormerClient,
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+
+        // Holding the token alone must not allow a write without a verified session.
+        $this->post(route('athar.submit', ['token' => $created['token']]), ['freeform' => 'An unverified note.'])
+            ->assertNotFound();
+
+        $this->assertDatabaseMissing('athar_contributions', [
+            'invitation_id' => $created['invitation']->getKey(),
+            'submitted_at' => null,
+        ]);
+    }
+
+    public function test_a_fingerprint_mismatch_after_grant_re_challenges_the_contributor(): void
+    {
+        Notification::fake();
+        $creator = User::factory()->create();
+        $created = app(CreateAtharInvitation::class)->handle($creator, [
+            'email' => 'friend@example.com',
+            'relationship' => AtharRelationship::FormerClient,
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+        $token = $created['token'];
+        $invitation = $created['invitation'];
+
+        $this->grantAtharSession($token, $invitation);
+        $this->get(route('athar.show', ['token' => $token]))->assertSee(__('athar.reflection.title'));
+
+        // A different user agent changes the fingerprint, invalidating the grant.
+        $this->withHeaders(['User-Agent' => 'a-different-browser'])
+            ->get(route('athar.show', ['token' => $token]))
+            ->assertSee(__('athar.access.title'))
+            ->assertSee('name="email"', false);
+    }
+
+    public function test_the_consent_audit_records_the_link_verification_method_for_link_invitations(): void
+    {
+        Notification::fake();
+        $creator = User::factory()->create();
+        $created = app(CreateAtharInvitation::class)->handle($creator, [
+            'email' => '',
+            'send_email' => false,
+            'relationship' => AtharRelationship::Collaborator,
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::Work,
+        ]);
+        $token = $created['token'];
+        $invitation = $created['invitation'];
+
+        // Link-mode invitations bypass the code gate and reach reflection directly.
+        $this->get(route('athar.show', ['token' => $token]))->assertSee(__('athar.reflection.title'));
+        $this->post(route('athar.submit', ['token' => $token]), ['freeform' => 'A link-mode endorsement.'])->assertRedirect();
+
+        $contribution = $invitation->contribution()->firstOrFail();
+        $version = $contribution->publicationVersions()->latest('version')->firstOrFail();
+        $this->post(route('athar.approve', ['token' => $token]), ['consent' => '1', 'text' => 'A link-mode endorsement.'])->assertRedirect();
+
+        $this->assertDatabaseHas('athar_publication_consent_events', [
+            'publication_version_id' => $version->getKey(),
+            'event_type' => 'approved',
+            'verification_method' => 'link',
+        ]);
+    }
+
+    public function test_requesting_deletion_scrubs_private_data_but_leaves_a_published_endorsement_visible(): void
+    {
+        Notification::fake();
+        $creator = User::factory()->create();
+        $created = app(CreateAtharInvitation::class)->handle($creator, [
+            'email' => '',
+            'send_email' => false,
+            'relationship' => AtharRelationship::FormerClient,
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+        $token = $created['token'];
+        $invitation = $created['invitation'];
+
+        $this->post(route('athar.submit', ['token' => $token]), ['freeform' => 'A published endorsement.'])->assertRedirect();
+        $version = $invitation->contribution()->firstOrFail()->publicationVersions()->latest('version')->firstOrFail();
+        $this->post(route('athar.approve', ['token' => $token]), ['consent' => '1', 'text' => 'A published endorsement.'])->assertRedirect();
+
+        // The endorsement is live before deletion is requested.
+        $this->get(route('en.about'))->assertOk()->assertSee('A published endorsement.');
+
+        $this->post(route('athar.deletion', ['token' => $token]), ['confirm' => '1'])->assertRedirect();
+
+        $contribution = $invitation->contribution()->firstOrFail();
+        $this->assertSame('deletion_requested', $contribution->fresh()->status->value);
+        $this->assertNull($contribution->fresh()->sealed_payload);
+        $this->assertNull($contribution->fresh()->draft_payload);
+        $this->assertNull($contribution->fresh()->source_hash);
+        // A published version is not soft-deleted, so the public endorsement stays.
+        $this->assertNull($contribution->fresh()->deleted_at);
+        $this->get(route('en.about'))->assertOk()->assertSee('A published endorsement.');
+    }
+
+    public function test_requesting_deletion_soft_deletes_a_contribution_with_no_live_publication(): void
+    {
+        Notification::fake();
+        $creator = User::factory()->create();
+        $created = app(CreateAtharInvitation::class)->handle($creator, [
+            'email' => '',
+            'send_email' => false,
+            'relationship' => AtharRelationship::FormerClient,
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+        $token = $created['token'];
+        $invitation = $created['invitation'];
+
+        // Publish, then withdraw so nothing remains live.
+        $this->post(route('athar.submit', ['token' => $token]), ['freeform' => 'Later withdrawn.'])->assertRedirect();
+        $version = $invitation->contribution()->firstOrFail()->publicationVersions()->latest('version')->firstOrFail();
+        $this->post(route('athar.approve', ['token' => $token]), ['consent' => '1', 'text' => 'Later withdrawn.'])->assertRedirect();
+        $this->post(route('athar.withdraw', ['token' => $token]), ['confirm' => '1'])->assertRedirect();
+
+        $this->post(route('athar.deletion', ['token' => $token]), ['confirm' => '1'])->assertRedirect();
+
+        // No published version remains, so the contribution row is queued for purge.
+        $this->assertNotNull($invitation->contribution()->firstOrFail()->fresh()->deleted_at);
     }
 }

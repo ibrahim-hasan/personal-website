@@ -23,8 +23,6 @@ class AtharContributionFactory extends Factory
             'invitation_id' => AtharInvitation::factory(),
             'status' => AtharContributionStatus::Draft,
             'draft_payload' => ['freeform' => fake()->paragraph()],
-            'response_mode' => 'freeform',
-            'requested_suggestion' => false,
             'draft_updated_at' => now(),
         ];
     }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AtharInvitations\Schemas;
 
+use App\Enums\AtharIdentityDisplay;
 use App\Enums\AtharPlacement;
 use App\Enums\AtharRelationship;
 use Filament\Forms\Components\DateTimePicker;
@@ -66,6 +67,12 @@ class AtharInvitationForm
                             ->label(__('admin.fields.placement_key'))
                             ->helperText(__('admin.hints.athar_placement_key'))
                             ->maxLength(120),
+                        Select::make('identity_display')
+                            ->label(__('admin.fields.identity_display'))
+                            ->helperText(__('admin.hints.athar_identity_display'))
+                            ->options(collect(AtharIdentityDisplay::cases())->mapWithKeys(fn (AtharIdentityDisplay $case): array => [$case->value => $case->label()])->all())
+                            ->required()
+                            ->default(AtharIdentityDisplay::Anonymous->value),
                         Textarea::make('personal_reason')
                             ->label(__('admin.fields.personal_reason'))
                             ->rows(4)
@@ -74,6 +81,8 @@ class AtharInvitationForm
                             ->label(__('admin.fields.expires_at'))
                             ->required()
                             ->default(now()->addDays(14))
+                            ->minDate(now())
+                            ->maxDate(now()->addDays(90))
                             ->seconds(false),
                     ])->columns(2),
             ]);

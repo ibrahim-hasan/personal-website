@@ -76,7 +76,8 @@ class AtharInvitationResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\PublicationVersionsRelationManager::class,
+            RelationManagers\ConsentEventsRelationManager::class,
         ];
     }
 

@@ -116,6 +116,5 @@ return [
         'code_subject' => 'Your Athar verification code',
         'approval_subject' => 'Review your exact Athar text',
         'approval_action' => 'Review the text',
-        'status_subject' => 'Your Athar note has been updated',
     ],
 ];

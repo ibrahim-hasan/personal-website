@@ -6,9 +6,6 @@ enum AtharContributionStatus: string
 {
     case Draft = 'draft';
     case Submitted = 'submitted';
-    case Private = 'private';
-    case PublicChoice = 'public_choice';
-    case AwaitingSuggestion = 'awaiting_suggestion';
     case AwaitingApproval = 'awaiting_approval';
     case Published = 'published';
     case Withdrawn = 'withdrawn';
@@ -23,9 +20,8 @@ enum AtharContributionStatus: string
     {
         return match ($this) {
             self::Draft => 'gray',
-            self::Submitted, self::Private => 'info',
-            self::PublicChoice => 'primary',
-            self::AwaitingSuggestion, self::AwaitingApproval, self::DeletionRequested => 'warning',
+            self::Submitted => 'info',
+            self::AwaitingApproval, self::DeletionRequested => 'warning',
             self::Published => 'success',
             self::Withdrawn => 'danger',
         };

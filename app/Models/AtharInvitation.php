@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AtharIdentityDisplay;
 use App\Enums\AtharInvitationDeliveryMode;
 use App\Enums\AtharInvitationStatus;
 use App\Enums\AtharPlacement;
@@ -10,6 +11,7 @@ use Database\Factories\AtharInvitationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class AtharInvitation extends Model
@@ -19,8 +21,8 @@ class AtharInvitation extends Model
 
     protected $fillable = [
         'created_by', 'token_hash', 'token_ciphertext', 'email_hash', 'email', 'recipient_name',
-        'delivery_mode', 'relationship', 'preferred_locale', 'personal_reason', 'prompt_snapshot',
-        'placement', 'placement_key', 'status', 'expires_at', 'sent_at',
+        'delivery_mode', 'relationship', 'preferred_locale', 'personal_reason',
+        'placement', 'placement_key', 'identity_display', 'status', 'expires_at', 'sent_at',
         'verified_at', 'revoked_at',
     ];
 
@@ -34,7 +36,7 @@ class AtharInvitation extends Model
             'token_ciphertext' => 'encrypted',
             'relationship' => AtharRelationship::class,
             'placement' => AtharPlacement::class,
-            'prompt_snapshot' => 'array',
+            'identity_display' => AtharIdentityDisplay::class,
             'expires_at' => 'datetime',
             'sent_at' => 'datetime',
             'verified_at' => 'datetime',
@@ -52,6 +54,18 @@ class AtharInvitation extends Model
     public function contribution(): HasOne
     {
         return $this->hasOne(AtharContribution::class, 'invitation_id');
+    }
+
+    /** @return HasManyThrough<AtharPublicationVersion, AtharContribution, $this> */
+    public function publicationVersions(): HasManyThrough
+    {
+        return $this->hasManyThrough(AtharPublicationVersion::class, AtharContribution::class, 'invitation_id', 'contribution_id');
+    }
+
+    /** @return HasManyThrough<AtharPublicationConsentEvent, AtharContribution, $this> */
+    public function consentEvents(): HasManyThrough
+    {
+        return $this->hasManyThrough(AtharPublicationConsentEvent::class, AtharContribution::class, 'invitation_id', 'contribution_id');
     }
 
     public function isAccessible(): bool

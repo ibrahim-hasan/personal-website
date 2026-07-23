@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Notifications\AtharAccessCodeNotification;
 use App\Notifications\AtharApprovalNotification;
 use App\Notifications\AtharInvitationNotification;
-use App\Notifications\AtharStatusNotification;
 use App\Notifications\Auth\AdminResetPasswordNotification;
 use App\Notifications\Auth\ReaderResetPasswordNotification;
 use App\Notifications\Auth\ReaderVerifyEmailNotification;
@@ -97,7 +96,6 @@ class BrandedEmailRenderingTest extends TestCase
             new AtharAccessCodeNotification('123456', 'ar'),
             new AtharInvitationNotification('https://ibrahimhasan.test/athar/invitation', 'ar'),
             new AtharApprovalNotification('https://ibrahimhasan.test/athar/approval', 'ar'),
-            new AtharStatusNotification('تم حفظ رسالتك الخاصة.', 'ar'),
         ];
 
         foreach ($arabicNotifications as $notification) {

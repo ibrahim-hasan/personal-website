@@ -2,14 +2,19 @@
 
 namespace App\Filament\Resources\AtharInvitations\Tables;
 
+use App\Actions\Athar\RevokeAtharInvitation;
+use App\Enums\AtharContributionStatus;
 use App\Enums\AtharInvitationDeliveryMode;
 use App\Enums\AtharInvitationStatus;
 use App\Enums\AtharPlacement;
+use App\Models\AtharInvitation;
 use App\Support\AdminTableEmptyState;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -41,10 +46,25 @@ class AtharInvitationsTable
                 TextColumn::make('placement')
                     ->label(__('admin.fields.placement'))
                     ->formatStateUsing(fn (AtharPlacement $state): string => $state->adminLabel()),
+                TextColumn::make('contribution.status')
+                    ->label(__('admin.fields.contribution_status'))
+                    ->badge()
+                    ->placeholder('—')
+                    ->formatStateUsing(fn (AtharContributionStatus $state): string => $state->label())
+                    ->color(fn (AtharContributionStatus $state): string => $state->color()),
                 TextColumn::make('expires_at')
                     ->label(__('admin.fields.expires_at'))
                     ->dateTime()
                     ->sortable(),
+                TextColumn::make('creator.name')
+                    ->label(__('admin.fields.created_by'))
+                    ->placeholder('—')
+                    ->sortable(),
+                TextColumn::make('created_at')
+                    ->label(__('admin.fields.created_at'))
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('status')
@@ -60,6 +80,17 @@ class AtharInvitationsTable
             ->recordActions([
                 ViewAction::make()->label(__('filament-actions::view.single.label')),
                 EditAction::make()->label(__('filament-actions::edit.single.label')),
+                Action::make('revoke')
+                    ->label(__('admin.actions.athar_revoke'))
+                    ->icon('heroicon-o-lock-closed')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->authorize('revoke')
+                    ->visible(fn (AtharInvitation $record): bool => ! in_array($record->status, [AtharInvitationStatus::Revoked, AtharInvitationStatus::Completed], true))
+                    ->action(function (AtharInvitation $record, RevokeAtharInvitation $revoke): void {
+                        $revoke->handle($record);
+                        Notification::make()->title(__('admin.messages.athar_revoked'))->success()->send();
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
