@@ -17,21 +17,15 @@ use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class PublicationVersionsRelationManager extends RelationManager
 {
     protected static string $relationship = 'publicationVersions';
 
-    protected static ?string $title = null;
-
-    public static function getPluralModelLabel(): ?string
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('admin.athar.publication_versions_title');
-    }
-
-    public static function getModelLabel(): ?string
-    {
-        return __('admin.athar.publication_version_title');
     }
 
     public function table(Table $table): Table
