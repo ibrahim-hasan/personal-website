@@ -57,7 +57,9 @@
                     </div>
 
                 </div>
+            </div>
 
+            <div class="site-container">
                 <figure class="article-hero__media">
                     <img
                         src="{{ asset($article['image']) }}"

@@ -81,10 +81,9 @@ class AtharInvitationForm
                             ->label(__('admin.fields.expires_at'))
                             ->required()
                             ->default(now()->addDays(14))
-                            ->minDate(now())
+                            ->minDate(now()->startOfMinute())
                             ->maxDate(now()->addDays(90))
-                            ->seconds(false)
-                            ->step(60),
+                            ->seconds(false),
                     ])->columns(2),
             ]);
     }
