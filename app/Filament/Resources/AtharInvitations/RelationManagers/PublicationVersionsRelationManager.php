@@ -12,7 +12,6 @@ use App\Enums\AtharPublicationStatus;
 use App\Support\AtharTextLimits;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -80,23 +79,17 @@ class PublicationVersionsRelationManager extends RelationManager
 
                         return [
                             'text' => is_string($locale) && isset($payload[$locale]) ? (string) ($payload[$locale]['text'] ?? '') : '',
-                            'identity_display' => $record->identity_display?->value,
                         ];
                     })
                     ->schema([
-                        Select::make('identity_display')
-                            ->label(__('admin.fields.identity_display'))
-                            ->helperText(__('admin.hints.athar_identity_display'))
-                            ->options(collect(AtharIdentityDisplay::cases())->mapWithKeys(fn (AtharIdentityDisplay $case): array => [$case->value => $case->label()])->all())
-                            ->required(),
                         Textarea::make('text')
                             ->label(__('admin.fields.public_text'))
+                            ->helperText(__('admin.hints.athar_public_text'))
                             ->maxLength(AtharTextLimits::PUBLIC_MAX)
                             ->rows(5),
                     ])
                     ->using(function ($record, array $data, EditAtharPublicationVersion $edit): void {
                         $edit->handle($record, [
-                            'identity_display' => AtharIdentityDisplay::from($data['identity_display']),
                             'text' => (string) ($data['text'] ?? ''),
                         ], request: request(), editor: auth()->user());
                         Notification::make()->title(__('admin.messages.athar_version_updated'))->success()->send();

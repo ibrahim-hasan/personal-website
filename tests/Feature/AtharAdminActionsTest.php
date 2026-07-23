@@ -117,7 +117,7 @@ class AtharAdminActionsTest extends TestCase
         $this->assertNotEmpty(AtharPublicProof::forPlacement(AtharPlacement::About, 'en'));
     }
 
-    public function test_edit_updates_the_published_text_and_identity_display_and_keeps_the_snapshot_in_sync(): void
+    public function test_edit_updates_the_published_text_and_keeps_the_snapshot_in_sync(): void
     {
         $invitation = AtharInvitation::factory()->create([
             'placement' => AtharPlacement::About,
@@ -139,12 +139,10 @@ class AtharAdminActionsTest extends TestCase
             ]);
 
         app(EditAtharPublicationVersion::class)->handle($version, [
-            'identity_display' => AtharIdentityDisplay::FullName,
             'text' => 'Edited published text.',
         ]);
 
         $version->refresh();
-        $this->assertSame(AtharIdentityDisplay::FullName, $version->identity_display);
         $this->assertSame('Edited published text.', $version->public_payload['en']['text']);
         $this->assertSame(
             hash('sha256', json_encode($version->public_payload, JSON_UNESCAPED_UNICODE)),
@@ -154,7 +152,12 @@ class AtharAdminActionsTest extends TestCase
 
         $proof = AtharPublicProof::forPlacement(AtharPlacement::About, 'en');
         $this->assertSame('Edited published text.', $proof[0]['text']);
-        $this->assertSame('Layla Hassan', $proof[0]['name'], 'the writer name should now appear publicly');
+        $this->assertSame('', $proof[0]['name'], 'anonymous invitation hides the name');
+
+        // The writer name is controlled live by the invitation's identity_display.
+        $invitation->forceFill(['identity_display' => AtharIdentityDisplay::FullName])->save();
+        $proof = AtharPublicProof::forPlacement(AtharPlacement::About, 'en');
+        $this->assertSame('Layla Hassan', $proof[0]['name'], 'the writer name should appear once the invitation allows it');
     }
 
     public function test_update_policy_requires_the_dedicated_update_permission_not_review(): void

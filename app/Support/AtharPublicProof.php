@@ -53,7 +53,10 @@ final class AtharPublicProof
             ->map(function (AtharPublicationVersion $version) use ($locale): array {
                 $payload = $version->public_payload[$locale] ?? [];
                 $invitation = $version->contribution->invitation;
-                $name = match ($version->identity_display) {
+                // Read the identity-display preference live from the invitation so
+                // that changing it (or the recipient name) on the invitation is
+                // reflected immediately on every published version.
+                $name = match ($invitation->identity_display) {
                     AtharIdentityDisplay::FullName => (string) $invitation->recipient_name,
                     AtharIdentityDisplay::FirstName => trim((string) preg_split('/\s+/u', (string) $invitation->recipient_name)[0]),
                     default => '',

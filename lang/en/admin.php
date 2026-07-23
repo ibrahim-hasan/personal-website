@@ -375,6 +375,7 @@ return [
         'athar_placement' => 'Defines which page may show the text after review and consent.',
         'athar_placement_key' => 'Optional: targets a specific section or case study within the selected page.',
         'athar_identity_display' => 'How the contributor name appears publicly. Anonymous hides it entirely.',
+        'athar_public_text' => 'The exact endorsement text shown publicly after review and consent.',
         'role_code_name' => 'Internal identifier used in code and policies, for example content_manager.',
         'role_assignment' => 'Role changes are restricted by your access level. You cannot change your own roles.',
         'public_asset_path' => 'Path inside public/, for example images/projects/atlas/example.webp.',
