@@ -86,7 +86,7 @@ class ConsultationRequest extends Component
         if ($turnstile->enabled()
             && ! $turnstile->verify($this->turnstileToken, $turnstile->clientIp(request()))) {
             $this->errorMessage = __('validation.turnstile');
-            $this->dispatch('turnstile-reset');
+            $this->dispatch('reset-consultation-turnstile');
 
             return;
         }

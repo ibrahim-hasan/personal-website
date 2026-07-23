@@ -861,6 +861,74 @@ const initializePageMotion = (signal) => {
 
 let frontEnhancementController = null;
 
+let consultationTurnstileWidgetId = null;
+
+const renderConsultationTurnstile = () => {
+    const container = document.getElementById('consultation-turnstile');
+
+    if (! container || ! window.turnstile || container.dataset.rendered === '1') {
+        return;
+    }
+
+    // Clear any widget left over from a previous render before drawing a new one.
+    if (consultationTurnstileWidgetId !== null) {
+        try { window.turnstile.remove(consultationTurnstileWidgetId); } catch {}
+        consultationTurnstileWidgetId = null;
+    }
+
+    consultationTurnstileWidgetId = window.turnstile.render('#consultation-turnstile', {
+        sitekey: container.dataset.sitekey,
+        action: 'turnstile-spin-v2',
+        callback: (token) => window.Livewire?.dispatch('turnstile-resolved', { token }),
+        'expired-callback': () => window.Livewire?.dispatch('turnstile-resolved', { token: '' }),
+        'error-callback': () => window.Livewire?.dispatch('turnstile-resolved', { token: '' }),
+    });
+    container.dataset.rendered = '1';
+};
+
+const initializeConsultationTurnstile = (signal) => {
+    const container = document.getElementById('consultation-turnstile');
+
+    if (! container || ! window.Livewire) {
+        return;
+    }
+
+    // Reset the solved token when the Livewire component rejects the submission,
+    // so the visitor can retry. Reset by widget id (never the global reset(),
+    // which throws "Nothing to reset" when no widget is registered). Registered
+    // through Livewire's JS event bus (not window), which is how component
+    // dispatch() calls are surfaced in Livewire 4.
+    const resetConsultationTurnstile = () => {
+        if (consultationTurnstileWidgetId !== null && window.turnstile) {
+            window.turnstile.reset(consultationTurnstileWidgetId);
+        }
+    };
+    // Livewire.on returns an unsubscribe function (there is no Livewire.off).
+    const unsubscribeReset = window.Livewire.on('reset-consultation-turnstile', resetConsultationTurnstile);
+    signal.addEventListener('abort', () => {
+        unsubscribeReset();
+        if (consultationTurnstileWidgetId !== null && window.turnstile) {
+            try { window.turnstile.remove(consultationTurnstileWidgetId); } catch {}
+            consultationTurnstileWidgetId = null;
+        }
+    }, { once: true });
+
+    // Render once api.js is ready, polling briefly as a fallback.
+    if (window.turnstile) {
+        renderConsultationTurnstile();
+    } else {
+        const stopPolling = () => clearInterval(poll);
+        const poll = setInterval(() => {
+            if (window.turnstile) {
+                clearInterval(poll);
+                renderConsultationTurnstile();
+            }
+        }, 150);
+        signal.addEventListener('abort', stopPolling, { once: true });
+        setTimeout(stopPolling, 5000);
+    }
+};
+
 const initializeFrontEnhancements = () => {
     frontEnhancementController?.abort();
     frontEnhancementController = new AbortController();
@@ -869,6 +937,7 @@ const initializeFrontEnhancements = () => {
     initializeHeroVideos(frontEnhancementController.signal);
     initializePageMotion(frontEnhancementController.signal);
     initializeBackToTop(frontEnhancementController.signal);
+    initializeConsultationTurnstile(frontEnhancementController.signal);
     void initializeArticleSharing(frontEnhancementController.signal);
 };
 

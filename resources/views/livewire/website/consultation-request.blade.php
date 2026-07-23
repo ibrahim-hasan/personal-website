@@ -87,7 +87,7 @@
                 <p class="form-alert" role="alert">{{ $errorMessage }}</p>
             @endif
 
-            <x-turnstile.widget callback="consultationTurnstileCallback" />
+            <x-turnstile.widget explicit id="consultation-turnstile" class="consultation-form__turnstile" />
 
             <div class="consultation-form__footer">
                 <button
@@ -109,18 +109,3 @@
         </form>
     @endif
 </div>
-
-@push('scripts')
-    <script>
-        window.consultationTurnstileCallback = function (token) {
-            window.Livewire.dispatch('turnstile-resolved', { token: token });
-        };
-        document.addEventListener('DOMContentLoaded', function () {
-            window.addEventListener('turnstile-reset', function () {
-                if (window.turnstile) {
-                    window.turnstile.reset();
-                }
-            });
-        });
-    </script>
-@endpush
