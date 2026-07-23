@@ -33,7 +33,7 @@ return [
     ],
     'statuses' => ['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected'],
     'filters' => ['pending_reports' => 'Has pending reports'],
-    'actions' => ['approve' => 'Approve', 'reject' => 'Reject', 'dismiss_reports' => 'Dismiss reports'],
+    'actions' => ['approve' => 'Approve', 'reject' => 'Reject', 'dismiss_reports' => 'Dismiss reports', 'view_article' => 'Open article'],
     'messages' => [
         'approved' => 'Contribution published.',
         'rejected' => 'Contribution rejected.',

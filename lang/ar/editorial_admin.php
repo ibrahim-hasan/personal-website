@@ -33,7 +33,7 @@ return [
     ],
     'statuses' => ['pending' => 'قيد المراجعة', 'approved' => 'منشور', 'rejected' => 'مرفوض'],
     'filters' => ['pending_reports' => 'توجد بلاغات معلقة'],
-    'actions' => ['approve' => 'نشر', 'reject' => 'رفض', 'dismiss_reports' => 'رفض البلاغات'],
+    'actions' => ['approve' => 'نشر', 'reject' => 'رفض', 'dismiss_reports' => 'رفض البلاغات', 'view_article' => 'فتح المقال'],
     'messages' => [
         'approved' => 'نُشرت المشاركة.',
         'rejected' => 'رُفضت المشاركة.',

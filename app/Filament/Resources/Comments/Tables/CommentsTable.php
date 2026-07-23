@@ -37,6 +37,19 @@ class CommentsTable
                     ->getStateUsing(fn (Comment $record): string => $record->article
                         ? (localized_model_attribute($record->article, 'title') ?? $record->article->key)
                         : '—')
+                    ->url(function (Comment $record): ?string {
+                        $article = $record->article;
+                        if (! $article?->is_published) {
+                            return null;
+                        }
+
+                        return localized_route(
+                            'writing.show',
+                            ['article' => $article->getTranslation('slug', app()->getLocale())],
+                            true,
+                            app()->getLocale(),
+                        ).'#comment-'.$record->getKey();
+                    }, true)
                     ->wrap(),
                 TextColumn::make('body')
                     ->label(__('editorial_admin.fields.comment_body'))
