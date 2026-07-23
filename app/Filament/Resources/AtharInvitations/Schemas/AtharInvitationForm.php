@@ -83,7 +83,8 @@ class AtharInvitationForm
                             ->default(now()->addDays(14))
                             ->minDate(now())
                             ->maxDate(now()->addDays(90))
-                            ->seconds(false),
+                            ->seconds(false)
+                            ->step(60),
                     ])->columns(2),
             ]);
     }

@@ -13,6 +13,16 @@ class ConsentEventsRelationManager extends RelationManager
 {
     protected static string $relationship = 'consentEvents';
 
+    public static function getPluralModelLabel(): ?string
+    {
+        return __('admin.athar.consent_events_title');
+    }
+
+    public static function getModelLabel(): ?string
+    {
+        return __('admin.athar.consent_event_title');
+    }
+
     public function table(Table $table): Table
     {
         return $table

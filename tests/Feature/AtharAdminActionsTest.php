@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Athar\EditAtharPublicationVersion;
 use App\Actions\Athar\ExpireAtharInvitations;
 use App\Actions\Athar\HideAtharPublication;
 use App\Actions\Athar\RevokeAtharInvitation;
 use App\Actions\Athar\UnhideAtharPublication;
 use App\Enums\AtharContributionStatus;
+use App\Enums\AtharIdentityDisplay;
 use App\Enums\AtharInvitationStatus;
 use App\Enums\AtharPlacement;
 use App\Enums\AtharPublicationStatus;
@@ -113,6 +115,46 @@ class AtharAdminActionsTest extends TestCase
 
         $this->assertSame(AtharPublicationStatus::Published, $version->fresh()->status);
         $this->assertNotEmpty(AtharPublicProof::forPlacement(AtharPlacement::About, 'en'));
+    }
+
+    public function test_edit_updates_the_published_text_and_identity_display_and_keeps_the_snapshot_in_sync(): void
+    {
+        $invitation = AtharInvitation::factory()->create([
+            'placement' => AtharPlacement::About,
+            'recipient_name' => 'Layla Hassan',
+            'identity_display' => AtharIdentityDisplay::Anonymous,
+        ]);
+        $contribution = AtharContribution::factory()
+            ->for($invitation, 'invitation')
+            ->submitted()
+            ->create(['status' => AtharContributionStatus::Published]);
+        $version = AtharPublicationVersion::factory()
+            ->for($contribution, 'contribution')
+            ->create([
+                'status' => AtharPublicationStatus::Published,
+                'placement' => AtharPlacement::About,
+                'identity_display' => AtharIdentityDisplay::Anonymous,
+                'approved_locales' => ['en'],
+                'public_payload' => ['en' => ['text' => 'Original published text.', 'context' => '']],
+            ]);
+
+        app(EditAtharPublicationVersion::class)->handle($version, [
+            'identity_display' => AtharIdentityDisplay::FullName,
+            'text' => 'Edited published text.',
+        ]);
+
+        $version->refresh();
+        $this->assertSame(AtharIdentityDisplay::FullName, $version->identity_display);
+        $this->assertSame('Edited published text.', $version->public_payload['en']['text']);
+        $this->assertSame(
+            hash('sha256', json_encode($version->public_payload, JSON_UNESCAPED_UNICODE)),
+            $version->snapshot_hash,
+            'snapshot_hash must match the edited payload',
+        );
+
+        $proof = AtharPublicProof::forPlacement(AtharPlacement::About, 'en');
+        $this->assertSame('Edited published text.', $proof[0]['text']);
+        $this->assertSame('Layla Hassan', $proof[0]['name'], 'the writer name should now appear publicly');
     }
 
     public function test_update_policy_requires_the_dedicated_update_permission_not_review(): void

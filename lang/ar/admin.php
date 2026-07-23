@@ -149,6 +149,7 @@ return [
         'athar_hidden' => 'تم إخفاء النشر عن الموقع العام.',
         'athar_unhidden' => 'تمت إعادة النشر إلى الموقع العام.',
         'athar_expired' => 'انتهت صلاحية :count دعوة.',
+        'athar_version_updated' => 'تم تحديث نسخة النشر.',
     ],
     'actions' => [
         'athar_revoke' => 'إيقاف الرابط',
@@ -302,6 +303,10 @@ return [
             'withdrawn' => 'مسحوب',
             'restored' => 'مُعاد',
         ],
+        'publication_versions_title' => 'نسخ النشر',
+        'publication_version_title' => 'نسخة النشر',
+        'consent_events_title' => 'أحداث الموافقة',
+        'consent_event_title' => 'حدث الموافقة',
     ],
     'empty_states' => [
         'articles' => [

@@ -149,6 +149,7 @@ return [
         'athar_hidden' => 'Publication hidden from the public site.',
         'athar_unhidden' => 'Publication restored to the public site.',
         'athar_expired' => ':count invitations expired.',
+        'athar_version_updated' => 'Publication version updated.',
     ],
     'actions' => [
         'athar_revoke' => 'Revoke link',
@@ -302,6 +303,10 @@ return [
             'withdrawn' => 'Withdrawn',
             'restored' => 'Restored',
         ],
+        'publication_versions_title' => 'Publication versions',
+        'publication_version_title' => 'Publication version',
+        'consent_events_title' => 'Consent events',
+        'consent_event_title' => 'Consent event',
     ],
     'empty_states' => [
         'articles' => [
