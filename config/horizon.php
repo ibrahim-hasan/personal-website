@@ -11,7 +11,7 @@ return [
     'middleware' => ['web'],
     'waits' => [
         'redis:default' => 60,
-        'redis:article-audio' => 60,
+        'redis:article-audio' => 300,
     ],
     'trim' => [
         'recent' => 60,
@@ -32,27 +32,53 @@ return [
     'fast_termination' => false,
     'memory_limit' => 64,
     'defaults' => [
-        'supervisor-1' => [
+        'supervisor-default' => [
             'connection' => 'redis',
-            'queue' => ['article-audio', 'default'],
-            'balance' => 'simple',
+            'queue' => ['default'],
+            'balance' => false,
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 3,
+            'timeout' => 300,
+            'nice' => 0,
+        ],
+        'supervisor-article-audio' => [
+            'connection' => 'redis',
+            'queue' => ['article-audio'],
+            'balance' => false,
             'maxProcesses' => 1,
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 512,
             'tries' => 1,
-            'timeout' => 1560,
+            'timeout' => 1620,
             'nice' => 0,
         ],
     ],
     'environments' => [
         'production' => [
-            'supervisor-1' => [
+            'supervisor-default' => [
+                'maxProcesses' => 1,
+            ],
+            'supervisor-article-audio' => [
+                'maxProcesses' => 1,
+            ],
+        ],
+        'staging' => [
+            'supervisor-default' => [
+                'maxProcesses' => 1,
+            ],
+            'supervisor-article-audio' => [
                 'maxProcesses' => 1,
             ],
         ],
         'local' => [
-            'supervisor-1' => [
+            'supervisor-default' => [
+                'maxProcesses' => 1,
+            ],
+            'supervisor-article-audio' => [
                 'maxProcesses' => 1,
             ],
         ],

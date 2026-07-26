@@ -2,12 +2,13 @@
 
 namespace Tests\Feature\Consultation;
 
+use App\Jobs\SendConsultationNotification;
 use App\Livewire\Website\ConsultationRequest;
-use App\Mail\ConsultationRequestMail;
+use App\Models\ContactInquiry;
 use Database\Seeders\ServiceSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -61,9 +62,9 @@ class ConsultationRequestTest extends TestCase
             ->assertSet('form.challenge', '');
     }
 
-    public function test_a_consultation_request_is_validated_and_sent(): void
+    public function test_a_consultation_request_is_validated_and_queued(): void
     {
-        Mail::fake();
+        Queue::fake();
 
         Livewire::test(ConsultationRequest::class)
             ->set('form.name', 'Ibrahim Test')
@@ -73,24 +74,26 @@ class ConsultationRequestTest extends TestCase
             ->set('form.challenge', 'We need a dependable internal AI assistant grounded in our operating knowledge.')
             ->call('submit')
             ->assertHasNoErrors()
-            ->assertSet('submitted', true);
-
-        Mail::assertQueued(ConsultationRequestMail::class, function (ConsultationRequestMail $mail): bool {
-            return $mail->hasTo('hello@ibrahimhasan.net')
-                && $mail->consultation['email'] === 'project@example.com'
-                && $mail->consultation['service'] === 'ai-adoption';
-        });
+            ->assertSet('submitted', true)
+            ->assertSet('analyticsSuccess', true)
+            ->assertDispatched('consultation-submitted');
 
         $this->assertDatabaseHas('contact_inquiries', [
             'email' => 'project@example.com',
             'service_key' => 'ai-adoption',
             'status' => 'new',
         ]);
+
+        $inquiry = ContactInquiry::query()->sole();
+
+        Queue::assertPushed(SendConsultationNotification::class, function (SendConsultationNotification $job) use ($inquiry): bool {
+            return $job->inquiryId === $inquiry->getKey();
+        });
     }
 
     public function test_required_consultation_fields_are_enforced(): void
     {
-        Mail::fake();
+        Queue::fake();
 
         Livewire::test(ConsultationRequest::class)
             ->call('submit')
@@ -99,9 +102,10 @@ class ConsultationRequestTest extends TestCase
                 'form.email' => 'required',
                 'form.service' => 'required',
                 'form.challenge' => 'required',
-            ]);
+            ])
+            ->assertDispatched('consultation-submit-error', category: 'validation');
 
-        Mail::assertNothingOutgoing();
+        Queue::assertNothingPushed();
     }
 
     public function test_arabic_validation_uses_human_field_names(): void
@@ -118,7 +122,7 @@ class ConsultationRequestTest extends TestCase
 
     public function test_a_consultation_is_blocked_when_the_turnstile_token_fails_verification(): void
     {
-        Mail::fake();
+        Queue::fake();
         config()->set('services.turnstile.secret', 'test-secret');
         Http::fake([
             'challenges.cloudflare.com/*' => Http::response(['success' => false], 200),
@@ -133,15 +137,16 @@ class ConsultationRequestTest extends TestCase
             ->call('submit')
             ->assertHasNoErrors(['form.name', 'form.email', 'form.service', 'form.challenge'])
             ->assertSet('submitted', false)
-            ->assertSet('errorMessage', __('validation.turnstile'));
+            ->assertSet('errorMessage', __('validation.turnstile'))
+            ->assertDispatched('consultation-submit-error', category: 'turnstile');
 
-        Mail::assertNothingOutgoing();
+        Queue::assertNothingPushed();
         $this->assertDatabaseMissing('contact_inquiries', ['email' => 'project@example.com']);
     }
 
     public function test_a_consultation_is_blocked_without_a_turnstile_token_when_enabled(): void
     {
-        Mail::fake();
+        Queue::fake();
         config()->set('services.turnstile.secret', 'test-secret');
         Http::fake();
 
@@ -154,6 +159,7 @@ class ConsultationRequestTest extends TestCase
             ->assertSet('submitted', false);
 
         Http::assertNothingSent();
+        Queue::assertNothingPushed();
         $this->assertDatabaseMissing('contact_inquiries', ['email' => 'project@example.com']);
     }
 }

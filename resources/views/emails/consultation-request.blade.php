@@ -18,6 +18,12 @@
             <td class="inquiry-value">{{ $consultation['company'] }}</td>
         </tr>
     @endif
+    @if (filled($consultation['role'] ?? null))
+        <tr>
+            <td class="inquiry-label" style="{{ is_rtl($consultation['locale']) ? 'padding-left: 22px;' : 'padding-right: 22px;' }}">{{ __('site.consultation.role') }}</td>
+            <td class="inquiry-value">{{ $consultation['role'] }}</td>
+        </tr>
+    @endif
     <tr>
         <td class="inquiry-label" style="{{ is_rtl($consultation['locale']) ? 'padding-left: 22px;' : 'padding-right: 22px;' }}">{{ __('site.consultation.service') }}</td>
         <td class="inquiry-value">{{ $consultation['service_label'] }}</td>
@@ -26,5 +32,11 @@
         <td class="inquiry-label" style="{{ is_rtl($consultation['locale']) ? 'padding-left: 22px;' : 'padding-right: 22px;' }}">{{ __('site.consultation.challenge') }}</td>
         <td class="inquiry-value" style="white-space: pre-line;">{{ $consultation['challenge'] }}</td>
     </tr>
+    @if (filled($consultation['timing'] ?? null))
+        <tr>
+            <td class="inquiry-label" style="{{ is_rtl($consultation['locale']) ? 'padding-left: 22px;' : 'padding-right: 22px;' }}">{{ __('site.consultation.timing') }}</td>
+            <td class="inquiry-value">{{ $consultation['timing'] }}</td>
+        </tr>
+    @endif
 </table>
 </x-mail::message>

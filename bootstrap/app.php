@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Operations\ReadinessController;
 use App\Http\Middleware\AssignApiRequestId;
 use App\Http\Middleware\EnsureArticleScope;
 use App\Http\Middleware\ReplayIdempotentRequest;
@@ -13,11 +14,13 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Routing\Middleware\ThrottleRequestsWithRedis;
+use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use Mcamara\LaravelLocalization\Middleware\LocaleCookieRedirect;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -25,6 +28,9 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function (): void {
+            Route::get('/health/ready', ReadinessController::class)->name('health.ready');
+        },
     )
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('horizon:snapshot')->everyFiveMinutes();
@@ -59,9 +65,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'localeViewPath' => LaravelLocalizationViewPath::class,
         ]);
 
+        $middleware->append(SetPrivacyHeaders::class);
+
         $middleware->web(append: [
             SetLocale::class,
-            SetPrivacyHeaders::class,
         ]);
 
         $middleware->api(prepend: [
@@ -89,4 +96,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request): bool => $request->is('api/*'),
         );
+
+        $exceptions->respond(function (Response $response): Response {
+            if (in_array($response->getStatusCode(), [404, 419, 429, 500, 503], true)) {
+                $response->headers->set('X-Robots-Tag', 'noindex, noarchive');
+                $response->headers->set('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate');
+            }
+
+            return $response;
+        });
     })->create();

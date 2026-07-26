@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'privacy_version' => '2026-07-22',
+    'privacy_version' => '2026-07-26',
     'terms_version' => '2026-07-22',
-    'cookie_consent_version' => '2026-07-22',
+    'cookie_consent_version' => '2026-07-26',
     'retention' => [
         'enabled' => (bool) env('PRIVACY_RETENTION_ENABLED', false),
         'archived_inquiries_days' => (int) env('PRIVACY_ARCHIVED_INQUIRIES_RETENTION_DAYS', 365),

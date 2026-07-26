@@ -3,11 +3,13 @@
 namespace Tests\Feature\Consultation;
 
 use App\Enums\ContactInquiryStatus;
+use App\Jobs\SendConsultationNotification;
 use App\Livewire\Website\ConsultationRequest;
-use App\Mail\ConsultationRequestMail;
 use App\Models\ContactInquiry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
@@ -18,7 +20,7 @@ class ContactInquiryTest extends TestCase
 
     public function test_a_valid_consultation_is_saved_before_the_notification_is_sent(): void
     {
-        Mail::fake();
+        Queue::fake();
 
         Livewire::test(ConsultationRequest::class)
             ->set('form.name', 'Decision Maker')
@@ -37,13 +39,16 @@ class ContactInquiryTest extends TestCase
         $this->assertSame('general', $inquiry->service_key);
         $this->assertSame(ContactInquiryStatus::New, $inquiry->status);
         $this->assertSame('ar', $inquiry->locale);
+        $this->assertSame('queued', $inquiry->notification_status);
 
-        Mail::assertQueued(ConsultationRequestMail::class);
+        Queue::assertPushed(SendConsultationNotification::class, function (SendConsultationNotification $job) use ($inquiry): bool {
+            return $job->inquiryId === $inquiry->getKey();
+        });
     }
 
     public function test_the_honeypot_does_not_persist_or_send_an_inquiry(): void
     {
-        Mail::fake();
+        Queue::fake();
 
         Livewire::test(ConsultationRequest::class)
             ->set('form.website', 'https://spam.example')
@@ -51,11 +56,18 @@ class ContactInquiryTest extends TestCase
             ->assertSet('submitted', true);
 
         $this->assertDatabaseCount('contact_inquiries', 0);
-        Mail::assertNothingOutgoing();
+        Queue::assertNothingPushed();
     }
 
     public function test_a_saved_inquiry_is_not_lost_when_notification_dispatch_fails(): void
     {
+        Log::shouldReceive('critical')
+            ->once()
+            ->with('Consultation notification delivery requires attention.', [
+                'channel' => 'consultation',
+                'event' => 'notification_delivery_failed',
+                'retry_scheduled' => true,
+            ]);
         Mail::shouldReceive('to')
             ->once()
             ->andThrow(new RuntimeException('Mail transport unavailable.'));
@@ -72,6 +84,8 @@ class ContactInquiryTest extends TestCase
         $this->assertDatabaseHas('contact_inquiries', [
             'email' => 'persistent@example.com',
             'service_key' => 'general',
+            'notification_status' => 'failed',
+            'notification_attempts' => 1,
         ]);
     }
 }

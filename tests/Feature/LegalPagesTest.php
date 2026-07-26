@@ -20,6 +20,8 @@ class LegalPagesTest extends TestCase
             ->assertSee('الخصوصية', false)
             ->assertSee('ما الذي نعالجه', false)
             ->assertSee('كلمة المرور المجزأة بأمان', false)
+            ->assertSee('الشركة والدور عند إدخالهما', false)
+            ->assertSee('رقم مرجعي خاص بالطلب', false)
             ->assertSee('Google Analytics', false)
             ->assertSee('privacy@example.com', false)
             ->assertSee('365 يوماً', false)
@@ -35,6 +37,7 @@ class LegalPagesTest extends TestCase
             ->assertSee('XSRF-TOKEN', false)
             ->assertSee('ibrahim-hasan-session', false)
             ->assertSee('ibrahimhasan_analytics_consent', false)
+            ->assertSee('ibrahim-site-audio-state', false)
             ->assertSee('_ga_', false)
             ->assertSee('<bdi dir="ltr" lang="en"', false)
             ->assertDontSee('<table', false);
@@ -50,6 +53,8 @@ class LegalPagesTest extends TestCase
             ->assertSee('Privacy', false)
             ->assertSee('What we process', false)
             ->assertSee('securely hashed password', false)
+            ->assertSee('optional company and role', false)
+            ->assertSee('opaque request reference', false)
             ->assertSee('Approved comments may remain anonymised', false)
             ->assertSee('privacy@example.com', false)
             ->assertSee('<link rel="canonical" href="'.url('/en/privacy').'">', false)
@@ -85,15 +90,37 @@ class LegalPagesTest extends TestCase
         $legalView = file_get_contents(resource_path('views/website/legal.blade.php'));
 
         $this->assertSame(43_200, config('auth.guards.web.remember'));
-        $this->assertStringContainsString("gtag('consent', 'default'", $analytics);
+        $this->assertStringContainsString("safeGtag('consent', 'default'", $analytics);
         $this->assertStringContainsString("analytics_storage: 'denied'", $analytics);
         $this->assertStringContainsString("ad_personalization: 'denied'", $analytics);
         $this->assertStringContainsString('ga-disable-${measurementId}', $analytics);
         $this->assertStringContainsString('clearAnalyticsCookies()', $analytics);
-        $this->assertStringContainsString("if (! hasAnalyticsConsent()) {\n    clearAnalyticsCookies();\n}", $analytics);
         $this->assertStringContainsString('allow_google_signals: false', $analytics);
         $this->assertStringContainsString('allow_ad_personalization_signals: false', $analytics);
-        $this->assertStringContainsString('`${window.location.origin}${window.location.pathname}`', $analytics);
+        $this->assertStringContainsString('allowedAnalyticsEvents', $analytics);
+        $this->assertStringContainsString('allowedAnalyticsProperties', $analytics);
+        $this->assertStringContainsString('sanitizeAnalyticsPayload', $analytics);
+        $this->assertStringContainsString('window.IbrahimAnalytics', $analytics);
+        $this->assertStringContainsString('pendingAnalyticsEvents = []', $analytics);
+        $this->assertStringContainsString('revokeGoogleAnalytics', $analytics);
+        foreach ([
+            'primary_cta_click',
+            'service_cta_click',
+            'article_related_click',
+            'direct_contact_click',
+            'consultation_form_start',
+            'consultation_submit_success',
+            'consultation_submit_error',
+            'language_switch',
+            'audio_start',
+            'audio_complete',
+            'web_vital',
+        ] as $eventName) {
+            $this->assertStringContainsString("'{$eventName}'", $analytics);
+        }
+        $this->assertStringNotContainsString('page_location', $analytics);
+        $this->assertStringNotContainsString('page_referrer', $analytics);
+        $this->assertStringNotContainsString('document.referrer', $analytics);
         $this->assertStringNotContainsString('window.location.href', $analytics);
         $this->assertStringContainsString('validConsentValues', $consent);
         $this->assertStringContainsString('${value}.${consentVersion}.${Date.now()}', $consent);
@@ -129,6 +156,11 @@ class LegalPagesTest extends TestCase
         $this->assertStringNotContainsString('min-w-[52rem]', $legalView);
         $this->assertStringNotContainsString('<table', $legalView);
 
+        $atharLayout = file_get_contents(resource_path('views/components/layouts/athar.blade.php'));
+        $this->assertStringNotContainsString('google-analytics-id', $atharLayout);
+        $this->assertStringNotContainsString('analytics-context', $atharLayout);
+        $this->assertStringNotContainsString('cookie-consent', $atharLayout);
+
         $this->get('/en/privacy')
             ->assertOk()
             ->assertSee('data-uses-livewire="false"', false)
@@ -156,13 +188,18 @@ class LegalPagesTest extends TestCase
                 ->assertOk()
                 ->assertHeader('Referrer-Policy', 'strict-origin')
                 ->assertSee('<meta name="google-analytics-id" content="G-TEST123">', false)
+                ->assertSee('name="analytics-context"', false)
+                ->assertSee('&quot;locale&quot;:&quot;en&quot;', false)
+                ->assertSee('&quot;page_type&quot;:&quot;home&quot;', false)
+                ->assertSee('&quot;route_key&quot;:&quot;home&quot;', false)
                 ->assertSee('data-cookie-consent-auto-open="true"', false);
 
             foreach (['/en/privacy', '/en/cookies', '/en/terms', '/en/reader/login', '/en/reader/register'] as $path) {
                 $this->get($path)
                     ->assertOk()
                     ->assertSee('data-cookie-consent-auto-open="false"', false)
-                    ->assertDontSee('google-analytics-id', false);
+                    ->assertDontSee('google-analytics-id', false)
+                    ->assertDontSee('analytics-context', false);
             }
 
             $this->get('/en/reader/reset-password/private-token?email=private@example.com')

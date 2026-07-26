@@ -20,7 +20,7 @@ return [
         'necessary_title' => 'Necessary storage',
         'necessary_body' => 'Keeps your session secure and provides features you request.',
         'analytics_title' => 'Analytics',
-        'analytics_body' => 'Measures selected public pages with Google Analytics.',
+        'analytics_body' => 'Measures approved public pages and selected interactions only after you allow it.',
         'always_on' => 'Always on',
         'back_to_choices' => 'Back',
         'save_preferences' => 'Save choice',
@@ -30,7 +30,7 @@ return [
         'eyebrow' => 'Privacy notice',
         'title' => 'Privacy',
         'description' => 'How ibrahimhasan.net handles the personal data needed for its public site and reader features.',
-        'effective_date' => 'Last updated: 22 July 2026',
+        'effective_date' => 'Last updated: 26 July 2026',
         'introduction' => 'This notice explains what is processed when you browse the site, request a consultation, create a reader account, or join the moderated community.',
         'sections' => [
             [
@@ -72,17 +72,17 @@ return [
                     [
                         'title' => 'Consultation request',
                         'values' => [
-                            ['label' => 'Data', 'value' => 'Name, email, optional company, selected service, challenge details, locale, and follow-up notes.'],
-                            ['label' => 'Purpose', 'value' => 'Respond to the request and manage follow-up.'],
+                            ['label' => 'Data', 'value' => 'Name, email, optional company and role, selected service, challenge details, optional timing, locale, an opaque request reference shown after submission, and follow-up notes. The anti-duplicate submission token is stored only as a hash.'],
+                            ['label' => 'Purpose', 'value' => 'Respond to the request, keep follow-up tied to the right request, and prevent duplicate submissions.'],
                             ['label' => 'Retention', 'value' => 'Active requests are kept while they need a response. Archived requests are eligible for deletion after :archived_inquiries_days days.'],
                         ],
                     ],
                     [
                         'title' => 'Optional analytics',
                         'values' => [
-                            ['label' => 'Data', 'value' => 'Browser and device information, approximate location, and configured interactions on selected public pages.'],
-                            ['label' => 'Purpose', 'value' => 'Understand use of the public site and improve it.'],
-                            ['label' => 'Retention', 'value' => 'Only after consent and subject to the Google Analytics property retention setting.'],
+                            ['label' => 'Data', 'value' => 'Approved page and interaction categories; locale, page type and route key; an approved content, service, or topic key where relevant; UI location, destination category, contact channel, a controlled error category; and browser, device, and approximate-location information. Site analytics events do not include form content, names, emails, company, role, challenge, timing, request reference, comment text, raw URLs, query strings, or IP addresses.'],
+                            ['label' => 'Purpose', 'value' => 'Understand the public experience and decide what to improve.'],
+                            ['label' => 'Retention', 'value' => 'Only after consent. The consent record remains in your browser for up to 180 days; Google Analytics data follows the configured property retention setting.'],
                         ],
                     ],
                 ],
@@ -90,13 +90,13 @@ return [
             [
                 'heading' => 'Providers, transfers, and updates',
                 'paragraphs' => [
-                    'We use providers for hosting, storage, security, and transactional email. Google receives analytics data only after you allow it. Providers may process data outside your country; contact us for current provider and transfer information. We update this notice when the site or its processing changes.',
+                    'We use providers for hosting, storage, security, and transactional email. Google receives analytics data only after you allow it, and private Athar pages never initialise analytics. Providers may process data outside your country; contact us for current provider and transfer information. We update this notice when the site or its processing changes.',
                 ],
             ],
             [
                 'heading' => 'Your choices and rights',
                 'paragraphs' => [
-                    'You can update or delete a reader account in account settings and change analytics through Cookie preferences at any time.',
+                    'You can update or delete a reader account in account settings and change analytics through Cookie preferences at any time. Withdrawing consent stops future site-initiated analytics and removes Google Analytics cookies that this site can access.',
                     'Depending on the law that applies, you may request access, correction, deletion, restriction, objection, portability, or information about recipients and transfers. Where the GDPR applies, you may withdraw consent and complain to the relevant supervisory authority. Email :email; we respond within the period required by applicable law.',
                 ],
             ],
@@ -106,7 +106,7 @@ return [
         'eyebrow' => 'Cookie policy',
         'title' => 'Cookies and storage',
         'description' => 'The necessary and optional browser storage used by ibrahimhasan.net.',
-        'effective_date' => 'Last updated: 22 July 2026',
+        'effective_date' => 'Last updated: 26 July 2026',
         'introduction' => 'This policy explains the storage used to secure the site, remember requested features, and measure selected public pages only when you allow it.',
         'sections' => [
             [
@@ -140,9 +140,10 @@ return [
                         ],
                     ],
                     [
-                        'title' => 'Reader and audio preferences',
+                        'title' => 'Display, reading, and audio preferences',
+                        'tokens' => ['ibrahim-theme', 'ibrahim-site-reader-mode', 'ibrahim-site-audio-rate', 'ibrahim-site-audio-state'],
                         'values' => [
-                            ['label' => 'Use', 'value' => 'Stored on your device only when you use the feature; remains until browser data is cleared.'],
+                            ['label' => 'Use', 'value' => 'Stored locally on your device only when you use the feature. They remember theme, reading mode, playback speed and—after you start narration—the technical state needed to continue it. Closing the player clears its functional audio state and playback-speed setting; theme and reading preferences remain until browser data is cleared.'],
                         ],
                     ],
                     [
@@ -157,20 +158,20 @@ return [
             [
                 'heading' => 'Analytics',
                 'paragraphs' => [
-                    'If you allow it, Google Analytics measures selected public pages. The site excludes URL query strings from page views and does not enable advertising storage, advertising personalisation, or Google Signals in site code.',
+                    'If you allow it, Google Analytics receives only approved events from approved public pages: primary and service calls to action, related-article links, direct-contact choices, consultation form state, language switching, article audio, and basic page-quality signals. Site analytics event payloads do not include raw URLs, referrers, or query strings. The site does not enable advertising storage, advertising personalisation, or Google Signals.',
                 ],
             ],
             [
                 'heading' => 'Change your choice',
                 'paragraphs' => [
-                    'Use Cookie preferences in the footer or on this page to allow analytics or keep only necessary storage. Choosing necessary storage stops future site-initiated analytics collection and removes Google Analytics cookies that this site can access. For questions, email :email.',
+                    'Use Cookie preferences in the footer or on this page to allow analytics or keep only necessary storage. Choosing necessary storage stops future site-initiated analytics, clears any pending site event, and removes Google Analytics cookies that this site can access. For questions, email :email.',
                 ],
             ],
             [
                 'heading' => 'Private Athar notes and website publication',
                 'paragraphs' => [
                     'An Athar invitation uses a private link, and Ibrahim may send that same link by email when he chooses. Possession of the link is the access credential, so it must not be forwarded. Your private reflection, draft, sealed source, and consent evidence are processed to receive and protect your note. Nothing is published automatically.',
-                    'If you choose publication, you approve one exact text card, one named website page, selected languages, and a display-name choice. The card is not reused for social media, proposals, talks, or other channels. You can stop showing the text on the site at any time through the private management link. A separate deletion request covers the private note and follows the configured retention period.',
+                    'If you choose publication, you approve one exact text card, one named website page, selected languages, and a display-name choice. The card is not reused for social media, proposals, talks, or other channels. You can stop showing the text on the site at any time through the private management link. A separate deletion request covers the private note and follows the configured retention period. Analytics never starts on private Athar pages.',
                 ],
             ],
         ],

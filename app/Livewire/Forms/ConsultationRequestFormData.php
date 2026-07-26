@@ -2,8 +2,7 @@
 
 namespace App\Livewire\Forms;
 
-use App\Support\SiteContent;
-use Illuminate\Validation\Rule;
+use App\Actions\Consultation\ConsultationRequestRules;
 use Livewire\Form;
 
 class ConsultationRequestFormData extends Form
@@ -14,38 +13,23 @@ class ConsultationRequestFormData extends Form
 
     public string $company = '';
 
+    public string $role = '';
+
     public string $service = '';
 
     public string $challenge = '';
+
+    public string $timing = '';
 
     public string $website = '';
 
     public function rules(): array
     {
-        $serviceKeys = collect(SiteContent::services())
-            ->map(fn (array $service): string => (string) ($service['key'] ?? $service['id']))
-            ->all();
-
-        return [
-            'name' => ['required', 'string', 'min:2', 'max:120'],
-            'email' => ['required', 'email', 'max:255'],
-            'company' => ['nullable', 'string', 'max:120'],
-            'service' => [
-                'required',
-                Rule::in([...$serviceKeys, 'general']),
-            ],
-            'challenge' => ['required', 'string', 'min:20', 'max:3000'],
-        ];
+        return app(ConsultationRequestRules::class)->rules();
     }
 
     public function validationAttributes(): array
     {
-        return [
-            'name' => __('site.consultation.validation.name'),
-            'email' => __('site.consultation.validation.email'),
-            'company' => __('site.consultation.validation.company'),
-            'service' => __('site.consultation.validation.service'),
-            'challenge' => __('site.consultation.validation.challenge'),
-        ];
+        return app(ConsultationRequestRules::class)->validationAttributes();
     }
 }

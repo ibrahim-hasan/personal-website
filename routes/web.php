@@ -66,7 +66,8 @@ $registerLocalizedRoutes = function (?string $routeLocale = null): void {
     Route::get('/writing', WritingController::class)->name('writing');
     Route::get('/writing/{article:slug}', ArticleController::class)->name('writing.show');
     Route::get('/about', AboutController::class)->name('about');
-    Route::get('/contact', ContactController::class)->name('contact');
+    Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+    Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
     Route::get('/privacy', [LegalController::class, 'privacy'])->name('privacy');
     Route::get('/cookies', [LegalController::class, 'cookies'])->name('cookies');
     Route::get('/terms', [LegalController::class, 'terms'])->name('terms');

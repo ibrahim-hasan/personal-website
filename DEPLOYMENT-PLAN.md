@@ -1,514 +1,260 @@
-# Ibrahim Hasan Website — Production Deployment Plan
+# Ibrahim Hasan Website — Controlled Release Runbook
 
-> Adapted from the proven Jisr CloudPanel + Deployer + GitHub Actions deployment model for this repository's actual architecture.
->
-> Scope: **one production environment only** at `https://ibrahimhasan.net`, deployed to CloudPanel over SSH, with public dynamic media stored in Cloudflare R2.
+This is the repository's only operational source of truth. It defines the path from a reviewed commit to a reversible, observable release. It does not authorize production changes by itself.
 
-## 1. Current readiness and decisions
+## 1. Change control and non-negotiable safety rules
 
-| Area | Decision / current state |
+- Do not commit, push, deploy, rotate credentials, alter DNS, create infrastructure, or change a production secret without separate explicit authorization.
+- Deploy a reviewed immutable Git SHA and the exact frontend artifact built for that SHA. Never deploy an implicit branch head.
+- Production deployment must be manual and protected. A source push, pull request, or merge must never deploy production automatically.
+- Keep staging and production completely separate: hostnames, system users, release paths, databases, Redis prefixes, application keys, Passport key pairs, deploy keys, mail delivery, AI/audio quotas, R2 buckets, and analytics settings.
+- Never put credentials, connection strings with credentials, private keys, bearer values, recovery codes, or token-shaped examples in this document, source control, CI logs, artifacts, tickets, or screenshots.
+- Preserve the existing dirty Article and Athar workstreams while release work proceeds. Do not reset, clean, stash, or overwrite user-owned changes.
+- Never seed production during a normal deployment. Do not move serialized jobs between queue backends. Do not blind-rollback production migrations or purge queues during a code rollback.
+
+## 2. Verified repository baseline
+
+| Area | Repository truth |
 |---|---|
-| Repository | `git@github.com:ibrahim-hasan/personal-website.git` |
-| Production branch | `production` (recommended protected deployment branch) |
-| Application domain | `ibrahimhasan.net` |
-| Canonical host | `https://ibrahimhasan.net` |
-| `www` behavior | Redirect permanently to the canonical apex domain |
-| Server | Existing CloudPanel server; verify its IP before DNS changes |
-| PHP | 8.4 |
-| Web root | `/home/ibrahim-production/htdocs/ibrahimhasan.net/current/public` |
-| Deployment | Deployer 8, triggered by GitHub Actions |
-| Build | Composer production install + Node 22/Vite build in CI |
-| Database | MySQL 8 on the CloudPanel server |
-| Queue | Laravel database queue managed by Supervisor; no Horizon |
-| Scheduler | One system cron entry for `schedule:run`; no app schedules are currently registered |
-| Public dynamic media | Cloudflare R2 through the Laravel `s3` disk after the code-readiness gates below |
-| Private application files | Local shared `storage/app/private` |
-| Releases retained | 5 |
+| Framework | Laravel 13 on PHP 8.4 |
+| Queue runtime | Redis-backed Laravel Horizon 5, with a `super_admin`-gated dashboard |
+| Queue topology | Dedicated `default` and `article-audio` Horizon supervisors |
+| Audio timeout chain | Job 1560s < Horizon 1620s < Redis visibility 1800s |
+| Scheduler | `horizon:snapshot` every five minutes; production-only Passport, editorial audit, Athar expiry, and conditional privacy-purge jobs |
+| Storage | S3-compatible adapter is installed; media disk remains configurable |
+| Deployment tooling | Deployer 8 configuration and a GitHub Actions production workflow exist |
+| Retained releases | Five release directories |
 
-### Required changes before R2 can work
+The current GitHub workflow validates pushes to `production` and permits releases only through a manual exact-SHA dispatch. A production dispatch also requires the matching successful staging artifact and the configured protected environment approval. The Deployer recipe fails closed when either shared Passport key is missing or has unsafe permissions; it does not generate replacement keys during deployment. The external staging, environment-protection, secret, and host prerequisites in this runbook must still be completed before any release is authorized.
 
-The repository configures an `s3` filesystem disk but does **not** currently install Laravel's S3 Flysystem adapter. Before enabling R2, approve and add:
+## 3. Environment topology
 
-```bash
-composer require league/flysystem-aws-s3-v3 "^3.0" --with-all-dependencies
-```
+### Production
 
-Commit the resulting `composer.json` and `composer.lock` changes before the first production deployment. Do not test R2 by manually editing production `vendor/` files.
+- Public application: `https://ibrahimhasan.net`
+- Public media: `https://media.ibrahimhasan.net`
+- Dedicated CloudPanel site user and release path
+- Dedicated MySQL database and least-privilege database user
+- Redis with a production-specific prefix; never Redis Cluster for Horizon
+- Cloudflare Full (strict), after direct origin HTTPS verification
 
-The Article and Project media collections also currently call `useDisk('public')`, which overrides the global `MEDIA_DISK` setting. Before enabling R2:
+### Protected staging
 
-1. Refactor those collections to use a dedicated configurable media disk.
-2. Add tests for original uploads, generated conversions, public URLs, replacement, and deletion on that disk.
-3. Plan and verify migration of every existing Media Library object from the local public disk to R2.
-4. Keep `MEDIA_DISK=public` in production until the code change, object migration, and read-back audit all pass.
+- Application: `https://staging.ibrahimhasan.net`
+- Public media: `https://media-staging.ibrahimhasan.net`
+- Cloudflare Access required before application access
+- Dedicated CloudPanel site user, release path, database, database user, Redis prefix, application key, Passport key pair, SSH/deploy key, GitHub environment, mail sandbox, AI/audio quota credentials, and R2 bucket
+- `APP_DEBUG=false`, no analytics, and a site-wide noindex response policy
+- No copied production PII. Use synthetic or irreversibly anonymized fixture data only.
 
-Article audio already reads `ELEVENLABS_AUDIO_DISK`, but it still requires the S3 adapter before `s3` can be selected.
+Every included HTTPS subdomain must be ready before enabling HSTS. Do not enable COEP, COOP, or CORP globally without compatibility evidence.
 
-### Intentionally not copied from Jisr
+## 4. Secret and credential controls
 
-- No staging host, staging database, or staging workflow.
-- No Laravel Horizon: this project does not install or configure Horizon.
-- No Jisr users, paths, domains, database names, Redis prefixes, deploy keys, or secrets.
-- No automatic database seeding on every production release. Production content must not be overwritten by seeders.
-- No assumption that the Jisr origin IP is also this site's origin IP; verify it in CloudPanel first.
+### Secret sources and permissions
 
-## 2. Target production layout
+- Store production and staging secrets only in their respective approved secret stores or server-side protected environment files.
+- Ensure environment files are readable only by the corresponding site user.
+- Use separate read-only repository deploy keys for server checkout and separate CI-to-server deployment keys. Pin known-host fingerprints; do not perform runtime host-key scanning.
+- Scope database users to their own database. Scope R2 tokens to the required bucket and object operations only. Keep bucket administration and deletion authority separate from the application token.
+- Keep Passport private and public keys as a matched, pre-provisioned pair. The release must fail if either key is missing or has unsafe permissions. Never invoke `passport:keys --force` during deployment, and never replace a surviving key merely because its counterpart is absent.
 
-Use a dedicated CloudPanel site user so this application is isolated from other applications on the same server.
+### Credential exposure response
 
-```text
-/home/ibrahim-production/htdocs/ibrahimhasan.net/
-├── .env                       # shared production environment file
-├── current -> releases/<id>  # active release symlink
-├── releases/                  # immutable releases; keep 5
-└── shared/
-    └── storage/
-        ├── app/private/
-        ├── framework/
-        └── logs/
-```
+If a credential-like value is found in a tracked file, old release, log, export, backup, source map, GitHub Action log/artifact, or server environment:
 
-Recommended CloudPanel names:
+1. Record only redacted evidence in the restricted incident record.
+2. Determine whether it was ever valid and where it was used.
+3. If validity cannot be disproved, rotate it with a least-privilege replacement before release.
+4. Update the affected server secret, rebuild configuration caches, restart Horizon, and verify web, CLI, scheduler, and queue connectivity before revoking the old value.
+5. Scan the same surfaces for related exposure. Do not rewrite shared Git history unless legal or security owners explicitly require it.
 
-- Site user: `ibrahim-production`
-- Database: `ibrahim_production`
-- Database user: `ibrahim_prod_user`
-- Site root: `/home/ibrahim-production/htdocs/ibrahimhasan.net/current/public`
+This investigation and any rotation require separate production authorization.
 
-Generate passwords in CloudPanel. Never place real credentials in this file, GitHub Actions logs, repository variables, or committed `.env` files.
+### Administrator MFA break-glass
 
-## 3. CloudPanel preparation
+Break-glass is an exceptional, server-authorized recovery procedure, not a routine sign-in alternative. Before it is used, an authorized operator must verify the administrator's identity out of band and record the approver, time, reason, affected account, and recovery outcome in the restricted audit record.
 
-### 3.1 Create the PHP site
+The controlled recovery procedure must reset the account password through an authorized administrative path, clear both stored application-authentication fields, invalidate active sessions and recovery codes, and require password rotation plus fresh TOTP enrollment before normal access is restored. Keep the implementation-specific server steps and all secret material out of this runbook. Every execution requires post-incident review.
 
-In CloudPanel:
+## 5. Queue, Horizon, and scheduler operation
 
-1. Create a PHP site for `ibrahimhasan.net`.
-2. Select PHP 8.4.
-3. Use the dedicated site user `ibrahim-production`.
-4. Initially point the root at the site's normal `htdocs` directory.
-5. After the first successful Deployer release, change the document root to:
+### Horizon supervisors
+
+Horizon must run against a standalone Redis connection. The application configuration intentionally isolates workloads:
+
+| Supervisor | Queue | Initial processes | Memory | Horizon timeout | Tries | Long-wait alert |
+|---|---|---:|---:|---:|---:|---:|
+| `supervisor-default` | `default` | 1 | 256 MB | 300s | 3 | 60s |
+| `supervisor-article-audio` | `article-audio` | 1 | 512 MB | 1620s | 1 | 300s |
+
+Both supervisors use fixed balancing so audio work cannot consume the default queue's worker. Scale only after evidence of CPU, memory, API limits, queue waits, and duplicate-generation behavior supports a change.
+
+Horizon retains failed and recently failed job records for 10,080 minutes (seven days). Keep the configured metrics snapshot schedule running so the dashboard has current queue history.
+
+The timeout ordering is mandatory:
 
 ```text
-/home/ibrahim-production/htdocs/ibrahimhasan.net/current/public
+article-audio job timeout: 1560 seconds
+Horizon audio supervisor timeout: 1620 seconds
+Redis queue retry_after: 1800 seconds
+system service stopwaitsecs: 1860 seconds
 ```
 
-6. Configure a permanent redirect from `www.ibrahimhasan.net` to `https://ibrahimhasan.net$request_uri`.
+The Horizon timeout must remain greater than the job timeout and below `retry_after`; the host process must outlive the longest worker shutdown. The database queue's fallback visibility default is also 1800 seconds, but production jobs must dispatch to Redis.
 
-Required PHP extensions include the Laravel/Filament baseline plus media and audio processing requirements:
+### Host process
 
-```text
-bcmath, ctype, curl, dom, fileinfo, gd, intl, mbstring, mysql, openssl,
-pdo, pdo_mysql, sodium, tokenizer, xml, zip
-```
+Run `php artisan horizon` under the host process manager, not `queue:work`. Configure automatic restart, group termination, a production-safe working directory, and `stopwaitsecs=1860`. Restart workers through `horizon:terminate` after activation so they reload the new release. Restrict `/horizon` to the existing `super_admin` gate and a protected administrative path.
 
-Install `ffmpeg` and `ffprobe` on the server because article audio processing and media-library conversions reference them. Confirm the binaries are visible to the site user:
+If legacy database queue rows exist during the Redis migration:
 
-```bash
-sudo -u ibrahim-production ffmpeg -version
-sudo -u ibrahim-production ffprobe -version
-```
+1. Switch new dispatches to Redis.
+2. Start and verify Horizon.
+3. Tell legacy workers to stop when empty.
+4. Wait for the database jobs table to reach zero pending rows.
+5. Stop legacy workers.
 
-### 3.2 Create the database
+Never deserialize or manually transfer jobs between backends.
 
-Create the production database and user in CloudPanel. Restrict the user to the production database only. Record the generated values in the server-side `.env` after the first release directory exists.
+### Scheduler
 
-### 3.3 SSH access
+Install one system scheduler trigger per environment. The scheduler currently owns:
 
-Use two distinct trust directions:
+- Horizon metrics snapshots every five minutes.
+- Production Passport cleanup.
+- Production editorial API audit-log cleanup.
+- Production Athar invitation expiry.
+- Conditional production privacy-retention purge.
 
-1. **GitHub Actions → production server**: a dedicated deploy SSH key stored as a GitHub Environment secret.
-2. **Production server → GitHub repository**: a read-only GitHub deploy key for cloning the private repository.
+The release requires a scheduler heartbeat, alerting when it is older than two minutes, and `schedule:list` evidence after each release. After each release activation or rollback, Deployer runs `app:record-scheduler-heartbeat --no-interaction` before `app:release-check --no-interaction`; this confirms the active release can write the heartbeat but does not replace the once-per-minute scheduler task. Horizon metrics require the existing snapshot schedule; do not consider the dashboard healthy merely because the Horizon process is running.
 
-Do not reuse a personal SSH key. Do not give the repository deploy key write access.
+## 6. Storage, media, and data separation
 
-## 4. Cloudflare DNS, TLS, and R2
+- Keep framework cache, logs, sessions, and private application storage on the shared protected release storage as configured for the site.
+- Use a dedicated production R2 bucket and a separate staging bucket. Serve approved public media only through the appropriate custom media domain.
+- Do not make private storage, backups, logs, environment files, or source maps public.
+- Before changing a media disk or R2 delivery configuration, verify upload, conversion, read, range requests for audio, deletion, and durable URLs using a disposable test object; then remove that test object.
+- A media migration needs an inventory, read-back audit, retry plan, and rollback plan before switching public delivery. Do not alter vendor files on a server to test storage.
 
-### 4.1 DNS and TLS rollout
+## 7. Readiness, monitoring, and alert hygiene
 
-1. Confirm the production server's public IP in CloudPanel.
-2. Add an `A` record for `@` pointing to that verified IP.
-3. Add `www` and redirect it to the apex domain using Cloudflare Redirect Rules or the origin.
-4. Keep records **DNS only** until the origin certificate is issued and direct HTTPS is verified.
-5. Issue the certificate in CloudPanel for both apex and `www`.
-6. Verify the origin directly, then enable the Cloudflare proxy.
-7. Set Cloudflare SSL/TLS mode to **Full (strict)**.
-8. Only enable HSTS after the canonical HTTPS host and redirect have been validated.
-
-### 4.2 Create the R2 bucket
+`/up` remains the liveness endpoint. Before a production release, implement and prove the following deeper controls:
 
-Recommended production resources:
+- `app:release-check`, with redacted results for database, Redis, scheduler heartbeat, required storage, pending migrations, Horizon, critical configuration, and deployed revision.
+- Protected `/health/ready`, rate limited and checked with a constant-time secret-header comparison. It returns only `204` or `503`, with no component details, paths, exceptions, credentials, or versions.
+- A deployed-revision file and correlation identifier.
+- Alert deduplication and recovery notifications.
+- A daily local and N8N operational report with redacted payloads.
 
-- Bucket: `ibrahimhasan-production-media`
-- Public custom domain: `media.ibrahimhasan.net`
-- API token: Object Read & Write, restricted to this bucket only
-- Public development URL (`r2.dev`): disabled after validation
+Provision a non-sensitive `.healthcheck` marker on each required local and media/audio storage disk before the first release. The release check reads those markers only; it never creates, replaces, or deletes them.
 
-Cloudflare R2 is S3-compatible. Use the account endpoint:
+Monitor every five minutes:
 
-```text
-https://<CLOUDFLARE_ACCOUNT_ID>.r2.cloudflarestorage.com
-```
-
-If a jurisdiction-specific bucket is selected, use its jurisdiction endpoint instead. Do not guess the endpoint.
-
-Connect `media.ibrahimhasan.net` from the bucket's **Custom Domains** settings. This is the production delivery URL and allows Cloudflare caching; do not CNAME to an `r2.dev` URL.
-
-### 4.3 Eventual R2 filesystem policy for this application
-
-Keep private framework/application files local and move only publicly delivered dynamic media to R2:
-
-```dotenv
-FILESYSTEM_DISK=local
-MEDIA_DISK=s3
-ELEVENLABS_AUDIO_DISK=s3
-
-AWS_ACCESS_KEY_ID=<R2_ACCESS_KEY_ID>
-AWS_SECRET_ACCESS_KEY=<R2_SECRET_ACCESS_KEY>
-AWS_DEFAULT_REGION=auto
-AWS_BUCKET=ibrahimhasan-production-media
-AWS_ENDPOINT=https://<CLOUDFLARE_ACCOUNT_ID>.r2.cloudflarestorage.com
-AWS_URL=https://media.ibrahimhasan.net
-AWS_USE_PATH_STYLE_ENDPOINT=false
-```
+- liveness and readiness;
+- Arabic and English Home responses;
+- default queue wait over 60 seconds;
+- audio queue wait over 300 seconds;
+- scheduler heartbeat older than two minutes;
+- newest successful backup older than 26 hours;
+- disk use above 80 percent; and
+- TLS certificate expiry under 30 days.
 
-Use these values only after the media-collection code and existing-object migration gates above have passed. They then keep Spatie Media Library project/article images and generated article audio durable across releases. Local `storage/app/private`, framework caches, and logs remain in Deployer's shared storage.
+Alerts and telemetry must never include inquiry content, comments, names, emails, IP addresses, raw URLs, bearer values, stack traces, request bodies, or other PII.
 
-Before switching the production disks, verify upload, conversion, read, delete, and generated public URLs from a temporary test record. Then remove the test object.
+## 8. CI and controlled release workflow
 
-## 5. Production environment
+### CI on every push and pull request
 
-Create `/home/ibrahim-production/htdocs/ibrahimhasan.net/.env` with mode `600`, owned by the site user. The following is a template only:
+Run in an isolated environment with PHP 8.4, MySQL 8, Redis, and Node 22:
 
-```dotenv
-APP_NAME="Ibrahim Hasan"
-APP_ENV=production
-APP_KEY=<GENERATED_ONCE_AND_PRESERVED>
-APP_DEBUG=false
-APP_URL=https://ibrahimhasan.net
-APP_LOCALE=ar
-APP_FALLBACK_LOCALE=en
-APP_FAKER_LOCALE=ar_SA
+1. Validate Composer metadata and perform deterministic dependency installation.
+2. Run the Composer security audit and npm security audit.
+3. Run `npm ci` and the production frontend build.
+4. Run the full PHPUnit suite.
+5. Run `composer lint:check`.
+6. Run fresh MySQL migrations.
+7. Assert Horizon configuration, queue timeout ordering, scheduler registration, content publication checks, SEO/security checks, and forbidden artifact/cache checks.
+8. Run repository-owned tracked-secret pattern checks.
 
-LOG_CHANNEL=stack
-LOG_STACK=single
-LOG_LEVEL=warning
+CI and pull requests must not receive production secrets.
 
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=ibrahim-production
-DB_USERNAME=ibrahim-prod-user
-DB_PASSWORD=<SECRET>Yd8ZvslfxE8Ei9cyOqkY
-
-SESSION_DRIVER=database
-SESSION_LIFETIME=120
-SESSION_ENCRYPT=true
-SESSION_PATH=/
-SESSION_DOMAIN=null
-SESSION_SECURE_COOKIE=true
-SESSION_HTTP_ONLY=true
-SESSION_SAME_SITE=lax
-
-CACHE_STORE=database
-QUEUE_CONNECTION=database
-DB_QUEUE_RETRY_AFTER=1800
-QUEUE_FAILED_DRIVER=database-uuids
-
-FILESYSTEM_DISK=local
-MEDIA_DISK=s3
-ELEVENLABS_AUDIO_DISK=s3
-AWS_ACCESS_KEY_ID=<R2_ACCESS_KEY_ID>
-AWS_SECRET_ACCESS_KEY=<R2_SECRET_ACCESS_KEY>
-AWS_DEFAULT_REGION=auto
-AWS_BUCKET=ibrahimhasan-production-media
-AWS_ENDPOINT=https://<CLOUDFLARE_ACCOUNT_ID>.r2.cloudflarestorage.com
-AWS_URL=https://media.ibrahimhasan.net
-AWS_USE_PATH_STYLE_ENDPOINT=false
-
-MAIL_MAILER=smtp
-MAIL_HOST=<SMTP_HOST>
-MAIL_PORT=587
-MAIL_USERNAME=<SMTP_USERNAME>
-MAIL_PASSWORD=<SMTP_PASSWORD>
-MAIL_SCHEME=tls
-MAIL_FROM_ADDRESS=hello@ibrahimhasan.net
-MAIL_FROM_NAME="${APP_NAME}"
-
-GOOGLE_ANALYTICS_MEASUREMENT_ID=G-L305M0T213
-
-OPENAI_API_KEY=<SECRET>
-OPENAI_QUEUE_CONNECTION=database
-OPENAI_QUEUE=article-audio
-
-ELEVENLABS_API_KEY=<SECRET>
-ELEVENLABS_VOICE_ID=<VOICE_ID>
-ELEVENLABS_QUEUE_CONNECTION=database
-ELEVENLABS_QUEUE=article-audio
-ELEVENLABS_TIMEOUT=150
-ELEVENLABS_CONNECT_TIMEOUT=15
-ELEVENLABS_JOB_TIMEOUT=1560
-ELEVENLABS_UNIQUE_FOR=1800
-ELEVENLABS_FFMPEG_BINARY=/usr/bin/ffmpeg
-ELEVENLABS_FFPROBE_BINARY=/usr/bin/ffprobe
-
-N8N_LOG_WEBHOOK_URL=<OPTIONAL_SECRET_URL>
-N8N_LOG_WEBHOOK_TOKEN=<OPTIONAL_SECRET>
-N8N_LOG_PROJECT="Ibrahim Hasan Production"
-N8N_LOG_LEVEL=warning
-N8N_LOG_TIMEOUT=3
-```
-
-Generate `APP_KEY` once with `php artisan key:generate --show`, store it in the shared `.env`, and preserve it across every release and rollback. Replacing it invalidates encrypted data and sessions.
-
-## 6. Deployment automation
-
-### 6.1 GitHub Environment
-
-Create a GitHub Environment named `production` with deployment protection for the `production` branch. Store:
-
-**Secrets**
-
-- `DEPLOY_SSH_PRIVATE_KEY`
-- `DEPLOY_HOST`
-- `DEPLOY_USER` (`ibrahim-production`)
-- `DEPLOY_PORT` (normally `22`)
-- `DEPLOY_KNOWN_HOSTS` (preferred over runtime key scanning)
-
-**Variable**
-
-- `DEPLOY_PATH=/home/ibrahim-production/htdocs/ibrahimhasan.net`
-
-Do not store the application `.env` in GitHub. Application and R2 secrets remain only on the production server.
-
-### 6.2 Recommended release workflow
-
-The Jisr approach should be retained with these Ibrahim-specific phases:
-
-1. Run the focused PHPUnit suite and lint checks.
-2. Install Composer dependencies with development tools available for CI validation.
-3. Build frontend assets with Node 22 and `npm ci && npm run build`.
-4. Install production Composer dependencies for the artifact (`--no-dev --classmap-authoritative`).
-5. Connect to the production server using pinned known hosts.
-6. Create a new Deployer release.
-7. Upload the prebuilt `public/build` artifact.
-8. Link shared `.env` and `storage`.
-9. Run `php artisan migrate --force`.
-10. Run Laravel production caches.
-11. Atomically switch `current` to the new release.
-12. Run `php artisan queue:restart` so Supervisor workers load the new code.
-13. Verify the health endpoint and canonical pages.
-14. Keep the last five releases for rollback.
-
-Do **not** run `db:seed --force` on every release. Seed only explicitly reviewed, idempotent reference data when required.
-
-### 6.3 Deployer values
-
-When `deploy.php` is implemented, use these target values:
-
-```php
-set('application', 'ibrahim-website');
-set('repository', 'git@github.com:ibrahim-hasan/personal-website.git');
-set('keep_releases', 5);
-set('php_fpm_version', '8.4');
-
-host('production')
-    ->setHostname(getenv('DEPLOY_HOST'))
-    ->setRemoteUser(getenv('DEPLOY_USER') ?: 'ibrahim-production')
-    ->setPort((int) (getenv('DEPLOY_PORT') ?: 22))
-    ->setDeployPath(getenv('DEPLOY_PATH') ?: '/home/ibrahim-production/htdocs/ibrahimhasan.net')
-    ->set('branch', 'production');
-```
-
-Shared assets:
-
-```php
-add('shared_files', ['.env']);
-add('shared_dirs', ['storage']);
-add('writable_dirs', [
-    'bootstrap/cache',
-    'storage',
-    'storage/app/private',
-    'storage/framework/cache',
-    'storage/framework/sessions',
-    'storage/framework/views',
-    'storage/logs',
-]);
-```
-
-Production optimization tasks:
-
-```bash
-php artisan optimize
-php artisan filament:optimize
-php artisan event:cache
-php artisan view:cache
-php artisan storage:link
-```
-
-`storage:link` remains useful for any legacy/local public files, even though new Media Library and article-audio assets use R2.
-
-## 7. Queue worker and scheduler
-
-### 7.1 Supervisor worker
-
-This application has queued mail/notifications plus long-running OpenAI and ElevenLabs article-audio jobs. The repository default is `retry_after=1620`, while the longest configured job timeout is `1560`. That is valid but leaves only a 60-second margin; use `1800` in production and keep the worker timeout at `1560`.
-
-Create `/etc/supervisor/conf.d/ibrahim-production-worker.conf`:
-
-```ini
-[program:ibrahim-production-worker]
-process_name=%(program_name)s_%(process_num)02d
-command=/usr/bin/php8.4 /home/ibrahim-production/htdocs/ibrahimhasan.net/current/artisan queue:work database --queue=article-audio,default --sleep=3 --tries=1 --timeout=1560 --max-time=3600
-directory=/home/ibrahim-production/htdocs/ibrahimhasan.net/current
-autostart=true
-autorestart=true
-stopasgroup=true
-killasgroup=true
-user=ibrahim-production
-numprocs=1
-redirect_stderr=true
-stdout_logfile=/home/ibrahim-production/htdocs/ibrahimhasan.net/shared/storage/logs/worker.log
-stopwaitsecs=1800
-```
-
-Then:
-
-```bash
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl status ibrahim-production-worker:*
-```
-
-Start with one process because audio jobs are CPU/network intensive. Increase only after monitoring memory, CPU, API rate limits, and duplicate-generation behavior.
-
-### 7.2 Scheduler cron
-
-Install the standard scheduler entry now so future scheduled maintenance does not require another server change:
-
-```cron
-* * * * * cd /home/ibrahim-production/htdocs/ibrahimhasan.net/current && /usr/bin/php8.4 artisan schedule:run >> /dev/null 2>&1
-```
-
-At the time this plan was prepared, `routes/console.php` registered no scheduled application tasks. Confirm with `php artisan schedule:list` after each scheduling change.
-
-## 8. First production deployment
-
-### Before changing DNS
-
-- [ ] Confirm the correct CloudPanel server IP and SSH port.
-- [ ] Create the dedicated CloudPanel user/site/database.
-- [ ] Add the restricted GitHub repository deploy key to the server user.
-- [ ] Add the GitHub Environment deploy key and pinned known-host entry.
-- [ ] Install and commit the S3 Flysystem adapter.
-- [ ] Create the R2 bucket, restricted token, and `media.ibrahimhasan.net` custom domain.
-- [ ] Create the shared production `.env` with mode `600`.
-- [ ] Confirm PHP 8.4, Composer, Node build artifact, `ffmpeg`, and `ffprobe` requirements.
-- [ ] Take a fresh database backup immediately before the first migration.
-
-### First release
-
-1. Merge reviewed changes into the protected `production` branch.
-2. Run the GitHub Actions deployment manually for the first release.
-3. Confirm `current` points to a complete release.
-4. Set the CloudPanel document root to `current/public`.
-5. Run migrations once through the deployment workflow.
-6. Start Supervisor and confirm the worker remains `RUNNING`.
-7. Install the scheduler cron.
-8. Verify the origin over HTTPS before proxying it through Cloudflare.
-9. Switch DNS/proxy, then run the acceptance checklist.
-
-## 9. Acceptance checklist
-
-### Application
-
-- [ ] `https://ibrahimhasan.net` returns `200` with `APP_DEBUG=false`.
-- [ ] `http://`, `www`, and non-canonical localized URLs resolve through intentional redirects without loops.
-- [ ] Arabic and English localized routes, translated slugs, canonical URLs, `hreflang`, sitemap, and robots output are correct.
-- [ ] `/admin/login` loads and the production admin user can authenticate.
-- [ ] CSRF-protected forms, consultation requests, comments, reader registration/login, password reset, profile, reading list, and account deletion work.
-- [ ] SMTP delivers consultation and reader notification emails with the correct production sender.
-- [ ] Google Analytics is present only in production.
-
-### Storage and media
-
-- [ ] A new Filament image upload writes to R2 and is served from `media.ibrahimhasan.net`.
-- [ ] Spatie conversions complete and their URLs persist across a second deployment.
-- [ ] Article audio writes to R2, plays with the correct MIME type, supports range requests, and persists across releases.
-- [ ] Object deletion from the admin removes the intended R2 object and no unrelated keys.
-- [ ] The `r2.dev` public URL is disabled after the custom domain works.
-
-### Queue and operations
-
-- [ ] `php artisan queue:monitor database:article-audio,database:default --max=100` completes without configuration errors.
-- [ ] Supervisor reports the worker as `RUNNING`.
-- [ ] A queued mail/notification is processed from `default`.
-- [ ] A full article-audio job completes without timeout or duplicate execution.
-- [ ] `php artisan queue:failed` is empty after acceptance tests.
-- [ ] `php artisan schedule:list` matches the expected production schedule.
-- [ ] `storage/logs/laravel.log` and `worker.log` contain no new exceptions.
-
-### Performance and security
-
-- [ ] Laravel config, routes, events, Filament components, and views are cached.
-- [ ] Static Vite assets have immutable cache headers; HTML is not cached in a way that breaks auth or CSRF.
-- [ ] R2 media has correct content types and an intentional cache policy.
-- [ ] Cloudflare SSL is Full (strict); origin HTTPS remains valid.
-- [ ] CloudPanel/Nginx restores the real client IP only from trusted Cloudflare proxy ranges; the origin is not trusting arbitrary `CF-Connecting-IP` headers.
-- [ ] `.env`, `.git`, logs, backups, and private storage are not web-accessible.
-- [ ] GitHub deploy keys and R2 tokens have least privilege.
-- [ ] Database and R2 recovery procedures have been tested, not merely configured.
-
-## 10. Rollback and recovery
-
-### Application rollback
-
-Use Deployer's previous release rollback, then restart workers:
-
-```bash
-vendor/bin/dep rollback production
-php artisan queue:restart
-```
-
-An application rollback does not reverse a database migration. Every production migration must therefore be backward-compatible with the previous release whenever practical.
-
-### Failed release before symlink switch
-
-If migrations or build validation fail before activation, leave `current` untouched, inspect the failed release, and redeploy after fixing the cause. Do not manually patch files inside the active release.
-
-### Database recovery
-
-- Take an automated daily MySQL backup outside the site directory.
-- Keep at least one copy outside the production server.
-- Encrypt backups and test restoration on an isolated database.
-- Take an on-demand backup before structural migrations.
-
-### R2 recovery
-
-- Enable R2 object versioning if it fits the account's recovery/cost policy.
-- Use lifecycle rules intentionally; never expire active media.
-- Keep bucket deletion and token-administration permissions separate from the application's read/write token.
-- Document how an object or bucket is restored before production launch.
-
-## 11. Implementation boundary
-
-This document prepares the production architecture and runbook. The following implementation files still need to be created and reviewed before deployment automation is active:
-
-- `deploy.php`
-- `.github/workflows/deploy.yml`
-- production health check uses the existing Laravel `/up` endpoint; add a deeper application check only if monitoring later requires database or storage verification
-- committed S3 Flysystem adapter dependency
-- configurable Article/Project Media Library disks, tests, and an existing-object migration plan
-- server-side Supervisor configuration
-- server-side cron entry
-
-The production server, CloudPanel site, DNS, TLS, R2 bucket, GitHub Environment, secrets, and `.env` must be configured through their respective control planes; they are intentionally not stored in the repository.
-
-## 12. Official references
-
-- Laravel 13 deployment: <https://laravel.com/docs/13.x/deployment>
-- Laravel 13 queues and Supervisor: <https://laravel.com/docs/13.x/queues#supervisor-configuration>
-- Laravel 13 filesystem / S3-compatible storage: <https://laravel.com/docs/13.x/filesystem>
-- Deployer Laravel recipe: <https://deployer.org/docs/8.x/recipe/laravel>
-- Cloudflare R2 S3 API: <https://developers.cloudflare.com/r2/get-started/s3/>
-- Cloudflare R2 public custom domains: <https://developers.cloudflare.com/r2/buckets/public-buckets/>
+### Manual exact-SHA release
+
+The replacement GitHub workflow must require an operator to select an exact validated Git SHA and target environment:
+
+1. Verify CI for the chosen SHA.
+2. Build one immutable frontend artifact for that SHA.
+3. Deploy that SHA and artifact to protected staging.
+4. Run staging migrations, release checks, protected readiness, queue/scheduler smoke tests, and the approved browser QA matrix.
+5. Require protected production-environment approval.
+6. Deploy the exact same SHA and artifact to production.
+7. Run production release checks and smoke tests.
+8. Retain release evidence for 90 days.
+
+Use Deployer's exact revision/target support. The deploy job needs only the narrowest possible repository permission, separate staging/production keys, pinned host fingerprints, one concurrency group, no production seeding, no key generation, five retained releases, and a manual protected rollback action.
+
+## 9. Backups, restore drills, and privacy alignment
+
+Before the first release governed by this runbook, provision and prove:
+
+- nightly encrypted full database backups;
+- hourly off-host binary logs retained for seven days;
+- fourteen daily and eight weekly database backups;
+- a pre-migration backup retained for 30 days;
+- nightly media and private-storage backups under separate credentials;
+- application-key and Passport-key escrow in the approved secret manager; and
+- quarterly isolated restore drills.
+
+The target recovery point objective is one hour and the target recovery time objective is four hours. Backup retention and deletion must align with the published privacy policy, including backup-deletion delay. A backup that has not been restored in an isolated environment is not a verified backup.
+
+## 10. Staging and production release gates
+
+Before production approval, retain evidence that all of the following passed on the exact candidate:
+
+- configuration cache rebuild and route cache behavior;
+- Laravel migrations with no pending migration after deployment;
+- both Horizon supervisors running and processing their intended queues;
+- `horizon:snapshot` present in `schedule:list` and metrics arriving;
+- default queue notification and an audio job completing without timeout or duplicate execution;
+- protected readiness and public Arabic/English Home checks;
+- media upload/conversion/playback/deletion against the environment-specific media domain;
+- consent-dependent analytics behavior;
+- backup restore drill and rollback rehearsal;
+- Arabic and English core journeys, accessibility, privacy, CSP, security-header, and browser QA gates from the implementation plan.
+
+Staging must be production-shaped, but it must not use production credentials or PII. The production candidate is rejected if staging cannot prove the same SHA and artifact.
+
+## 11. Rollback and incident response
+
+Use release-symlink rollback to a known-good release only after checking the migration and queue compatibility. A code rollback does not reverse schema changes.
+
+- Prefer a forward fix after a schema migration has run.
+- Do not run blind production migration rollback.
+- Do not purge queues as a rollback shortcut.
+- Drain or isolate incompatible jobs before changing workers.
+- Roll back immediately for authentication bypass, secret exposure, PII leakage, data loss, persistent 5xx loops, blank Arabic or English core journeys, pre-consent analytics, or inaccessible primary navigation or Contact.
+
+For a failed release before symlink activation, leave the active release untouched, preserve redacted diagnostics, fix the candidate, and redeploy through the same controlled process. Do not patch files inside an active release.
+
+## 12. Required external-authority actions
+
+The repository can define the contracts above but cannot perform these actions without the appropriate access and explicit approval:
+
+- Credential-exposure investigation and any required rotation.
+- CloudPanel users, site roots, PHP extensions, process-manager entries, and scheduler triggers.
+- Cloudflare DNS, TLS, Access, R2 buckets, custom domains, and HSTS.
+- GitHub branch protection, environments, approvals, deploy keys, and workflow changes.
+- Staging and production databases, Redis instances/prefixes, mail sandbox, monitoring, secret-manager, and backup systems.
+- Passport key provisioning/rotation, MFA break-glass execution, and production deployment/rollback.
+
+No one may treat this document as approval to perform those actions.
+
+## 13. Official references
+
+- [Laravel Horizon](https://laravel.com/docs/13.x/horizon)
+- [Laravel queues](https://laravel.com/docs/13.x/queues)
+- [Laravel deployment](https://laravel.com/docs/13.x/deployment)
+- [Deployer Laravel recipe](https://deployer.org/docs/8.x/recipe/laravel)
+- [Deployer update code](https://deployer.org/docs/8.x/recipe/deploy/update_code)
+- [Cloudflare R2 S3 API](https://developers.cloudflare.com/r2/get-started/s3/)

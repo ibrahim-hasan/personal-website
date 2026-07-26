@@ -16,10 +16,14 @@ class ContactInquiry extends Model
         'name',
         'email',
         'company',
+        'role',
         'service_key',
         'service_label',
         'challenge',
+        'timing',
         'locale',
+        'public_reference',
+        'submission_hash',
         'status',
         'received_at',
         'replied_at',
@@ -28,6 +32,12 @@ class ContactInquiry extends Model
 
     protected $attributes = [
         'status' => 'new',
+        'notification_status' => 'pending',
+        'notification_attempts' => 0,
+    ];
+
+    protected $hidden = [
+        'submission_hash',
     ];
 
     protected function casts(): array
@@ -36,6 +46,10 @@ class ContactInquiry extends Model
             'status' => ContactInquiryStatus::class,
             'received_at' => 'immutable_datetime',
             'replied_at' => 'immutable_datetime',
+            'notification_last_attempted_at' => 'immutable_datetime',
+            'notification_sent_at' => 'immutable_datetime',
+            'notification_failed_at' => 'immutable_datetime',
+            'notification_next_retry_at' => 'immutable_datetime',
         ];
     }
 }
