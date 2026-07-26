@@ -56,7 +56,7 @@ jobs:
           MYSQL_PASSWORD: testing
           MYSQL_ROOT_PASSWORD: testing
         ports:
-          - 3306/tcp
+          - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping -h localhost -ptesting"
           --health-interval=10s
@@ -65,7 +65,7 @@ jobs:
       redis:
         image: redis:7-alpine
         ports:
-          - 6379/tcp
+          - 6379:6379
         options: >-
           --health-cmd="redis-cli ping"
           --health-interval=10s
