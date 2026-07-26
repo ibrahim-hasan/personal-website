@@ -13,71 +13,84 @@
         </div>
     </section>
 
-    <section class="section-feature service-explorer" @if ($services !== []) x-data="serviceTabs({ services: @js($services) })" @endif>
+    <section class="section-feature service-explorer">
         @if ($services !== [])
             <div class="site-container service-explorer__grid">
-            <div class="service-index" role="tablist" aria-label="{{ __('site.services.tabs_label') }}">
-                @foreach ($services as $service)
-                    <button
-                        id="service-tab-{{ $service['id'] }}"
-                        type="button"
-                        role="tab"
-                        @click="activate('{{ $service['id'] }}')"
-                        @keydown="navigate($event)"
-                        :aria-selected="active === '{{ $service['id'] }}'"
-                        :tabindex="active === '{{ $service['id'] }}' ? 0 : -1"
-                        aria-controls="service-panel"
-                        class="service-index__item"
-                        :class="active === '{{ $service['id'] }}' ? 'is-active' : ''"
+                <nav class="service-index" aria-label="{{ __('site.services.tabs_label') }}">
+                    @foreach ($services as $service)
+                        @php($serviceAnchor = 'service-'.($service['key'] ?? $service['id']))
+
+                        <a href="#{{ $serviceAnchor }}" class="service-index__item">
+                            <span>{{ sprintf('%02d', $loop->iteration) }}</span>
+                            <strong>{{ $service['name'] }}</strong>
+                            <i aria-hidden="true"></i>
+                        </a>
+                    @endforeach
+                </nav>
+
+                <div class="min-w-0">
+                    @foreach ($services as $service)
+                        @php($serviceAnchor = 'service-'.($service['key'] ?? $service['id']))
+
+                        <article
+                            id="{{ $serviceAnchor }}"
+                            class="service-detail scroll-mt-32 {{ $loop->first ? 'pt-0' : 'mt-16 border-t border-ink/20 pt-16' }}"
+                            aria-labelledby="{{ $serviceAnchor }}-title"
+                        >
+                            <p class="signal-label">{{ sprintf('%02d', $loop->iteration) }}</p>
+                            <h2 id="{{ $serviceAnchor }}-title" class="display-section mt-6 max-w-[13ch]">
+                                @if (filled($service['detail_url'] ?? null))
+                                    <a
+                                        href="{{ $service['detail_url'] }}"
+                                        data-analytics-event="service_cta_click"
+                                        data-analytics-destination-category="service"
+                                        data-analytics-service-slug="{{ $service['key'] ?? $service['id'] }}"
+                                    >{{ $service['name'] }}</a>
+                                @else
+                                    {{ $service['name'] }}
+                                @endif
+                            </h2>
+                            <p class="copy-lead mt-7 max-w-[58ch]">{{ $service['summary'] }}</p>
+
+                            <dl class="service-detail__facts mt-12">
+                                <div>
+                                    <dt>{{ __('site.services.problem_pattern') }}</dt>
+                                    <dd>{{ $service['problem'] }}</dd>
+                                </div>
+                                <div>
+                                    <dt>{{ __('site.services.approach') }}</dt>
+                                    <dd>{{ $service['approach'] }}</dd>
+                                </div>
+                                <div>
+                                    <dt>{{ __('site.services.useful_result') }}</dt>
+                                    <dd>{{ $service['result'] }}</dd>
+                                </div>
+                            </dl>
+
+                            @if ($service['deliverables'] !== [])
+                                <div class="service-deliverables mt-12">
+                                    <h3>{{ __('site.services.deliverables') }}</h3>
+                                    <ul>
+                                        @foreach ($service['deliverables'] as $deliverable)
+                                            <li><span aria-hidden="true"></span><strong>{{ $deliverable }}</strong></li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                        </article>
+                    @endforeach
+
+                    <a
+                        href="{{ localized_route('contact') }}#consultation"
+                        class="button-primary mt-12"
+                        data-magnetic
+                        data-analytics-event="primary_cta_click"
+                        data-analytics-destination-category="consultation"
                     >
-                        <span>{{ sprintf('%02d', $loop->iteration) }}</span>
-                        <strong>{{ $service['name'] }}</strong>
-                        <i aria-hidden="true"></i>
-                    </button>
-                @endforeach
-            </div>
-
-            <article
-                id="service-panel"
-                class="service-detail"
-                role="tabpanel"
-                tabindex="0"
-                :aria-labelledby="'service-tab-' + active"
-                aria-live="polite"
-            >
-                <p class="signal-label">{{ __('site.services.selected_track') }}</p>
-                <h2 class="display-section mt-6 max-w-[13ch]" x-text="current().name"></h2>
-                <p class="copy-lead mt-7 max-w-[58ch]" x-text="current().summary"></p>
-
-                <dl class="service-detail__facts mt-12">
-                    <div>
-                        <dt>{{ __('site.services.problem_pattern') }}</dt>
-                        <dd x-text="current().problem"></dd>
-                    </div>
-                    <div>
-                        <dt>{{ __('site.services.approach') }}</dt>
-                        <dd x-text="current().approach"></dd>
-                    </div>
-                    <div>
-                        <dt>{{ __('site.services.useful_result') }}</dt>
-                        <dd x-text="current().result"></dd>
-                    </div>
-                </dl>
-
-                <div class="service-deliverables mt-12">
-                    <h3>{{ __('site.services.deliverables') }}</h3>
-                    <ul>
-                        <template x-for="deliverable in current().deliverables" :key="deliverable">
-                            <li><span aria-hidden="true"></span><strong x-text="deliverable"></strong></li>
-                        </template>
-                    </ul>
+                        <span>{{ __('site.actions.free_consultation') }}</span>
+                        <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
+                    </a>
                 </div>
-
-                <a href="{{ localized_route('contact') }}#consultation" class="button-primary mt-12" data-magnetic>
-                    <span>{{ __('site.actions.free_consultation') }}</span>
-                    <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
-                </a>
-            </article>
             </div>
         @else
             <div class="site-container">

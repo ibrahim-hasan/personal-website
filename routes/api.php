@@ -3,7 +3,14 @@
 use App\Http\Controllers\Api\V1\EditorialArticleController;
 use App\Http\Controllers\Api\V1\EditorialArticleImageController;
 use App\Http\Controllers\Api\V1\EditorialArticleStateController;
+use App\Http\Controllers\Security\CspReportController;
+use App\Http\Middleware\AssignApiRequestId;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/csp-reports', CspReportController::class)
+    ->middleware('throttle:csp-reports')
+    ->withoutMiddleware(AssignApiRequestId::class)
+    ->name('security.csp-reports');
 
 Route::prefix('v1/articles')->group(function (): void {
     Route::get('/', [EditorialArticleController::class, 'index'])

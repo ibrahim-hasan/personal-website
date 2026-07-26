@@ -79,9 +79,12 @@ class WebsitePagesTest extends TestCase
         $this->assertStringContainsString('lang="en"', $arabicPage);
         $this->assertStringContainsString('dir="rtl"', $englishPage);
         $this->assertStringContainsString('lang="ar"', $englishPage);
+        $this->assertStringNotContainsString('x-data="atharProof', $arabicPage);
+        $this->assertStringNotContainsString('aria-roledescription="carousel"', $arabicPage);
+        $this->assertStringNotContainsString('x-show=', $arabicPage);
     }
 
-    public function test_homepage_uses_optimized_hero_video_and_project_evidence_without_placeholders(): void
+    public function test_homepage_uses_optimized_hero_video_and_selected_work_without_a_legacy_atlas(): void
     {
         $this->assertFileExists(public_path('videos/hero/ibrahim-hero.mp4'));
         $this->assertFileExists(public_path('videos/hero/ibrahim-hero.webm'));
@@ -112,35 +115,27 @@ class WebsitePagesTest extends TestCase
             ->assertSee('muted', false)
             ->assertDontSee(' loop', false)
             ->assertSee('playsinline', false)
-            ->assertSee('preload="metadata"', false)
+            ->assertSee('preload="none"', false)
             ->assertSee('data-hero-video-finale', false)
             ->assertSee('data-hero-video-replay', false)
+            ->assertSee('data-hero-video-toggle', false)
+            ->assertSee('شغّل الفيديو', false)
             ->assertSee('ابدأ من المشكلة', false)
             ->assertDontSee('precision-stage__note', false)
             ->assertDontSee('heroStage(', false)
             ->assertDontSee('precision-stage__control', false)
-            ->assertSee('كود مومنتس', false)
-            ->assertSee('فروم سكراتش', false)
             ->assertSee('images/ibrahim/ibrahim-speaking-editorial.webp', false)
-            ->assertSee('images/projects/atlas/digi-pedia-ai-learning.webp', false)
-            ->assertSee('images/brands/projects/digi-pedia.webp', false)
-            ->assertSee('images/brands/companies/code-moments-on-light.svg', false)
-            ->assertSee('images/brands/companies/from-scratch-on-light.svg', false)
-            ->assertSee('atlas-chapter__brand--code-moments', false)
-            ->assertSee('طيفك', false)
-            ->assertSee('أدواري اليوم', false)
-            ->assertSee('تأسيس', false)
-            ->assertSee('قيادة', false)
-            ->assertSee('استراتيجية', false)
-            ->assertSee('ما أعمل عليه مع العملاء', false)
-            ->assertDontSee('ما أتحمل مسؤوليته', false)
-            ->assertSee('تعرّف على فروم سكراتش', false)
-            ->assertSee('تعرّف على كود مومنتس', false)
+            ->assertSee('أعمال مختارة', false)
+            ->assertSee('الموسوعة الرقمية', false)
+            ->assertDontSee('كود مومنتس', false)
+            ->assertDontSee('فروم سكراتش', false)
+            ->assertDontSee('atlas-constellation', false)
+            ->assertDontSee('atlas-chapter__brand--code-moments', false)
+            ->assertDontSee('images/brands/companies/code-moments-on-light.svg', false)
+            ->assertDontSee('images/brands/companies/from-scratch-on-light.svg', false)
             ->assertSee('اطلب استشارة مجانية', false)
-            ->assertSee('https://fromscratch-solutions.com', false)
-            ->assertSee('https://codemoments.com', false)
-            ->assertSee('target="_blank"', false)
-            ->assertSee('rel="noopener noreferrer"', false)
+            ->assertDontSee('https://fromscratch-solutions.com', false)
+            ->assertDontSee('https://codemoments.com', false)
             ->assertDontSee('خبرات انتقلت إلى الممارسة الحالية', false)
             ->assertDontSee('data-now', false)
             ->assertDontSee('images/brands/companies/code-moments-on-dark.svg', false)
@@ -164,7 +159,7 @@ class WebsitePagesTest extends TestCase
             ->assertSee('Where I work today.', false)
             ->assertSee('Code Moments', false)
             ->assertSee('From Scratch', false)
-            ->assertSee('Independent strategic practice', false)
+            ->assertSee('Technical Expertise with Clients', false)
             ->assertDontSee('The method shows up in the real work.', false)
             ->assertDontSee('Four lenses for one integrated decision.', false)
             ->assertDontSee('How I prefer to handle serious work.', false)
@@ -182,7 +177,7 @@ class WebsitePagesTest extends TestCase
             ->assertSee('ما أعمل عليه اليوم.', false)
             ->assertSee('فروم سكراتش', false)
             ->assertSee('كود مومنتس', false)
-            ->assertSee('عمل استشاري مستقل', false)
+            ->assertSee('الخبرة التقنية مع العملاء', false)
             ->assertDontSee('المنهج يظهر في أرض الواقع.', false)
             ->assertDontSee('أربع عدسات لقرار واحد متكامل.', false)
             ->assertDontSee('كيف أفضل التعامل مع العمل الجاد.', false)
@@ -202,7 +197,7 @@ class WebsitePagesTest extends TestCase
             ->assertSee('site-footer__cta-action', false);
     }
 
-    public function test_homepage_includes_the_precision_motion_composition(): void
+    public function test_homepage_keeps_its_precision_motion_and_seven_part_content_composition(): void
     {
         $this->get('/en')
             ->assertOk()
@@ -212,10 +207,13 @@ class WebsitePagesTest extends TestCase
             ->assertSee('data-webm-src-compact', false)
             ->assertSee('images/ibrahim/ibrahim-speaking-editorial.webp', false)
             ->assertSee('manifesto-section', false)
-            ->assertSee('atlas-constellation', false)
             ->assertSee('decision-room', false)
-            ->assertSee('My roles today', false)
-            ->assertSee('I build. I lead. I solve problems with technology.', false)
+            ->assertSee('practice-section', false)
+            ->assertSee('work-theatre--atlas', false)
+            ->assertSee('writing-section', false)
+            ->assertSee('about-teaser', false)
+            ->assertDontSee('atlas-constellation', false)
+            ->assertDontSee('My roles today', false)
             ->assertDontSee('PRECISION / PRACTICE', false)
             ->assertDontSee('precision-stage__note', false)
             ->assertSee('Request a free consultation', false);
@@ -258,7 +256,7 @@ class WebsitePagesTest extends TestCase
     {
         $pages = [
             '/en' => ['Ibrahim Hasan', 'to impact you can measure'],
-            '/en/services' => ['Focused help where business', 'Digital Transformation Strategy'],
+            '/en/services' => ['Focused help where business', 'Digital transformation strategy'],
             '/en/work' => ['Selected work', 'What changed—and why.', 'Selected cases across distinct sectors. Each sets out the operating context, challenge, what changed, and practical impact.', 'Digi Pedia'],
             '/en/writing' => ['Technology in the language of business', 'From AI Experiment to Measurable Business Value'],
             '/en/about' => ['Building dependable digital systems', 'Code Moments'],

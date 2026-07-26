@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -289,6 +290,61 @@ class Article extends Model implements HasMedia, HasRichContent, LocalizedUrlRou
     public function narrations(): HasMany
     {
         return $this->hasMany(ArticleNarration::class);
+    }
+
+    /** @return BelongsToMany<Service, $this> */
+    public function services(): BelongsToMany
+    {
+        return $this->belongsToMany(Service::class, 'article_service')
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderBy('article_service.sort_order')
+            ->orderBy('services.id');
+    }
+
+    /** @return BelongsToMany<Project, $this> */
+    public function projects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'article_project')
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderBy('article_project.sort_order')
+            ->orderBy('projects.id');
+    }
+
+    /** @return HasMany<EditorialArticleRevisionSnapshot, $this> */
+    public function revisionSnapshots(): HasMany
+    {
+        return $this->hasMany(EditorialArticleRevisionSnapshot::class)
+            ->orderByDesc('revision');
+    }
+
+    /** @return list<string> */
+    public function relatedServiceKeys(): array
+    {
+        $services = $this->relationLoaded('services')
+            ? $this->getRelation('services')
+            : $this->services()->get(['services.id', 'services.key']);
+
+        return $services
+            ->pluck('key')
+            ->map(fn (mixed $key): string => (string) $key)
+            ->values()
+            ->all();
+    }
+
+    /** @return list<string> */
+    public function relatedProjectKeys(): array
+    {
+        $projects = $this->relationLoaded('projects')
+            ? $this->getRelation('projects')
+            : $this->projects()->get(['projects.id', 'projects.key']);
+
+        return $projects
+            ->pluck('key')
+            ->map(fn (mixed $key): string => (string) $key)
+            ->values()
+            ->all();
     }
 
     protected static function booted(): void
