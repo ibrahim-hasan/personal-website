@@ -36,7 +36,7 @@ class ReaderLibraryController extends Controller
                     return null;
                 }
 
-                $localized = $editorialArticle->localized(app()->getLocale());
+                $localized = $editorialArticle->localized(app()->getLocale(), includeBody: false);
 
                 return [
                     ...$localized,
@@ -87,7 +87,7 @@ class ReaderLibraryController extends Controller
                     ])
                     : __('community_notifications.approved_line'),
                 'article_title' => $editorialArticle
-                    ? $editorialArticle->localized(app()->getLocale())['title']
+                    ? $editorialArticle->localized(app()->getLocale(), includeBody: false)['title']
                     : __('community_notifications.article_unavailable'),
                 'created_at' => $notification->created_at,
                 'created_label' => $notification->created_at->diffForHumans(),

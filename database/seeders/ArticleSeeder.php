@@ -11,7 +11,14 @@ class ArticleSeeder extends Seeder
     public function run(): void
     {
         foreach (ArticleCatalog::bootstrapRecords() as $record) {
-            if (Article::withTrashed()->where('key', $record['key'])->exists()) {
+            $keyMatch = Article::withTrashed()->where('key', $record['key'])->first();
+            $slugMatch = Article::withTrashed()->where('slug_en', $record['slug']['en'])->first();
+
+            if ($keyMatch !== null && $slugMatch !== null && $keyMatch->isNot($slugMatch)) {
+                throw new \RuntimeException("Article identity collision for [{$record['key']}].");
+            }
+
+            if ($keyMatch !== null || $slugMatch !== null) {
                 continue;
             }
 

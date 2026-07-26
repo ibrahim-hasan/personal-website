@@ -28,9 +28,29 @@ class ArticleFactory extends Factory
                 'en' => [['heading' => 'Section heading', 'paragraphs' => [fake()->paragraph()]]],
             ],
             'closing' => ['ar' => 'خلاصة عربية', 'en' => fake()->sentence()],
+            'body' => [
+                'ar' => [
+                    'type' => 'doc',
+                    'content' => [
+                        ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => str_repeat('نص عربي واضح. ', 35)]]],
+                        ['type' => 'heading', 'attrs' => ['level' => 2], 'content' => [['type' => 'text', 'text' => 'الفكرة الرئيسية']]],
+                        ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => str_repeat('تفصيل عملي مفيد. ', 35)]]],
+                    ],
+                ],
+                'en' => [
+                    'type' => 'doc',
+                    'content' => [
+                        ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => str_repeat('Clear opening context. ', 35)]]],
+                        ['type' => 'heading', 'attrs' => ['level' => 2], 'content' => [['type' => 'text', 'text' => 'The main idea']]],
+                        ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => str_repeat('Useful practical detail. ', 35)]]],
+                    ],
+                ],
+            ],
             'published_at' => today(),
             'modified_at' => today(),
             'image' => 'images/ibrahim/ibrahim-speaking-hero.webp',
+            'image_alt' => ['ar' => 'صورة توضيحية للمقال', 'en' => 'Editorial illustration for the article'],
+            'image_caption' => ['ar' => '', 'en' => ''],
             'read_minutes' => ['ar' => 5, 'en' => 4],
             'topic_keys' => ['leadership'],
             'featured' => false,

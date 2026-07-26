@@ -117,7 +117,7 @@ class ArticleController extends Controller
             'article' => $localizedArticle,
             'canonicalUrl' => $canonicalUrl,
             'alternateUrls' => $this->articles->alternateUrls($resolvedArticle),
-            'relatedArticles' => $this->articles->related($resolvedArticle, locale: $locale),
+            'relatedArticles' => $this->articles->related($resolvedArticle, locale: $locale, includeBody: false),
             'articleAudio' => $articleAudio,
             'structuredData' => $structuredData,
         ]);

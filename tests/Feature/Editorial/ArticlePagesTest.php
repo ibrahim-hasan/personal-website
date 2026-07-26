@@ -52,7 +52,7 @@ class ArticlePagesTest extends TestCase
         $englishUrl = $catalog->url($article, 'en');
 
         $arabicArticle = $article->localized('ar');
-        $firstContentsLabel = preg_replace('/^\s*[\d٠-٩]+[.)-]\s*/u', '', $arabicArticle['sections'][0]['heading']);
+        $firstContentsLabel = $arabicArticle['headings'][0]['label'];
 
         $this->get(parse_url($arabicUrl, PHP_URL_PATH))
             ->assertOk()
@@ -99,7 +99,7 @@ class ArticlePagesTest extends TestCase
             ->assertSee('rel="noopener noreferrer"', false)
             ->assertSee('width="1600"', false)
             ->assertSee('height="900"', false)
-            ->assertSee('alt="'.$arabicArticle['title'].'"', false);
+            ->assertSee('alt="'.$arabicArticle['image_alt'].'"', false);
 
         $this->get(parse_url($englishUrl, PHP_URL_PATH))
             ->assertOk()
@@ -118,7 +118,7 @@ class ArticlePagesTest extends TestCase
             ->assertOk()
             ->assertSee('width="1600"', false)
             ->assertSee('height="900"', false)
-            ->assertSee('alt="'.$featuredArticle['title'].'"', false);
+            ->assertSee('alt="'.$featuredArticle['image_alt'].'"', false);
     }
 
     public function test_homepage_uses_a_precise_library_link_when_no_featured_article_has_audio(): void
@@ -142,16 +142,17 @@ class ArticlePagesTest extends TestCase
         $canonicalUrl = $catalog->url($article, 'ar');
         $authorUrl = localized_route('about', locale: 'ar');
         $response = $this->get(parse_url($canonicalUrl, PHP_URL_PATH));
+        $imageSize = getimagesize(public_path($localizedArticle['image']));
 
         $response
             ->assertOk()
             ->assertSee('<meta property="og:locale" content="ar_AE">', false)
             ->assertSee('<meta property="og:locale:alternate" content="en_US">', false)
-            ->assertSee('<meta property="og:image:type" content="image/webp">', false)
-            ->assertSee('<meta property="og:image:width" content="1122">', false)
-            ->assertSee('<meta property="og:image:height" content="1402">', false)
-            ->assertSee('<meta property="og:image:alt" content="'.$localizedArticle['title'].'">', false)
-            ->assertSee('<meta name="twitter:image:alt" content="'.$localizedArticle['title'].'">', false)
+            ->assertSee('<meta property="og:image:type" content="'.$imageSize['mime'].'">', false)
+            ->assertSee('<meta property="og:image:width" content="'.$imageSize[0].'">', false)
+            ->assertSee('<meta property="og:image:height" content="'.$imageSize[1].'">', false)
+            ->assertSee('<meta property="og:image:alt" content="'.$localizedArticle['image_alt'].'">', false)
+            ->assertSee('<meta name="twitter:image:alt" content="'.$localizedArticle['image_alt'].'">', false)
             ->assertSee('<meta property="article:author" content="'.$authorUrl.'">', false)
             ->assertSee('<meta property="article:section" content="'.$localizedArticle['type'].'">', false);
 

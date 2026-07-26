@@ -7,18 +7,18 @@ use Tests\TestCase;
 
 class ArticleCatalogTest extends TestCase
 {
-    public function test_catalog_contains_nine_articles_with_unique_localized_slugs(): void
+    public function test_catalog_contains_ten_articles_with_unique_localized_slugs(): void
     {
         $catalog = app(ArticleCatalog::class);
         $articles = $catalog->all();
 
-        $this->assertCount(9, $articles);
-        $this->assertCount(9, array_unique(array_map(fn ($article): string => $article->key, $articles)));
+        $this->assertCount(10, $articles);
+        $this->assertCount(10, array_unique(array_map(fn ($article): string => $article->key, $articles)));
 
         foreach (['ar', 'en'] as $locale) {
             $slugs = array_map(fn ($article): string => $article->slug($locale), $articles);
 
-            $this->assertCount(9, array_unique($slugs));
+            $this->assertCount(10, array_unique($slugs));
 
             foreach ($slugs as $slug) {
                 $this->assertNotSame('', trim($slug));
@@ -33,18 +33,14 @@ class ArticleCatalogTest extends TestCase
 
         foreach (['ar', 'en'] as $locale) {
             foreach ($catalog->localized($locale) as $article) {
-                foreach (['title', 'summary', 'seo_title', 'seo_description', 'type', 'lead', 'closing', 'read_time'] as $field) {
+                foreach (['title', 'summary', 'seo_title', 'seo_description', 'type', 'body_html', 'image_alt', 'read_time'] as $field) {
                     $this->assertNotSame('', trim($article[$field]), "Missing {$field} for {$article['key']} in {$locale}");
                 }
 
-                $this->assertGreaterThanOrEqual(4, count($article['sections']));
+                $this->assertGreaterThanOrEqual(4, count($article['headings']));
+                $this->assertLessThanOrEqual(5, count($article['headings']));
                 $this->assertNotEmpty($article['topics']);
                 $this->assertFileExists(public_path($article['image']));
-
-                foreach ($article['sections'] as $section) {
-                    $this->assertNotSame('', trim($section['heading']));
-                    $this->assertNotEmpty($section['paragraphs']);
-                }
             }
         }
     }

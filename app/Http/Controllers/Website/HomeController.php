@@ -18,7 +18,7 @@ class HomeController extends Controller
 
     public function index(): View
     {
-        $featuredArticles = $this->articles->featured();
+        $featuredArticles = $this->articles->featured(includeBody: false);
 
         return view('website.home', [
             ...SiteContent::home(),

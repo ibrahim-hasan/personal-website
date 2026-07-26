@@ -7,7 +7,7 @@ use App\Filament\Components\TranslatableTabs;
 use App\Models\Article;
 use App\Support\LocaleSlugger;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
@@ -48,58 +48,43 @@ class ArticleForm
                     ->maxLength(80),
                 TextInput::make("read_minutes.{$locale}")
                     ->label(__('editorial_admin.fields.read_minutes'))
-                    ->required()
-                    ->numeric()
-                    ->minValue(1)
-                    ->maxValue(120),
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->helperText(__('editorial_admin.hints.read_minutes')),
                 Textarea::make("summary.{$locale}")
                     ->label(__('editorial_admin.fields.summary'))
                     ->required()
                     ->rows(3)
                     ->maxLength(500)
                     ->columnSpanFull(),
-                Textarea::make("lead.{$locale}")
-                    ->label(__('editorial_admin.fields.lead'))
+                RichEditor::make(Article::bodyAttribute($locale))
+                    ->label(__('editorial_admin.fields.body'))
                     ->required()
-                    ->rows(4)
-                    ->columnSpanFull(),
-                Repeater::make("sections.{$locale}")
-                    ->label(__('editorial_admin.fields.sections'))
-                    ->schema([
-                        TextInput::make('heading')
-                            ->label(__('editorial_admin.fields.heading'))
-                            ->required()
-                            ->maxLength(180),
-                        Repeater::make('paragraphs')
-                            ->label(__('editorial_admin.fields.paragraphs'))
-                            ->simple(
-                                Textarea::make('paragraph')
-                                    ->required()
-                                    ->rows(3),
-                            )
-                            ->minItems(1)
-                            ->columnSpanFull(),
-                        Repeater::make('points')
-                            ->label(__('editorial_admin.fields.points'))
-                            ->simple(
-                                TextInput::make('point')
-                                    ->maxLength(500),
-                            )
-                            ->columnSpanFull(),
-                        Textarea::make('note')
-                            ->label(__('editorial_admin.fields.note'))
-                            ->rows(2)
-                            ->columnSpanFull(),
+                    ->json()
+                    ->toolbarButtons([
+                        ['bold', 'italic', 'link'],
+                        ['h2', 'h3'],
+                        ['blockquote', 'bulletList', 'orderedList'],
+                        ['table', 'attachFiles'],
+                        ['undo', 'redo'],
                     ])
-                    ->minItems(1)
-                    ->collapsible()
-                    ->cloneable()
-                    ->itemLabel(fn (array $state): ?string => $state['heading'] ?? null)
+                    ->fileAttachmentsDisk((string) config('media-library.disk_name'))
+                    ->fileAttachmentsVisibility('public')
+                    ->fileAttachmentsAcceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
+                    ->fileAttachmentsMaxSize(8192)
+                    ->resizableImages()
+                    ->preventFileAttachmentPathTampering()
+                    ->helperText(__('editorial_admin.hints.body'))
                     ->columnSpanFull(),
-                Textarea::make("closing.{$locale}")
-                    ->label(__('editorial_admin.fields.closing'))
+                TextInput::make("image_alt.{$locale}")
+                    ->label(__('editorial_admin.fields.image_alt'))
                     ->required()
-                    ->rows(3)
+                    ->maxLength(250)
+                    ->helperText(__('editorial_admin.hints.image_alt'))
+                    ->columnSpanFull(),
+                TextInput::make("image_caption.{$locale}")
+                    ->label(__('editorial_admin.fields.image_caption'))
+                    ->maxLength(500)
                     ->columnSpanFull(),
                 TextInput::make("seo_title.{$locale}")
                     ->label(__('editorial_admin.fields.seo_title'))
@@ -148,7 +133,10 @@ class ArticleForm
                                 ->native(false),
                             Toggle::make('is_published')
                                 ->label(__('editorial_admin.fields.published'))
-                                ->default(false),
+                                ->default(false)
+                                ->disabled()
+                                ->dehydrated(false)
+                                ->helperText(__('editorial_admin.hints.published')),
                             Toggle::make('featured')
                                 ->label(__('editorial_admin.fields.featured'))
                                 ->default(false),

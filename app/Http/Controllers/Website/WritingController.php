@@ -13,7 +13,7 @@ class WritingController extends Controller
     public function __invoke(): View
     {
         return view('website.writing', [
-            'articles' => $this->articles->localized(),
+            'articles' => $this->articles->localized(includeBody: false),
         ]);
     }
 }

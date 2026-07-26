@@ -88,7 +88,7 @@ class SeoDocumentService
         }
 
         foreach (self::LOCALES as $locale) {
-            $localized = $article->localized($locale);
+            $localized = $article->localized($locale, includeBody: false);
             $tag = $this->localizedTag($localizedUrls, $locale)
                 ->setLastModificationDate(Carbon::parse($article->modifiedAt));
             $imageUrl = $this->canonicalAssetUrl($article->image);

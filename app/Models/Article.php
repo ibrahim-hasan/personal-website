@@ -2,9 +2,14 @@
 
 namespace App\Models;
 
+use App\Filament\ArticleBodyMediaProvider;
+use App\Support\Editorial\ArticleBody;
 use App\Traits\SynchronizesTranslatedSlugs;
 use Database\Factories\ArticleFactory;
+use Filament\Forms\Components\RichEditor\Models\Concerns\InteractsWithRichContent;
+use Filament\Forms\Components\RichEditor\Models\Contracts\HasRichContent;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,13 +25,19 @@ use Spatie\Sluggable\HasTranslatableSlug;
 use Spatie\Sluggable\SlugOptions;
 use Spatie\Translatable\HasTranslations;
 
-class Article extends Model implements HasMedia, LocalizedUrlRoutable
+class Article extends Model implements HasMedia, HasRichContent, LocalizedUrlRoutable
 {
     public const string IMAGE_COLLECTION = 'article_image';
 
     public const string IMAGE_CONVERSION = 'article_hero';
 
     public const string THUMBNAIL_CONVERSION = 'article_card';
+
+    public const string BODY_AR_COLLECTION = 'article_body_ar';
+
+    public const string BODY_EN_COLLECTION = 'article_body_en';
+
+    public const string BODY_IMAGE_CONVERSION = 'article_body';
 
     /** @use HasFactory<ArticleFactory> */
     use HasFactory;
@@ -36,6 +47,7 @@ class Article extends Model implements HasMedia, LocalizedUrlRoutable
         resolveRouteBindingQuery as private resolveTranslatableRouteBindingQuery;
     }
     use HasTranslations;
+    use InteractsWithRichContent;
     use InteractsWithMedia;
     use SoftDeletes;
     use SynchronizesTranslatedSlugs;
@@ -50,7 +62,10 @@ class Article extends Model implements HasMedia, LocalizedUrlRoutable
         'lead',
         'sections',
         'closing',
+        'body',
         'read_minutes',
+        'image_alt',
+        'image_caption',
     ];
 
     protected $fillable = [
@@ -64,15 +79,26 @@ class Article extends Model implements HasMedia, LocalizedUrlRoutable
         'lead',
         'sections',
         'closing',
+        'body',
+        'body_ar',
+        'body_en',
         'published_at',
         'modified_at',
         'image',
+        'image_alt',
+        'image_caption',
         'read_minutes',
         'topic_keys',
         'featured',
         'source_url',
         'is_published',
         'editorial_revision',
+    ];
+
+    protected $attributes = [
+        'featured' => false,
+        'is_published' => false,
+        'editorial_revision' => 1,
     ];
 
     /**
@@ -137,6 +163,13 @@ class Article extends Model implements HasMedia, LocalizedUrlRoutable
             ->useDisk((string) config('media-library.disk_name'))
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
             ->singleFile();
+
+        foreach ([self::BODY_AR_COLLECTION, self::BODY_EN_COLLECTION] as $collection) {
+            $this->addMediaCollection($collection)
+                ->useDisk((string) config('media-library.disk_name'))
+                ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
+                ->withResponsiveImages();
+        }
     }
 
     public function registerMediaConversions(?Media $media = null): void
@@ -154,6 +187,14 @@ class Article extends Model implements HasMedia, LocalizedUrlRoutable
             ->format('webp')
             ->quality(82)
             ->nonQueued();
+
+        $this->addMediaConversion(self::BODY_IMAGE_CONVERSION)
+            ->performOnCollections(self::BODY_AR_COLLECTION, self::BODY_EN_COLLECTION)
+            ->fit(Fit::Max, 1600, 1600)
+            ->format('webp')
+            ->quality(84)
+            ->withResponsiveImages()
+            ->nonQueued();
     }
 
     public function imageUrl(string $conversion = self::IMAGE_CONVERSION): string
@@ -163,6 +204,27 @@ class Article extends Model implements HasMedia, LocalizedUrlRoutable
         }
 
         return $this->image ?? '';
+    }
+
+    public function imageAlt(string $locale): string
+    {
+        return (string) ($this->getTranslation('image_alt', $locale, false)
+            ?: $this->getTranslation('title', $locale, false));
+    }
+
+    public function imageCaption(string $locale): string
+    {
+        return (string) $this->getTranslation('image_caption', $locale, false);
+    }
+
+    public static function bodyAttribute(string $locale): string
+    {
+        return $locale === 'en' ? 'body_en' : 'body_ar';
+    }
+
+    public static function bodyCollection(string $locale): string
+    {
+        return $locale === 'en' ? self::BODY_EN_COLLECTION : self::BODY_AR_COLLECTION;
     }
 
     /** @return HasMany<Comment, $this> */
@@ -203,6 +265,23 @@ class Article extends Model implements HasMedia, LocalizedUrlRoutable
 
     protected static function booted(): void
     {
+        static::saving(function (Article $article): void {
+            $readingMinutes = $article->getTranslations('read_minutes');
+            $calculator = app(ArticleBody::class);
+
+            foreach (['ar', 'en'] as $locale) {
+                $body = $article->getTranslation('body', $locale, false);
+
+                if (filled($body)) {
+                    $readingMinutes[$locale] = $calculator->readingMinutes($body, $locale);
+                }
+            }
+
+            if ($readingMinutes !== []) {
+                $article->setAttribute('read_minutes', $readingMinutes);
+            }
+        });
+
         static::created(function (Article $article): void {
             if (Schema::hasColumn((new ArticleAudio)->getTable(), 'article_id')) {
                 ArticleAudio::query()
@@ -258,5 +337,68 @@ class Article extends Model implements HasMedia, LocalizedUrlRoutable
                 $narration->delete();
             });
         });
+    }
+
+    protected function setUpRichContent(): void
+    {
+        foreach (['ar', 'en'] as $locale) {
+            $this->registerRichContent(self::bodyAttribute($locale))
+                ->json()
+                ->fileAttachmentsDisk((string) config('media-library.disk_name'))
+                ->fileAttachmentsVisibility('public')
+                ->fileAttachmentProvider(
+                    ArticleBodyMediaProvider::make()->collection(self::bodyCollection($locale)),
+                );
+        }
+    }
+
+    /**
+     * Filament's rich-content attachment provider requires a concrete model
+     * attribute. This adapter stores its state in the translatable `body` JSON.
+     */
+    protected function bodyAr(): Attribute
+    {
+        return Attribute::make(
+            get: fn (mixed $value, array $attributes): mixed => $this->bodyTranslationFromAttributes($attributes, 'ar'),
+            set: fn (mixed $value, array $attributes): array => [
+                'body' => $this->bodyTranslationsJson($attributes, 'ar', $value),
+            ],
+        );
+    }
+
+    /**
+     * Filament's rich-content attachment provider requires a concrete model
+     * attribute. This adapter stores its state in the translatable `body` JSON.
+     */
+    protected function bodyEn(): Attribute
+    {
+        return Attribute::make(
+            get: fn (mixed $value, array $attributes): mixed => $this->bodyTranslationFromAttributes($attributes, 'en'),
+            set: fn (mixed $value, array $attributes): array => [
+                'body' => $this->bodyTranslationsJson($attributes, 'en', $value),
+            ],
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function bodyTranslationFromAttributes(array $attributes, string $locale): mixed
+    {
+        $translations = json_decode((string) ($attributes['body'] ?? '{}'), true);
+
+        return is_array($translations) ? ($translations[$locale] ?? null) : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function bodyTranslationsJson(array $attributes, string $locale, mixed $value): string
+    {
+        $translations = json_decode((string) ($attributes['body'] ?? '{}'), true);
+        $translations = is_array($translations) ? $translations : [];
+        $translations[$locale] = $value;
+
+        return json_encode($translations, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
     }
 }

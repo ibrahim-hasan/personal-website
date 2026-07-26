@@ -28,7 +28,7 @@
                 <figure>
                     <img
                         src="{{ $featuredArticle['image_url'] }}"
-                        alt="{{ $featuredArticle['title'] }}"
+                        alt="{{ $featuredArticle['image_alt'] }}"
                         width="1600"
                         height="900"
                         fetchpriority="high"

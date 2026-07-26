@@ -69,9 +69,7 @@ final class AiSeoAction
                         'title' => trim((string) ($schemaGet("title.{$locale}") ?? '')),
                         'content' => $sourceBuilder->fromState([
                             'summary' => $schemaGet("summary.{$locale}"),
-                            'lead' => $schemaGet("lead.{$locale}"),
-                            'sections' => $schemaGet("sections.{$locale}"),
-                            'closing' => $schemaGet("closing.{$locale}"),
+                            'body' => $schemaGet(Article::bodyAttribute($locale)),
                         ]),
                         'source_locale' => $locale,
                     ];

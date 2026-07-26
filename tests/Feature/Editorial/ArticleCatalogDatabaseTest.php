@@ -71,7 +71,7 @@ class ArticleCatalogDatabaseTest extends TestCase
 
         $this->seed(ArticleSeeder::class);
 
-        $this->assertCount(9, $firstKeys);
+        $this->assertCount(10, $firstKeys);
         $this->assertSame($firstKeys, Article::query()->orderBy('key')->pluck('key')->all());
         $this->assertContains('ai-value', $firstKeys);
         $this->assertSame(

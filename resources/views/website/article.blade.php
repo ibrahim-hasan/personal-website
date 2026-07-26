@@ -5,7 +5,7 @@
     :alternateUrls="$alternateUrls"
     ogType="article"
     :ogImage="asset($article['image'])"
-    :ogImageAlt="$article['title']"
+    :ogImageAlt="$article['image_alt']"
     :publishedAt="$article['published_at']"
     :modifiedAt="$article['modified_at']"
     :articleAuthorUrl="localized_route('about')"
@@ -63,12 +63,15 @@
                 <figure class="article-hero__media">
                     <img
                         src="{{ asset($article['image']) }}"
-                        alt="{{ $article['title'] }}"
+                        alt="{{ $article['image_alt'] }}"
                         width="1600"
                         height="900"
                         fetchpriority="high"
                         decoding="async"
                     >
+                    @if ($article['image_caption'])
+                        <figcaption>{{ $article['image_caption'] }}</figcaption>
+                    @endif
                 </figure>
             </div>
 
@@ -137,11 +140,11 @@
                 <nav class="article-contents" aria-label="{{ __('articles.reader.contents') }}">
                     <p>{{ __('articles.reader.contents') }}</p>
                     <ol>
-                        @foreach ($article['sections'] as $section)
+                        @foreach ($article['headings'] as $heading)
                             <li>
-                                <a href="#article-section-{{ $loop->iteration }}">
+                                <a href="#{{ $heading['id'] }}">
                                     <span class="article-contents__number">{{ sprintf('%02d', $loop->iteration) }}</span>
-                                    <span class="article-contents__label">{{ preg_replace('/^\s*[\d٠-٩]+[.)-]\s*/u', '', $section['heading']) }}</span>
+                                    <span class="article-contents__label">{{ $heading['label'] }}</span>
                                 </a>
                             </li>
                         @endforeach
@@ -150,34 +153,9 @@
             </aside>
 
             <div class="article-prose" data-article-content>
-                <p class="article-prose__lead">{{ $article['lead'] }}</p>
-
-                @foreach ($article['sections'] as $section)
-                    <section id="article-section-{{ $loop->iteration }}" class="article-prose__section">
-                        <h2>{{ $section['heading'] }}</h2>
-
-                        @foreach ($section['paragraphs'] as $paragraph)
-                            <p>{{ $paragraph }}</p>
-                        @endforeach
-
-                        @if (! empty($section['points']))
-                            <ul>
-                                @foreach ($section['points'] as $point)
-                                    <li>{{ $point }}</li>
-                                @endforeach
-                            </ul>
-                        @endif
-
-                        @if (! empty($section['note']))
-                            <aside class="article-note">{{ $section['note'] }}</aside>
-                        @endif
-                    </section>
-                @endforeach
-
-                <footer class="article-prose__closing">
-                    <span aria-hidden="true"></span>
-                    <p>{{ $article['closing'] }}</p>
-                </footer>
+                <div class="article-prose__body">
+                    {!! $article['body_html'] !!}
+                </div>
 
                 @if ($article['source_url'])
                     <p class="article-source">

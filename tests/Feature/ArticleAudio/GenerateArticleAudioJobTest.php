@@ -79,23 +79,24 @@ class GenerateArticleAudioJobTest extends TestCase
         app()->call([$job, 'handle']);
 
         $audio = ArticleAudio::query()->where('article_key', $article->key)->where('locale', 'ar')->firstOrFail();
-        $expectedHash = app(ArticleAudioScript::class)
-            ->approved($article, 'ar', 'eleven_multilingual_v2')
-            ?->contentHash;
+        $resolvedScript = app(ArticleAudioScript::class)
+            ->approved($article, 'ar', 'eleven_multilingual_v2');
+        $expectedHash = $resolvedScript?->contentHash;
 
+        $this->assertNotNull($resolvedScript);
         $this->assertSame(ArticleAudioStatus::Ready, $audio->status);
         $this->assertSame($expectedHash, $audio->content_hash);
         $this->assertSame('audio/mpeg', $audio->mime_type);
         $this->assertSame('calm-arabic-voice', $audio->voice_id);
         $this->assertSame('eleven_multilingual_v2', $audio->model_id);
-        $this->assertGreaterThan(9000, $audio->character_count);
-        $this->assertSame(2, $audio->segment_count);
+        $this->assertSame(mb_strlen($resolvedScript->text), $audio->character_count);
+        $this->assertSame(1, $audio->segment_count);
         $this->assertNotNull($audio->generated_at);
         $this->assertNull($audio->last_error);
         Storage::disk('public')->assertExists($audio->path);
         Storage::disk('public')->assertMissing('article-audio/ar/old.mp3');
         $this->assertSame([], Storage::disk('local')->allFiles('article-audio/checkpoints'));
-        Http::assertSentCount(2);
+        Http::assertSentCount(1);
     }
 
     public function test_job_uses_the_long_form_timeout_and_holds_its_unique_lock_longer(): void
@@ -132,7 +133,7 @@ class GenerateArticleAudioJobTest extends TestCase
         app()->call([$job, 'handle']);
         $audio = ArticleAudio::query()->where('article_key', $article->key)->where('locale', 'ar')->firstOrFail();
         $this->assertSame(ArticleAudioStatus::Ready, $audio->status);
-        Http::assertSentCount(2);
+        Http::assertSentCount(1);
     }
 
     public function test_failed_job_records_a_sanitized_error_without_deleting_previous_audio(): void

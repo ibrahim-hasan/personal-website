@@ -4,6 +4,8 @@ namespace Tests\Feature\Editorial;
 
 use App\Enums\CommentReportStatus;
 use App\Enums\CommentStatus;
+use App\Filament\Resources\Articles\Pages\CreateArticle;
+use App\Filament\Resources\Articles\Pages\EditArticle;
 use App\Filament\Resources\Comments\CommentResource;
 use App\Filament\Resources\Comments\Pages\ListComments;
 use App\Models\Article;
@@ -15,13 +17,65 @@ use App\Notifications\CommentReplyNotification;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 class EditorialAdminTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_an_admin_can_create_a_bilingual_rich_article_draft_with_a_managed_hero(): void
+    {
+        Storage::fake('public');
+        $this->seed([PermissionSeeder::class, RoleSeeder::class]);
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+        $body = [
+            'type' => 'doc',
+            'content' => [
+                ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => str_repeat('Useful context for a focused article. ', 30)]]],
+                ['type' => 'heading', 'attrs' => ['level' => 2], 'content' => [['type' => 'text', 'text' => 'A clear section']]],
+                ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => str_repeat('A practical next step. ', 30)]]],
+            ],
+        ];
+
+        $this->bootAdminPanel();
+
+        Livewire::actingAs($admin)
+            ->test(CreateArticle::class)
+            ->fillForm([
+                'key' => 'rich-editor-draft',
+                'title' => ['ar' => 'مسودة محرر غني', 'en' => 'Rich editor draft'],
+                'slug' => ['ar' => 'مسودة-محرر-غني', 'en' => 'rich-editor-draft'],
+                'type' => ['ar' => 'مقال', 'en' => 'Article'],
+                'summary' => ['ar' => 'ملخص واضح للمسودة.', 'en' => 'A clear summary for the draft.'],
+                'body_ar' => $body,
+                'body_en' => $body,
+                'image_alt' => ['ar' => 'رسم يوضح سير العمل', 'en' => 'Illustration of a workflow'],
+                'image_caption' => ['ar' => null, 'en' => null],
+                'published_at' => today()->toDateString(),
+                'modified_at' => today()->toDateString(),
+                'featured' => false,
+                Article::IMAGE_COLLECTION => [UploadedFile::fake()->image('hero.jpg', 1600, 900)],
+                'topic_keys' => ['products'],
+                'source_url' => null,
+                'seo_title' => ['ar' => 'مسودة محرر غني', 'en' => 'Rich Editor Draft'],
+                'seo_description' => ['ar' => 'وصف موجز لمسودة مقال غني.', 'en' => 'A concise description for a rich article draft.'],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $article = Article::query()->where('key', 'rich-editor-draft')->firstOrFail();
+
+        $this->assertFalse($article->is_published);
+        $this->assertSame($body, $article->getTranslation('body', 'ar', false));
+        $this->assertSame($body, $article->getTranslation('body', 'en', false));
+        $this->assertNotEmpty($article->getTranslations('read_minutes'));
+        $this->assertTrue($article->hasMedia(Article::IMAGE_COLLECTION));
+    }
 
     public function test_an_authorized_admin_can_manage_articles_and_moderate_comments(): void
     {
@@ -41,6 +95,8 @@ class EditorialAdminTest extends TestCase
             ->assertOk()
             ->assertSee(__('editorial_admin.fields.image_path'))
             ->assertSee(__('editorial_admin.hints.image_upload'))
+            ->assertSee(__('editorial_admin.fields.body'))
+            ->assertSee(__('editorial_admin.hints.body'))
             ->assertDontSee(__('editorial_admin.hints.image_path'));
 
         $this->actingAs($admin)
@@ -65,6 +121,22 @@ class EditorialAdminTest extends TestCase
             absolute: false,
             locale: 'ar',
         ))->assertNotFound();
+    }
+
+    public function test_a_published_article_form_is_read_only_until_a_publisher_unpublishes_it(): void
+    {
+        $this->seed([PermissionSeeder::class, RoleSeeder::class]);
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+        $article = Article::factory()->create(['is_published' => true]);
+
+        $this->bootAdminPanel();
+
+        $component = Livewire::actingAs($admin)
+            ->test(EditArticle::class, ['record' => $article->getKey()]);
+
+        $this->assertTrue($component->instance()->getSchema('form')?->isDisabled());
+        $component->assertActionVisible('unpublish');
     }
 
     public function test_approving_a_reply_notifies_both_contributors_after_moderation(): void

@@ -3,9 +3,17 @@
 namespace App\Services\ArticleAudio;
 
 use App\Support\Editorial\Article;
+use App\Support\Editorial\ArticleBody;
 
 class ArticleNarrationScript
 {
+    private readonly ArticleBody $articleBody;
+
+    public function __construct(?ArticleBody $articleBody = null)
+    {
+        $this->articleBody = $articleBody ?? new ArticleBody;
+    }
+
     public function build(Article $article, string $locale): string
     {
         return $this->fromLocalized($article->localized($locale), $locale);
@@ -18,6 +26,17 @@ class ArticleNarrationScript
     {
         $segments = [];
         $segments[] = $this->sentence((string) ($article['title'] ?? ''));
+
+        if (filled($article['body'] ?? null)) {
+            $body = $this->articleBody->text($article['body']);
+
+            foreach (preg_split('/\R+/u', $body) ?: [] as $segment) {
+                $segments[] = $this->sentence($segment);
+            }
+
+            return implode("\n\n", array_values(array_filter($segments)));
+        }
+
         $segments[] = $this->sentence((string) ($article['lead'] ?? ''));
 
         foreach (($article['sections'] ?? []) as $section) {

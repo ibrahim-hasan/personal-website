@@ -53,10 +53,10 @@ class QueueMissingArticleNarrationsTest extends TestCase
         ]);
 
         $this->artisan('articles:queue-missing-narrations', ['--locale' => 'ar'])
-            ->expectsOutputToContain('Queued 7 narration preparations')
+            ->expectsOutputToContain('Queued 8 narration preparations')
             ->assertExitCode(0);
 
-        Queue::assertPushed(PrepareArticleNarration::class, 7);
+        Queue::assertPushed(PrepareArticleNarration::class, 8);
         Queue::assertNotPushed(
             PrepareArticleNarration::class,
             fn (PrepareArticleNarration $job): bool => in_array($job->articleKey, [$current->key, $preparing->key], true),
@@ -83,7 +83,7 @@ class QueueMissingArticleNarrationsTest extends TestCase
         ]);
 
         $this->artisan('articles:queue-missing-narrations', ['--locale' => 'ar'])
-            ->expectsOutputToContain('Queued 9 narration preparations')
+            ->expectsOutputToContain('Queued 10 narration preparations')
             ->assertExitCode(0);
 
         Queue::assertPushed(
