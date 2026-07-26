@@ -61,6 +61,10 @@ class ArticleForm
                     ->label(__('editorial_admin.fields.body'))
                     ->required()
                     ->json()
+                    ->extraInputAttributes([
+                        'dir' => $locale === 'ar' ? 'rtl' : 'ltr',
+                        'lang' => $locale,
+                    ])
                     ->toolbarButtons([
                         ['bold', 'italic', 'link'],
                         ['h2', 'h3'],

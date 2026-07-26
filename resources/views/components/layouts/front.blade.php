@@ -65,13 +65,13 @@
         schemaType: $schemaType,
         structuredData: $structuredData,
     );
+    $cspNonce = config('security.csp.report_only') ? \Illuminate\Support\Facades\Vite::cspNonce() : null;
 @endphp
 
 <!DOCTYPE html>
 <html
     lang="{{ $seo->locale }}"
     dir="{{ is_rtl($seo->locale) ? 'rtl' : 'ltr' }}"
-    data-theme="light"
     data-uses-livewire="{{ $usesLivewire ? 'true' : 'false' }}"
 >
 
@@ -141,7 +141,7 @@
     @endif
     @stack('head')
 
-    <script type="application/ld+json">{!! \Illuminate\Support\Js::encode($seo->structuredData, JSON_UNESCAPED_SLASHES) !!}</script>
+    <script @if ($cspNonce) nonce="{{ $cspNonce }}" @endif type="application/ld+json">{!! \Illuminate\Support\Js::encode($seo->structuredData, JSON_UNESCAPED_SLASHES) !!}</script>
 </head>
 
 <body class="font-body antialiased {{ $bodyClass }}">

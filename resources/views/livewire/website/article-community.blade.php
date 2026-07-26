@@ -3,8 +3,7 @@
     data-reader-secondary
     aria-labelledby="article-community-title"
     @if ($canParticipate)
-        x-data="{ lastSaved: 0, timer: null }"
-        x-init="window.addEventListener('scroll', () => { clearTimeout(timer); timer = setTimeout(() => { const page = document.querySelector('[data-article-page]'); if (! page) return; const total = page.scrollHeight - window.innerHeight; const percent = total > 0 ? Math.min(100, Math.max(0, Math.round((window.scrollY - page.offsetTop) / total * 100))) : 100; if (percent >= lastSaved + 10 || percent >= 95) { lastSaved = percent; $wire.updateProgress(percent); } }, 500); }, { passive: true })"
+        data-article-reading-progress
     @endif
 >
     <div class="site-container">
@@ -123,7 +122,7 @@
                                         </div>
                                     @endif
                                 </div>
-                                <p class="mt-4 whitespace-pre-line text-[0.98rem] leading-7 text-ink-soft">{{ $comment->body }}</p>
+                                <p dir="auto" class="mt-4 whitespace-pre-line text-[0.98rem] leading-7 text-ink-soft">{{ $comment->body }}</p>
 
                                 @if ($canParticipate)
                                     <button type="button" wire:click="startReply({{ $comment->getKey() }})" class="mt-2 inline-flex min-h-11 items-center font-sans text-sm font-bold text-violet-700 underline decoration-violet-300 underline-offset-4 transition-colors hover:text-violet-900 hover:decoration-violet-700">{{ __('community.reply') }}</button>
@@ -132,7 +131,7 @@
                                 @if ($replyTo === $comment->getKey())
                                     <form wire:submit="postReply" class="mt-4 border-s-2 border-violet-500 bg-violet-50 p-4">
                                         <label for="reply-{{ $comment->getKey() }}" class="sr-only">{{ __('community.reply') }}</label>
-                                        <textarea id="reply-{{ $comment->getKey() }}" wire:model="replyBody" rows="3" maxlength="2000" class="min-h-28 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas-bright px-4 py-3 leading-7 text-ink outline-none transition-colors focus-visible:border-violet-600" placeholder="{{ __('community.reply_placeholder') }}"></textarea>
+                                        <textarea id="reply-{{ $comment->getKey() }}" wire:model="replyBody" rows="3" maxlength="2000" dir="auto" class="min-h-28 w-full rounded-[var(--control-radius)] border border-ink/20 bg-canvas-bright px-4 py-3 leading-7 text-ink outline-none transition-colors focus-visible:border-violet-600" placeholder="{{ __('community.reply_placeholder') }}"></textarea>
                                         @error('replyBody') <p class="mt-2 text-sm text-danger" role="alert">{{ $message }}</p> @enderror
                                         <p class="mt-2 text-xs leading-5 text-ink-muted">
                                             {!! __('community.reply_notice', [
@@ -158,7 +157,7 @@
                                                         <time class="text-xs text-ink-muted" datetime="{{ $reply->created_at->toAtomString() }}">{{ $reply->created_at->diffForHumans() }}</time>
                                                     </div>
                                                 </div>
-                                                <p class="mt-3 whitespace-pre-line text-sm leading-7 text-ink-soft">{{ $reply->body }}</p>
+                                                <p dir="auto" class="mt-3 whitespace-pre-line text-sm leading-7 text-ink-soft">{{ $reply->body }}</p>
                                             </article>
                                         @endforeach
                                     </div>

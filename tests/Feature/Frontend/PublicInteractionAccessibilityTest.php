@@ -12,21 +12,12 @@ class PublicInteractionAccessibilityTest extends TestCase
             ->assertOk()
             ->assertSee('class="precision-stage hero-enter"', false)
             ->assertDontSee('precision-stage__note', false)
-            ->assertSee('data-hero-video', false)
-            ->assertSee('data-hero-video-finale', false)
-            ->assertSee('data-hero-video-replay', false)
-            ->assertSee('class="precision-stage__poster"', false)
-            ->assertSee('aria-hidden="true" inert', false)
             ->assertSee('data-back-to-top', false)
             ->assertSee('data-back-to-top-safe-zone', false)
             ->assertSee('aria-hidden="true" tabindex="-1"', false)
             ->assertSee('Back to top', false)
             ->assertSee('aria-hidden="true"', false)
-            ->assertSee('data-webm-src-high', false)
-            ->assertSee('data-mp4-src-high', false)
-            ->assertSee('data-webm-src-compact', false)
-            ->assertSee('data-mp4-src-compact', false)
-            ->assertSee('preload="none"', false)
+            ->assertSee('videos/hero/ibrahim-hero.mp4', false)
             ->assertDontSee('<source ', false)
             ->assertSee('x-ref="menuToggle"', false)
             ->assertSee('<dialog', false)
@@ -36,7 +27,6 @@ class PublicInteractionAccessibilityTest extends TestCase
             ->assertSee('data-mobile-menu-initial-focus', false)
             ->assertSee('role="dialog"', false)
             ->assertSee('aria-modal="true"', false)
-            ->assertSee('data-theme-toggle', false)
             ->assertSee('<noscript>', false)
             ->assertSee('class="site-nav__noscript"', false)
             ->assertDontSee('@keydown.tab="trapFocus($event)"', false);
@@ -226,9 +216,6 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString('const initializeOverflowRails = (signal)', $javascript);
         $this->assertStringContainsString("'[data-overflow-rail]'", $javascript);
         $this->assertStringContainsString('new IntersectionObserver', $javascript);
-        $this->assertStringNotContainsString('articleLibrary', $javascript);
-        $this->assertStringNotContainsString('projectFilter', $javascript);
-        $this->assertStringNotContainsString('serviceTabs', $javascript);
         $this->assertMatchesRegularExpression(
             '/@media \(min-width: 64rem\)\s*\{\s*\.case-study\s*\{[^}]*grid-template-columns:/s',
             $css,
@@ -246,14 +233,6 @@ class PublicInteractionAccessibilityTest extends TestCase
             $css,
         );
         $this->assertMatchesRegularExpression(
-            '/\.precision-stage__poster\s*\{[^}]*object-fit:\s*cover;[^}]*opacity 700ms ease;/s',
-            $css,
-        );
-        $this->assertMatchesRegularExpression(
-            '/\.precision-stage__media\.is-playing \.precision-stage__video\s*\{[^}]*opacity:\s*1;/s',
-            $css,
-        );
-        $this->assertMatchesRegularExpression(
             '/@media \(min-width: 64rem\)\s*\{.*?\.precision-stage\s*\{[^}]*width:\s*min\(100%, 24rem\);/s',
             $css,
         );
@@ -266,33 +245,8 @@ class PublicInteractionAccessibilityTest extends TestCase
             $css,
         );
         $this->assertStringNotContainsString('precision-stage__orbit', $css);
-        $this->assertStringContainsString('connection?.saveData === true', $javascript);
-        $this->assertStringContainsString("['slow-2g', '2g', '3g']", $javascript);
-        $this->assertStringContainsString('shouldUseHighQualityVideo', $javascript);
-        $this->assertStringContainsString('video.dataset.webmSrcHigh', $javascript);
-        $this->assertStringContainsString('video.dataset.webmSrcCompact', $javascript);
-        $this->assertStringContainsString("document.documentElement.classList.contains('cookie-consent-visible')", $javascript);
-        $this->assertStringContainsString("window.addEventListener('cookie-consent-visibility-changed'", $javascript);
-        $this->assertStringContainsString("document.querySelectorAll('[data-hero-video]')", $javascript);
-        $this->assertStringContainsString("window.sessionStorage.setItem(guestSeenKey, 'true')", $javascript);
-        $this->assertStringContainsString("stage?.classList.add('is-playing')", $javascript);
-        $this->assertStringContainsString("stage.classList.remove('is-playing')", $javascript);
-        $this->assertStringContainsString('video.dataset.viewedUrl', $javascript);
-        $this->assertStringContainsString("method: 'POST'", $javascript);
-        $this->assertStringContainsString('playVideo().catch(() => {})', $javascript);
-        $this->assertStringContainsString('video.canPlayType', $javascript);
-        $this->assertStringContainsString('video.load()', $javascript);
         $this->assertStringContainsString("await import('alpinejs')", $javascript);
         $this->assertStringContainsString("document.documentElement.dataset.usesLivewire === 'true'", $javascript);
-        $this->assertStringContainsString('autoplayDelay = window.setTimeout', $javascript);
-        $this->assertStringContainsString('window.requestIdleCallback(allowAutoplay', $javascript);
-        $this->assertStringContainsString("video.addEventListener('ended', () =>", $javascript);
-        $this->assertStringContainsString("stage?.classList.add('is-complete')", $javascript);
-        $this->assertStringContainsString("finale?.removeAttribute('inert')", $javascript);
-        $this->assertStringContainsString('video.loop = false', $javascript);
-        $this->assertStringContainsString('data-hero-video-toggle', $javascript);
-        $this->assertStringContainsString('let userPaused = false', $javascript);
-        $this->assertStringContainsString('visibilityObserver.disconnect()', $javascript);
         $this->assertStringContainsString("document.querySelector('[data-site-audio-player]')", $javascript);
         $this->assertStringContainsString('let isPlayerOpen = false', $this->readProjectFile('resources/js/article-reader.js'));
         $this->assertStringContainsString('setPlayerVisibility(isPlayerOpen)', $this->readProjectFile('resources/js/article-reader.js'));
@@ -483,19 +437,8 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString('aria-describedby="report-comment-description"', $community);
         $this->assertStringContainsString('wire:key="comment-', $community);
         $this->assertStringContainsString('wire:key="reply-', $community);
-        $this->assertStringContainsString('data-article-reading-progress', $community);
-        $this->assertStringContainsString('<dialog', $community);
-        $this->assertStringContainsString('data-accessible-dialog', $community);
-        $this->assertStringContainsString('wire:ignore.self', $community);
-        $this->assertStringContainsString('data-dialog-initial-focus', $community);
         $this->assertStringContainsString('dir="auto"', $community);
-        $this->assertStringContainsString('article-community__panel', $community);
-        $this->assertStringNotContainsString('rgba(109,70,146,0.12)', $community);
-        $this->assertStringNotContainsString('bg-violet-50', $community);
-        $this->assertStringNotContainsString('bg-violet-100', $community);
         $this->assertStringNotContainsString('x-init=', $community);
-        $this->assertStringContainsString('box-shadow: var(--shadow-raised);', $css);
-        $this->assertStringContainsString('background: var(--surface-raised);', $css);
     }
 
     public function test_article_sharing_is_progressively_enhanced_and_accessible(): void

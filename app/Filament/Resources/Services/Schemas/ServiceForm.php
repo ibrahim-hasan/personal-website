@@ -3,12 +3,15 @@
 namespace App\Filament\Resources\Services\Schemas;
 
 use App\Filament\Components\TranslatableTabs;
+use App\Models\Article;
+use App\Models\Project;
 use App\Models\Service;
 use App\Support\LocaleSlugger;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -58,6 +61,34 @@ class ServiceForm
                     ->required(fn (Get $get): bool => ! (bool) $get('is_draft'))
                     ->rows(3)
                     ->columnSpanFull(),
+                Repeater::make("fit_signals.{$locale}")
+                    ->label(__('service_admin.fields.fit_signals'))
+                    ->simple(
+                        TextInput::make('signal')
+                            ->required()
+                            ->maxLength(240),
+                    )
+                    ->maxItems(4)
+                    ->reorderable()
+                    ->helperText(__('service_admin.hints.fit_signals'))
+                    ->columnSpanFull(),
+                Textarea::make("engagement_note.{$locale}")
+                    ->label(__('service_admin.fields.engagement_note'))
+                    ->required(fn (Get $get): bool => ! (bool) $get('is_draft'))
+                    ->rows(2)
+                    ->maxLength(500)
+                    ->columnSpanFull(),
+                TextInput::make("seo_title.{$locale}")
+                    ->label(__('service_admin.fields.seo_title'))
+                    ->required(fn (Get $get): bool => ! (bool) $get('is_draft'))
+                    ->maxLength(160)
+                    ->columnSpanFull(),
+                Textarea::make("seo_description.{$locale}")
+                    ->label(__('service_admin.fields.seo_description'))
+                    ->required(fn (Get $get): bool => ! (bool) $get('is_draft'))
+                    ->rows(2)
+                    ->maxLength(320)
+                    ->columnSpanFull(),
             ];
         }
 
@@ -79,6 +110,7 @@ class ServiceForm
                             ])
                             ->columns(2)
                             ->minItems(1)
+                            ->maxItems(5)
                             ->reorderable()
                             ->columnSpanFull(),
                     ])
@@ -92,13 +124,62 @@ class ServiceForm
                             ->maxLength(80)
                             ->disabledOn('edit')
                             ->unique(ignoreRecord: true),
-                        Toggle::make('is_draft')
-                            ->label(__('admin.fields.draft'))
-                            ->required(),
-                        Toggle::make('is_active')
-                            ->label(__('admin.fields.active'))
-                            ->required()
-                            ->default(true),
+                        Hidden::make('is_draft')
+                            ->default(true)
+                            ->dehydrated(false),
+                        Hidden::make('is_active')
+                            ->default(false)
+                            ->dehydrated(false),
+                    ]),
+                Section::make(__('service_admin.sections.relationships'))
+                    ->description(__('service_admin.hints.related_content'))
+                    ->schema([
+                        Select::make('projects')
+                            ->label(__('service_admin.fields.related_projects'))
+                            ->relationship(name: 'projects', titleAttribute: 'key')
+                            ->getOptionLabelFromRecordUsing(
+                                fn (Project $record): string => sprintf(
+                                    '%s — %s',
+                                    localized_model_attribute($record, 'title'),
+                                    $record->key,
+                                ),
+                            )
+                            ->multiple()
+                            ->preload()
+                            ->searchable()
+                            ->saveRelationshipsUsing(function (Service $record, ?array $state): void {
+                                $relationships = collect($state ?? [])
+                                    ->values()
+                                    ->mapWithKeys(
+                                        fn (mixed $projectId, int $index): array => [(int) $projectId => ['sort_order' => $index]],
+                                    )
+                                    ->all();
+
+                                $record->projects()->sync($relationships);
+                            }),
+                        Select::make('articles')
+                            ->label(__('service_admin.fields.related_articles'))
+                            ->relationship(name: 'articles', titleAttribute: 'key')
+                            ->getOptionLabelFromRecordUsing(
+                                fn (Article $record): string => sprintf(
+                                    '%s — %s',
+                                    localized_model_attribute($record, 'title'),
+                                    $record->key,
+                                ),
+                            )
+                            ->multiple()
+                            ->preload()
+                            ->searchable()
+                            ->saveRelationshipsUsing(function (Service $record, ?array $state): void {
+                                $relationships = collect($state ?? [])
+                                    ->values()
+                                    ->mapWithKeys(
+                                        fn (mixed $articleId, int $index): array => [(int) $articleId => ['sort_order' => $index]],
+                                    )
+                                    ->all();
+
+                                $record->articles()->sync($relationships);
+                            }),
                     ]),
             ]);
     }

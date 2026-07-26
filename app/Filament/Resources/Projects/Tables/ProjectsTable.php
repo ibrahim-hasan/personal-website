@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Projects\Tables;
 
+use App\Filament\Resources\Projects\Actions\ProjectCaseStudyPublicationActions;
 use App\Models\Project;
 use App\Support\AdminTableEmptyState;
 use App\Support\PortfolioAtlas;
@@ -57,6 +58,9 @@ class ProjectsTable
                 ToggleColumn::make('is_active')
                     ->label(__('admin.fields.active'))
                     ->disabled(fn (Project $record): bool => Gate::denies('update', $record)),
+                IconColumn::make('is_detailed_case_study')
+                    ->label(__('project_admin.fields.case_study_ready'))
+                    ->boolean(),
                 TextColumn::make('updated_at')
                     ->label(__('admin.fields.updated_at'))
                     ->since()
@@ -75,6 +79,8 @@ class ProjectsTable
                 ActionGroup::make([
                     ViewAction::make(),
                     EditAction::make(),
+                    ProjectCaseStudyPublicationActions::publish(),
+                    ProjectCaseStudyPublicationActions::unpublish(),
                 ]),
             ])
             ->toolbarActions([

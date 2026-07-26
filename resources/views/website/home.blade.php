@@ -64,70 +64,19 @@
                     data-depth="portrait"
                 >
                     <div class="precision-stage__media relative isolate overflow-hidden">
-                        <img
-                            class="precision-stage__poster"
-                            src="{{ asset('images/ibrahim/ibrahim-speaking-editorial.webp') }}"
-                            alt=""
-                            width="720"
-                            height="1280"
-                            fetchpriority="high"
-                            decoding="async"
-                            aria-hidden="true"
-                        >
                         <video
                             class="precision-stage__video"
-                            data-hero-video
-                            data-viewed="{{ auth()->user()?->hero_video_seen_at !== null ? 'true' : 'false' }}"
-                            data-webm-src-high="{{ asset('videos/hero/ibrahim-hero.webm') }}"
-                            data-mp4-src-high="{{ asset('videos/hero/ibrahim-hero.mp4') }}"
-                            data-webm-src-compact="{{ asset('videos/hero/ibrahim-hero-0ab509e4.webm') }}"
-                            data-mp4-src-compact="{{ asset('videos/hero/ibrahim-hero-689778bf.mp4') }}"
-                            @auth
-                                data-viewed-url="{{ localized_route('reader.hero-video.viewed') }}"
-                            @endauth
+                            src="{{ asset('videos/hero/ibrahim-hero.mp4') }}"
                             width="720"
                             height="1280"
                             muted
+                            autoplay="autoplay"
                             playsinline
-                            preload="none"
+                            preload="metadata"
                             poster="{{ asset('images/ibrahim/ibrahim-speaking-editorial.webp') }}"
                             aria-hidden="true"
                         ></video>
 
-                        <button
-                            type="button"
-                            class="precision-stage__playback"
-                            data-hero-video-toggle
-                            data-label-play="{{ __('site.home.video_play') }}"
-                            data-label-pause="{{ __('site.home.video_pause') }}"
-                            aria-label="{{ __('site.home.video_play') }}"
-                        >
-                            <x-phosphor-play class="size-5" data-hero-video-play-icon aria-hidden="true" />
-                            <x-phosphor-pause class="size-5" data-hero-video-pause-icon aria-hidden="true" hidden />
-                            <span class="sr-only" data-hero-video-toggle-label>{{ __('site.home.video_play') }}</span>
-                        </button>
-
-                        <div class="precision-stage__finale" data-hero-video-finale aria-hidden="true" inert>
-                            <span class="precision-stage__finale-mark" aria-hidden="true"></span>
-                            <p>{{ __('site.home.video_finale_eyebrow') }}</p>
-                            <strong>{{ __('site.home.video_finale_title') }}</strong>
-                            <div class="precision-stage__finale-actions">
-                                <a
-                                    href="{{ localized_route('contact') }}#consultation"
-                                    class="precision-stage__finale-cta"
-                                    data-analytics-event="primary_cta_click"
-                                    data-analytics-ui-location="home_hero"
-                                    data-analytics-destination-category="consultation"
-                                >
-                                    <span>{{ __('site.home.video_finale_cta') }}</span>
-                                    <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
-                                </a>
-                                <button type="button" class="precision-stage__replay" data-hero-video-replay>
-                                    <x-phosphor-arrow-counter-clockwise class="h-4 w-4" aria-hidden="true" />
-                                    <span>{{ __('site.home.video_replay') }}</span>
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
                 </figure>

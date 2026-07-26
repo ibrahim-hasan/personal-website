@@ -28,15 +28,19 @@
         <nav class="site-nav__desktop-links" aria-label="{{ __('site.nav.main') }}">
             @foreach ($links as $link)
                 @php
-                    $patterns = $link['route'] === 'writing'
-                        ? ['writing', 'writing.*', '*.writing', '*.writing.*']
-                        : [$link['route'], '*.'.$link['route']];
+                    $patterns = [
+                        $link['route'],
+                        $link['route'].'.*',
+                        '*.'.$link['route'],
+                        '*.'.$link['route'].'.*',
+                    ];
                     $isActive = request()->routeIs(...$patterns);
                 @endphp
                 <a
                     href="{{ localized_route($link['route']) }}"
                     wire:navigate
                     class="nav-link {{ $isActive ? 'nav-link--active' : '' }}"
+                    @if ($isActive) aria-current="page" @endif
                 >
                     {{ $link['label'] }}
                 </a>
@@ -44,7 +48,15 @@
         </nav>
 
         <div class="site-nav__actions">
-            <a href="{{ localized_route('contact') }}#consultation" wire:navigate class="site-nav__consultation button-primary" data-magnetic>
+            <a
+                href="{{ localized_route('contact') }}#consultation"
+                wire:navigate
+                class="site-nav__consultation button-primary"
+                data-magnetic
+                data-analytics-event="primary_cta_click"
+                data-analytics-ui-location="navigation"
+                data-analytics-destination-category="consultation"
+            >
                 <span>{{ __('site.actions.free_consultation') }}</span>
                 <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
             </a>
@@ -53,7 +65,7 @@
                 <div class="language-switch" aria-label="{{ __('site.nav.languages') }}">
                     @foreach (config('app.supported_locales', []) as $locale => $language)
                         @continue(current_locale() === $locale)
-                        <a href="{{ $alternateUrls[$locale] ?? localized_current_url($locale) }}" data-no-navigate class="language-switch__action" hreflang="{{ $locale }}" lang="{{ $locale }}">
+                        <a href="{{ $alternateUrls[$locale] ?? localized_current_url($locale) }}" data-no-navigate class="language-switch__action" hreflang="{{ $locale }}" lang="{{ $locale }}" data-analytics-event="language_switch" data-analytics-ui-location="navigation">
                             <span>{{ $language['native'] }}</span>
                         </a>
                     @endforeach
@@ -70,15 +82,19 @@
                     </a>
                 @else
                     <div
-                        x-data="{ accountMenuOpen: false }"
-                        @click.outside="accountMenuOpen = false"
-                        @keydown.escape.window="accountMenuOpen = false"
+                        x-data="accountMenu"
+                        @click.outside="close(false)"
+                        @focusout="$nextTick(() => { if (! $el.contains(document.activeElement)) close(false) })"
                         class="site-nav__account"
                     >
                         <button
+                            x-ref="accountMenuTrigger"
                             type="button"
-                            @click="accountMenuOpen = ! accountMenuOpen"
-                            :aria-expanded="accountMenuOpen"
+                            @click="toggle()"
+                            @keydown.arrow-down.prevent="openAndFocus('first')"
+                            @keydown.arrow-up.prevent="openAndFocus('last')"
+                            @keydown.escape.prevent="close(true)"
+                            :aria-expanded="open"
                             aria-controls="reader-account-menu"
                             aria-label="{{ __('reader_auth.open_account_menu') }}"
                             class="site-nav__account-trigger site-nav__account-trigger--authenticated"
@@ -88,7 +104,7 @@
 
                         <div
                             x-cloak
-                            x-show="accountMenuOpen"
+                            x-show="open"
                             x-transition:enter="transition duration-200 ease-out"
                             x-transition:enter-start="opacity-0 -translate-y-2"
                             x-transition:enter-end="opacity-100 translate-y-0"
@@ -96,23 +112,27 @@
                             x-transition:leave-start="opacity-100 translate-y-0"
                             x-transition:leave-end="opacity-0 -translate-y-2"
                             id="reader-account-menu"
+                            x-ref="accountMenu"
+                            role="menu"
+                            @keydown="moveFocus($event)"
+                            @keydown.escape.prevent.stop="close(true)"
                             class="site-nav__account-menu absolute end-0 top-[calc(100%+0.75rem)] z-50 w-72 border border-ink/15 bg-canvas-bright p-3"
                         >
                             <div class="border-b border-ink/10 px-3 pb-3">
                                 <p class="truncate font-display text-base font-bold text-ink">{{ auth()->user()->name }}</p>
                             </div>
                             <div class="grid gap-1 pt-2">
-                                <a href="{{ localized_route('reader.library') }}" wire:navigate @click="accountMenuOpen = false" class="flex min-h-11 items-center gap-3 rounded-[var(--control-radius)] px-3 font-sans text-sm font-bold text-ink transition hover:bg-violet-100 hover:text-violet-800">
+                                <a href="{{ localized_route('reader.library') }}" wire:navigate @click="close(false)" role="menuitem" class="flex min-h-11 items-center gap-3 rounded-[var(--control-radius)] px-3 font-sans text-sm font-bold text-ink transition hover:bg-violet-100 hover:text-violet-800">
                                     <x-phosphor-bookmark-simple class="size-4" aria-hidden="true" />
                                     <span>{{ __('reader_auth.library_title') }}</span>
                                 </a>
-                                <a href="{{ localized_route('reader.account') }}" wire:navigate @click="accountMenuOpen = false" class="flex min-h-11 items-center gap-3 rounded-[var(--control-radius)] px-3 font-sans text-sm font-bold text-ink transition hover:bg-violet-100 hover:text-violet-800">
+                                <a href="{{ localized_route('reader.account') }}" wire:navigate @click="close(false)" role="menuitem" class="flex min-h-11 items-center gap-3 rounded-[var(--control-radius)] px-3 font-sans text-sm font-bold text-ink transition hover:bg-violet-100 hover:text-violet-800">
                                     <x-phosphor-user-circle class="size-4" aria-hidden="true" />
                                     <span>{{ __('reader_auth.account_settings') }}</span>
                                 </a>
                                 <form method="POST" action="{{ localized_route('reader.logout') }}">
                                     @csrf
-                                    <button type="submit" class="flex min-h-11 w-full items-center gap-3 rounded-[var(--control-radius)] px-3 font-sans text-sm font-bold text-ink transition hover:bg-violet-100 hover:text-violet-800">
+                                    <button type="submit" role="menuitem" class="flex min-h-11 w-full items-center gap-3 rounded-[var(--control-radius)] px-3 font-sans text-sm font-bold text-ink transition hover:bg-violet-100 hover:text-violet-800">
                                         <x-phosphor-sign-out class="size-4 rtl:rotate-180" aria-hidden="true" />
                                         <span>{{ __('reader_auth.logout') }}</span>
                                     </button>
@@ -139,30 +159,33 @@
         </div>
     </div>
 
-    <div
+    <dialog
         x-ref="mobileMenu"
-        x-show="show"
-        @keydown.tab="trapFocus($event)"
-        x-transition:enter="transition duration-500 ease-out"
-        x-transition:enter-start="opacity-0 -translate-y-6"
-        x-transition:enter-end="opacity-100 translate-y-0"
-        x-transition:leave="transition duration-300 ease-in"
-        x-transition:leave-start="opacity-100 translate-y-0"
-        x-transition:leave-end="opacity-0 -translate-y-4"
-        style="display: none;"
+        @close="handleNativeClose()"
+        @cancel.prevent="close()"
+        @click.self="close()"
         id="mobile-menu"
         role="dialog"
         aria-modal="true"
-        aria-label="{{ __('site.nav.mobile') }}"
-        class="mobile-menu fixed inset-x-0 bottom-0 top-20 z-40"
+        aria-labelledby="mobile-menu-title"
+        class="mobile-menu"
     >
         <nav class="site-container flex h-full flex-col justify-between gap-10 overflow-y-auto py-10" aria-label="{{ __('site.nav.mobile') }}">
+            <div class="mobile-menu__topline">
+                <h2 id="mobile-menu-title" tabindex="-1" data-mobile-menu-initial-focus class="font-sans text-sm font-bold text-violet-200">{{ __('site.nav.mobile') }}</h2>
+                <button type="button" class="mobile-menu__close" @click="close()" aria-label="{{ __('site.nav.close_menu') }}">
+                    <x-phosphor-x class="size-5" aria-hidden="true" />
+                </button>
+            </div>
             <div class="flex flex-col">
                 @foreach ($links as $link)
                     @php
-                        $patterns = $link['route'] === 'writing'
-                            ? ['writing', 'writing.*', '*.writing', '*.writing.*']
-                            : [$link['route'], '*.'.$link['route']];
+                        $patterns = [
+                            $link['route'],
+                            $link['route'].'.*',
+                            '*.'.$link['route'],
+                            '*.'.$link['route'].'.*',
+                        ];
                         $isActive = request()->routeIs(...$patterns);
                     @endphp
                     <a
@@ -170,6 +193,7 @@
                         @click="close(false)"
                         wire:navigate
                         class="mobile-menu__link {{ $isActive ? 'mobile-menu__link--active' : '' }}"
+                        @if ($isActive) aria-current="page" @endif
                     >
                         <span>{{ sprintf('%02d', $loop->iteration) }}</span>
                         <strong>{{ $link['label'] }}</strong>
@@ -225,5 +249,92 @@
                 </div>
             </div>
         </nav>
-    </div>
+    </dialog>
 </header>
+
+<noscript>
+    <nav class="site-nav__noscript" aria-label="{{ __('site.nav.mobile') }}">
+        <div class="site-container site-nav__noscript-inner">
+            <ul class="site-nav__noscript-links" role="list">
+                @foreach ($links as $link)
+                    @php
+                        $patterns = [
+                            $link['route'],
+                            $link['route'].'.*',
+                            '*.'.$link['route'],
+                            '*.'.$link['route'].'.*',
+                        ];
+                        $isActive = request()->routeIs(...$patterns);
+                    @endphp
+                    <li>
+                        <a
+                            href="{{ localized_route($link['route']) }}"
+                            class="site-nav__noscript-link"
+                            @if ($isActive) aria-current="page" @endif
+                        >
+                            {{ $link['label'] }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+
+            <div class="site-nav__noscript-actions">
+                <a
+                    href="{{ localized_route('contact') }}#consultation"
+                    class="site-nav__noscript-cta"
+                    @if (request()->routeIs('contact', '*.contact')) aria-current="page" @endif
+                >
+                    {{ __('site.actions.free_consultation') }}
+                </a>
+
+                @foreach (config('app.supported_locales', []) as $locale => $language)
+                    @continue(current_locale() === $locale)
+                    <a
+                        href="{{ $alternateUrls[$locale] ?? localized_current_url($locale) }}"
+                        class="site-nav__noscript-utility-link"
+                        hreflang="{{ $locale }}"
+                        lang="{{ $locale }}"
+                    >
+                        {{ $language['native'] }}
+                    </a>
+                @endforeach
+
+                @guest
+                    <a
+                        href="{{ localized_route('reader.login') }}"
+                        class="site-nav__noscript-utility-link"
+                        @if (request()->routeIs('reader.login', '*.reader.login')) aria-current="page" @endif
+                    >
+                        {{ __('reader_auth.sign_in') }}
+                    </a>
+                    <a
+                        href="{{ localized_route('reader.register') }}"
+                        class="site-nav__noscript-utility-link"
+                        @if (request()->routeIs('reader.register', '*.reader.register')) aria-current="page" @endif
+                    >
+                        {{ __('reader_auth.create_account') }}
+                    </a>
+                @else
+                    <a
+                        href="{{ localized_route('reader.library') }}"
+                        class="site-nav__noscript-utility-link"
+                        @if (request()->routeIs('reader.library', '*.reader.library')) aria-current="page" @endif
+                    >
+                        {{ __('reader_auth.library_title') }}
+                    </a>
+                    <a
+                        href="{{ localized_route('reader.account') }}"
+                        class="site-nav__noscript-utility-link"
+                        @if (request()->routeIs('reader.account', '*.reader.account')) aria-current="page" @endif
+                    >
+                        {{ __('reader_auth.account_settings') }}
+                    </a>
+                    <form method="POST" action="{{ localized_route('reader.logout') }}" class="site-nav__noscript-logout">
+                        @csrf
+                        <button type="submit" class="site-nav__noscript-utility-link">{{ __('reader_auth.logout') }}</button>
+                    </form>
+                @endguest
+            </div>
+        </div>
+    </nav>
+</noscript>

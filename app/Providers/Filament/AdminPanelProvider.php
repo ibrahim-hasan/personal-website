@@ -10,8 +10,10 @@ use App\Filament\Widgets\AdminContentStats;
 use App\Http\Controllers\Filament\GenerateArticleAudioController;
 use App\Http\Controllers\Filament\GenerateArticleAudioSampleController;
 use App\Http\Controllers\Filament\PrepareArticleNarrationController;
+use App\Http\Controllers\Filament\PreviewServiceController;
 use App\Http\Controllers\Filament\UpdateArticleNarrationController;
 use App\Http\Middleware\SetLocale;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -42,6 +44,14 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(AdminLogin::class)
             ->passwordReset(AdminRequestPasswordReset::class, AdminResetPassword::class)
+            ->profile(Profile::class, isSimple: false)
+            ->multiFactorAuthentication(
+                [
+                    AppAuthentication::make()
+                        ->recoverable(),
+                ],
+                isRequired: fn (): bool => (bool) config('admin.mfa.required', false),
+            )
             ->brandName(__('admin.brand.name'))
             ->brandLogo(fn () => view('filament.partials.auth-brand-logo'))
             ->brandLogoHeight('2.75rem')
@@ -115,6 +125,11 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->routes(function (): void {
+                Route::get('/services/{service}/preview', PreviewServiceController::class)
+                    ->whereNumber('service')
+                    ->middleware([Authenticate::class, 'throttle:30,1'])
+                    ->name('services.preview');
+
                 Route::post('/article-audio/{article}/{locale}/generate', GenerateArticleAudioController::class)
                     ->middleware([Authenticate::class, 'throttle:6,1'])
                     ->name('article-audio.generate');
@@ -132,9 +147,8 @@ class AdminPanelProvider extends PanelProvider
                     ->name('article-audio.sample.generate');
             })
             ->userMenuItems([
-                MenuItem::make()
+                'profile' => MenuItem::make()
                     ->label(fn (): string => Profile::getLabel())
-                    ->url(fn (): string => Profile::getUrl())
                     ->icon('heroicon-o-user-circle'),
             ]);
     }

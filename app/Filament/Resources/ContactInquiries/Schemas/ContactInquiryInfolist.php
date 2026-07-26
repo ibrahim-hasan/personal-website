@@ -16,6 +16,10 @@ class ContactInquiryInfolist
                 Section::make(__('admin.sections.inquiry'))
                     ->columns(2)
                     ->schema([
+                        TextEntry::make('public_reference')
+                            ->label(__('site.consultation.public_reference', ['reference' => '']))
+                            ->placeholder('—')
+                            ->copyable(),
                         TextEntry::make('name')->label(__('admin.fields.name')),
                         TextEntry::make('email')
                             ->label(__('admin.fields.email_address'))
@@ -23,7 +27,13 @@ class ContactInquiryInfolist
                         TextEntry::make('company')
                             ->label(__('admin.fields.company'))
                             ->placeholder('—'),
+                        TextEntry::make('role')
+                            ->label(__('site.consultation.validation.role'))
+                            ->placeholder('—'),
                         TextEntry::make('service_label')->label(__('admin.fields.service')),
+                        TextEntry::make('timing')
+                            ->label(__('site.consultation.validation.timing'))
+                            ->placeholder('—'),
                         TextEntry::make('challenge')
                             ->label(__('admin.fields.challenge'))
                             ->columnSpanFull(),

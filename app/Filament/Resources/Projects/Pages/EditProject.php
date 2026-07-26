@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Projects\Pages;
 
+use App\Filament\Resources\Projects\Actions\ProjectCaseStudyPublicationActions;
 use App\Filament\Resources\Projects\ProjectResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
@@ -15,6 +16,8 @@ class EditProject extends EditRecord
     {
         return [
             ViewAction::make(),
+            ProjectCaseStudyPublicationActions::publish(),
+            ProjectCaseStudyPublicationActions::unpublish(),
             DeleteAction::make(),
         ];
     }

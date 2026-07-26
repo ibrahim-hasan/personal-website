@@ -10,7 +10,7 @@
             <h2 class="display-section max-w-4xl text-canvas">
                 {{ __('site.footer.cta_title') }}
             </h2>
-            <a href="{{ localized_route('contact') }}#consultation" wire:navigate class="button-light site-footer__cta-action" data-magnetic>
+            <a href="{{ localized_route('contact') }}#consultation" wire:navigate class="button-light site-footer__cta-action" data-magnetic data-analytics-event="primary_cta_click" data-analytics-ui-location="footer" data-analytics-destination-category="consultation">
                 <span>{{ __('site.actions.free_consultation') }}</span>
                 <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
             </a>
@@ -42,11 +42,11 @@
         <div class="footer-contact">
             <h3 class="footer-label">{{ __('site.footer.contact') }}</h3>
             <p class="footer-contact__intro">{{ __('site.footer.contact_intro') }}</p>
-            <a class="footer-contact__email" href="mailto:{{ $contact['email'] }}">
+            <a class="footer-contact__email" href="mailto:{{ $contact['email'] }}" data-analytics-event="direct_contact_click" data-analytics-ui-location="footer" data-analytics-destination-category="direct_contact" data-analytics-contact-channel="email">
                 <span>{{ __('site.footer.email_label') }}</span>
                 <strong dir="ltr">{{ $contact['email'] }}</strong>
             </a>
-            <a class="footer-contact__action" wire:navigate href="{{ localized_route('contact') }}#consultation">
+            <a class="footer-contact__action" wire:navigate href="{{ localized_route('contact') }}#consultation" data-analytics-event="primary_cta_click" data-analytics-ui-location="footer" data-analytics-destination-category="consultation">
                 <span>{{ __('site.actions.free_consultation') }}</span>
                 <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" aria-hidden="true" />
             </a>

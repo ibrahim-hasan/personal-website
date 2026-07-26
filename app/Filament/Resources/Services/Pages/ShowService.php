@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Services\Pages;
 
+use App\Filament\Resources\Services\Actions\ServicePublicationActions;
 use App\Filament\Resources\Services\ServiceResource;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
@@ -14,6 +15,9 @@ class ShowService extends ViewRecord
     {
         return [
             EditAction::make(),
+            ServicePublicationActions::preview(),
+            ServicePublicationActions::publish(),
+            ServicePublicationActions::unpublish(),
         ];
     }
 }

@@ -2,146 +2,126 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\User;
+use Filament\Actions\Action;
+use Filament\Auth\Pages\EditProfile;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Notifications\Notification;
-use Filament\Pages\Page;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\Auth;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Support\Enums\Alignment;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\Validation\ValidationException;
 
-class Profile extends Page implements HasForms
+class Profile extends EditProfile
 {
-    use InteractsWithForms;
-
-    protected static string|\BackedEnum|null $navigationIcon = null;
-
-    protected static string|\UnitEnum|null $navigationGroup = null;
-
-    protected static ?int $navigationSort = null;
-
-    protected static bool $shouldRegisterNavigation = false;
-
-    protected string $view = 'filament.pages.profile';
-
-    public ?array $data = [];
+    protected static bool $isDiscovered = false;
 
     public static function getLabel(): string
     {
         return __('admin.auth.profile');
     }
 
-    public function getTitle(): string
+    protected function getNameFormComponent(): Component
     {
-        return __('admin.auth.profile');
+        return TextInput::make('name')
+            ->label(__('admin.fields.name'))
+            ->required()
+            ->maxLength(255)
+            ->autofocus();
     }
 
-    public function mount(): void
+    protected function getEmailFormComponent(): Component
     {
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        abort_unless($user, 403);
-
-        $this->form->fill([
-            'name' => $user->name,
-            'email' => $user->email,
-        ]);
+        return TextInput::make('email')
+            ->label(__('admin.fields.email_address'))
+            ->email()
+            ->required()
+            ->maxLength(255)
+            ->unique(ignoreRecord: true)
+            ->live(debounce: 500);
     }
 
-    public function form(Schema $schema): Schema
+    protected function getPasswordFormComponent(): Component
     {
-        return $schema
-            ->statePath('data')
-            ->schema([
-                Section::make(__('admin.sections.main_details'))
-                    ->schema([
-                        TextInput::make('name')
-                            ->label(__('admin.fields.name'))
-                            ->required()
-                            ->maxLength(255),
-                        TextInput::make('email')
-                            ->label(__('admin.fields.email_address'))
-                            ->email()
-                            ->required()
-                            ->unique(
-                                table: User::class,
-                                column: 'email',
-                                ignorable: fn (): ?User => Auth::user(),
-                            )
-                            ->maxLength(255),
-                    ])
-                    ->columns(2),
-
-                Section::make(__('admin.auth.change_password'))
-                    ->schema([
-                        TextInput::make('current_password')
-                            ->label(__('admin.auth.current_password'))
-                            ->password()
-                            ->revealable()
-                            ->required(),
-                        TextInput::make('password')
-                            ->label(__('admin.auth.new_password'))
-                            ->password()
-                            ->revealable()
-                            ->required()
-                            ->confirmed()
-                            ->rule(Password::defaults()),
-                        TextInput::make('password_confirmation')
-                            ->label(__('admin.auth.confirm_new_password'))
-                            ->password()
-                            ->revealable()
-                            ->required(),
-                    ])
-                    ->columns(3),
-            ]);
+        return TextInput::make('password')
+            ->label(__('admin.auth.new_password'))
+            ->password()
+            ->revealable(Filament::arePasswordsRevealable())
+            ->rule(Password::default())
+            ->showAllValidationMessages()
+            ->autocomplete('new-password')
+            ->dehydrated(fn (mixed $state): bool => filled($state))
+            ->dehydrateStateUsing(fn (string $state): string => Hash::make($state))
+            ->live(debounce: 500)
+            ->same('password_confirmation');
     }
 
-    public function save(): void
+    protected function getPasswordConfirmationFormComponent(): Component
     {
-        /** @var User|null $user */
-        $user = Auth::user();
+        return TextInput::make('password_confirmation')
+            ->label(__('admin.auth.confirm_new_password'))
+            ->password()
+            ->autocomplete('new-password')
+            ->revealable(Filament::arePasswordsRevealable())
+            ->required()
+            ->visible(fn (Get $get): bool => filled($get('password')))
+            ->dehydrated(false);
+    }
 
-        abort_unless($user, 403);
+    protected function getCurrentPasswordFormComponent(): Component
+    {
+        return TextInput::make('current_password')
+            ->label(__('admin.auth.current_password'))
+            ->password()
+            ->autocomplete('current-password')
+            ->currentPassword(guard: Filament::getAuthGuard())
+            ->revealable(Filament::arePasswordsRevealable())
+            ->required()
+            ->visible(fn (Get $get): bool => filled($get('password')) || ($get('email') !== $this->getUser()->getAttributeValue('email')))
+            ->dehydrated(false);
+    }
 
-        $data = $this->form->getState();
+    protected function getSaveFormAction(): Action
+    {
+        return Action::make('save')
+            ->label(__('admin.auth.save_profile'))
+            ->submit('save')
+            ->keyBindings(['mod+s']);
+    }
 
-        if (! Hash::check($data['current_password'] ?? '', $user->password)) {
-            throw ValidationException::withMessages([
-                'data.current_password' => [__('admin.auth.password_mismatch')],
-            ]);
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return __('admin.auth.profile_updated');
+    }
+
+    /**
+     * Preserve the existing account-verification behavior while delegating
+     * the profile workflow and MFA management to Filament.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    protected function handleRecordUpdate(Model $record, array $data): Model
+    {
+        if (
+            ! Filament::hasEmailChangeVerification()
+            && array_key_exists('email', $data)
+            && $record->getAttributeValue('email') !== $data['email']
+        ) {
+            $record->setAttribute('email_verified_at', null);
         }
 
-        $user->fill([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => $data['password'],
-        ]);
+        return parent::handleRecordUpdate($record, $data);
+    }
 
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
+    public function getFormActionsAlignment(): string|Alignment
+    {
+        return Alignment::End;
+    }
 
-        $user->save();
-
-        $this->form->fill([
-            'name' => $user->name,
-            'email' => $user->email,
-            'current_password' => null,
-            'password' => null,
-            'password_confirmation' => null,
-        ]);
-
-        $this->resetErrorBag();
-
-        Notification::make()
-            ->title(__('admin.auth.profile_updated'))
-            ->success()
-            ->send();
+    protected function afterSave(): void
+    {
+        $this->data['current_password'] = null;
+        $this->data['password_confirmation'] = null;
     }
 }

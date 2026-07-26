@@ -8,4 +8,13 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateService extends CreateRecord
 {
     protected static string $resource = ServiceResource::class;
+
+    /** @param array<string, mixed> $data */
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['is_draft'] = true;
+        $data['is_active'] = false;
+
+        return $data;
+    }
 }

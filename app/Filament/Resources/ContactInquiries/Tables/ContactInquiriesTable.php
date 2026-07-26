@@ -20,8 +20,13 @@ class ContactInquiriesTable
                 TextColumn::make('name')
                     ->label(__('admin.fields.name'))
                     ->description(fn (ContactInquiry $record): ?string => $record->company)
-                    ->searchable(['name', 'company'])
+                    ->searchable(['name', 'company', 'role'])
                     ->sortable(),
+                TextColumn::make('public_reference')
+                    ->label(__('site.consultation.public_reference', ['reference' => '']))
+                    ->placeholder('—')
+                    ->copyable()
+                    ->searchable(),
                 TextColumn::make('email')
                     ->label(__('admin.fields.email_address'))
                     ->searchable()
@@ -29,6 +34,18 @@ class ContactInquiriesTable
                 TextColumn::make('service_label')
                     ->label(__('admin.fields.service'))
                     ->searchable(),
+                TextColumn::make('role')
+                    ->label(__('site.consultation.validation.role'))
+                    ->placeholder('—')
+                    ->limit(60)
+                    ->tooltip(fn (ContactInquiry $record): ?string => $record->role)
+                    ->wrap(),
+                TextColumn::make('timing')
+                    ->label(__('site.consultation.validation.timing'))
+                    ->placeholder('—')
+                    ->limit(80)
+                    ->tooltip(fn (ContactInquiry $record): ?string => $record->timing)
+                    ->wrap(),
                 TextColumn::make('status')
                     ->label(__('admin.fields.status'))
                     ->badge()
