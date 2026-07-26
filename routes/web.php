@@ -62,7 +62,9 @@ Route::get('/login', function (): RedirectResponse {
 $registerLocalizedRoutes = function (?string $routeLocale = null): void {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/services', [ServiceController::class, 'index'])->name('services');
+    Route::get('/services/{service:slug}', [ServiceController::class, 'show'])->name('services.show');
     Route::get('/work', PortfolioController::class)->name('work');
+    Route::get('/work/{project:slug}', [PortfolioController::class, 'show'])->name('work.show');
     Route::get('/writing', WritingController::class)->name('writing');
     Route::get('/writing/{article:slug}', ArticleController::class)->name('writing.show');
     Route::get('/about', AboutController::class)->name('about');

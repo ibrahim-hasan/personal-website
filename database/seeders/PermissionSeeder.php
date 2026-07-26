@@ -23,6 +23,8 @@ class PermissionSeeder extends Seeder
             }
         }
 
-        Permission::firstOrCreate(['name' => 'publish articles', 'guard_name' => 'web']);
+        foreach (['publish articles', 'publish services', 'publish projects', 'approve project_evidence'] as $permission) {
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+        }
     }
 }

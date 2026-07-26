@@ -54,7 +54,12 @@ class RoleSeeder extends Seeder
         if ($admin->wasRecentlyCreated) {
             $admin->syncPermissions($adminPermissions);
         } else {
-            $admin->givePermissionTo('publish articles');
+            $admin->givePermissionTo([
+                'publish articles',
+                'publish services',
+                'publish projects',
+                'approve project_evidence',
+            ]);
         }
 
         $editorResources = ['services', 'projects', 'articles', 'comments', 'contact_inquiries'];

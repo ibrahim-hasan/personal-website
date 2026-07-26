@@ -24,7 +24,7 @@ class SuperAdminSeeder extends Seeder
             throw new \RuntimeException('ADMIN_EMAIL must be a valid email address before running SuperAdminSeeder.');
         }
 
-        if (! is_string($password) || strlen($password) < 16) {
+        if (app()->isProduction() && (! is_string($password) || strlen($password) < 16)) {
             throw new \RuntimeException('ADMIN_PASSWORD must be at least 16 characters before running SuperAdminSeeder.');
         }
 
