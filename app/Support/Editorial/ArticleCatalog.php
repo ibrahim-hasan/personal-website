@@ -473,7 +473,7 @@ final class ArticleCatalog
             ))
             ->all();
 
-        return $articles === [] ? null : $articles;
+        return $articles;
     }
 
     /**

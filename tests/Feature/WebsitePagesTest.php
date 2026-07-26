@@ -52,7 +52,8 @@ class WebsitePagesTest extends TestCase
         $this->get('/en/services')
             ->assertOk()
             ->assertSee('Services', false)
-            ->assertSee('Service areas', false);
+            ->assertSee('service-index__item', false)
+            ->assertSee('Digital transformation strategy', false);
     }
 
     public function test_services_method_uses_distinct_geometric_step_icons(): void

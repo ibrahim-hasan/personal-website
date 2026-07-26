@@ -95,7 +95,7 @@ class RelatedContentPublicationTest extends TestCase
             ->assertSeeInOrder($articleUrls, false);
     }
 
-    public function test_article_details_only_render_related_services_and_projects_that_are_publicly_eligible(): void
+    public function test_article_details_do_not_render_related_services_or_projects_before_editorial_placement_is_approved(): void
     {
         $article = Article::factory()->create([
             'key' => 'article-related-output',
@@ -129,10 +129,12 @@ class RelatedContentPublicationTest extends TestCase
 
         $this->get(localized_route('writing.show', ['article' => $article], locale: 'ar'))
             ->assertOk()
-            ->assertSee(__('articles.reader.related_services'), false)
-            ->assertSee(__('articles.reader.related_projects'), false)
-            ->assertSee(localized_route('services.show', ['service' => $visibleService], locale: 'ar'), false)
-            ->assertSee(localized_route('work.show', ['project' => $visibleProject], locale: 'ar'), false)
+            ->assertDontSee(__('articles.reader.related_services'), false)
+            ->assertDontSee(__('articles.reader.related_projects'), false)
+            ->assertDontSee(localized_route('services.show', ['service' => $visibleService], locale: 'ar'), false)
+            ->assertDontSee(localized_route('work.show', ['project' => $visibleProject], locale: 'ar'), false)
+            ->assertDontSee('خدمة ظاهرة', false)
+            ->assertDontSee('مشروع ظاهر', false)
             ->assertDontSee('خدمة مخفية', false)
             ->assertDontSee('مشروع مخفي', false);
     }

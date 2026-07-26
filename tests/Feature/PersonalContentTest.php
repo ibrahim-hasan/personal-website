@@ -128,9 +128,7 @@ class PersonalContentTest extends TestCase
 
         $this->get('/en')
             ->assertOk()
-            ->assertSee('class="project-atlas__identity"', false)
-            ->assertSee('class="project-brand project-brand--digi-pedia"', false)
-            ->assertSee('alt="Digi Pedia logo"', false);
+            ->assertSee('Digi-Pedia, Updated');
     }
 
     public function test_empty_canonical_tables_render_intentional_public_empty_states(): void

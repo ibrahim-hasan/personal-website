@@ -31,7 +31,13 @@ class RoleSeederTest extends TestCase
         $this->seed(RoleSeeder::class);
 
         $admin->refresh();
-        $this->assertSame(['view_any articles', 'publish articles'], $admin->permissions()->pluck('name')->all());
+        $this->assertSame([
+            'view_any articles',
+            'publish articles',
+            'publish services',
+            'publish projects',
+            'approve project_evidence',
+        ], $admin->permissions()->pluck('name')->all());
 
         $superAdmin = Role::query()->where('name', 'super_admin')->firstOrFail();
         $editor = Role::query()->where('name', 'editor')->firstOrFail();
@@ -44,7 +50,13 @@ class RoleSeederTest extends TestCase
         $this->seed([PermissionSeeder::class, RoleSeeder::class]);
 
         $admin->refresh();
-        $this->assertSame(['view_any articles', 'publish articles'], $admin->permissions()->pluck('name')->all());
+        $this->assertSame([
+            'view_any articles',
+            'publish articles',
+            'publish services',
+            'publish projects',
+            'approve project_evidence',
+        ], $admin->permissions()->pluck('name')->all());
         $this->assertSame(3, Role::query()->whereIn('name', ['super_admin', 'admin', 'editor'])->count());
     }
 
@@ -76,7 +88,9 @@ class RoleSeederTest extends TestCase
                 ->all();
 
             $this->assertSame(
-                $roleName === 'admin' ? [$permissionName, 'publish articles'] : [$permissionName],
+                $roleName === 'admin'
+                    ? [$permissionName, 'publish articles', 'publish services', 'publish projects', 'approve project_evidence']
+                    : [$permissionName],
                 $permissionNames,
             );
         }

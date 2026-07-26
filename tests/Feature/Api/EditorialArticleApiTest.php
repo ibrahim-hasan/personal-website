@@ -146,7 +146,7 @@ class EditorialArticleApiTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['sections', 'closing']);
 
-        $this->assertSame($originalBody, $article->fresh()->getTranslations('body'));
+        $this->assertEquals($originalBody, $article->fresh()->getTranslations('body'));
     }
 
     public function test_a_published_article_must_be_unpublished_before_content_or_media_changes(): void

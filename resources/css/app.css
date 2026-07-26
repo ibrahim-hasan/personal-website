@@ -3035,6 +3035,18 @@ html[dir='rtl'] .article-audio__timeline input[type='range']::-webkit-slider-run
     display: block;
 }
 
+.site-audio-player__transport {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.site-audio-player__toggle,
+.site-audio-player__seek {
+    width: 2.75rem;
+    height: 2.75rem;
+}
+
 .article-audio__launch strong {
     font-size: 1rem;
     font-weight: 800;
@@ -3863,6 +3875,7 @@ html[data-reader-mode] .article-prose {
     .article-hero__media,
     .reader-panel,
     .article-share,
+    .site-audio-player,
     [data-reader-secondary],
     .article-source {
         display: none !important;
