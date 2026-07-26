@@ -120,6 +120,12 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perHour(10)->by($this->rateLimitKey($request));
         });
 
+        RateLimiter::for('csp-reports', function (Request $request): Limit {
+            $limit = min(120, max(1, (int) config('security.csp.reporting.rate_limit_per_minute', 30)));
+
+            return Limit::perMinute($limit)->by('csp-report-receiver');
+        });
+
         RateLimiter::for('athar-code', fn (Request $request): Limit => Limit::perMinute(5)->by($request->ip().'|'.$request->route('token')));
         RateLimiter::for('athar-write', fn (Request $request): Limit => Limit::perMinute(12)->by($request->ip().'|'.$request->route('token')));
     }
