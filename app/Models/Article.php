@@ -217,6 +217,23 @@ class Article extends Model implements HasMedia, HasRichContent, LocalizedUrlRou
         return $this->image ?? '';
     }
 
+    /**
+     * @return array{src: string, srcset: string, width: int, height: int}
+     */
+    public function responsiveImage(
+        string $conversion = self::IMAGE_CONVERSION,
+        int $fallbackWidth = self::HERO_WIDTH,
+        int $fallbackHeight = self::HERO_HEIGHT,
+    ): array {
+        return PublicImage::fromMedia(
+            $this->getFirstMedia(self::IMAGE_COLLECTION),
+            $this->image,
+            $conversion,
+            $fallbackWidth,
+            $fallbackHeight,
+        );
+    }
+
     public function imageAlt(string $locale): string
     {
         return (string) ($this->getTranslation('image_alt', $locale, false)
