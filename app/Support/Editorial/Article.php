@@ -46,8 +46,8 @@ final readonly class Article
             $bodyPresentation = $this->record !== null
                 ? app(ArticleBody::class)->presentForArticle($this->record, $locale)
                 : app(ArticleBody::class)->present(
-                is_string($body) || is_array($body) ? $body : null,
-            );
+                    is_string($body) || is_array($body) ? $body : null,
+                );
         }
 
         return [

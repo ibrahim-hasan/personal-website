@@ -362,8 +362,7 @@ final class ArticleCatalog
         int $limit = 3,
         ?string $locale = null,
         bool $includeBody = true,
-    ): array
-    {
+    ): array {
         $locale ??= app()->getLocale();
         $candidates = array_values(array_filter(
             $this->all(),
@@ -440,33 +439,33 @@ final class ArticleCatalog
             ->orderByDesc('published_at')
             ->get()
             ->map(fn (ArticleRecord $record): Article => new Article(
-                    key: $record->key,
-                    slugs: $record->getTranslations('slug'),
-                    publishedAt: $record->published_at->toDateString(),
-                    modifiedAt: $record->modified_at->toDateString(),
-                    image: $record->imageUrl(),
-                    readMinutes: $record->getTranslations('read_minutes'),
-                    topicKeys: $record->topic_keys,
-                    featured: $record->featured,
-                    sourceUrl: $record->source_url,
-                    translations: [
-                        'title' => $record->getTranslations('title'),
-                        'summary' => $record->getTranslations('summary'),
-                        'seo_title' => $record->getTranslations('seo_title'),
-                        'seo_description' => $record->getTranslations('seo_description'),
-                        'type' => $record->getTranslations('type'),
-                        'lead' => $record->getTranslations('lead'),
-                        'sections' => $record->getTranslations('sections'),
-                        'closing' => $record->getTranslations('closing'),
-                        'body' => [
-                            'ar' => $record->getTranslation('body', 'ar', false),
-                            'en' => $record->getTranslation('body', 'en', false),
-                        ],
-                        'image_alt' => $record->getTranslations('image_alt'),
-                        'image_caption' => $record->getTranslations('image_caption'),
+                key: $record->key,
+                slugs: $record->getTranslations('slug'),
+                publishedAt: $record->published_at->toDateString(),
+                modifiedAt: $record->modified_at->toDateString(),
+                image: $record->imageUrl(),
+                readMinutes: $record->getTranslations('read_minutes'),
+                topicKeys: $record->topic_keys,
+                featured: $record->featured,
+                sourceUrl: $record->source_url,
+                translations: [
+                    'title' => $record->getTranslations('title'),
+                    'summary' => $record->getTranslations('summary'),
+                    'seo_title' => $record->getTranslations('seo_title'),
+                    'seo_description' => $record->getTranslations('seo_description'),
+                    'type' => $record->getTranslations('type'),
+                    'lead' => $record->getTranslations('lead'),
+                    'sections' => $record->getTranslations('sections'),
+                    'closing' => $record->getTranslations('closing'),
+                    'body' => [
+                        'ar' => $record->getTranslation('body', 'ar', false),
+                        'en' => $record->getTranslation('body', 'en', false),
                     ],
-                    record: $record,
-                ))
+                    'image_alt' => $record->getTranslations('image_alt'),
+                    'image_caption' => $record->getTranslations('image_caption'),
+                ],
+                record: $record,
+            ))
             ->all();
     }
 

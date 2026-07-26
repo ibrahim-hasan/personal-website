@@ -47,8 +47,8 @@ class Article extends Model implements HasMedia, HasRichContent, LocalizedUrlRou
         resolveRouteBindingQuery as private resolveTranslatableRouteBindingQuery;
     }
     use HasTranslations;
-    use InteractsWithRichContent;
     use InteractsWithMedia;
+    use InteractsWithRichContent;
     use SoftDeletes;
     use SynchronizesTranslatedSlugs;
 
