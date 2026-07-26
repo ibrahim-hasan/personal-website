@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'kicker' => 'After the last paragraph',
+    'kicker' => 'Discussion',
     'title' => 'Leave a signal, not just a page view.',
     'description' => 'Appreciate what was useful, save it for later, or add a considered perspective. The aim is a small, high-trust room around each idea.',
     'reader_actions' => 'Reader actions',
