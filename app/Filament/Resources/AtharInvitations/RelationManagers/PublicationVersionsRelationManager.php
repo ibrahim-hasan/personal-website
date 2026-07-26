@@ -2,17 +2,13 @@
 
 namespace App\Filament\Resources\AtharInvitations\RelationManagers;
 
-use App\Actions\Athar\EditAtharPublicationVersion;
 use App\Actions\Athar\HideAtharPublication;
 use App\Actions\Athar\UnhideAtharPublication;
 use App\Enums\AtharIdentityDisplay;
 use App\Enums\AtharPlacement;
 use App\Enums\AtharPublicationOrigin;
 use App\Enums\AtharPublicationStatus;
-use App\Support\AtharTextLimits;
 use Filament\Actions\Action;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
@@ -63,31 +59,6 @@ class PublicationVersionsRelationManager extends RelationManager
                     ->placeholder('—'),
             ])
             ->recordActions([
-                EditAction::make()
-                    ->authorize('update')
-                    ->label(__('filament-actions::edit.single.label'))
-                    ->modalHeading(__('admin.athar.publication_version_title'))
-                    ->fillForm(function ($record, RelationManager $livewire): array {
-                        $payload = $record->public_payload;
-                        $locale = is_array($payload) ? array_key_first($payload) : null;
-
-                        return [
-                            'text' => is_string($locale) && isset($payload[$locale]) ? (string) ($payload[$locale]['text'] ?? '') : '',
-                        ];
-                    })
-                    ->schema([
-                        Textarea::make('text')
-                            ->label(__('admin.fields.public_text'))
-                            ->helperText(__('admin.hints.athar_public_text'))
-                            ->maxLength(AtharTextLimits::PUBLIC_MAX)
-                            ->rows(5),
-                    ])
-                    ->using(function ($record, array $data, EditAtharPublicationVersion $edit): void {
-                        $edit->handle($record, [
-                            'text' => (string) ($data['text'] ?? ''),
-                        ], request: request(), editor: auth()->user());
-                        Notification::make()->title(__('admin.messages.athar_version_updated'))->success()->send();
-                    }),
                 Action::make('hide')
                     ->label(__('admin.actions.athar_hide'))
                     ->icon('heroicon-o-eye-slash')

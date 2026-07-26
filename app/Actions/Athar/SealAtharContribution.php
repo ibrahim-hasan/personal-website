@@ -4,7 +4,9 @@ namespace App\Actions\Athar;
 
 use App\Enums\AtharContributionStatus;
 use App\Models\AtharContribution;
+use App\Support\AtharTextLimits;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class SealAtharContribution
 {
@@ -14,9 +16,9 @@ class SealAtharContribution
     ) {}
 
     /** @param array<string, mixed> $payload */
-    public function handle(AtharContribution $contribution, array $payload): AtharContribution
+    public function handle(AtharContribution $contribution, array $payload, string $locale): AtharContribution
     {
-        return DB::transaction(function () use ($contribution, $payload): AtharContribution {
+        return DB::transaction(function () use ($contribution, $payload, $locale): AtharContribution {
             $record = AtharContribution::query()
                 ->whereKey($contribution->getKey())
                 ->lockForUpdate()
@@ -30,8 +32,9 @@ class SealAtharContribution
             $record->forceFill(['sealed_payload' => $payload, 'draft_payload' => null, 'source_hash' => hash('sha256', $source), 'status' => AtharContributionStatus::Submitted, 'submitted_at' => now()])->save();
             $record->refresh();
 
-            $locale = $record->invitation->preferred_locale;
-            $version = $this->createPublication->handle($record, [$locale => ['text' => (string) $payload['freeform'], 'context' => '']]);
+            $privateText = (string) $payload['freeform'];
+            $publicText = Str::length($privateText) <= AtharTextLimits::PUBLIC_MAX ? $privateText : '';
+            $version = $this->createPublication->handle($record, [$locale => ['text' => $publicText, 'context' => '']]);
             $this->sendApproval->handle($version);
 
             return $record->fresh();

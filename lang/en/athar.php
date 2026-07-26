@@ -10,6 +10,13 @@ return [
     'disclosure' => 'Shared with the writer’s permission.',
     'slider' => ['label' => 'Selected endorsements', 'controls' => 'Endorsement navigation', 'region' => 'Endorsements from the work', 'previous' => 'Previous endorsement', 'next' => 'Next endorsement', 'pause' => 'Pause autoplay', 'play' => 'Play autoplay'],
     'placements' => ['work' => 'Work', 'services' => 'Services', 'about' => 'About'],
+    'destinations' => [
+        'work_overview' => 'the Work page',
+        'services_overview' => 'the Services page',
+        'about' => 'the About page',
+        'service_detail' => 'the “:name” service page',
+        'project_detail' => 'the “:name” case study',
+    ],
     'relationships' => ['former_client' => 'Former client', 'current_client' => 'Current client', 'collaborator' => 'Collaborator', 'colleague' => 'Work colleague', 'manager' => 'Former manager or lead', 'team_member' => 'Team member', 'mentor' => 'Mentor', 'mentee' => 'Mentee', 'business_partner' => 'Business partner', 'friend' => 'Friend', 'personal_connection' => 'Personal connection', 'community_connection' => 'Community or initiative peer'],
     'unavailable' => [
         'title' => 'This private invitation is unavailable',
@@ -29,6 +36,7 @@ return [
         'verify' => 'Continue privately',
         'resend' => 'Send a new code',
         'invalid_code' => 'That code is not valid or has expired. Please request a new one.',
+        'session_expired' => 'Your private session expired. Verify again to continue; your unsent words are still here.',
     ],
     'reflection' => [
         'title' => 'I’d love to hear from you',
@@ -36,6 +44,7 @@ return [
         'note_label' => 'Your words',
         'note_placeholder' => 'Write in the way that feels natural to you…',
         'review' => 'Share my note with Ibrahim',
+        'save_draft' => 'Save private draft',
         'draft_saved' => 'Your private draft was saved.',
         'prompts' => [],
         'counter' => [
@@ -50,7 +59,7 @@ return [
     'receipt' => [
         'title' => 'Your words reached me',
         'body' => 'Thank you for sharing your words. They mean a great deal to me, and may become part of the pages on my site. This page will show the exact version I intend to publish.',
-        'ready_body' => 'This is the exact version I intend to publish on my site. Review it, edit it if you wish, and approve its publication.',
+        'ready_body' => 'Choose the exact public text (up to 350 characters) and how your name appears. Nothing is published until you approve this card.',
     ],
     'public_choice' => [
         'title' => 'Choose what may appear on the site',
@@ -66,12 +75,12 @@ return [
     'approval' => [
         'title' => 'Review the text as it will appear on my site',
         'words' => 'Final endorsement',
-        'edit_hint' => 'You can edit the text before approving publication.',
+        'edit_hint' => 'Only this final text, up to 350 characters, can appear on the site. Your full private note remains private.',
         'context' => 'Work context',
         'placement' => 'Where it will appear',
         'identity' => 'How should your name appear?',
-        'scope' => 'This text will appear only on the :page page of my site. I will not use it on social media, in proposals, or anywhere else without asking you separately.',
-        'consent' => 'I agree to publish the text shown above on the :page page of Ibrahim’s website only.',
+        'scope' => 'This exact card will appear only in :destination on my website. I will not use it on social media, in proposals, or anywhere else without asking you separately.',
+        'consent' => 'I agree to publish the exact text and name choice shown above only in :destination on Ibrahim’s website.',
         'publish' => 'Publish as shown',
         'save_draft' => 'Save edits as draft',
         'draft_saved' => 'Your edits were saved as a draft. You can return to them any time before approving publication.',
@@ -80,6 +89,8 @@ return [
         'name_full' => 'Full name',
         'name_first' => 'First name',
         'name_anonymous' => 'Anonymous',
+        'name_label' => 'Name to show',
+        'name_help' => 'Required only when you choose to show a full or first name. The preview above updates before you publish.',
         'name_full_name' => 'Full name',
         'name_first_name' => 'First name',
         'counter' => [
@@ -98,7 +109,7 @@ return [
         'context' => 'Work context',
         'withdraw' => 'Stop showing this text on my site',
         'withdraw_confirm' => 'Yes, stop showing this text on my site',
-        'withdraw_body' => 'I will remove it immediately from the :page page. You can reverse this request until I take action. You can request private-note deletion separately.',
+        'withdraw_body' => 'I will remove it immediately from :destination. You can reverse this request until I take action. You can request private-note deletion separately.',
         'withdrawn' => 'I stopped showing this text on my site.',
         'restore' => 'Show this text on my site again',
         'restore_confirm' => 'Yes, show this text on my site again',
@@ -109,8 +120,19 @@ return [
         'deletion_cancel' => 'Cancel the deletion request',
         'deletion_body' => 'This is separate from stopping publication. I will review your request under the privacy notice.',
         'deletion_requested' => 'I received your private-note deletion request.',
+        'hidden' => 'This endorsement is temporarily hidden',
+        'hidden_body' => 'The text is not visible on my public site right now. Your private note and your choices remain available here.',
     ],
-    'validation' => ['required' => 'Please add a few words before continuing.', 'email' => 'Enter the email address that received the invitation.', 'consent_required' => 'You must approve the exact text shown before continuing.'],
+    'validation' => [
+        'required' => 'Please add a few words before continuing.',
+        'email' => 'Enter the email address that received the invitation.',
+        'consent_required' => 'You must approve the exact text shown before continuing.',
+        'display_name_required' => 'Enter the name you want shown, or choose Anonymous.',
+        'placement_required' => 'Choose where this card may appear.',
+        'about_destination_key' => 'The About page cannot be narrowed to a specific item.',
+        'destination_not_found' => 'Choose an existing service or project.',
+        'preferred_locale' => 'Choose a supported language for this invitation.',
+    ],
     'mail' => [
         'invitation_subject' => 'A private invitation from me',
         'code_subject' => 'Your Athar verification code',

@@ -72,6 +72,7 @@ class AtharInvitation extends Model
     {
         return $this->revoked_at === null
             && $this->status !== AtharInvitationStatus::Revoked
-            && ($this->expires_at === null || $this->expires_at->isFuture());
+            && $this->status !== AtharInvitationStatus::Expired
+            && ($this->contribution()->exists() || $this->expires_at === null || $this->expires_at->isFuture());
     }
 }

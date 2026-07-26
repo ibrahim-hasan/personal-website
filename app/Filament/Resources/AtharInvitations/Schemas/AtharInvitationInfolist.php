@@ -6,8 +6,8 @@ use App\Enums\AtharContributionStatus;
 use App\Enums\AtharInvitationDeliveryMode;
 use App\Enums\AtharInvitationStatus;
 use App\Enums\AtharPlacement;
-use App\Enums\AtharRelationship;
 use App\Models\AtharInvitation;
+use App\Models\User;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -30,9 +30,6 @@ class AtharInvitationInfolist
                         ->formatStateUsing(fn (AtharInvitationDeliveryMode $state): string => $state->label())
                         ->color(fn (AtharInvitationDeliveryMode $state): string => $state->color()),
                     TextEntry::make('recipient_name')->label(__('admin.fields.recipient_name')),
-                    TextEntry::make('relationship')
-                        ->label(__('admin.fields.relationship'))
-                        ->formatStateUsing(fn (AtharRelationship $state): string => $state->label()),
                     TextEntry::make('status')
                         ->label(__('admin.fields.status'))
                         ->badge()
@@ -76,9 +73,20 @@ class AtharInvitationInfolist
                         ->copyable()
                         ->copyMessage(__('admin.messages.athar_share_link_copied'))
                         ->url(fn (?string $state): ?string => $state, true)
+                        ->visible(function (AtharInvitation $record): bool {
+                            $user = auth()->user();
+
+                            return $user instanceof User && $user->can('send', $record);
+                        })
                         ->columnSpanFull(),
                 ])->columns(2),
-                Section::make(__('admin.sections.athar_private'))->schema([
+                Section::make(__('admin.sections.athar_private'))->visible(function (AtharInvitation $record): bool {
+                    $user = auth()->user();
+
+                    return $user instanceof User
+                        && $record->contribution !== null
+                        && $user->can('view', $record->contribution);
+                })->schema([
                     TextEntry::make('contribution.sealed_payload')
                         ->label(__('admin.fields.private_source'))
                         ->formatStateUsing(fn ($state): string => is_array($state) ? (string) ($state['freeform'] ?? '') : (string) $state)

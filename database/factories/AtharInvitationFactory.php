@@ -59,6 +59,7 @@ class AtharInvitationFactory extends Factory
             'email_hash' => null,
             'email' => null,
             'sent_at' => null,
+            'status' => AtharInvitationStatus::Ready,
         ]);
     }
 }

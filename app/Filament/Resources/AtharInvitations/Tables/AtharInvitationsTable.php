@@ -10,8 +10,6 @@ use App\Enums\AtharPlacement;
 use App\Models\AtharInvitation;
 use App\Support\AdminTableEmptyState;
 use Filament\Actions\Action;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
@@ -25,7 +23,7 @@ class AtharInvitationsTable
     public static function configure(Table $table): Table
     {
         return AdminTableEmptyState::apply($table, 'athar_invitations', 'heroicon-o-sparkles')
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['contribution.publicationVersions']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['contribution', 'creator']))
             ->columns([
                 TextColumn::make('recipient_name')->label(__('admin.fields.recipient_name'))->searchable(),
                 TextColumn::make('email')
@@ -86,16 +84,12 @@ class AtharInvitationsTable
                     ->color('danger')
                     ->requiresConfirmation()
                     ->authorize('revoke')
-                    ->visible(fn (AtharInvitation $record): bool => ! in_array($record->status, [AtharInvitationStatus::Revoked, AtharInvitationStatus::Completed], true))
+                    ->visible(fn (AtharInvitation $record): bool => $record->contribution === null
+                        && ! in_array($record->status, [AtharInvitationStatus::Revoked, AtharInvitationStatus::Completed], true))
                     ->action(function (AtharInvitation $record, RevokeAtharInvitation $revoke): void {
                         $revoke->handle($record);
                         Notification::make()->title(__('admin.messages.athar_revoked'))->success()->send();
                     }),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make()->label(__('filament-actions::delete.multiple.label')),
-                ]),
             ]);
     }
 }

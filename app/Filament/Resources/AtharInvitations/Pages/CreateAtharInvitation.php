@@ -21,7 +21,7 @@ class CreateAtharInvitation extends CreateRecord
         $result = app(CreateAction::class)->handle($user, $data);
 
         Notification::make()
-            ->title(__('admin.messages.athar_share_link_copied'))
+            ->title(__('admin.messages.athar_link_ready'))
             ->body($result['url'])
             ->success()
             ->persistent()

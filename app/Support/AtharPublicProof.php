@@ -19,19 +19,33 @@ final class AtharPublicProof
         }
 
         return AtharPublicationVersion::query()
-            ->with(['contribution.invitation', 'consentEvents'])
+            ->with('consentEvents')
             ->where('status', AtharPublicationStatus::Published)
             ->where('placement', $placement)
-            ->when($placementKey !== null, fn ($query) => $query->where('placement_key', $placementKey))
+            ->when(
+                $placementKey === null,
+                fn ($query) => $query->whereNull('placement_key'),
+                fn ($query) => $query->where('placement_key', $placementKey),
+            )
             ->latest('published_at')
             ->get()
             ->filter(function (AtharPublicationVersion $version) use ($locale): bool {
                 if (! in_array($locale, $version->approved_locales ?? [], true)) {
                     return false;
                 }
+                if (! AtharPublicationSnapshot::matches($version)) {
+                    return false;
+                }
+                if (! AtharPublicationSnapshot::matchesDestination($version)) {
+                    return false;
+                }
                 $approved = $version->consentEvents
                     ->where('event_type', AtharConsentEventType::Approved)
                     ->where('snapshot_hash', $version->snapshot_hash)
+                    ->filter(fn ($event): bool => $event->placement === $version->placement
+                        && $event->placement_key === $version->placement_key
+                        && $event->identity_display === $version->identity_display
+                        && $event->approved_locales === $version->approved_locales)
                     ->sortByDesc('occurred_at')
                     ->first();
                 $withdrawn = $approved !== null
@@ -52,15 +66,11 @@ final class AtharPublicProof
             })
             ->map(function (AtharPublicationVersion $version) use ($locale): array {
                 $payload = $version->public_payload[$locale] ?? [];
-                $invitation = $version->contribution->invitation;
-                // Read the identity-display preference live from the invitation so
-                // that changing it (or the recipient name) on the invitation is
-                // reflected immediately on every published version.
-                $name = match ($invitation->identity_display) {
-                    AtharIdentityDisplay::FullName => (string) $invitation->recipient_name,
-                    AtharIdentityDisplay::FirstName => trim((string) preg_split('/\s+/u', (string) $invitation->recipient_name)[0]),
-                    default => '',
-                };
+                $identityDisplay = AtharIdentityDisplay::tryFrom((string) ($payload['identity_display'] ?? $version->identity_display->value))
+                    ?? AtharIdentityDisplay::Anonymous;
+                $name = $identityDisplay === AtharIdentityDisplay::Anonymous
+                    ? ''
+                    : trim((string) ($payload['display_name'] ?? $version->display_name));
 
                 return ['text' => (string) ($payload['text'] ?? ''), 'context' => (string) ($payload['context'] ?? ''), 'name' => $name, 'locale' => $locale];
             })->filter(fn (array $card): bool => $card['text'] !== '')->values()->all();

@@ -1280,6 +1280,7 @@ html[dir='rtl'] .precision-stage__finale strong {
 .athar-final-preview::after { width: 4rem; height: 4rem; inset-block-end: -2rem; inset-inline-start: 12%; }
 .athar-final-preview__label { color: var(--color-violet-100); font-family: var(--family-ui); font-size: .78rem; font-weight: 800; }
 .athar-final-preview__quote { max-width: 30ch; margin: 1.5rem auto 0; white-space: pre-wrap; font-size: clamp(1.35rem, 3vw, 2.15rem); line-height: 1.45; text-wrap: pretty; }
+.athar-final-preview__name { margin: 1.25rem auto 0; color: var(--color-violet-100); font-family: var(--family-ui); font-size: .9rem; font-weight: 800; }
 .athar-final-preview__context-label { margin-top: 1.5rem; color: var(--color-violet-100); font-family: var(--family-ui); font-size: .75rem; font-weight: 800; }
 .athar-final-preview__context { max-width: 55ch; margin: .35rem auto 0; color: color-mix(in oklab, var(--color-canvas-bright) 78%, transparent); line-height: 1.65; }
 .athar-final-preview--readonly { margin-top: 2rem; }

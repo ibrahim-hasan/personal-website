@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\Athar\CreateAtharInvitation;
 use App\Actions\Athar\CreateContributorPublicNote;
+use App\Actions\Athar\HideAtharPublication;
 use App\Actions\Athar\SendAtharApproval;
 use App\Enums\AtharInvitationDeliveryMode;
 use App\Enums\AtharPlacement;
@@ -14,6 +15,7 @@ use App\Models\AtharInvitation;
 use App\Models\User;
 use App\Notifications\AtharInvitationNotification;
 use App\Support\AtharAccess;
+use App\Support\AtharPublicProof;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
@@ -28,7 +30,7 @@ class AtharFlowTest extends TestCase
      * Drive the real six-digit-code verification HTTP path for an email-mode
      * invitation so the session grant is established for subsequent writes.
      */
-    private function grantAtharSession(string $token, AtharInvitation $invitation, string $code = '123456'): void
+    private function grantAtharSession(string $token, AtharInvitation $invitation, string $code = '123456', string $locale = 'ar'): void
     {
         AtharAccessChallenge::query()->create([
             'invitation_id' => $invitation->getKey(),
@@ -38,7 +40,8 @@ class AtharFlowTest extends TestCase
             'ip_hash' => hash_hmac('sha256', '127.0.0.1', (string) config('app.key')),
         ]);
 
-        $this->post(route('athar.verify', ['token' => $token]), ['code' => $code])->assertRedirect();
+        $route = $locale === 'ar' ? 'athar.verify' : $locale.'.athar.verify';
+        $this->post(route($route, ['token' => $token]), ['code' => $code])->assertRedirect();
     }
 
     public function test_private_flow_opens_from_the_invitation_link_and_publishes_only_the_approved_snapshot(): void
@@ -49,15 +52,22 @@ class AtharFlowTest extends TestCase
             'email' => 'friend@example.com',
             'recipient_name' => 'Amina Noor',
             'relationship' => AtharRelationship::FormerClient,
+            'personal_reason' => 'Legacy admin-only context.',
             'preferred_locale' => 'en',
             'placement' => AtharPlacement::About,
+            'identity_display' => 'full_name',
         ]);
         $token = $created['token'];
         $invitation = $created['invitation'];
         $this->assertSame(AtharInvitationDeliveryMode::Email, $invitation->delivery_mode);
+        $this->assertSame('sent', $invitation->status->value);
+        $this->assertNull($invitation->relationship);
+        $this->assertNull($invitation->personal_reason);
+        $this->assertNull($invitation->placement_key);
+        $this->assertSame('anonymous', $invitation->identity_display->value);
         Notification::assertSentOnDemand(AtharInvitationNotification::class);
 
-        $response = $this->get(route('athar.show', ['token' => $token]));
+        $response = $this->get(route('en.athar.show', ['token' => $token]));
         $response
             ->assertOk()
             ->assertHeader('Referrer-Policy', 'no-referrer')
@@ -73,9 +83,9 @@ class AtharFlowTest extends TestCase
             ->assertDontSee('friend@example.com');
         $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
 
-        $this->grantAtharSession($token, $invitation);
+        $this->grantAtharSession($token, $invitation, locale: 'en');
 
-        $response = $this->get(route('athar.show', ['token' => $token]));
+        $response = $this->get(route('en.athar.show', ['token' => $token]));
         $response
             ->assertOk()
             ->assertSee(__('athar.reflection.title'))
@@ -83,10 +93,11 @@ class AtharFlowTest extends TestCase
             ->assertSee(__('athar.reflection.review'))
             ->assertDontSee('ما الذي بقي معك من تجربتنا؟')
             ->assertSee('lang="en"', false)
+            ->assertSee('action="'.route('en.athar.submit', ['token' => $token]).'"', false)
             ->assertDontSee('name="email"', false);
         $this->assertStringContainsString('maxlength="2000"', $response->getContent());
-        $this->post(route('athar.submit', ['token' => $token]), ['freeform' => 'A thoughtful note about the work.'])->assertRedirect();
-        $this->get(route('athar.show', ['token' => $token, 'choose' => '1']))
+        $this->post(route('en.athar.submit', ['token' => $token]), ['freeform' => 'A thoughtful note about the work.'])->assertRedirect();
+        $this->get(route('en.athar.show', ['token' => $token, 'choose' => '1']))
             ->assertOk()
             ->assertSee(__('athar.receipt.ready_body'))
             ->assertSee(__('athar.receipt.title'))
@@ -99,7 +110,7 @@ class AtharFlowTest extends TestCase
         $contribution = AtharContribution::query()->where('invitation_id', $invitation->getKey())->firstOrFail();
         $version = $contribution->publicationVersions()->latest('version')->firstOrFail();
         $this->assertSame('awaiting_approval', $version->status->value);
-        $this->get(route('athar.show', ['token' => $token]))
+        $this->get(route('en.athar.show', ['token' => $token]))
             ->assertOk()
             ->assertSee(__('athar.receipt.ready_body'))
             ->assertSee(__('athar.approval.words'))
@@ -109,44 +120,59 @@ class AtharFlowTest extends TestCase
             ->assertSee(__('athar.approval.edit'), false)
             ->assertSee('maxlength="350"', false)
             ->assertSee('A thoughtful note about the work.', false);
-        $this->post(route('athar.approval.draft', ['token' => $token]), ['text' => 'A saved endorsement draft.'])
+        $this->post(route('en.athar.approval.draft', ['token' => $token]), [
+            'text' => 'A saved endorsement draft.',
+            'identity_display' => 'first_name',
+            'display_name' => 'Amina Noor',
+        ])
             ->assertRedirect()
             ->assertSessionHas('status', __('athar.approval.draft_saved'));
         $this->assertSame('awaiting_approval', $version->fresh()->status->value);
         $this->assertSame('A saved endorsement draft.', data_get($version->fresh()->public_payload, 'en.text'));
-        $this->get(route('athar.show', ['token' => $token]))
+        $this->get(route('en.athar.show', ['token' => $token]))
             ->assertSee('A saved endorsement draft.', false)
             ->assertSee(__('athar.approval.save_draft'))
             ->assertDontSee(__('athar.approval.private'));
-        $this->from(route('athar.show', ['token' => $token]))
-            ->post(route('athar.approve', ['token' => $token]))
+        $this->from(route('en.athar.show', ['token' => $token]))
+            ->post(route('en.athar.approve', ['token' => $token]))
             ->assertSessionHasErrors('consent');
         $this->assertSame('awaiting_approval', $version->fresh()->status->value);
-        $this->post(route('athar.approve', ['token' => $token]), ['consent' => '1', 'text' => 'A clearer endorsement after review.'])->assertRedirect();
+        $this->post(route('en.athar.approve', ['token' => $token]), [
+            'consent' => '1',
+            'text' => 'A clearer endorsement after review.',
+            'identity_display' => 'full_name',
+            'display_name' => 'Amina Noor',
+        ])->assertRedirect();
         $this->assertSame('published', $version->fresh()->status->value);
+        $this->assertSame('Amina Noor', $version->fresh()->display_name);
+        $this->assertSame('Amina Noor', data_get($version->fresh()->public_payload, 'en.display_name'));
+        $this->assertSame('completed', $invitation->fresh()->status->value);
         $this->assertDatabaseHas('athar_publication_consent_events', ['publication_version_id' => $version->getKey(), 'event_type' => 'approved']);
-        $this->get(route('athar.show', ['token' => $token]))
+        $this->get(route('en.athar.show', ['token' => $token]))
             ->assertOk()
             ->assertSee(__('athar.published.words'))
             ->assertSee('class="athar-final-preview athar-final-preview--readonly"', false)
             ->assertSee('A clearer endorsement after review.', false)
             ->assertDontSee('name="text"', false);
         $this->get(route('en.about'))->assertOk()->assertSee('A clearer endorsement after review.');
-        $this->post(route('athar.withdraw', ['token' => $token]), ['confirm' => '1'])->assertRedirect();
+        $invitation->forceFill(['recipient_name' => 'Changed by admin', 'identity_display' => 'anonymous'])->save();
+        $proof = AtharPublicProof::forPlacement(AtharPlacement::About, 'en');
+        $this->assertSame('Amina Noor', $proof[0]['name']);
+        $this->post(route('en.athar.withdraw', ['token' => $token]), ['confirm' => '1'])->assertRedirect();
         $this->get(route('en.about'))->assertOk()->assertDontSee('A clearer endorsement after review.');
-        $this->post(route('athar.restore', ['token' => $token]))->assertSessionHasErrors('confirm');
-        $this->post(route('athar.restore', ['token' => $token]), ['confirm' => '1'])->assertRedirect();
+        $this->post(route('en.athar.restore', ['token' => $token]))->assertSessionHasErrors('confirm');
+        $this->post(route('en.athar.restore', ['token' => $token]), ['confirm' => '1'])->assertRedirect();
         $this->assertSame('published', $version->fresh()->status->value);
         $this->get(route('en.about'))->assertOk()->assertSee('A clearer endorsement after review.');
 
-        $this->post(route('athar.deletion', ['token' => $token]))->assertSessionHasErrors('confirm');
-        $this->post(route('athar.deletion', ['token' => $token]), ['confirm' => '1'])->assertRedirect();
+        $this->post(route('en.athar.deletion', ['token' => $token]))->assertSessionHasErrors('confirm');
+        $this->post(route('en.athar.deletion', ['token' => $token]), ['confirm' => '1'])->assertRedirect();
         $this->assertSame('deletion_requested', $invitation->contribution()->firstOrFail()->fresh()->status->value);
-        $this->get(route('athar.show', ['token' => $token]))
+        $this->get(route('en.athar.show', ['token' => $token]))
             ->assertOk()
             ->assertSee(__('athar.published.deletion_pending'))
             ->assertSee(__('athar.published.deletion_cancel'));
-        $this->post(route('athar.deletion.cancel', ['token' => $token]))->assertRedirect();
+        $this->post(route('en.athar.deletion.cancel', ['token' => $token]))->assertRedirect();
         $this->assertSame('published', $invitation->contribution()->firstOrFail()->fresh()->status->value);
     }
 
@@ -235,6 +261,7 @@ class AtharFlowTest extends TestCase
         $invitation = $created['invitation']->fresh();
 
         $this->assertSame(AtharInvitationDeliveryMode::Link, $invitation->delivery_mode);
+        $this->assertSame('ready', $invitation->status->value);
         $this->assertNull($invitation->email);
         $this->assertNull($invitation->email_hash);
         $this->assertNull($invitation->sent_at);
@@ -289,6 +316,109 @@ class AtharFlowTest extends TestCase
 
         $this->post(route('athar.submit', ['token' => $created['token']]), ['freeform' => str_repeat('x', 2001)])
             ->assertSessionHasErrors('freeform');
+    }
+
+    public function test_a_long_private_reflection_requires_a_separate_short_public_excerpt(): void
+    {
+        app()->setLocale('en');
+        $created = app(CreateAtharInvitation::class)->handle(User::factory()->create(), [
+            'send_email' => false,
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+        $privateText = str_repeat('x', 351);
+
+        $this->post(route('en.athar.submit', ['token' => $created['token']]), ['freeform' => $privateText])->assertRedirect();
+
+        $version = $created['invitation']->contribution()->firstOrFail()->publicationVersions()->latest('version')->firstOrFail();
+        $this->assertSame($privateText, data_get($created['invitation']->contribution()->firstOrFail()->fresh()->sealed_payload, 'freeform'));
+        $this->assertSame('', data_get($version->public_payload, 'en.text'));
+        $this->get(route('en.athar.show', ['token' => $created['token']]))
+            ->assertOk()
+            ->assertSee(__('athar.approval.edit_hint'))
+            ->assertDontSee($privateText, false);
+        $this->post(route('en.athar.approve', ['token' => $created['token']]), [
+            'consent' => '1',
+            'text' => $privateText,
+            'identity_display' => 'anonymous',
+        ])->assertSessionHasErrors('text');
+    }
+
+    public function test_the_contributor_must_supply_the_name_they_choose_to_publish(): void
+    {
+        app()->setLocale('en');
+        $created = app(CreateAtharInvitation::class)->handle(User::factory()->create(), [
+            'send_email' => false,
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+        $this->post(route('en.athar.submit', ['token' => $created['token']]), ['freeform' => 'A private reflection.'])->assertRedirect();
+
+        $this->post(route('en.athar.approve', ['token' => $created['token']]), [
+            'consent' => '1',
+            'text' => 'A short public endorsement.',
+            'identity_display' => 'full_name',
+        ])->assertSessionHasErrors('display_name');
+    }
+
+    public function test_the_public_draft_uses_the_language_of_the_page_the_contributor_used(): void
+    {
+        app()->setLocale('ar');
+        $created = app(CreateAtharInvitation::class)->handle(User::factory()->create(), [
+            'send_email' => false,
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+
+        $this->post(route('athar.submit', ['token' => $created['token']]), ['freeform' => 'نص قصير للمراجعة.'])->assertRedirect();
+
+        $version = $created['invitation']->contribution()->firstOrFail()->publicationVersions()->latest('version')->firstOrFail();
+        $this->assertArrayHasKey('ar', $version->public_payload);
+        $this->assertArrayNotHasKey('en', $version->public_payload);
+    }
+
+    public function test_arabic_digits_are_accepted_for_the_email_access_code(): void
+    {
+        app()->setLocale('ar');
+        $created = app(CreateAtharInvitation::class)->handle(User::factory()->create(), [
+            'email' => 'friend@example.com',
+            'preferred_locale' => 'ar',
+            'placement' => AtharPlacement::About,
+        ]);
+        AtharAccessChallenge::query()->create([
+            'invitation_id' => $created['invitation']->getKey(),
+            'code_hash' => AtharAccess::codeHash('123456'),
+            'expires_at' => now()->addMinutes(10),
+            'requested_at' => now(),
+            'ip_hash' => hash_hmac('sha256', '127.0.0.1', (string) config('app.key')),
+        ]);
+
+        $this->post(route('athar.verify', ['token' => $created['token']]), ['code' => '١٢٣٤٥٦'])->assertRedirect();
+
+        $this->assertSame('verified', $created['invitation']->fresh()->status->value);
+    }
+
+    public function test_a_hidden_endorsement_has_a_truthful_contributor_state_without_a_restore_control(): void
+    {
+        app()->setLocale('en');
+        $created = app(CreateAtharInvitation::class)->handle(User::factory()->create(), [
+            'send_email' => false,
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+        $this->post(route('en.athar.submit', ['token' => $created['token']]), ['freeform' => 'A hidden endorsement.'])->assertRedirect();
+        $version = $created['invitation']->contribution()->firstOrFail()->publicationVersions()->latest('version')->firstOrFail();
+        $this->post(route('en.athar.approve', ['token' => $created['token']]), [
+            'consent' => '1',
+            'text' => 'A hidden endorsement.',
+            'identity_display' => 'anonymous',
+        ])->assertRedirect();
+        app(HideAtharPublication::class)->handle($version->fresh());
+
+        $this->get(route('en.athar.show', ['token' => $created['token']]))
+            ->assertOk()
+            ->assertSee(__('athar.published.hidden'))
+            ->assertDontSee(__('athar.published.restore'));
     }
 
     public function test_link_only_approval_enters_awaiting_state_without_attempting_email_delivery(): void
@@ -363,12 +493,21 @@ class AtharFlowTest extends TestCase
 
         // Holding the token alone must not allow a write without a verified session.
         $this->post(route('athar.submit', ['token' => $created['token']]), ['freeform' => 'An unverified note.'])
-            ->assertNotFound();
+            ->assertRedirect(route('athar.show', ['token' => $created['token']]))
+            ->assertSessionHas('status', __('athar.access.session_expired'));
 
         $this->assertDatabaseMissing('athar_contributions', [
             'invitation_id' => $created['invitation']->getKey(),
             'submitted_at' => null,
         ]);
+
+        $this->get(route('athar.show', ['token' => $created['token']]))
+            ->assertOk()
+            ->assertSee(__('athar.access.session_expired'));
+        $this->grantAtharSession($created['token'], $created['invitation']);
+        $this->get(route('athar.show', ['token' => $created['token']]))
+            ->assertOk()
+            ->assertSee('An unverified note.', false);
     }
 
     public function test_a_fingerprint_mismatch_after_grant_re_challenges_the_contributor(): void
@@ -414,7 +553,7 @@ class AtharFlowTest extends TestCase
 
         $contribution = $invitation->contribution()->firstOrFail();
         $version = $contribution->publicationVersions()->latest('version')->firstOrFail();
-        $this->post(route('athar.approve', ['token' => $token]), ['consent' => '1', 'text' => 'A link-mode endorsement.'])->assertRedirect();
+        $this->post(route('athar.approve', ['token' => $token]), ['consent' => '1', 'text' => 'A link-mode endorsement.', 'identity_display' => 'anonymous'])->assertRedirect();
 
         $this->assertDatabaseHas('athar_publication_consent_events', [
             'publication_version_id' => $version->getKey(),
@@ -437,14 +576,14 @@ class AtharFlowTest extends TestCase
         $token = $created['token'];
         $invitation = $created['invitation'];
 
-        $this->post(route('athar.submit', ['token' => $token]), ['freeform' => 'A published endorsement.'])->assertRedirect();
+        $this->post(route('en.athar.submit', ['token' => $token]), ['freeform' => 'A published endorsement.'])->assertRedirect();
         $version = $invitation->contribution()->firstOrFail()->publicationVersions()->latest('version')->firstOrFail();
-        $this->post(route('athar.approve', ['token' => $token]), ['consent' => '1', 'text' => 'A published endorsement.'])->assertRedirect();
+        $this->post(route('en.athar.approve', ['token' => $token]), ['consent' => '1', 'text' => 'A published endorsement.', 'identity_display' => 'anonymous'])->assertRedirect();
 
         // The endorsement is live before deletion is requested.
         $this->get(route('en.about'))->assertOk()->assertSee('A published endorsement.');
 
-        $this->post(route('athar.deletion', ['token' => $token]), ['confirm' => '1'])->assertRedirect();
+        $this->post(route('en.athar.deletion', ['token' => $token]), ['confirm' => '1'])->assertRedirect();
 
         $contribution = $invitation->contribution()->firstOrFail();
         $this->assertSame('deletion_requested', $contribution->fresh()->status->value);
@@ -473,7 +612,7 @@ class AtharFlowTest extends TestCase
         // Publish, then withdraw so nothing remains live.
         $this->post(route('athar.submit', ['token' => $token]), ['freeform' => 'Later withdrawn.'])->assertRedirect();
         $version = $invitation->contribution()->firstOrFail()->publicationVersions()->latest('version')->firstOrFail();
-        $this->post(route('athar.approve', ['token' => $token]), ['consent' => '1', 'text' => 'Later withdrawn.'])->assertRedirect();
+        $this->post(route('athar.approve', ['token' => $token]), ['consent' => '1', 'text' => 'Later withdrawn.', 'identity_display' => 'anonymous'])->assertRedirect();
         $this->post(route('athar.withdraw', ['token' => $token]), ['confirm' => '1'])->assertRedirect();
 
         $this->post(route('athar.deletion', ['token' => $token]), ['confirm' => '1'])->assertRedirect();

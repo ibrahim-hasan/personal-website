@@ -5,10 +5,12 @@ namespace App\Actions\Athar;
 use App\Enums\AtharIdentityDisplay;
 use App\Enums\AtharInvitationDeliveryMode;
 use App\Enums\AtharInvitationStatus;
+use App\Enums\AtharPlacement;
 use App\Models\AtharInvitation;
 use App\Models\User;
 use App\Notifications\AtharInvitationNotification;
 use App\Support\AtharAccess;
+use App\Support\AtharPlacementDestination;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -27,6 +29,9 @@ class CreateAtharInvitation
     /** @param array<string, mixed> $attributes */
     public function handle(User $creator, array $attributes, ?bool $sendEmail = null): array
     {
+        $placement = $this->placement($attributes['placement'] ?? null);
+        $placementKey = AtharPlacementDestination::validatedKey($placement, $attributes['placement_key'] ?? null);
+        $preferredLocale = $this->preferredLocale($attributes['preferred_locale'] ?? null);
         $token = AtharAccess::newToken();
         $sendEmail ??= array_key_exists('send_email', $attributes)
             ? (bool) $attributes['send_email']
@@ -41,17 +46,18 @@ class CreateAtharInvitation
             ]);
         }
 
-        $shareUrl = localized_route('athar.show', ['token' => $token], true, (string) ($attributes['preferred_locale'] ?? default_locale()));
+        $shareUrl = localized_route('athar.show', ['token' => $token], true, $preferredLocale);
 
         $invitation = DB::transaction(fn (): AtharInvitation => AtharInvitation::query()->create([
             'created_by' => $creator->getKey(), 'token_hash' => AtharAccess::tokenHash($token),
             'token_ciphertext' => $token, 'delivery_mode' => $sendEmail ? AtharInvitationDeliveryMode::Email : AtharInvitationDeliveryMode::Link,
             'email_hash' => $email === null ? null : hash_hmac('sha256', $email, (string) config('app.key')), 'email' => $email,
-            'recipient_name' => $attributes['recipient_name'] ?? null, 'relationship' => $attributes['relationship'],
-            'preferred_locale' => $attributes['preferred_locale'] ?? default_locale(),
-            'personal_reason' => $attributes['personal_reason'] ?? null,
-            'placement' => $attributes['placement'], 'placement_key' => $attributes['placement_key'] ?? null, 'identity_display' => $attributes['identity_display'] ?? AtharIdentityDisplay::Anonymous,
-            'status' => AtharInvitationStatus::Sent, 'expires_at' => $this->resolveExpiry($attributes['expires_at'] ?? null), 'sent_at' => $sendEmail ? now() : null,
+            'recipient_name' => $attributes['recipient_name'] ?? null, 'relationship' => null,
+            'preferred_locale' => $preferredLocale,
+            'personal_reason' => null,
+            'placement' => $placement, 'placement_key' => $placementKey, 'identity_display' => AtharIdentityDisplay::Anonymous,
+            'status' => $sendEmail ? AtharInvitationStatus::Sent : AtharInvitationStatus::Ready,
+            'expires_at' => $this->resolveExpiry($attributes['expires_at'] ?? null), 'sent_at' => $sendEmail ? now() : null,
         ]));
 
         if ($sendEmail) {
@@ -80,5 +86,33 @@ class CreateAtharInvitation
         };
 
         return $resolved->isFuture() ? $resolved->min($max) : $default;
+    }
+
+    private function placement(mixed $value): AtharPlacement
+    {
+        $placement = $value instanceof AtharPlacement
+            ? $value
+            : AtharPlacement::tryFrom((string) $value);
+
+        if ($placement === null) {
+            throw ValidationException::withMessages([
+                'placement' => __('athar.validation.placement_required'),
+            ]);
+        }
+
+        return $placement;
+    }
+
+    private function preferredLocale(mixed $value): string
+    {
+        $locale = is_string($value) && $value !== '' ? $value : default_locale();
+
+        if (! array_key_exists($locale, supported_locales())) {
+            throw ValidationException::withMessages([
+                'preferred_locale' => __('athar.validation.preferred_locale'),
+            ]);
+        }
+
+        return $locale;
     }
 }

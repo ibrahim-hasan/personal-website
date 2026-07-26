@@ -14,7 +14,7 @@ class AtharPublicationVersionPolicy
 
     public function update(User $user, AtharPublicationVersion $version): bool
     {
-        return $user->can('review athar_publications');
+        return false;
     }
 
     public function publish(User $user, AtharPublicationVersion $version): bool

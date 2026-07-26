@@ -11,6 +11,7 @@ use App\Enums\AtharPublicationStatus;
 use App\Enums\AtharRelationship;
 use App\Filament\Resources\AtharInvitations\AtharInvitationResource;
 use App\Filament\Resources\AtharInvitations\Pages\ListAtharInvitations;
+use App\Models\AtharContribution;
 use App\Models\AtharInvitation;
 use App\Models\Role;
 use App\Models\User;
@@ -69,7 +70,7 @@ class AtharAdminLocalizationTest extends TestCase
         $this->assertSame('أثر', AtharInvitationResource::getNavigationLabel());
     }
 
-    public function test_arabic_athar_record_page_renders_localized_labels_and_values(): void
+    public function test_arabic_athar_record_page_hides_private_credentials_and_source_from_view_only_users(): void
     {
         app()->setLocale('ar');
         $this->seed(PermissionSeeder::class);
@@ -88,17 +89,60 @@ class AtharAdminLocalizationTest extends TestCase
             ->assertSee(__('admin.sections.athar_invitation'))
             ->assertSee(__('admin.fields.email_address'))
             ->assertSee(__('admin.fields.delivery_mode'))
-            ->assertSee(__('admin.fields.share_link'))
             ->assertSee(__('admin.fields.status'))
             ->assertSee(__('admin.athar.invitation_statuses.sent'))
             ->assertSee(__('admin.athar.delivery_modes.email'))
-            ->assertSee('/athar/', false)
             ->assertSee(__('admin.athar.placements.about'))
-            ->assertSee(__('admin.fields.contribution_status'))
+            ->assertDontSee(__('admin.fields.share_link'))
+            ->assertDontSee('/athar/', false)
+            ->assertDontSee(__('admin.sections.athar_private'))
             ->assertDontSee('admin.fields.email');
     }
 
-    public function test_admin_no_longer_has_a_prepare_publication_action(): void
+    public function test_the_share_link_is_only_visible_to_users_who_can_send_an_invitation(): void
+    {
+        $this->seed(PermissionSeeder::class);
+        $role = Role::create(['name' => 'athar sender', 'guard_name' => 'web']);
+        $role->syncPermissions([
+            Permission::firstOrCreate(['name' => 'view_any athar_invitations', 'guard_name' => 'web']),
+            Permission::firstOrCreate(['name' => 'view athar_invitations', 'guard_name' => 'web']),
+            Permission::firstOrCreate(['name' => 'send athar_invitations', 'guard_name' => 'web']),
+        ]);
+        $admin = User::factory()->create();
+        $admin->assignRole($role);
+        $invitation = AtharInvitation::factory()->create();
+
+        $this->actingAs($admin)
+            ->get('/admin/athar-invitations/'.$invitation->getKey())
+            ->assertOk()
+            ->assertSee(__('admin.fields.share_link'))
+            ->assertSee('/athar/', false);
+    }
+
+    public function test_the_private_source_requires_its_own_permission(): void
+    {
+        $this->seed(PermissionSeeder::class);
+        $role = Role::create(['name' => 'athar private reviewer', 'guard_name' => 'web']);
+        $role->syncPermissions([
+            Permission::firstOrCreate(['name' => 'view_any athar_invitations', 'guard_name' => 'web']),
+            Permission::firstOrCreate(['name' => 'view athar_invitations', 'guard_name' => 'web']),
+            Permission::firstOrCreate(['name' => 'view_private athar_contributions', 'guard_name' => 'web']),
+        ]);
+        $admin = User::factory()->create();
+        $admin->assignRole($role);
+        $invitation = AtharInvitation::factory()->create();
+        AtharContribution::factory()->for($invitation, 'invitation')->submitted()->create([
+            'sealed_payload' => ['freeform' => 'Private source visible only to this role.'],
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/admin/athar-invitations/'.$invitation->getKey())
+            ->assertOk()
+            ->assertSee(__('admin.sections.athar_private'))
+            ->assertSee('Private source visible only to this role.', false);
+    }
+
+    public function test_admin_keeps_publication_copy_and_identity_contributor_led(): void
     {
         $this->seed([PermissionSeeder::class, RoleSeeder::class]);
         $admin = User::factory()->create();
@@ -112,7 +156,15 @@ class AtharAdminLocalizationTest extends TestCase
 
         Livewire::actingAs($admin)
             ->test(ListAtharInvitations::class)
-            ->assertTableActionDoesNotExist('prepare_publication');
+            ->assertTableActionDoesNotExist('prepare_publication')
+            ->assertTableActionDoesNotExist('delete');
+
+        $this->actingAs($admin)
+            ->get('/admin/athar-invitations/create')
+            ->assertOk()
+            ->assertDontSee(__('admin.fields.relationship'))
+            ->assertDontSee(__('admin.fields.personal_reason'))
+            ->assertDontSee(__('admin.fields.identity_display'));
     }
 
     private function bootAdminPanel(): void

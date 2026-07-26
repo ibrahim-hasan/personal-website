@@ -11,7 +11,7 @@ class AtharApprovalNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(private readonly string $url, private readonly string $language = 'ar', private readonly ?string $placement = null)
+    public function __construct(private readonly string $url, private readonly string $language = 'ar', private readonly ?string $destination = null)
     {
         $this->locale($this->language);
         $this->afterCommit();
@@ -24,10 +24,8 @@ class AtharApprovalNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $page = $this->placement === null
-            ? __('athar.placements.about', locale: $this->language)
-            : __('athar.placements.'.$this->placement, locale: $this->language);
+        $destination = $this->destination ?? __('athar.destinations.about', locale: $this->language);
 
-        return (new MailMessage)->subject(__('athar.mail.approval_subject', locale: $this->language))->greeting(__('athar.approval.title', locale: $this->language))->line(__('athar.approval.scope', ['page' => $page], $this->language))->action(__('athar.mail.approval_action', locale: $this->language), $this->url);
+        return (new MailMessage)->subject(__('athar.mail.approval_subject', locale: $this->language))->greeting(__('athar.approval.title', locale: $this->language))->line(__('athar.approval.scope', ['destination' => $destination], $this->language))->action(__('athar.mail.approval_action', locale: $this->language), $this->url);
     }
 }

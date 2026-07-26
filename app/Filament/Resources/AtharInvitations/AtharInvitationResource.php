@@ -48,7 +48,7 @@ class AtharInvitationResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        $count = AtharInvitation::query()->whereIn('status', ['sent', 'verified'])->count();
+        $count = AtharInvitation::query()->whereIn('status', ['ready', 'sent', 'verified'])->count();
 
         return $count > 0 ? (string) $count : null;
     }

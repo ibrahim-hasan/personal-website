@@ -17,7 +17,7 @@ class AtharPublicationVersion extends Model
     /** @use HasFactory<AtharPublicationVersionFactory> */
     use HasFactory;
 
-    protected $fillable = ['contribution_id', 'version', 'status', 'origin', 'public_payload', 'snapshot_hash', 'placement', 'placement_key', 'identity_display', 'approved_locales', 'sent_for_approval_at', 'published_at', 'hidden_at', 'withdrawn_at', 'reviewed_by'];
+    protected $fillable = ['contribution_id', 'version', 'status', 'origin', 'public_payload', 'snapshot_hash', 'placement', 'placement_key', 'identity_display', 'display_name', 'approved_locales', 'sent_for_approval_at', 'published_at', 'hidden_at', 'withdrawn_at', 'reviewed_by'];
 
     protected $hidden = ['public_payload', 'snapshot_hash'];
 

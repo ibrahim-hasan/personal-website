@@ -148,10 +148,12 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
-    Alpine.data('atharReflection', ({ max, messages, initial = '' }) => ({
+    Alpine.data('atharReflection', ({ max, messages, initial = '', identityDisplay = 'anonymous', displayName = '' }) => ({
         max,
         messages,
         text: initial,
+        identityDisplay,
+        displayName,
         count: 0,
         progress: 0,
         message: messages.start,
@@ -196,6 +198,13 @@ document.addEventListener('alpine:init', () => {
         },
         formattedMax() {
             return new Intl.NumberFormat(document.documentElement.lang || undefined).format(this.max);
+        },
+        attribution() {
+            return this.identityDisplay === 'anonymous'
+                ? ''
+                : this.identityDisplay === 'first_name'
+                    ? (this.displayName.trim().split(/\s+/u)[0] ?? '')
+                    : this.displayName.trim();
         },
     }));
 

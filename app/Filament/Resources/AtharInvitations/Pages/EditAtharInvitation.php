@@ -8,7 +8,6 @@ use App\Enums\AtharInvitationStatus;
 use App\Filament\Resources\AtharInvitations\AtharInvitationResource;
 use App\Models\AtharInvitation;
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
@@ -33,7 +32,6 @@ class EditAtharInvitation extends EditRecord
                     Notification::make()->title(__('admin.messages.athar_resent'))->success()->send();
                 }),
             ViewAction::make()->label(__('filament-actions::view.single.label')),
-            DeleteAction::make()->label(__('filament-actions::delete.single.label')),
         ];
     }
 }

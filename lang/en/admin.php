@@ -144,6 +144,7 @@ return [
         'status_enabled' => 'Status has been enabled successfully.',
         'status_disabled' => 'Status has been disabled successfully.',
         'athar_share_link_copied' => 'Share link copied.',
+        'athar_link_ready' => 'Private link ready to share.',
         'athar_revoked' => 'Invitation revoked. The link no longer works.',
         'athar_resent' => 'Invitation email resent.',
         'athar_hidden' => 'Publication hidden from the public site.',
@@ -244,6 +245,7 @@ return [
         'navigation_badge_tooltip' => 'Athar invitations that need follow-up',
         'invitation_statuses' => [
             'draft' => 'Draft',
+            'ready' => 'Ready to share',
             'sent' => 'Sent',
             'verified' => 'Verified',
             'completed' => 'Completed',

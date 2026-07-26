@@ -2,12 +2,10 @@
 
 namespace App\Filament\Resources\AtharInvitations\Schemas;
 
-use App\Enums\AtharIdentityDisplay;
 use App\Enums\AtharPlacement;
-use App\Enums\AtharRelationship;
+use App\Support\AtharPlacementDestination;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -46,10 +44,6 @@ class AtharInvitationForm
                         TextInput::make('recipient_name')
                             ->label(__('admin.fields.recipient_name'))
                             ->maxLength(255),
-                        Select::make('relationship')
-                            ->label(__('admin.fields.relationship'))
-                            ->options(collect(AtharRelationship::cases())->mapWithKeys(fn (AtharRelationship $case): array => [$case->value => $case->label()])->all())
-                            ->required(),
                         Select::make('preferred_locale')
                             ->label(__('admin.fields.preferred_language'))
                             ->options([
@@ -57,26 +51,23 @@ class AtharInvitationForm
                                 'en' => __('admin.locales.en'),
                             ])
                             ->required()
-                            ->default('ar'),
+                            ->default('ar')
+                            ->disabledOn('edit'),
                         Select::make('placement')
                             ->label(__('admin.fields.placement'))
                             ->helperText(__('admin.hints.athar_placement'))
                             ->options(collect(AtharPlacement::cases())->mapWithKeys(fn (AtharPlacement $case): array => [$case->value => $case->adminLabel()])->all())
-                            ->required(),
-                        TextInput::make('placement_key')
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(fn (Set $set): mixed => $set('placement_key', null))
+                            ->disabledOn('edit'),
+                        Select::make('placement_key')
                             ->label(__('admin.fields.placement_key'))
                             ->helperText(__('admin.hints.athar_placement_key'))
-                            ->maxLength(120),
-                        Select::make('identity_display')
-                            ->label(__('admin.fields.identity_display'))
-                            ->helperText(__('admin.hints.athar_identity_display'))
-                            ->options(collect(AtharIdentityDisplay::cases())->mapWithKeys(fn (AtharIdentityDisplay $case): array => [$case->value => $case->label()])->all())
-                            ->required()
-                            ->default(AtharIdentityDisplay::Anonymous->value),
-                        Textarea::make('personal_reason')
-                            ->label(__('admin.fields.personal_reason'))
-                            ->rows(4)
-                            ->maxLength(2000),
+                            ->options(fn (Get $get): array => AtharPlacementDestination::options($get('placement'), app()->getLocale()))
+                            ->visible(fn (Get $get): bool => in_array($get('placement'), [AtharPlacement::Services->value, AtharPlacement::Work->value], true))
+                            ->searchable()
+                            ->disabledOn('edit'),
                         DateTimePicker::make('expires_at')
                             ->label(__('admin.fields.expires_at'))
                             ->required()

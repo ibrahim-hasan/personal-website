@@ -17,6 +17,7 @@ class RevokeAtharInvitation
                 ->firstOrFail();
 
             abort_if(in_array($record->status, [AtharInvitationStatus::Revoked, AtharInvitationStatus::Completed], true), 422);
+            abort_if($record->contribution()->exists(), 422);
 
             $record->forceFill([
                 'status' => AtharInvitationStatus::Revoked,

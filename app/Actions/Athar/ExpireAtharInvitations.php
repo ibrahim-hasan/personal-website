@@ -11,9 +11,10 @@ class ExpireAtharInvitations
     {
         return AtharInvitation::query()
             ->whereNull('revoked_at')
+            ->whereDoesntHave('contribution')
             ->whereNotNull('expires_at')
             ->where('expires_at', '<', now())
-            ->whereIn('status', [AtharInvitationStatus::Sent, AtharInvitationStatus::Verified])
+            ->whereIn('status', [AtharInvitationStatus::Ready, AtharInvitationStatus::Sent, AtharInvitationStatus::Verified])
             ->update(['status' => AtharInvitationStatus::Expired]);
     }
 }

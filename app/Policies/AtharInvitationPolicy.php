@@ -34,12 +34,12 @@ class AtharInvitationPolicy
 
     public function delete(User $user, AtharInvitation $invitation): bool
     {
-        return $user->can('manage athar_retention');
+        return $user->can('manage athar_retention') && ! $invitation->contribution()->exists();
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->can('manage athar_retention');
+        return false;
     }
 
     public function revoke(User $user, AtharInvitation $invitation): bool

@@ -8,6 +8,7 @@ use App\Enums\AtharPublicationOrigin;
 use App\Enums\AtharPublicationStatus;
 use App\Models\AtharContribution;
 use App\Models\AtharPublicationVersion;
+use App\Support\AtharPublicationSnapshot;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -22,13 +23,15 @@ class AtharPublicationVersionFactory extends Factory
      */
     public function definition(): array
     {
+        $payload = ['en' => ['text' => fake()->paragraph(), 'context' => fake()->sentence()]];
+
         return [
             'contribution_id' => AtharContribution::factory()->submitted(),
             'version' => 1,
             'status' => AtharPublicationStatus::Draft,
             'origin' => AtharPublicationOrigin::ContributorSelected,
-            'public_payload' => ['en' => ['text' => fake()->paragraph(), 'context' => fake()->sentence()]],
-            'snapshot_hash' => hash('sha256', fake()->sentence()),
+            'public_payload' => $payload,
+            'snapshot_hash' => AtharPublicationSnapshot::hash($payload),
             'placement' => AtharPlacement::About,
             'identity_display' => AtharIdentityDisplay::Anonymous,
             'approved_locales' => ['en'],

@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Actions\Athar\EditAtharPublicationVersion;
 use App\Actions\Athar\ExpireAtharInvitations;
 use App\Actions\Athar\HideAtharPublication;
 use App\Actions\Athar\RevokeAtharInvitation;
@@ -17,6 +16,8 @@ use App\Models\AtharInvitation;
 use App\Models\AtharPublicationVersion;
 use App\Models\User;
 use App\Policies\AtharInvitationPolicy;
+use App\Policies\AtharPublicationVersionPolicy;
+use App\Support\AtharPublicationSnapshot;
 use App\Support\AtharPublicProof;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
@@ -50,6 +51,15 @@ class AtharAdminActionsTest extends TestCase
         app(RevokeAtharInvitation::class)->handle($invitation);
     }
 
+    public function test_revoke_does_not_remove_a_contributors_control_link_after_they_started(): void
+    {
+        $invitation = AtharInvitation::factory()->create(['status' => AtharInvitationStatus::Verified]);
+        AtharContribution::factory()->for($invitation, 'invitation')->create();
+
+        $this->expectException(HttpException::class);
+        app(RevokeAtharInvitation::class)->handle($invitation);
+    }
+
     public function test_the_expire_command_transitions_past_due_invitations(): void
     {
         AtharInvitation::factory()->create([
@@ -69,12 +79,19 @@ class AtharAdminActionsTest extends TestCase
             'expires_at' => Carbon::now()->subDay(),
             'revoked_at' => Carbon::now(),
         ]);
+        $engaged = AtharInvitation::factory()->create([
+            'status' => AtharInvitationStatus::Verified,
+            'expires_at' => Carbon::now()->subDay(),
+        ]);
+        AtharContribution::factory()->for($engaged, 'invitation')->create();
 
         $count = app(ExpireAtharInvitations::class)->handle();
 
         $this->assertSame(2, $count);
         $this->assertDatabaseHas('athar_invitations', ['id' => $stillValid->getKey(), 'status' => AtharInvitationStatus::Sent->value]);
         $this->assertDatabaseHas('athar_invitations', ['id' => $revoked->getKey(), 'status' => AtharInvitationStatus::Sent->value]);
+        $this->assertDatabaseHas('athar_invitations', ['id' => $engaged->getKey(), 'status' => AtharInvitationStatus::Verified->value]);
+        $this->assertTrue($engaged->fresh()->isAccessible());
     }
 
     public function test_hide_removes_a_publication_from_the_public_site_and_unhide_restores_it(): void
@@ -92,6 +109,9 @@ class AtharAdminActionsTest extends TestCase
                 'approved_locales' => ['en'],
                 'public_payload' => ['en' => ['text' => 'A live endorsement to hide.', 'context' => '']],
             ]);
+        $version->forceFill([
+            'snapshot_hash' => AtharPublicationSnapshot::hash($version->public_payload),
+        ])->save();
         $version->consentEvents()->create([
             'contribution_id' => $contribution->getKey(),
             'event_type' => 'approved',
@@ -99,7 +119,7 @@ class AtharAdminActionsTest extends TestCase
             'approved_locales' => ['en'],
             'placement' => AtharPlacement::About,
             'identity_display' => 'anonymous',
-            'privacy_notice_version' => '2026-07-22',
+            'privacy_notice_version' => config('legal.privacy_version'),
             'verification_method' => 'link',
             'occurred_at' => now(),
         ]);
@@ -117,12 +137,12 @@ class AtharAdminActionsTest extends TestCase
         $this->assertNotEmpty(AtharPublicProof::forPlacement(AtharPlacement::About, 'en'));
     }
 
-    public function test_edit_updates_the_published_text_and_keeps_the_snapshot_in_sync(): void
+    public function test_public_attribution_is_frozen_on_the_published_version(): void
     {
         $invitation = AtharInvitation::factory()->create([
             'placement' => AtharPlacement::About,
             'recipient_name' => 'Layla Hassan',
-            'identity_display' => AtharIdentityDisplay::Anonymous,
+            'identity_display' => AtharIdentityDisplay::FullName,
         ]);
         $contribution = AtharContribution::factory()
             ->for($invitation, 'invitation')
@@ -133,31 +153,44 @@ class AtharAdminActionsTest extends TestCase
             ->create([
                 'status' => AtharPublicationStatus::Published,
                 'placement' => AtharPlacement::About,
-                'identity_display' => AtharIdentityDisplay::Anonymous,
+                'identity_display' => AtharIdentityDisplay::FullName,
+                'display_name' => 'Layla Hassan',
                 'approved_locales' => ['en'],
-                'public_payload' => ['en' => ['text' => 'Original published text.', 'context' => '']],
+                'public_payload' => ['en' => ['text' => 'Original published text.', 'context' => '', 'identity_display' => 'full_name', 'display_name' => 'Layla Hassan']],
             ]);
-
-        app(EditAtharPublicationVersion::class)->handle($version, [
-            'text' => 'Edited published text.',
+        $version->forceFill([
+            'snapshot_hash' => AtharPublicationSnapshot::hash($version->public_payload),
+        ])->save();
+        $version->consentEvents()->create([
+            'contribution_id' => $contribution->getKey(),
+            'event_type' => 'approved',
+            'snapshot_hash' => $version->snapshot_hash,
+            'approved_locales' => ['en'],
+            'placement' => AtharPlacement::About,
+            'identity_display' => AtharIdentityDisplay::FullName,
+            'privacy_notice_version' => config('legal.privacy_version'),
+            'verification_method' => 'link',
+            'occurred_at' => now(),
         ]);
 
-        $version->refresh();
-        $this->assertSame('Edited published text.', $version->public_payload['en']['text']);
-        $this->assertSame(
-            hash('sha256', json_encode($version->public_payload, JSON_UNESCAPED_UNICODE)),
-            $version->snapshot_hash,
-            'snapshot_hash must match the edited payload',
-        );
-
         $proof = AtharPublicProof::forPlacement(AtharPlacement::About, 'en');
-        $this->assertSame('Edited published text.', $proof[0]['text']);
-        $this->assertSame('', $proof[0]['name'], 'anonymous invitation hides the name');
+        $this->assertSame('Original published text.', $proof[0]['text']);
+        $this->assertSame('Layla Hassan', $proof[0]['name']);
 
-        // The writer name is controlled live by the invitation's identity_display.
-        $invitation->forceFill(['identity_display' => AtharIdentityDisplay::FullName])->save();
+        $invitation->forceFill(['recipient_name' => 'Changed after consent', 'identity_display' => AtharIdentityDisplay::Anonymous])->save();
         $proof = AtharPublicProof::forPlacement(AtharPlacement::About, 'en');
-        $this->assertSame('Layla Hassan', $proof[0]['name'], 'the writer name should appear once the invitation allows it');
+        $this->assertSame('Layla Hassan', $proof[0]['name']);
+    }
+
+    public function test_admins_cannot_edit_a_contributor_approved_publication_version(): void
+    {
+        $this->seed([PermissionSeeder::class, RoleSeeder::class]);
+        $reviewer = User::factory()->create();
+        $reviewer->givePermissionTo(Permission::firstOrCreate(['name' => 'review athar_publications', 'guard_name' => 'web']));
+        $version = AtharPublicationVersion::factory()->create();
+
+        $this->assertFalse(app(AtharPublicationVersionPolicy::class)->update($reviewer, $version));
+        $this->assertFileDoesNotExist(app_path('Actions/Athar/EditAtharPublicationVersion.php'));
     }
 
     public function test_update_policy_requires_the_dedicated_update_permission_not_review(): void

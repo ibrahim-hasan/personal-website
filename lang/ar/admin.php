@@ -144,6 +144,7 @@ return [
         'status_enabled' => 'تم تفعيل الحالة بنجاح.',
         'status_disabled' => 'تم تعطيل الحالة بنجاح.',
         'athar_share_link_copied' => 'تم نسخ رابط المشاركة.',
+        'athar_link_ready' => 'رابط الدعوة جاهز للمشاركة.',
         'athar_revoked' => 'تم إيقاف الدعوة. لم يعد الرابط يعمل.',
         'athar_resent' => 'تمت إعادة إرسال رسالة الدعوة.',
         'athar_hidden' => 'تم إخفاء النشر عن الموقع العام.',
@@ -244,6 +245,7 @@ return [
         'navigation_badge_tooltip' => 'دعوات أثر التي تحتاج إلى متابعة',
         'invitation_statuses' => [
             'draft' => 'مسودة',
+            'ready' => 'جاهزة للمشاركة',
             'sent' => 'أُرسلت',
             'verified' => 'تم التحقق',
             'completed' => 'اكتملت',

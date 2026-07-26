@@ -2,6 +2,7 @@
 
 namespace App\Actions\Athar;
 
+use App\Enums\AtharInvitationStatus;
 use App\Models\AtharAccessChallenge;
 use App\Models\AtharInvitation;
 use App\Support\AtharAccess;
@@ -23,7 +24,10 @@ class VerifyAtharAccessChallenge
                 return false;
             }
             $challenge->forceFill(['consumed_at' => now()])->save();
-            $invitation->forceFill(['verified_at' => now()])->save();
+            $invitation->forceFill([
+                'verified_at' => now(),
+                'status' => $invitation->status === AtharInvitationStatus::Sent ? AtharInvitationStatus::Verified : $invitation->status,
+            ])->save();
             AtharAccess::grant($request, $invitation);
 
             return true;

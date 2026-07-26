@@ -4,21 +4,22 @@
         <h1 id="athar-access-title">{{ __('athar.access.title') }}</h1>
         <p class="athar-lead">{{ __('athar.access.body') }}</p>
         <div class="athar-trace" aria-hidden="true"><span></span><i></i><span></span></div>
+        @if (session('status'))<p class="athar-success" role="status">{{ session('status') }}</p>@endif
         @if ($codeSent)
-            <form method="post" action="{{ route('athar.verify', ['token' => request()->route('token')]) }}" class="athar-form">
+            <form method="post" action="{{ localized_route('athar.verify', ['token' => request()->route('token')]) }}" class="athar-form">
                 @csrf
                 <label for="code">{{ __('athar.access.code_label') }}</label>
-                <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required autofocus>
+                <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required autofocus dir="ltr" lang="en" @if ($errors->has('code')) aria-invalid="true" @endif>
                 <p class="athar-help">{{ __('athar.access.code_help') }}</p>
                 @error('code')<p class="athar-error" role="alert">{{ $message }}</p>@enderror
                 <button class="athar-button" type="submit">{{ __('athar.access.verify') }}</button>
             </form>
-            <form method="post" action="{{ route('athar.code', ['token' => request()->route('token')]) }}" class="athar-form athar-form--secondary">
+            <form method="post" action="{{ localized_route('athar.code', ['token' => request()->route('token')]) }}" class="athar-form athar-form--secondary">
                 @csrf
                 <button class="athar-link-button" type="submit">{{ __('athar.access.resend') }}</button>
             </form>
         @else
-            <form method="post" action="{{ route('athar.code', ['token' => request()->route('token')]) }}" class="athar-form">
+            <form method="post" action="{{ localized_route('athar.code', ['token' => request()->route('token')]) }}" class="athar-form">
                 @csrf
                 <label for="email">{{ __('athar.access.email_label') }}</label>
                 <input id="email" name="email" type="email" autocomplete="email" required autofocus>
