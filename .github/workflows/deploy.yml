@@ -78,14 +78,14 @@ jobs:
       APP_URL: http://localhost
       DB_CONNECTION: mysql
       DB_HOST: 127.0.0.1
-      DB_PORT: ${{ job.services.mysql.ports[3306] }}
+      DB_PORT: 3306
       DB_DATABASE: ibrahim_website
       DB_USERNAME: ibrahim_website
       DB_PASSWORD: testing
       CACHE_STORE: redis
       QUEUE_CONNECTION: redis
       REDIS_HOST: 127.0.0.1
-      REDIS_PORT: ${{ job.services.redis.ports[6379] }}
+      REDIS_PORT: 6379
       REDIS_PASSWORD: ""
       MAIL_MAILER: array
       TURNSTILE_SECRET: ""
