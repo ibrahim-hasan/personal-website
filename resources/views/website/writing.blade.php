@@ -1,17 +1,12 @@
 @php
     $featuredArticle = $articles[0] ?? null;
-    $topicMap = collect($articles)
-        ->flatMap(function (array $article): array {
-            return collect($article['topic_keys'])
-                ->mapWithKeys(fn (string $key, int $index): array => [$key => $article['topics'][$index]])
-                ->all();
-        })
-        ->unique();
 @endphp
 
 <x-layouts.front
     :title="__('site.writing.title')"
     :description="__('site.writing.description')"
+    :canonicalUrl="localized_route('writing')"
+    :robots="$isFiltered ? 'noindex, follow, noarchive' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'"
     schemaType="CollectionPage"
     activeMenu="true">
 
@@ -26,14 +21,14 @@
             @if ($featuredArticle)
                 <a href="{{ $featuredArticle['url'] }}" wire:navigate class="featured-essay">
                 <figure>
-                    <img
-                        src="{{ $featuredArticle['image_url'] }}"
-                        alt="{{ $featuredArticle['image_alt'] }}"
-                        width="1600"
-                        height="900"
+                    <x-media.responsive-image
+                        :image="$featuredArticle['image_media']"
+                        :alt="$featuredArticle['image_alt']"
+                        sizes="(min-width: 72rem) 43rem, calc(100vw - 2rem)"
+                        loading="eager"
                         fetchpriority="high"
                         decoding="async"
-                    >
+                    />
                 </figure>
                 <div class="featured-essay__copy">
                     <span>{{ $featuredArticle['type'] }} · {{ $featuredArticle['read_time'] }}</span>
@@ -58,46 +53,44 @@
     </section>
 
     @if ($articles !== [])
-        <section class="publication-library" x-data="articleLibrary">
+        <section class="publication-library">
         <div class="site-container">
             <div class="publication-library__toolbar">
                 <div>
                     <p>{{ __('articles.index.library') }}</p>
                     <h2>{{ __('articles.index.all_articles') }}</h2>
                 </div>
-                <div class="publication-topics-shell">
-                    <button type="button" class="publication-topics__arrow" @click="scrollTopics(-1)" :disabled="topicCursor === 0" aria-label="{{ __('articles.index.previous_topics') }}">
+                <div class="publication-topics-shell" data-overflow-rail>
+                    <button type="button" class="publication-topics__arrow" data-overflow-rail-previous hidden aria-label="{{ __('articles.index.previous_topics') }}">
                         <x-phosphor-caret-left class="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
                     </button>
-                    <div x-ref="topics" class="publication-topics" role="toolbar" aria-label="{{ __('articles.index.filter_by_topic') }}">
-                    <button
-                        type="button"
-                        @click="select('all')"
-                        @keydown="navigate($event)"
-                        :aria-pressed="active === 'all'"
-                        :tabindex="active === 'all' ? 0 : -1"
-                        :class="active === 'all' ? 'is-active' : ''"
+                    <nav class="publication-topics" data-overflow-rail-scroll aria-label="{{ __('articles.index.filter_by_topic') }}">
+                    <span class="publication-topics__edge" data-overflow-rail-start aria-hidden="true"></span>
+                    <a
+                        href="{{ localized_route('writing') }}"
+                        class="{{ $selectedTopic === null ? 'is-active' : '' }}"
+                        @if ($selectedTopic === null) aria-current="page" @endif
                     >
                         {{ __('articles.index.all_topics') }}
-                    </button>
-                    @foreach ($topicMap as $key => $topic)
-                        <button
-                            type="button"
-                            @click="select(@js($key))"
-                            @keydown="navigate($event)"
-                            :aria-pressed="active === @js($key)"
-                            :tabindex="active === @js($key) ? 0 : -1"
-                            :class="active === @js($key) ? 'is-active' : ''"
+                    </a>
+                    @foreach ($topics as $key => $topic)
+                        <a
+                            href="{{ localized_route('writing', ['topic' => $key]) }}"
+                            class="{{ $selectedTopic === $key ? 'is-active' : '' }}"
+                            @if ($selectedTopic === $key) aria-current="page" @endif
                         >
                             {{ $topic }}
-                        </button>
+                        </a>
                     @endforeach
-                    </div>
-                    <button type="button" class="publication-topics__arrow" @click="scrollTopics(1)" :disabled="topicCursor === topicCount - 1" aria-label="{{ __('articles.index.next_topics') }}">
+                    <span class="publication-topics__edge" data-overflow-rail-end aria-hidden="true"></span>
+                    </nav>
+                    <button type="button" class="publication-topics__arrow" data-overflow-rail-next hidden aria-label="{{ __('articles.index.next_topics') }}">
                         <x-phosphor-caret-right class="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
                     </button>
                 </div>
             </div>
+
+            <p class="sr-only" aria-live="polite">{{ trans_choice('articles.index.result_count', count($articles), ['count' => count($articles)]) }}</p>
 
             <div class="publication-list">
                 @foreach ($articles as $article)
@@ -105,8 +98,6 @@
                         href="{{ $article['url'] }}"
                         wire:navigate
                         class="publication-row"
-                        x-show="matches(@js($article['topic_keys']))"
-                        x-transition.opacity.duration.250ms
                         style="--reveal-index: {{ $loop->index }}"
                         data-reveal="editorial-row"
                     >
@@ -127,6 +118,18 @@
                 @endforeach
             </div>
         </div>
+        </section>
+    @elseif ($isFiltered)
+        <section class="section-standard">
+            <div class="site-container">
+                <x-partials.content-empty
+                    :eyebrow="__('articles.index.filtered_empty_eyebrow')"
+                    :title="__('articles.index.filtered_empty_title')"
+                    :body="__('articles.index.filtered_empty_body')"
+                    :action-url="localized_route('writing')"
+                    :action-label="__('articles.index.clear_filters')"
+                />
+            </div>
         </section>
     @endif
 

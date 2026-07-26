@@ -3,11 +3,16 @@
 namespace App\Support\Editorial;
 
 use App\Models\Article as ArticleRecord;
+use App\Support\Media\PublicImage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Lang;
 
 final readonly class Article
 {
+    private const int TABLE_OF_CONTENTS_MINIMUM_HEADINGS = 4;
+
+    private const int TABLE_OF_CONTENTS_MINIMUM_MINUTES = 6;
+
     /**
      * @param  array{ar: string, en: string}  $slugs
      * @param  array{ar: int, en: int}  $readMinutes
@@ -34,6 +39,21 @@ final readonly class Article
     }
 
     /**
+     * @return array{src: string, srcset: string, width: int, height: int}
+     */
+    public function imageMedia(
+        string $conversion = ArticleRecord::IMAGE_CONVERSION,
+        int $fallbackWidth = ArticleRecord::HERO_WIDTH,
+        int $fallbackHeight = ArticleRecord::HERO_HEIGHT,
+    ): array {
+        if ($this->record !== null) {
+            return $this->record->responsiveImage($conversion, $fallbackWidth, $fallbackHeight);
+        }
+
+        return PublicImage::fromUrl($this->image, $fallbackWidth, $fallbackHeight);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function localized(string $locale, bool $includeBody = true): array
@@ -50,6 +70,14 @@ final readonly class Article
                 );
         }
 
+        $tableOfContents = array_map(
+            fn (array $heading): array => [
+                'id' => (string) ($heading['id'] ?? ''),
+                'label' => $this->tableOfContentsLabel((string) ($heading['label'] ?? '')),
+            ],
+            $bodyPresentation['headings'],
+        );
+
         return [
             'key' => $this->key,
             'slug' => $this->slug($locale),
@@ -64,15 +92,25 @@ final readonly class Article
             'body' => is_string($body) || is_array($body) ? $body : [],
             'body_html' => $bodyPresentation['html'],
             'headings' => $bodyPresentation['headings'],
+            'table_of_contents' => $tableOfContents,
+            'show_table_of_contents' => $includeBody
+                && count($tableOfContents) >= self::TABLE_OF_CONTENTS_MINIMUM_HEADINGS
+                && (int) $minutes >= self::TABLE_OF_CONTENTS_MINIMUM_MINUTES,
             'published_at' => $this->publishedAt,
             'modified_at' => $this->modifiedAt,
             'published_label' => Carbon::parse($this->publishedAt)->locale($locale)->translatedFormat('j F Y'),
             'modified_label' => Carbon::parse($this->modifiedAt)->locale($locale)->translatedFormat('j F Y'),
             'image' => $this->image,
+            'image_media' => $this->imageMedia(),
+            'card_image' => $this->imageMedia(
+                ArticleRecord::THUMBNAIL_CONVERSION,
+                ArticleRecord::CARD_WIDTH,
+                ArticleRecord::CARD_HEIGHT,
+            ),
             'image_alt' => $this->translatedString('image_alt', $locale) ?: $this->translatedString('title', $locale),
             'image_caption' => $this->translatedString('image_caption', $locale),
             'read_minutes' => $minutes,
-            'read_time' => Lang::get('articles.reader.minutes', ['count' => $minutes], $locale),
+            'read_time' => Lang::choice('articles.reader.minutes', $minutes, ['count' => $minutes], $locale),
             'topic_keys' => $this->topicKeys,
             'topics' => array_map(
                 fn (string $topic): string => (string) Lang::get("articles.topics.{$topic}", [], $locale),
@@ -117,5 +155,14 @@ final readonly class Article
         return Lang::has($legacyKey, $locale)
             ? Lang::get($legacyKey, [], $locale)
             : null;
+    }
+
+    private function tableOfContentsLabel(string $label): string
+    {
+        return trim((string) preg_replace(
+            '/^\s*(?:\([\d٠-٩]+\)\s*|(?:[\d٠-٩]+|[IVXLCDM]+)[.)\-:]\s*)/u',
+            '',
+            $label,
+        ));
     }
 }

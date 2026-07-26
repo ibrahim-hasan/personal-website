@@ -40,6 +40,22 @@ class ServiceFactory extends Factory
                 'ar' => fake()->paragraph(),
                 'en' => fake()->paragraph(),
             ],
+            'fit_signals' => [
+                'ar' => ['تحتاج إلى قرار أوضح للخطوة التالية.', 'تريد ربط العمل اليومي بالنتيجة المطلوبة.'],
+                'en' => ['You need a clearer next decision.', 'You want daily work tied to the intended outcome.'],
+            ],
+            'engagement_note' => [
+                'ar' => 'نبدأ بجلسة لفهم التحدّي وتحديد الخطوة العملية التالية.',
+                'en' => 'We begin by understanding the challenge and identifying the next practical step.',
+            ],
+            'seo_title' => [
+                'ar' => 'خدمة تجريبية',
+                'en' => 'Example service',
+            ],
+            'seo_description' => [
+                'ar' => 'وصف تجريبي للخدمة.',
+                'en' => 'An example service description.',
+            ],
             'order' => fake()->numberBetween(1, 100),
             'is_draft' => false,
             'is_active' => true,

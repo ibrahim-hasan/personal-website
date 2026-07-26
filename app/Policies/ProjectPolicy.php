@@ -29,6 +29,11 @@ class ProjectPolicy
         return $user->hasPermissionTo('update projects');
     }
 
+    public function publish(User $user, Project $project): bool
+    {
+        return $user->hasPermissionTo('publish projects');
+    }
+
     public function delete(User $user, Project $project): bool
     {
         return $user->hasPermissionTo('delete projects');

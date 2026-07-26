@@ -29,6 +29,16 @@ class ServicePolicy
         return $user->hasPermissionTo('update services');
     }
 
+    public function publish(User $user, Service $service): bool
+    {
+        return $user->hasPermissionTo('publish services');
+    }
+
+    public function preview(User $user, Service $service): bool
+    {
+        return $this->update($user, $service);
+    }
+
     public function delete(User $user, Service $service): bool
     {
         return $user->hasPermissionTo('delete services');

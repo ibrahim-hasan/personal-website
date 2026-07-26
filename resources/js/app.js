@@ -561,6 +561,406 @@ const initializeScrollProgress = (signal) => {
     }, { once: true });
 };
 
+let activeDialogLocks = 0;
+
+const focusableDialogElements = (dialog) => [...dialog.querySelectorAll([
+    'a[href]:not([tabindex="-1"])',
+    'button:not([disabled]):not([tabindex="-1"])',
+    'input:not([disabled]):not([type="hidden"]):not([tabindex="-1"])',
+    'select:not([disabled]):not([tabindex="-1"])',
+    'textarea:not([disabled]):not([tabindex="-1"])',
+    '[tabindex]:not([tabindex="-1"])',
+].join(','))].filter((element) => !element.hidden && element.getClientRects().length > 0);
+
+const lockDialogScroll = () => {
+    activeDialogLocks += 1;
+
+    if (activeDialogLocks !== 1) {
+        return;
+    }
+
+    const root = document.documentElement;
+    const scrollbarWidth = Math.max(0, window.innerWidth - root.clientWidth);
+
+    root.style.setProperty('--scrollbar-compensation', `${scrollbarWidth}px`);
+    root.classList.add('dialog-open');
+};
+
+const unlockDialogScroll = () => {
+    activeDialogLocks = Math.max(0, activeDialogLocks - 1);
+
+    if (activeDialogLocks !== 0) {
+        return;
+    }
+
+    const root = document.documentElement;
+
+    root.classList.remove('dialog-open');
+
+    if (!root.classList.contains('menu-open')) {
+        root.style.removeProperty('--scrollbar-compensation');
+    }
+};
+
+const initializeAccessibleDialogs = (signal) => {
+    document.querySelectorAll('[data-accessible-dialog]').forEach((dialog) => {
+        if (!(dialog instanceof HTMLDialogElement)) {
+            return;
+        }
+
+        let hasScrollLock = false;
+        let returnFocus = null;
+        const dialogName = dialog.dataset.dialogName || '';
+
+        const restoreFocus = () => {
+            const fallbackTrigger = [...document.querySelectorAll('[data-dialog-trigger]')].find((trigger) => (
+                trigger.dataset.dialogTrigger === dialogName
+                && trigger.dataset.dialogTriggerKey === returnFocus?.key
+            ));
+            const trigger = returnFocus?.element?.isConnected
+                ? returnFocus.element
+                : fallbackTrigger;
+
+            returnFocus = null;
+            window.requestAnimationFrame(() => trigger?.focus());
+        };
+
+        const finishClose = (shouldRestoreFocus = true) => {
+            if (!hasScrollLock) {
+                return;
+            }
+
+            hasScrollLock = false;
+            unlockDialogScroll();
+
+            if (shouldRestoreFocus) {
+                restoreFocus();
+            } else {
+                returnFocus = null;
+            }
+        };
+
+        const requestServerClose = () => {
+            const method = dialog.dataset.dialogCloseMethod;
+            const componentId = dialog.closest('[wire\\:id]')?.getAttribute('wire:id');
+            const action = method && componentId
+                ? window.Livewire?.find(componentId)?.[method]
+                : null;
+
+            if (typeof action !== 'function') {
+                return;
+            }
+
+            try {
+                void action().catch(() => {});
+            } catch {
+                // The native dialog has already been closed for the visitor.
+            }
+        };
+
+        const close = ({ notifyServer = false } = {}) => {
+            if (dialog.open) {
+                dialog.close();
+            } else {
+                finishClose();
+            }
+
+            if (notifyServer) {
+                requestServerClose();
+            }
+        };
+
+        const open = (trigger = null) => {
+            if (trigger instanceof HTMLElement) {
+                returnFocus = {
+                    element: trigger,
+                    key: trigger.dataset.dialogTriggerKey || '',
+                };
+            }
+
+            if (!dialog.open) {
+                lockDialogScroll();
+                hasScrollLock = true;
+
+                try {
+                    dialog.showModal();
+                } catch {
+                    dialog.setAttribute('open', '');
+                }
+            }
+
+            window.requestAnimationFrame(() => {
+                const initialFocus = dialog.querySelector('[data-dialog-initial-focus]')
+                    || focusableDialogElements(dialog)[0]
+                    || dialog;
+
+                initialFocus.focus();
+            });
+        };
+
+        const closeEvent = dialog.dataset.dialogCloseEvent;
+        const openEvent = dialog.dataset.dialogOpenEvent;
+        const onNativeClose = () => finishClose();
+
+        dialog.addEventListener('close', onNativeClose);
+        dialog.addEventListener('cancel', (event) => {
+            event.preventDefault();
+            close({ notifyServer: true });
+        }, { signal });
+        dialog.addEventListener('click', (event) => {
+            if (!(event.target instanceof Element)) {
+                return;
+            }
+
+            if (event.target === dialog) {
+                close({ notifyServer: true });
+
+                return;
+            }
+
+            if (event.target.closest('[data-dialog-close]')) {
+                event.preventDefault();
+                close({ notifyServer: true });
+            }
+        }, { signal });
+        dialog.addEventListener('keydown', (event) => {
+            if (event.key !== 'Tab' || !dialog.open) {
+                return;
+            }
+
+            const focusable = focusableDialogElements(dialog);
+
+            if (focusable.length === 0) {
+                event.preventDefault();
+                dialog.focus();
+
+                return;
+            }
+
+            const first = focusable[0];
+            const last = focusable.at(-1);
+            const activeElement = document.activeElement;
+
+            if (event.shiftKey && (activeElement === first || activeElement === dialog)) {
+                event.preventDefault();
+                last?.focus();
+            } else if (!event.shiftKey && (activeElement === last || activeElement === dialog)) {
+                event.preventDefault();
+                first.focus();
+            }
+        }, { signal });
+
+        if (openEvent) {
+            window.addEventListener(openEvent, (event) => {
+                const detail = event instanceof CustomEvent ? event.detail : {};
+                const commentId = String(detail?.commentId ?? '');
+                const trigger = [...document.querySelectorAll('[data-dialog-trigger]')].find((candidate) => (
+                    candidate.dataset.dialogTrigger === dialogName
+                    && candidate.dataset.dialogTriggerKey === commentId
+                ));
+
+                open(trigger);
+            }, { signal });
+        }
+
+        if (closeEvent) {
+            window.addEventListener(closeEvent, () => close(), { signal });
+        }
+
+        signal.addEventListener('abort', () => {
+            dialog.removeEventListener('close', onNativeClose);
+
+            if (dialog.open) {
+                dialog.close();
+            }
+
+            finishClose(false);
+        }, { once: true });
+    });
+};
+
+const initializeArticleReadingProgress = (signal) => {
+    const community = document.querySelector('[data-article-reading-progress]');
+    const article = document.querySelector('[data-article-page]');
+    const componentId = community?.getAttribute('wire:id');
+
+    if (!community || !article || !componentId) {
+        return;
+    }
+
+    let lastSaved = 0;
+    let saveTimeout = null;
+
+    const updateProgress = () => {
+        const bounds = article.getBoundingClientRect();
+        const articleStart = window.scrollY + bounds.top;
+        const scrollableHeight = article.offsetHeight - window.innerHeight;
+        const percent = scrollableHeight > 0
+            ? Math.min(100, Math.max(0, Math.round(((window.scrollY - articleStart) / scrollableHeight) * 100)))
+            : 100;
+
+        if (percent < lastSaved + 10 && percent < 95) {
+            return;
+        }
+
+        const action = window.Livewire?.find(componentId)?.updateProgress;
+
+        if (typeof action !== 'function') {
+            return;
+        }
+
+        lastSaved = percent;
+
+        try {
+            void action(percent).catch(() => {});
+        } catch {
+            // Progress is an enhancement; a navigation must remain usable if it cannot persist.
+        }
+    };
+
+    const queueProgressUpdate = () => {
+        if (saveTimeout !== null) {
+            window.clearTimeout(saveTimeout);
+        }
+
+        saveTimeout = window.setTimeout(() => {
+            saveTimeout = null;
+
+            if (community.isConnected && article.isConnected) {
+                updateProgress();
+            }
+        }, 500);
+    };
+
+    window.addEventListener('scroll', queueProgressUpdate, { passive: true, signal });
+    signal.addEventListener('abort', () => {
+        if (saveTimeout !== null) {
+            window.clearTimeout(saveTimeout);
+        }
+    }, { once: true });
+};
+
+const initializeViewportStack = (signal) => {
+    const root = document.documentElement;
+    const consent = document.querySelector('[data-cookie-consent]');
+    const audio = document.querySelector('[data-site-audio-player]');
+    const viewport = window.visualViewport;
+    let frame = null;
+
+    const visibleHeight = (surface) => {
+        if (! surface || surface.hidden || window.getComputedStyle(surface).display === 'none') {
+            return 0;
+        }
+
+        return Math.ceil(surface.getBoundingClientRect().height);
+    };
+    const update = () => {
+        frame = null;
+
+        const consentHeight = visibleHeight(consent);
+        const audioHeight = visibleHeight(audio);
+        const keyboardInset = viewport
+            ? Math.max(0, Math.ceil(window.innerHeight - viewport.height - viewport.offsetTop))
+            : 0;
+
+        root.style.setProperty('--viewport-consent-height', `${consentHeight}px`);
+        root.style.setProperty('--viewport-audio-height', `${audioHeight}px`);
+        root.style.setProperty('--viewport-stack-height', `${consentHeight + audioHeight}px`);
+        root.style.setProperty('--viewport-keyboard-inset', `${keyboardInset}px`);
+    };
+    const queueUpdate = () => {
+        if (frame === null) {
+            frame = window.requestAnimationFrame(update);
+        }
+    };
+    const resizeObserver = 'ResizeObserver' in window ? new ResizeObserver(queueUpdate) : null;
+    const mutationObserver = new MutationObserver(queueUpdate);
+
+    [consent, audio].filter(Boolean).forEach((surface) => {
+        resizeObserver?.observe(surface);
+        mutationObserver.observe(surface, {
+            attributes: true,
+            attributeFilter: ['hidden', 'class', 'style'],
+        });
+    });
+
+    update();
+    window.addEventListener('resize', queueUpdate, { passive: true, signal });
+    window.addEventListener('cookie-consent-visibility-changed', queueUpdate, { signal });
+    viewport?.addEventListener('resize', queueUpdate, { passive: true, signal });
+    viewport?.addEventListener('scroll', queueUpdate, { passive: true, signal });
+    signal.addEventListener('abort', () => {
+        if (frame !== null) {
+            window.cancelAnimationFrame(frame);
+        }
+
+        resizeObserver?.disconnect();
+        mutationObserver.disconnect();
+    }, { once: true });
+};
+
+const initializeOverflowRails = (signal) => {
+    document.querySelectorAll('[data-overflow-rail]').forEach((container) => {
+        const rail = container.querySelector('[data-overflow-rail-scroll]');
+        const previous = container.querySelector('[data-overflow-rail-previous]');
+        const next = container.querySelector('[data-overflow-rail-next]');
+        const start = container.querySelector('[data-overflow-rail-start]');
+        const end = container.querySelector('[data-overflow-rail-end]');
+
+        if (! rail || ! previous || ! next || ! start || ! end) {
+            return;
+        }
+
+        const visibleEdges = { start: true, end: false };
+        let hasOverflow = false;
+        const updateControls = () => {
+            hasOverflow = rail.scrollWidth > rail.clientWidth + 1;
+            container.toggleAttribute('data-overflow-active', hasOverflow);
+            previous.hidden = ! hasOverflow;
+            next.hidden = ! hasOverflow;
+            previous.disabled = ! hasOverflow || visibleEdges.start;
+            next.disabled = ! hasOverflow || visibleEdges.end;
+        };
+        const scroll = (direction) => {
+            const scrollDirection = getComputedStyle(rail).direction === 'rtl' ? -direction : direction;
+
+            rail.scrollBy({
+                left: scrollDirection * rail.clientWidth * 0.68,
+                behavior: reducedMotion.matches ? 'auto' : 'smooth',
+            });
+        };
+        const edgeObserver = 'IntersectionObserver' in window
+            ? new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.target === start) {
+                        visibleEdges.start = entry.isIntersecting;
+                    }
+
+                    if (entry.target === end) {
+                        visibleEdges.end = entry.isIntersecting;
+                    }
+                });
+
+                updateControls();
+            }, { root: rail, threshold: 1 })
+            : null;
+        const resizeObserver = 'ResizeObserver' in window ? new ResizeObserver(updateControls) : null;
+
+        edgeObserver?.observe(start);
+        edgeObserver?.observe(end);
+        resizeObserver?.observe(rail);
+        previous.addEventListener('click', () => scroll(-1), { signal });
+        next.addEventListener('click', () => scroll(1), { signal });
+        rail.addEventListener('scroll', updateControls, { passive: true, signal });
+        updateControls();
+
+        signal.addEventListener('abort', () => {
+            edgeObserver?.disconnect();
+            resizeObserver?.disconnect();
+        }, { once: true });
+    });
+};
+
 const initializeBackToTop = (signal) => {
     const control = document.querySelector('[data-back-to-top]');
 
@@ -568,22 +968,17 @@ const initializeBackToTop = (signal) => {
         return;
     }
 
-    const floatingSurface = document.querySelector('[data-site-audio-player]');
     const footerSafeZone = document.querySelector('[data-back-to-top-safe-zone]');
     let visibilityFrame = null;
     let floatingResizeObserver = null;
-    let floatingMutationObserver = null;
 
     const updateFloatingOffset = () => {
-        const isVisible = floatingSurface && ! floatingSurface.hidden;
-        const audioOffset = isVisible ? Math.ceil(floatingSurface.getBoundingClientRect().height) : 0;
         const footerRect = footerSafeZone?.getBoundingClientRect();
         const footerOffset = footerRect && footerRect.top < window.innerHeight
             ? Math.ceil(window.innerHeight - footerRect.top + 16)
             : 0;
-        const occupiedHeight = Math.max(audioOffset, footerOffset);
 
-        control.style.setProperty('--floating-footer-offset', `${occupiedHeight}px`);
+        control.style.setProperty('--floating-footer-offset', `${footerOffset}px`);
     };
 
     const updateVisibility = () => {
@@ -614,17 +1009,8 @@ const initializeBackToTop = (signal) => {
 
     updateVisibility();
 
-    if (floatingSurface) {
-        floatingResizeObserver = new ResizeObserver(updateFloatingOffset);
-        floatingResizeObserver.observe(floatingSurface);
-        floatingMutationObserver = new MutationObserver(updateFloatingOffset);
-        floatingMutationObserver.observe(floatingSurface, {
-            attributes: true,
-            attributeFilter: ['hidden', 'class', 'style'],
-        });
-    }
     if (footerSafeZone) {
-        floatingResizeObserver ??= new ResizeObserver(updateFloatingOffset);
+        floatingResizeObserver = new ResizeObserver(updateFloatingOffset);
         floatingResizeObserver.observe(footerSafeZone);
     }
     window.addEventListener('scroll', queueVisibilityUpdate, { passive: true, signal });
@@ -636,7 +1022,6 @@ const initializeBackToTop = (signal) => {
         }
 
         floatingResizeObserver?.disconnect();
-        floatingMutationObserver?.disconnect();
     }, { once: true });
 };
 
@@ -945,6 +1330,10 @@ const initializeFrontEnhancements = () => {
     enableInternalNavigation();
     initializeHeroVideos(frontEnhancementController.signal);
     initializePageMotion(frontEnhancementController.signal);
+    initializeAccessibleDialogs(frontEnhancementController.signal);
+    initializeArticleReadingProgress(frontEnhancementController.signal);
+    initializeViewportStack(frontEnhancementController.signal);
+    initializeOverflowRails(frontEnhancementController.signal);
     initializeBackToTop(frontEnhancementController.signal);
     initializeConsultationTurnstile(frontEnhancementController.signal);
     void initializeArticleSharing(frontEnhancementController.signal);

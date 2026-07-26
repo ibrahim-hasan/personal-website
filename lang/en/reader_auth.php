@@ -16,6 +16,8 @@ return [
     'email' => 'Email address',
     'password' => 'Password',
     'password_confirmation' => 'Confirm password',
+    'password_guidance' => 'Use a long, unique password you do not use on another account.',
+    'error_summary_title' => 'Check the following fields, then try again.',
     'remember' => 'Keep me signed in',
     'forgot_password' => 'Forgot password?',
     'forgot_title' => 'Recover your reader account',

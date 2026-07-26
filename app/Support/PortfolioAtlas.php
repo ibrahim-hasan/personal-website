@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Project;
+use App\Services\Projects\ProjectCaseStudyPublicationValidator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Schema;
 
@@ -32,12 +33,13 @@ final class PortfolioAtlas
         if (self::usesStoredProjects()) {
             return Project::query()
                 ->published()
+                ->with(['media', 'evidence', 'services'])
                 ->where('featured', true)
                 ->when($lens !== null, fn (Builder $query): Builder => $query->where('lens', $lens))
                 ->orderBy('sort_order')
                 ->limit($limit)
                 ->get()
-                ->map(fn (Project $project): array => $project->toPortfolioArray(app()->getLocale()))
+                ->map(fn (Project $project): array => self::publicProject($project))
                 ->all();
         }
 
@@ -56,18 +58,23 @@ final class PortfolioAtlas
     /**
      * @return list<array{id: string, title: string, sector: string, summary: string, challenge: string, response: string, outcome: string, lens: string, image: string, alt: string, logo: string, logo_alt: string, tags: list<string>}>
      */
-    public static function projects(): array
+    public static function projects(?string $lens = null): array
     {
         if (self::usesStoredProjects()) {
             return Project::query()
                 ->published()
+                ->with(['media', 'evidence', 'services'])
+                ->when($lens !== null, fn (Builder $query): Builder => $query->where('lens', $lens))
                 ->orderBy('sort_order')
                 ->get()
-                ->map(fn (Project $project): array => $project->toPortfolioArray(app()->getLocale()))
+                ->map(fn (Project $project): array => self::publicProject($project))
                 ->all();
         }
 
-        return self::localize(self::projectDefaults());
+        return array_values(array_filter(
+            self::localize(self::projectDefaults()),
+            fn (array $project): bool => $lens === null || $project['lens'] === $lens,
+        ));
     }
 
     /**
@@ -570,6 +577,20 @@ final class PortfolioAtlas
     private static function usesStoredProjects(): bool
     {
         return Schema::hasTable('projects');
+    }
+
+    /**
+     * @return array{id: string, key: string, title: string, sector: string, summary: string, challenge: string, response: string, outcome: string, lens: string, image: string, alt: string, logo: string, logo_alt: string, tags: list<string>, detail_url?: string}
+     */
+    private static function publicProject(Project $project): array
+    {
+        $publicProject = $project->toPortfolioArray(app()->getLocale());
+
+        if (app(ProjectCaseStudyPublicationValidator::class)->validate($project)->isEligible()) {
+            $publicProject['detail_url'] = localized_route('work.show', ['project' => $project]);
+        }
+
+        return $publicProject;
     }
 
     private static function localize(mixed $value, ?string $locale = null): mixed

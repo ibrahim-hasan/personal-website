@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ProjectAssetPermissionStatus;
 use App\Models\Project;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -17,6 +18,10 @@ class ProjectMediaTest extends TestCase
         $project = Project::factory()->create([
             'image' => 'images/projects/atlas/legacy.webp',
             'logo' => 'images/brands/projects/legacy.webp',
+            'image_permission_status' => ProjectAssetPermissionStatus::Approved,
+            'image_permission_reference' => 'approved image use',
+            'logo_permission_status' => ProjectAssetPermissionStatus::Approved,
+            'logo_permission_reference' => 'approved logo use',
         ]);
 
         $portfolioProject = $project->toPortfolioArray('en');
@@ -32,6 +37,10 @@ class ProjectMediaTest extends TestCase
         $project = Project::factory()->create([
             'image' => null,
             'logo' => null,
+            'image_permission_status' => ProjectAssetPermissionStatus::Approved,
+            'image_permission_reference' => 'approved image use',
+            'logo_permission_status' => ProjectAssetPermissionStatus::Approved,
+            'logo_permission_reference' => 'approved logo use',
         ]);
 
         $image = $project
@@ -72,6 +81,21 @@ class ProjectMediaTest extends TestCase
             'replacement.jpg',
             $project->getFirstMedia(Project::IMAGE_COLLECTION)?->file_name,
         );
+    }
+
+    public function test_media_is_not_exposed_without_an_approved_permission_and_private_reference(): void
+    {
+        $project = Project::factory()->create([
+            'image' => 'images/projects/atlas/legacy.webp',
+            'logo' => 'images/brands/projects/legacy.webp',
+        ]);
+
+        $portfolioProject = $project->toPortfolioArray('en');
+
+        $this->assertSame('', $portfolioProject['image']);
+        $this->assertSame('', $portfolioProject['alt']);
+        $this->assertSame('', $portfolioProject['logo']);
+        $this->assertSame('', $portfolioProject['logo_alt']);
     }
 
     public function test_legacy_media_backfill_is_idempotent(): void

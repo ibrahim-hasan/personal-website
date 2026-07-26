@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Filament\ArticleBodyMediaProvider;
 use App\Support\Editorial\ArticleBody;
+use App\Support\Media\PublicImage;
 use App\Traits\SynchronizesTranslatedSlugs;
 use Database\Factories\ArticleFactory;
 use Filament\Forms\Components\RichEditor\Models\Concerns\InteractsWithRichContent;
@@ -32,6 +33,14 @@ class Article extends Model implements HasMedia, HasRichContent, LocalizedUrlRou
     public const string IMAGE_CONVERSION = 'article_hero';
 
     public const string THUMBNAIL_CONVERSION = 'article_card';
+
+    public const int HERO_WIDTH = 1600;
+
+    public const int HERO_HEIGHT = 900;
+
+    public const int CARD_WIDTH = 720;
+
+    public const int CARD_HEIGHT = 480;
 
     public const string BODY_AR_COLLECTION = 'article_body_ar';
 
@@ -176,16 +185,18 @@ class Article extends Model implements HasMedia, HasRichContent, LocalizedUrlRou
     {
         $this->addMediaConversion(self::IMAGE_CONVERSION)
             ->performOnCollections(self::IMAGE_COLLECTION)
-            ->fit(Fit::Crop, 1600, 900)
+            ->fit(Fit::Crop, self::HERO_WIDTH, self::HERO_HEIGHT)
             ->format('webp')
             ->quality(86)
+            ->withResponsiveImages()
             ->nonQueued();
 
         $this->addMediaConversion(self::THUMBNAIL_CONVERSION)
             ->performOnCollections(self::IMAGE_COLLECTION)
-            ->fit(Fit::Crop, 720, 480)
+            ->fit(Fit::Crop, self::CARD_WIDTH, self::CARD_HEIGHT)
             ->format('webp')
             ->quality(82)
+            ->withResponsiveImages()
             ->nonQueued();
 
         $this->addMediaConversion(self::BODY_IMAGE_CONVERSION)

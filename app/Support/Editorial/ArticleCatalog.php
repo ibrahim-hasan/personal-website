@@ -2,6 +2,7 @@
 
 namespace App\Support\Editorial;
 
+use App\Actions\Editorial\ArticlePublicationValidator;
 use App\Models\Article as ArticleRecord;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Schema;
@@ -10,6 +11,8 @@ final class ArticleCatalog
 {
     /** @var list<Article>|null */
     private ?array $articles = null;
+
+    public function __construct(private readonly ArticlePublicationValidator $publicationValidator) {}
 
     /**
      * @var list<array{
@@ -436,8 +439,10 @@ final class ArticleCatalog
 
         return ArticleRecord::query()
             ->published()
+            ->with('media')
             ->orderByDesc('published_at')
             ->get()
+            ->filter(fn (ArticleRecord $record): bool => $this->publicationValidator->isPubliclyEligible($record))
             ->map(fn (ArticleRecord $record): Article => new Article(
                 key: $record->key,
                 slugs: $record->getTranslations('slug'),
@@ -474,10 +479,12 @@ final class ArticleCatalog
      */
     private function present(Article $article, string $locale, bool $includeBody = true): array
     {
+        $localized = $article->localized($locale, $includeBody);
+
         return [
-            ...$article->localized($locale, $includeBody),
+            ...$localized,
             'url' => $this->url($article, $locale),
-            'image_url' => asset($article->image),
+            'image_url' => $localized['image_media']['src'],
         ];
     }
 }
