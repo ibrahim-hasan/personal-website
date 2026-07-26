@@ -99,6 +99,7 @@ class ArticleForm
         }
 
         return $schema
+            ->disabled(fn (?Article $record): bool => $record?->is_published ?? false)
             ->columns(3)
             ->components([
                 Group::make([

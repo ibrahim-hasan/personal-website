@@ -398,7 +398,9 @@ final class ArticleBody
             ];
         }
 
-        foreach ($xpath->query('//*[@id="article-rich-body"]//img') ?: [] as $image) {
+        $imageNodes = $xpath->query('//*[@id="article-rich-body"]//img');
+
+        foreach ($imageNodes === false ? [] : iterator_to_array($imageNodes) as $image) {
             if (! $image instanceof DOMElement) {
                 continue;
             }
@@ -414,12 +416,24 @@ final class ArticleBody
             $media = $article->getMedia(Article::bodyCollection($locale))
                 ->firstWhere('uuid', $attachmentId);
 
-            if ($media === null || ! $media->hasGeneratedConversion(Article::BODY_IMAGE_CONVERSION)) {
+            if ($media === null) {
+                $removableNode = $image->parentNode instanceof DOMElement
+                    && $image->parentNode->tagName === 'figure'
+                    ? $image->parentNode
+                    : $image;
+                $removableNode->parentNode?->removeChild($removableNode);
+
                 continue;
             }
 
-            $image->setAttribute('src', $media->getUrl(Article::BODY_IMAGE_CONVERSION));
-            $srcset = $media->getSrcset(Article::BODY_IMAGE_CONVERSION);
+            $hasOptimizedImage = $media->hasGeneratedConversion(Article::BODY_IMAGE_CONVERSION);
+            $image->setAttribute(
+                'src',
+                $media->getUrl($hasOptimizedImage ? Article::BODY_IMAGE_CONVERSION : ''),
+            );
+            $srcset = $hasOptimizedImage
+                ? $media->getSrcset(Article::BODY_IMAGE_CONVERSION)
+                : '';
 
             if (filled($srcset)) {
                 $image->setAttribute('srcset', $srcset);

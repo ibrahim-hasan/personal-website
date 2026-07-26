@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\Editorial\AssertEditorialArticleIsDraft;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ArticleStateTransitionRequest;
 use App\Http\Requests\Api\UploadEditorialArticleImageRequest;
@@ -17,12 +18,14 @@ class EditorialArticleImageController extends Controller
     public function store(
         UploadEditorialArticleImageRequest $request,
         Article $article,
+        AssertEditorialArticleIsDraft $assertEditorialArticleIsDraft,
         Concurrency $concurrency,
         Idempotency $idempotency,
         Audit $audit,
     ): JsonResponse {
-        return $idempotency->execute($request, function () use ($request, $article, $concurrency, $audit): JsonResponse {
+        return $idempotency->execute($request, function () use ($request, $article, $assertEditorialArticleIsDraft, $concurrency, $audit): JsonResponse {
             $concurrency->assertCurrent($request, $article);
+            $assertEditorialArticleIsDraft->handle($article);
             $article->addMediaFromRequest('image')->toMediaCollection(Article::IMAGE_COLLECTION);
             $article->update(['editorial_revision' => $article->editorial_revision + 1, 'modified_at' => today()]);
             $article = $article->refresh();
@@ -35,12 +38,14 @@ class EditorialArticleImageController extends Controller
     public function destroy(
         ArticleStateTransitionRequest $request,
         Article $article,
+        AssertEditorialArticleIsDraft $assertEditorialArticleIsDraft,
         Concurrency $concurrency,
         Idempotency $idempotency,
         Audit $audit,
     ): JsonResponse {
-        return $idempotency->execute($request, function () use ($request, $article, $concurrency, $audit): JsonResponse {
+        return $idempotency->execute($request, function () use ($request, $article, $assertEditorialArticleIsDraft, $concurrency, $audit): JsonResponse {
             $concurrency->assertCurrent($request, $article);
+            $assertEditorialArticleIsDraft->handle($article);
             $article->clearMediaCollection(Article::IMAGE_COLLECTION);
             $article->update(['editorial_revision' => $article->editorial_revision + 1, 'modified_at' => today()]);
             $article = $article->refresh();

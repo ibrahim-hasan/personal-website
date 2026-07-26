@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Support\Editorial\ArticleBody;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,6 +24,12 @@ class StoreEditorialArticleRequest extends FormRequest
      */
     public function rules(): array
     {
+        $validRichDocument = function (string $attribute, mixed $value, Closure $fail): void {
+            if (! app(ArticleBody::class)->isValidDocument($value)) {
+                $fail("The {$attribute} field must be a valid rich-text document using supported article blocks.");
+            }
+        };
+
         return [
             'key' => ['required', 'alpha_dash', 'max:80', Rule::unique('articles', 'key')],
             'title' => ['required', 'array:ar,en'],
@@ -37,8 +45,8 @@ class StoreEditorialArticleRequest extends FormRequest
             'summary.ar' => ['required', 'string', 'max:500'],
             'summary.en' => ['required', 'string', 'max:500'],
             'body' => ['required_without_all:lead,sections,closing', 'array:ar,en'],
-            'body.ar' => ['required_with:body', 'array'],
-            'body.en' => ['required_with:body', 'array'],
+            'body.ar' => ['required_with:body', 'array', $validRichDocument],
+            'body.en' => ['required_with:body', 'array', $validRichDocument],
             'lead' => ['required_without:body', 'array:ar,en'],
             'lead.ar' => ['required_with:lead', 'string'],
             'lead.en' => ['required_with:lead', 'string'],

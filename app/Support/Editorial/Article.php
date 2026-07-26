@@ -61,7 +61,7 @@ final readonly class Article
             'lead' => $this->translatedString('lead', $locale),
             'sections' => $this->translatedArray('sections', $locale),
             'closing' => $this->translatedString('closing', $locale),
-            'body' => is_array($body) ? $body : [],
+            'body' => is_string($body) || is_array($body) ? $body : [],
             'body_html' => $bodyPresentation['html'],
             'headings' => $bodyPresentation['headings'],
             'published_at' => $this->publishedAt,
@@ -112,6 +112,10 @@ final readonly class Article
             return Lang::get($rewriteKey, [], $locale);
         }
 
-        return Lang::get("articles.articles.{$this->key}.{$field}", [], $locale);
+        $legacyKey = "articles.articles.{$this->key}.{$field}";
+
+        return Lang::has($legacyKey, $locale)
+            ? Lang::get($legacyKey, [], $locale)
+            : null;
     }
 }
