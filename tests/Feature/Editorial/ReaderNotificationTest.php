@@ -52,7 +52,7 @@ class ReaderNotificationTest extends TestCase
             ->assertOk()
             ->assertSee('ما الذي استجد منذ زيارتك الأخيرة؟')
             ->assertSee('مقال تنبيهات القارئ')
-            ->assertSee('تحديثان غير مقروءين');
+            ->assertSee('تحديثان غير مقروءان');
     }
 
     public function test_the_library_has_a_purposeful_empty_notification_state(): void

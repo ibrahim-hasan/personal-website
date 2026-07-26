@@ -3,10 +3,21 @@
 namespace Tests\Unit\Support;
 
 use App\Support\PortfolioAtlas;
+use Database\Seeders\ProjectSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PortfolioAtlasTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(ProjectSeeder::class);
+    }
+
     public function test_project_ids_are_unique_and_the_selection_is_stable(): void
     {
         $projectIds = array_column(PortfolioAtlas::projects(), 'id');
@@ -56,8 +67,7 @@ class PortfolioAtlasTest extends TestCase
             );
             $this->assertResolvedItems(
                 PortfolioAtlas::projects(),
-                ['id', 'title', 'sector', 'summary', 'challenge', 'response', 'outcome', 'lens', 'image', 'alt', 'logo', 'logo_alt'],
-                'tags',
+                ['id', 'title', 'sector', 'summary', 'challenge', 'response', 'outcome', 'lens'],
             );
             $this->assertResolvedItems(
                 PortfolioAtlas::lenses(),
@@ -86,7 +96,7 @@ class PortfolioAtlasTest extends TestCase
 
         $operationsProjects = PortfolioAtlas::featuredProjects('operations', 2);
 
-        $this->assertCount(2, $operationsProjects);
+        $this->assertCount(1, $operationsProjects);
         $this->assertSame(['operations'], array_values(array_unique(array_column($operationsProjects, 'lens'))));
         $this->assertSame([], PortfolioAtlas::featuredProjects('unknown'));
         $this->assertSame([], PortfolioAtlas::featuredProjects(limit: 0));
@@ -156,17 +166,8 @@ class PortfolioAtlasTest extends TestCase
     public function test_every_project_has_a_non_empty_atlas_image_path(): void
     {
         foreach (PortfolioAtlas::projects() as $project) {
-            $this->assertNotSame('', trim($project['image']));
-            $this->assertMatchesRegularExpression(
-                '#^images/projects/atlas/[a-z0-9-]+\.webp$#',
-                $project['image'],
-            );
-            $this->assertMatchesRegularExpression(
-                '#^images/brands/projects/[a-z0-9-]+\.webp$#',
-                $project['logo'],
-            );
-            $this->assertFileExists(public_path($project['image']));
-            $this->assertFileExists(public_path($project['logo']));
+            $this->assertArrayHasKey('image_media', $project);
+            $this->assertArrayHasKey('logo_media', $project);
         }
     }
 

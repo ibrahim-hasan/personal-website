@@ -3,10 +3,21 @@
 namespace Tests\Unit\Support;
 
 use App\Support\Editorial\ArticleCatalog;
+use Database\Seeders\ArticleSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ArticleCatalogTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(ArticleSeeder::class);
+    }
+
     public function test_catalog_contains_ten_articles_with_unique_localized_slugs(): void
     {
         $catalog = app(ArticleCatalog::class);

@@ -268,7 +268,7 @@ class Project extends Model implements HasMedia, LocalizedUrlRoutable
 
         return [
             'key' => $this->key,
-            'id' => $this->getTranslation('slug', $locale),
+            'id' => $this->key,
             'title' => $this->translation('title', $locale),
             'sector' => $this->translation('sector', $locale),
             'summary' => $this->translation('summary', $locale),
@@ -287,7 +287,7 @@ class Project extends Model implements HasMedia, LocalizedUrlRoutable
                 : PublicImage::hidden(self::LOGO_WIDTH, self::LOGO_HEIGHT),
             'logo_alt' => $mayRenderLogo ? $this->translation('logo_alt', $locale) : '',
             'tags' => collect($this->tags ?? [])
-                ->map(fn (array $tag): string => (string) ($tag[$locale] ?? ''))
+                ->map(fn (array $tag): string => (string) ($tag[$locale] ?? $tag[config('app.fallback_locale', 'en')] ?? ''))
                 ->filter()
                 ->values()
                 ->all(),

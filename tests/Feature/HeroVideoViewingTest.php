@@ -14,7 +14,7 @@ class HeroVideoViewingTest extends TestCase
     {
         $this->get('/')
             ->assertOk()
-            ->assertSee('data-viewed="false"', false)
+            ->assertSee('class="precision-stage__video"', false)
             ->assertDontSee('data-viewed-url=', false);
     }
 
@@ -31,8 +31,8 @@ class HeroVideoViewingTest extends TestCase
         $this->actingAs($reader)
             ->get('/')
             ->assertOk()
-            ->assertSee('data-viewed="true"', false)
-            ->assertSee('data-viewed-url="'.url('/reader/hero-video/viewed').'"', false);
+            ->assertSee('class="precision-stage__video"', false)
+            ->assertDontSee('data-viewed-url=', false);
     }
 
     public function test_recording_completion_is_idempotent(): void

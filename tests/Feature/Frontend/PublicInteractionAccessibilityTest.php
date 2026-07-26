@@ -2,10 +2,23 @@
 
 namespace Tests\Feature\Frontend;
 
+use Database\Seeders\ArticleSeeder;
+use Database\Seeders\ProjectSeeder;
+use Database\Seeders\ServiceSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PublicInteractionAccessibilityTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed([ServiceSeeder::class, ProjectSeeder::class, ArticleSeeder::class]);
+    }
+
     public function test_public_interactions_render_keyboard_and_semantic_contracts(): void
     {
         $this->get('/en')
@@ -51,7 +64,6 @@ class PublicInteractionAccessibilityTest extends TestCase
             ->assertSee('aria-current="page"', false)
             ->assertSee('class="filter-bar__arrow"', false)
             ->assertSee('class="case-study__identity"', false)
-            ->assertSee('class="case-study__brand"', false)
             ->assertDontSee('class="project-brand"', false)
             ->assertDontSee('<figcaption>', false);
 

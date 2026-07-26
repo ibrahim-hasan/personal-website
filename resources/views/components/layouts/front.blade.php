@@ -43,6 +43,12 @@
     $hasAnalyticsConfiguration = $allowsAnalytics
         && app()->isProduction()
         && filled(config('services.google_analytics.measurement_id'));
+    $analyticsPageType = match ($baseRouteName) {
+        'services.show' => 'service',
+        'work.show' => 'project',
+        'writing.show' => 'article',
+        default => $baseRouteName,
+    };
     $isSensitiveRoute = str_contains($baseRouteName, 'reader.')
         || str_contains($baseRouteName, 'verification.');
     $seo = \App\Support\Seo\SeoMetadata::fromLayout(
@@ -65,6 +71,11 @@
         schemaType: $schemaType,
         structuredData: $structuredData,
     );
+    $analyticsContext = $hasAnalyticsConfiguration ? [
+        'locale' => $seo->locale,
+        'page_type' => $analyticsPageType,
+        'route_key' => $baseRouteName,
+    ] : null;
     $cspNonce = config('security.csp.report_only') ? \Illuminate\Support\Facades\Vite::cspNonce() : null;
 @endphp
 
@@ -133,6 +144,7 @@
 
     @if ($hasAnalyticsConfiguration)
         <meta name="google-analytics-id" content="{{ config('services.google_analytics.measurement_id') }}">
+        <meta name="analytics-context" content="{{ \Illuminate\Support\Js::encode($analyticsContext, JSON_UNESCAPED_SLASHES) }}">
     @endif
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
