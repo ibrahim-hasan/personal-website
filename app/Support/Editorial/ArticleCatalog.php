@@ -437,7 +437,7 @@ final class ArticleCatalog
             return null;
         }
 
-        return ArticleRecord::query()
+        $articles = ArticleRecord::query()
             ->published()
             ->with('media')
             ->orderByDesc('published_at')
@@ -472,6 +472,8 @@ final class ArticleCatalog
                 record: $record,
             ))
             ->all();
+
+        return $articles === [] ? null : $articles;
     }
 
     /**

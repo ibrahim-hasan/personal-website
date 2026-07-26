@@ -576,7 +576,8 @@ final class PortfolioAtlas
 
     private static function usesStoredProjects(): bool
     {
-        return Schema::hasTable('projects');
+        return Schema::hasTable('projects')
+            && Project::query()->published()->exists();
     }
 
     /**
