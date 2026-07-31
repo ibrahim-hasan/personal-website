@@ -3,7 +3,6 @@
         $configuration = $this->configuration();
         $rows = $this->articleRows();
         $canGenerate = $this->canGenerate();
-        $hasActiveWork = $this->activeWork;
     @endphp
 
     <div class="space-y-6">
@@ -149,7 +148,7 @@
                                 @if ($canGenerate)
                                     <form method="POST" action="{{ route('filament.admin.article-audio.narration.prepare', ['article' => $row['key'], 'locale' => $row['locale']]) }}">
                                         @csrf
-                                        <x-filament::button type="submit" icon="heroicon-o-sparkles" :disabled="! $configuration['preparation_ready'] || $hasActiveWork">
+                                        <x-filament::button type="submit" icon="heroicon-o-sparkles" :disabled="! $configuration['preparation_ready'] || $row['has_active_work']">
                                             {{ $row['is_preparing'] ? __('article_audio.actions.preparing') : __('article_audio.actions.prepare_with_ai') }}
                                         </x-filament::button>
                                     </form>
@@ -178,7 +177,7 @@
                                     name="script"
                                     rows="16"
                                     dir="{{ $row['locale'] === 'ar' ? 'rtl' : 'ltr' }}"
-                                    @disabled($hasActiveWork || ! $canGenerate)
+                                    @disabled($row['has_active_work'] || ! $canGenerate)
                                     class="block w-full rounded-xl border-gray-300 bg-white px-4 py-4 text-base leading-8 text-gray-950 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:cursor-not-allowed disabled:bg-gray-50 dark:border-white/10 dark:bg-gray-950 dark:text-white dark:disabled:bg-white/5"
                                 >{{ old('row_ref') === $row['key'].':'.$row['locale'] ? old('script') : $row['narration']->script }}</textarea>
 
@@ -215,10 +214,10 @@
 
                                 @if ($canGenerate)
                                     <div class="flex flex-wrap justify-end gap-2">
-                                        <x-filament::button type="submit" name="action" value="save" color="gray" icon="heroicon-o-document-check" :disabled="$hasActiveWork">
+                                        <x-filament::button type="submit" name="action" value="save" color="gray" icon="heroicon-o-document-check" :disabled="$row['has_active_work']">
                                             {{ __('article_audio.actions.save_draft') }}
                                         </x-filament::button>
-                                        <x-filament::button type="submit" name="action" value="approve" icon="heroicon-o-check-badge" :disabled="$hasActiveWork">
+                                        <x-filament::button type="submit" name="action" value="approve" icon="heroicon-o-check-badge" :disabled="$row['has_active_work']">
                                             {{ $row['narration_is_approved'] ? __('article_audio.actions.reapprove') : __('article_audio.actions.approve') }}
                                         </x-filament::button>
                                     </div>
@@ -255,11 +254,24 @@
                                             @endif
 
                                             @if ($canGenerate)
+                                                @php
+                                                    $sampleDisabledReason = match (true) {
+                                                        ! $configuration['synthesis_ready'] => __('article_audio.generation_disabled.synthesis_unavailable'),
+                                                        $row['has_active_work'] => __('article_audio.generation_disabled.work_in_progress'),
+                                                        default => null,
+                                                    };
+                                                    $fullDisabledReason = match (true) {
+                                                        ! $configuration['synthesis_ready'] => __('article_audio.generation_disabled.synthesis_unavailable'),
+                                                        $row['has_active_work'] => __('article_audio.generation_disabled.work_in_progress'),
+                                                        ! $model['can_generate_full'] => __('article_audio.generation_disabled.approval_required'),
+                                                        default => null,
+                                                    };
+                                                @endphp
                                                 <div class="mt-auto flex flex-wrap gap-2">
                                                     <form method="POST" action="{{ route('filament.admin.article-audio.sample.generate', ['article' => $row['key'], 'locale' => $row['locale']]) }}">
                                                         @csrf
                                                         <input type="hidden" name="model_id" value="{{ $model['id'] }}">
-                                                        <x-filament::button type="submit" size="sm" color="gray" icon="heroicon-o-beaker" :disabled="! $configuration['synthesis_ready'] || $hasActiveWork">
+                                                        <x-filament::button type="submit" size="sm" color="gray" icon="heroicon-o-beaker" :disabled="$sampleDisabledReason !== null">
                                                             {{ $model['is_sample_generating'] ? __('article_audio.actions.generating_sample') : __('article_audio.actions.generate_sample') }}
                                                         </x-filament::button>
                                                     </form>
@@ -276,12 +288,17 @@
                                                             type="submit"
                                                             size="sm"
                                                             icon="heroicon-o-speaker-wave"
-                                                            :disabled="! $configuration['synthesis_ready'] || ! $model['can_generate_full'] || $hasActiveWork || $row['is_generating']"
+                                                            :disabled="$fullDisabledReason !== null"
                                                         >
                                                             {{ $row['is_generating'] ? __('article_audio.actions.generating') : __('article_audio.actions.generate_full') }}
                                                         </x-filament::button>
                                                     </form>
                                                 </div>
+                                                @if ($sampleDisabledReason !== null || $fullDisabledReason !== null)
+                                                    <p class="text-xs leading-5 text-gray-500 dark:text-gray-400">
+                                                        {{ $fullDisabledReason ?? $sampleDisabledReason }}
+                                                    </p>
+                                                @endif
                                             @endif
                                         </article>
                                     @endforeach

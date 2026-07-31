@@ -182,6 +182,53 @@ class ArticleNarrationWorkflowTest extends TestCase
         Event::assertNotDispatched('eloquent.retrieved: '.ArticleNarration::class);
     }
 
+    public function test_activity_in_another_article_does_not_disable_an_approved_article(): void
+    {
+        $editor = $this->editor();
+        $this->approvedNarration();
+        $otherArticle = app(ArticleCatalog::class)->findByKey('ai-product-moat');
+        $this->assertNotNull($otherArticle);
+        $otherSourceHash = app(ArticleNarrationScript::class)->fingerprint($otherArticle, 'ar');
+
+        ArticleNarration::factory()->preparing()->create([
+            'article_key' => $otherArticle->key,
+            'locale' => 'ar',
+            'source_hash' => $otherSourceHash,
+        ]);
+
+        $component = Livewire::actingAs($editor)
+            ->test(ManageArticleAudio::class)
+            ->assertSet('activeWork', true);
+        $row = collect($component->instance()->articleRows())
+            ->first(fn (array $row): bool => $row['key'] === 'ai-value' && $row['locale'] === 'ar');
+
+        $this->assertNotNull($row);
+        $this->assertFalse($row['has_active_work']);
+        $this->assertTrue($row['models'][0]['can_generate_full']);
+
+        $response = $this->actingAs($editor)->get(ManageArticleAudio::getUrl())->assertOk();
+        $matched = preg_match(
+            '~<form\b(?=[^>]*action="[^"]*article-audio/ai-value/ar/generate")[^>]*>.*?</form>~s',
+            $response->getContent(),
+            $matches,
+        );
+
+        $this->assertSame(1, $matched);
+        $this->assertDoesNotMatchRegularExpression('/\sdisabled(?:=|(?=\s|>))/', $matches[0]);
+    }
+
+    public function test_disabled_generation_controls_explain_missing_synthesis_configuration(): void
+    {
+        config()->set('services.elevenlabs.api_key', null);
+        $editor = $this->editor();
+        $this->approvedNarration();
+
+        $this->actingAs($editor)
+            ->get(ManageArticleAudio::getUrl())
+            ->assertOk()
+            ->assertSee(__('article_audio.generation_disabled.synthesis_unavailable'));
+    }
+
     public function test_stale_or_unconfigured_sample_work_does_not_lock_the_admin_page(): void
     {
         $editor = $this->editor();

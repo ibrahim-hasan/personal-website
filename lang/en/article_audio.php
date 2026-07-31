@@ -15,7 +15,7 @@ return [
         'generated_at' => 'Generated',
         'added_at' => 'Added',
         'workflow_description' => 'Prepare a narration-ready script, review and approve it, then choose either a full recording or a short sample to compare models.',
-        'auto_refresh_locked' => 'A task is running. This notice refreshes automatically while the rest of the page stays untouched.',
+        'auto_refresh_locked' => 'A task is running. Its status refreshes automatically, and you can continue working on other articles.',
         'processing_complete' => 'Processing finished. Refresh the results when you are ready.',
         'cost_guard' => 'Full generation needs a current approved narration script. A short sample is optional when you want to compare models before spending credits.',
         'characters_per_request' => 'characters per request',
@@ -127,6 +127,11 @@ return [
         'description' => 'Generate a short sample from the current script for each model to compare calmness, pauses, and pronunciation. You can also generate the full recording as soon as the script is approved.',
         'empty' => 'No sample has been generated for this model.',
         'approval_gate' => 'You can generate a sample from the draft. Full generation needs an approved script only; a sample is optional.',
+    ],
+    'generation_disabled' => [
+        'synthesis_unavailable' => 'Add an ElevenLabs API key and voice ID to the server configuration to enable generation.',
+        'work_in_progress' => 'An audio task for this article is still running. Wait for it to finish, then try again.',
+        'approval_required' => 'Approve the current narration script to enable the full recording.',
     ],
     'final' => [
         'title' => 'Currently published recording',
