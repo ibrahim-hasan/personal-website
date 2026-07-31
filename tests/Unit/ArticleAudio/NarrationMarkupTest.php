@@ -91,6 +91,28 @@ class NarrationMarkupTest extends TestCase
         );
     }
 
+    public function test_validator_rejects_an_approved_tag_inside_a_word(): void
+    {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('inside a word or name');
+
+        (new NarrationDraftValidator)->validate(
+            'هذه[short pause]جملة عربية.',
+            'هذه جملة عربية.',
+        );
+    }
+
+    public function test_validator_rejects_unapproved_audio_tags(): void
+    {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('unsupported audio tag');
+
+        (new NarrationDraftValidator)->validate(
+            '[laughs] هذه جملة عربية.',
+            'هذه جملة عربية.',
+        );
+    }
+
     public function test_validator_rejects_a_non_arabic_generated_script_for_the_arabic_locale(): void
     {
         $this->expectException(UnexpectedValueException::class);

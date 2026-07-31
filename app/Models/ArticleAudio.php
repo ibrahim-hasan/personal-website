@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Storage;
 
 class ArticleAudio extends Model
 {
+    public const string SOURCE_GENERATED = 'generated';
+
+    public const string SOURCE_UPLOADED = 'uploaded';
+
     /** @use HasFactory<ArticleAudioFactory> */
     use HasFactory;
 
@@ -23,6 +27,7 @@ class ArticleAudio extends Model
         'article_id',
         'article_key',
         'locale',
+        'source_type',
         'requested_by_user_id',
         'status',
         'disk',
@@ -60,6 +65,11 @@ class ArticleAudio extends Model
             'generated_at' => 'datetime',
             'failed_at' => 'datetime',
         ];
+    }
+
+    public function isUploaded(): bool
+    {
+        return $this->source_type === self::SOURCE_UPLOADED;
     }
 
     /** @return BelongsTo<User, $this> */

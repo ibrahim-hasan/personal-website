@@ -11,6 +11,7 @@ use App\Http\Controllers\Filament\GenerateArticleAudioController;
 use App\Http\Controllers\Filament\GenerateArticleAudioSampleController;
 use App\Http\Controllers\Filament\PrepareArticleNarrationController;
 use App\Http\Controllers\Filament\UpdateArticleNarrationController;
+use App\Http\Controllers\Filament\UploadArticleAudioController;
 use App\Http\Middleware\SetLocale;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
@@ -130,6 +131,10 @@ class AdminPanelProvider extends PanelProvider
                 Route::post('/article-audio/{article}/{locale}/sample', GenerateArticleAudioSampleController::class)
                     ->middleware([Authenticate::class, 'throttle:6,1'])
                     ->name('article-audio.sample.generate');
+
+                Route::post('/article-audio/{article}/{locale}/upload', UploadArticleAudioController::class)
+                    ->middleware([Authenticate::class, 'throttle:12,1'])
+                    ->name('article-audio.upload');
             })
             ->userMenuItems([
                 MenuItem::make()

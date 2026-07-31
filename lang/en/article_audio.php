@@ -4,7 +4,7 @@ return [
     'page' => [
         'navigation' => 'Article audio',
         'title' => 'Manage article audio',
-        'description' => 'Audio is generated server-side through ElevenLabs and stored as a separate MP3 for each article and locale. Provider credentials and settings never reach the browser.',
+        'description' => 'Use a reviewed narration script with generated audio, or upload your own recording for each article and locale. Provider credentials and settings never reach the browser.',
         'library' => 'Narration library',
         'library_description' => 'Review status, preview the result, and regenerate only when necessary.',
         'auto_refresh' => 'Statuses refresh automatically every 5 seconds',
@@ -13,6 +13,7 @@ return [
         'audio_unsupported' => 'Your browser does not support audio playback.',
         'characters' => 'Characters',
         'generated_at' => 'Generated',
+        'added_at' => 'Added',
         'workflow_description' => 'Turn the article into a narration-ready script, review it yourself, test a short sample, then generate the full recording only after approval.',
         'auto_refresh_locked' => 'A task is running. This notice refreshes automatically while the rest of the page stays untouched.',
         'processing_complete' => 'Processing finished. Refresh the results when you are ready.',
@@ -56,6 +57,10 @@ return [
         'script' => 'Script',
         'audio' => 'Audio',
     ],
+    'sources' => [
+        'generated' => 'Generated',
+        'uploaded' => 'Uploaded',
+    ],
     'locales' => [
         'ar' => 'العربية',
         'en' => 'English',
@@ -71,7 +76,7 @@ return [
         'not_configured' => 'Not configured',
         'yes' => 'Yes',
         'no' => 'No',
-        'workflow_ready' => 'Narration workflow is ready',
+        'workflow_ready' => 'Narration workflow is ready for upload or generation',
         'workflow_incomplete' => 'Narration workflow needs configuration',
         'openai' => 'Script preparation · OpenAI',
         'elevenlabs' => 'Voice generation · ElevenLabs',
@@ -104,11 +109,18 @@ return [
     ],
     'narration' => [
         'prepare_title' => 'Start with a script designed to be heard, not read verbatim',
-        'prepare_description' => 'OpenAI preserves every idea, fact, and sequence while improving sentence boundaries, pauses, numbers, and selective pronunciation cues. Nothing is sent to ElevenLabs yet.',
+        'prepare_description' => 'OpenAI may add Arabic diacritics and the four approved audio tags only. It must preserve every source character and sequence. Nothing is sent to ElevenLabs yet.',
         'editor_label' => 'Proposed narration script',
         'editor_hint' => 'Review meaning, pronunciation, and pacing. Only [thoughtful], [short pause], [long pause], and [exhales] are allowed.',
         'edit_notes' => 'Editorial changes',
         'pronunciation_notes' => 'Pronunciation notes',
+        'preparation_error' => 'The AI draft was rejected:',
+    ],
+    'upload' => [
+        'title' => 'Use your own recording',
+        'description' => 'Upload an MP3, WAV, OGG, M4A, or WebM recording. This does not require an AI draft, a sample, or ElevenLabs credits.',
+        'file' => 'Audio file',
+        'action' => 'Upload audio',
     ],
     'sample' => [
         'title' => 'Listen before spending full-article credits',
@@ -118,6 +130,7 @@ return [
     ],
     'final' => [
         'title' => 'Currently published recording',
+        'uploaded_title' => 'Currently published upload',
     ],
     'notifications' => [
         'configuration_missing' => 'ElevenLabs configuration is incomplete',
@@ -136,6 +149,7 @@ return [
         'sample_queued' => 'The short sample was queued.',
         'narration_required' => 'Approve a current narration script before full generation.',
         'sample_required' => 'Listen to a current sample of the selected model first.',
+        'uploaded' => 'Your article audio was uploaded.',
     ],
     'errors' => [
         'insufficient_credits' => 'The ElevenLabs balance is insufficient or the API key reached its credit quota. Check Billing and the key credit limit before retrying.',

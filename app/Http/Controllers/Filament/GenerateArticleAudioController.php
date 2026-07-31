@@ -78,6 +78,7 @@ class GenerateArticleAudioController extends Controller
 
         $audio->forceFill([
             'requested_by_user_id' => $request->user()?->getKey(),
+            'source_type' => ArticleAudio::SOURCE_GENERATED,
             'status' => ArticleAudioStatus::Queued,
             'content_hash' => $script->contentHash,
             'model_id' => $modelId,

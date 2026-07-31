@@ -62,8 +62,16 @@ class GenerateArticleAudio implements ShouldBeUnique, ShouldQueue
 
         $audio = ArticleAudio::query()->firstOrCreate(
             ['article_key' => $this->articleKey, 'locale' => $this->locale],
-            ['status' => ArticleAudioStatus::Queued, 'queued_at' => now()],
+            [
+                'source_type' => ArticleAudio::SOURCE_GENERATED,
+                'status' => ArticleAudioStatus::Queued,
+                'queued_at' => now(),
+            ],
         );
+
+        if ($audio->isUploaded()) {
+            return;
+        }
         $modelId = $this->modelId ?: $audio->model_id ?: (string) config('services.elevenlabs.model_id');
         $script = $scripts->approved($article, $this->locale, $modelId, $this->skipNarrationApproval);
 
@@ -87,6 +95,7 @@ class GenerateArticleAudio implements ShouldBeUnique, ShouldQueue
 
         $audio->forceFill([
             'status' => ArticleAudioStatus::Processing,
+            'source_type' => ArticleAudio::SOURCE_GENERATED,
             'content_hash' => $contentHash,
             'model_id' => $modelId,
             'generation_started_at' => now(),

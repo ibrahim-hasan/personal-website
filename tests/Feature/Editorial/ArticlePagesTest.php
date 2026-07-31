@@ -255,6 +255,33 @@ class ArticlePagesTest extends TestCase
             ->assertSee($article->localized('ar')['title'], false);
     }
 
+    public function test_uploaded_audio_is_rendered_when_it_matches_the_current_article_source(): void
+    {
+        Storage::fake('public');
+        $catalog = app(ArticleCatalog::class);
+        $article = $catalog->findByKey('ai-product-moat');
+        $this->assertNotNull($article);
+        $sourceHash = app(ArticleNarrationScript::class)->fingerprint($article, 'ar');
+        $path = 'article-audio/ar/'.$article->key.'-uploaded.mp3';
+        Storage::disk('public')->put($path, 'editor-recording');
+
+        ArticleAudio::factory()->create([
+            'article_key' => $article->key,
+            'locale' => 'ar',
+            'source_type' => ArticleAudio::SOURCE_UPLOADED,
+            'content_hash' => $sourceHash,
+            'path' => $path,
+            'mime_type' => 'audio/mpeg',
+        ]);
+
+        $this->get(parse_url($catalog->url($article, 'ar'), PHP_URL_PATH))
+            ->assertOk()
+            ->assertSee('data-site-audio-player', false)
+            ->assertSee('data-article-audio-source', false)
+            ->assertSee('/storage/'.$path, false)
+            ->assertSee('"@type":"AudioObject"', false);
+    }
+
     public function test_stale_audio_is_not_exposed_after_article_content_changes(): void
     {
         Storage::fake('public');

@@ -17,6 +17,7 @@ use Laravel\Ai\Exceptions\RateLimitedException;
 use Laravel\Ai\Responses\StructuredAgentResponse;
 use RuntimeException;
 use Throwable;
+use UnexpectedValueException;
 
 class OpenAiNarrationEditor implements NarrationEditor
 {
@@ -59,12 +60,21 @@ class OpenAiNarrationEditor implements NarrationEditor
         $payload = $response->toArray();
 
         $script = trim((string) ($payload['script'] ?? ''));
-        $this->validator->validateGenerated($script, $source, $locale);
+        $notes = $this->stringList($payload['notes'] ?? []);
+        $pronunciationNotes = $this->stringList($payload['pronunciation_notes'] ?? []);
+
+        try {
+            $this->validator->validateGenerated($script, $source, $locale);
+        } catch (UnexpectedValueException $exception) {
+            $notes[] = 'The provider output was rejected because it did not satisfy the narration source contract. The original source was preserved for manual review.';
+            $script = $source;
+            $pronunciationNotes[] = $exception->getMessage();
+        }
 
         return new NarrationDraft(
             script: $script,
-            notes: $this->stringList($payload['notes'] ?? []),
-            pronunciationNotes: $this->stringList($payload['pronunciation_notes'] ?? []),
+            notes: array_slice($notes, 0, 8),
+            pronunciationNotes: array_slice($pronunciationNotes, 0, 12),
             model: $model,
             promptVersion: self::PROMPT_VERSION,
         );
