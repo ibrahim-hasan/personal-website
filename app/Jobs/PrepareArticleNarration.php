@@ -69,13 +69,14 @@ class PrepareArticleNarration implements ShouldBeUnique, ShouldQueue
         ])->save();
 
         $draft = $editor->prepare($sourceText, $this->locale);
+        $script = trim($validator->normalizeLineEndings($draft->script));
 
-        $validator->validateGenerated($draft->script, $sourceText, $this->locale);
+        $validator->validateGenerated($script, $sourceText, $this->locale);
 
         $narration->forceFill([
             'status' => ArticleNarrationStatus::Draft,
             'source_hash' => $sourceHash,
-            'script' => $draft->script,
+            'script' => $script,
             'preparation_model' => $draft->model,
             'prompt_version' => $draft->promptVersion,
             'preparation_notes' => $draft->notes,

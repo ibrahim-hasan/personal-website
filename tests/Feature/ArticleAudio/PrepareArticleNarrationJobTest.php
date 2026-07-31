@@ -42,7 +42,7 @@ class PrepareArticleNarrationJobTest extends TestCase
         $article = app(ArticleCatalog::class)->findByKey('ai-value');
         $this->assertNotNull($article);
         $source = app(ArticleNarrationScript::class)->build($article, 'ar');
-        $prepared = $source;
+        $prepared = str_replace("\n", "\r\n", $source);
 
         app()->instance(NarrationEditor::class, new class($prepared) implements NarrationEditor
         {
@@ -67,7 +67,7 @@ class PrepareArticleNarrationJobTest extends TestCase
 
         $this->assertSame(ArticleNarrationStatus::Draft, $narration->status);
         $this->assertSame(hash('sha256', $source), $narration->source_hash);
-        $this->assertSame($prepared, $narration->script);
+        $this->assertSame($source, $narration->script);
         $this->assertSame('test-editor-model', $narration->preparation_model);
         $this->assertSame(['Added contextual Arabic diacritics.'], $narration->preparation_notes);
         $this->assertNull($narration->approved_at);
