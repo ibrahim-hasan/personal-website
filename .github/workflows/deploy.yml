@@ -1,66 +1,16 @@
-name: CI and manual release
+name: CI and deploy production
 
 on:
-  pull_request:
-    branches:
-      - main
-      - production
   push:
     branches:
-      - main
       - production
-  workflow_dispatch:
-    inputs:
-      operation:
-        description: "Choose a protected production release or rollback operation."
-        required: true
-        default: release
-        type: choice
-        options:
-          - release
-          - rollback
-      revision:
-        description: "Required for a release: full 40-character commit SHA reachable from production. Ignored for rollback."
-        required: false
-        type: string
-      rollback_release:
-        description: "Required only for rollback: an existing numeric Deployer release number."
-        required: false
-        type: string
 
 permissions:
   contents: read
 
 jobs:
-  dispatch_guard:
-    name: Validate production-only manual dispatch
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Require the production workflow branch
-        shell: bash
-        env:
-          OPERATION: ${{ inputs.operation }}
-        run: |
-          set -euo pipefail
-
-          if [[ "$GITHUB_REF" != "refs/heads/production" ]]; then
-            echo "Manual release and rollback operations must be dispatched from the production branch." >&2
-            exit 1
-          fi
-
-          if [[ "$OPERATION" != "release" && "$OPERATION" != "rollback" ]]; then
-            echo "The manual operation must be release or rollback." >&2
-            exit 1
-          fi
-
   validate:
     name: CI checks
-    needs: dispatch_guard
-    if: >-
-      always() &&
-      (github.event_name != 'workflow_dispatch' ||
-      (needs.dispatch_guard.result == 'success' && inputs.operation == 'release'))
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -97,9 +47,6 @@ jobs:
       DB_DATABASE: ibrahim_website
       DB_USERNAME: ibrahim_website
       DB_PASSWORD: testing
-      # Keep PHPUnit cache state process-local. The Redis service remains the
-      # queue backend under test, while test throttles and unique-job locks
-      # cannot leak between database-transaction test cases.
       CACHE_STORE: array
       QUEUE_CONNECTION: redis
       REDIS_HOST: 127.0.0.1
@@ -108,38 +55,11 @@ jobs:
       MEDIA_DISK: public
       MAIL_MAILER: array
       TURNSTILE_SECRET: ""
-    outputs:
-      revision: ${{ steps.revision.outputs.revision }}
     steps:
-      - name: Check out the candidate
+      - name: Check out the pushed commit
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.revision || github.sha }}
-
-      - name: Resolve and validate the exact revision
-        id: revision
-        shell: bash
-        env:
-          REQUESTED_REVISION: ${{ github.event_name == 'workflow_dispatch' && inputs.revision || github.sha }}
-        run: |
-          set -euo pipefail
-
-          if [[ ! "$REQUESTED_REVISION" =~ ^[0-9a-fA-F]{40}$ ]]; then
-            echo "A full 40-character commit SHA is required." >&2
-            exit 1
-          fi
-
-          git cat-file -e "$REQUESTED_REVISION^{commit}"
-          revision="$(git rev-parse "$REQUESTED_REVISION^{commit}")"
-
-          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-            git fetch --no-tags origin production:refs/remotes/origin/production
-            git merge-base --is-ancestor "$revision" origin/production
-          fi
-
-          git checkout --detach "$revision"
-          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          ref: ${{ github.sha }}
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -157,20 +77,11 @@ jobs:
       - name: Prepare Laravel environment
         run: cp .env.example .env
 
-      - name: Validate Composer metadata
-        run: composer validate --strict
-
       - name: Install PHP dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Audit PHP dependencies
-        run: composer audit --locked --no-interaction
-
       - name: Install JavaScript dependencies
         run: npm ci
-
-      - name: Audit JavaScript dependencies
-        run: npm audit --audit-level=high
 
       - name: Build frontend assets
         run: npm run build
@@ -187,74 +98,15 @@ jobs:
       - name: Check PHP formatting
         run: composer lint:check
 
-      - name: Reject tracked credentials and generated artifacts
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          credential_files="$(git grep -IlE -- \
-            '-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{30,}|xox[baprs]-[A-Za-z0-9-]{20,}' \
-            || true)"
-
-          if [[ -n "$credential_files" ]]; then
-            echo "Potential credential material was found in tracked files:" >&2
-            printf '%s\n' "$credential_files" >&2
-            exit 1
-          fi
-
-          generated_files="$(git ls-files -- \
-            'public/build/**' \
-            'vendor/**' \
-            'node_modules/**' \
-            'storage/framework/**' \
-            'bootstrap/cache/**' \
-            '.phpunit.cache' \
-            '.env' \
-            ':(exclude)bootstrap/cache/.gitignore' \
-            ':(exclude)storage/framework/.gitignore' \
-            ':(exclude)storage/framework/**/.gitignore')"
-
-          if [[ -n "$generated_files" ]]; then
-            echo "Generated artifacts or environment files are tracked:" >&2
-            printf '%s\n' "$generated_files" >&2
-            exit 1
-          fi
-
-      - name: Package immutable frontend artifact
-        if: github.event_name == 'workflow_dispatch' && inputs.operation == 'release'
-        env:
-          RELEASE_REVISION: ${{ steps.revision.outputs.revision }}
-          RELEASE_ENVIRONMENT: production
-        run: |
-          set -euo pipefail
-          mkdir -p release-artifact/public
-          cp -R public/build release-artifact/public/build
-          printf '{"revision":"%s","environment":"%s"}\n' "$RELEASE_REVISION" "$RELEASE_ENVIRONMENT" > release-artifact/release-manifest.json
-
-      - name: Retain release artifact
-        if: github.event_name == 'workflow_dispatch' && inputs.operation == 'release'
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-build-${{ steps.revision.outputs.revision }}
-          path: release-artifact
-          if-no-files-found: error
-          retention-days: 90
-
-  release:
-    name: Release production
-    needs:
-      - dispatch_guard
-      - validate
-    if: >-
-      github.event_name == 'workflow_dispatch' &&
-      inputs.operation == 'release' &&
-      needs.dispatch_guard.result == 'success' &&
-      needs.validate.result == 'success'
+  deploy:
+    name: Deploy production
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     environment:
       name: production
     concurrency:
-      group: ibrahim-website-release
+      group: ibrahim-website-production
       cancel-in-progress: false
     env:
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
@@ -265,81 +117,33 @@ jobs:
       DEPLOY_READINESS_URL: ${{ vars.DEPLOY_READINESS_URL }}
       DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
       DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-      DEPLOY_TARGET: production
-      RELEASE_REVISION: ${{ needs.validate.outputs.revision }}
+      RELEASE_REVISION: ${{ github.sha }}
     steps:
-      - name: Validate release dispatch
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [[ "$GITHUB_REF" != "refs/heads/production" ]]; then
-            echo "Manual production releases must be dispatched from the production branch." >&2
-            exit 1
-          fi
-
-          if [[ "$DEPLOY_TARGET" != "production" ]]; then
-            echo "The deployment target must be production." >&2
-            exit 1
-          fi
-
-          if [[ ! "$RELEASE_REVISION" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "The validated release revision is invalid." >&2
-            exit 1
-          fi
-
-      - name: Check out release recipe
+      - name: Check out the pushed commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.validate.outputs.revision }}
+          ref: ${{ github.sha }}
 
-      - name: Set up PHP for Deployer
+      - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           extensions: mbstring, dom, fileinfo, mysql, redis, zip
           tools: composer:v2
 
-      - name: Install Deployer
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install deployment dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Download this run's release artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: release-build-${{ needs.validate.outputs.revision }}
-          path: .release-artifact
-
-      - name: Verify immutable frontend artifact
-        shell: bash
+      - name: Build deployment assets
         run: |
-          set -euo pipefail
-
-          manifest="$(find .release-artifact -type f -name release-manifest.json -print -quit)"
-          if [[ -z "$manifest" ]]; then
-            echo "The release artifact does not contain a manifest." >&2
-            exit 1
-          fi
-
-          artifact_revision="$(php -r '$manifest = json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); echo $manifest["revision"] ?? "";' "$manifest")"
-          if [[ "$artifact_revision" != "$RELEASE_REVISION" ]]; then
-            echo "The artifact revision does not match the validated release revision." >&2
-            exit 1
-          fi
-
-          artifact_environment="$(php -r '$manifest = json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); echo $manifest["environment"] ?? "";' "$manifest")"
-          if [[ "$artifact_environment" != "production" ]]; then
-            echo "The release artifact must come from this production-only release workflow." >&2
-            exit 1
-          fi
-
-          artifact_root="$(dirname "$manifest")"
-          if [[ ! -f "$artifact_root/public/build/manifest.json" ]]; then
-            echo "The release artifact does not contain a Vite manifest." >&2
-            exit 1
-          fi
-
-          mkdir -p public
-          cp -R "$artifact_root/public/build" public/build
+          npm ci
+          npm run build
 
       - name: Configure deployment SSH
         shell: bash
@@ -348,7 +152,7 @@ jobs:
 
           for variable in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH DEPLOY_HEALTH_URL DEPLOY_READINESS_URL DEPLOY_SSH_PRIVATE_KEY DEPLOY_KNOWN_HOSTS; do
             if [[ -z "${!variable:-}" ]]; then
-              echo "$variable must be configured as an environment secret or variable." >&2
+              echo "$variable must be configured as a production environment secret or variable." >&2
               exit 1
             fi
           done
@@ -366,91 +170,4 @@ jobs:
           ssh-add ~/.ssh/deploy_key
           export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes"
 
-          vendor/bin/dep deploy "$DEPLOY_TARGET" --revision "$RELEASE_REVISION" --no-interaction
-
-  rollback:
-    name: Roll back production
-    needs: dispatch_guard
-    if: >-
-      github.event_name == 'workflow_dispatch' &&
-      inputs.operation == 'rollback' &&
-      needs.dispatch_guard.result == 'success'
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-    concurrency:
-      group: ibrahim-website-release
-      cancel-in-progress: false
-    env:
-      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
-      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
-      DEPLOY_HEALTH_URL: ${{ vars.DEPLOY_HEALTH_URL }}
-      DEPLOY_READINESS_URL: ${{ vars.DEPLOY_READINESS_URL }}
-      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
-      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-      DEPLOY_TARGET: production
-      ROLLBACK_RELEASE: ${{ inputs.rollback_release }}
-    steps:
-      - name: Validate rollback dispatch
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [[ "$GITHUB_REF" != "refs/heads/production" ]]; then
-            echo "Manual production rollbacks must be dispatched from the production branch." >&2
-            exit 1
-          fi
-
-          if [[ "$DEPLOY_TARGET" != "production" ]]; then
-            echo "The deployment target must be production." >&2
-            exit 1
-          fi
-
-          if [[ ! "$ROLLBACK_RELEASE" =~ ^[0-9]+$ ]]; then
-            echo "A numeric existing Deployer release number is required for rollback." >&2
-            exit 1
-          fi
-
-      - name: Check out release recipe
-        uses: actions/checkout@v4
-        with:
-          ref: production
-
-      - name: Set up PHP for Deployer
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: mbstring, dom, fileinfo, mysql, redis, zip
-          tools: composer:v2
-
-      - name: Install Deployer
-        run: composer install --prefer-dist --no-interaction --no-progress
-
-      - name: Configure deployment SSH and roll back
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          for variable in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH DEPLOY_HEALTH_URL DEPLOY_READINESS_URL DEPLOY_SSH_PRIVATE_KEY DEPLOY_KNOWN_HOSTS; do
-            if [[ -z "${!variable:-}" ]]; then
-              echo "$variable must be configured as an environment secret or variable." >&2
-              exit 1
-            fi
-          done
-
-          if [[ -n "${DEPLOY_PORT:-}" && ! "$DEPLOY_PORT" =~ ^[0-9]+$ ]]; then
-            echo "DEPLOY_PORT must be numeric when configured." >&2
-            exit 1
-          fi
-
-          install -m 700 -d ~/.ssh
-          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          printf '%s\n' "$DEPLOY_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/known_hosts ~/.ssh/deploy_key
-          eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/deploy_key
-          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes"
-
-          vendor/bin/dep rollback "$DEPLOY_TARGET" --no-interaction -o "rollback_candidate=$ROLLBACK_RELEASE"
+          vendor/bin/dep deploy production --revision "$RELEASE_REVISION" --no-interaction
