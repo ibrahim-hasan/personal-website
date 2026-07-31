@@ -267,16 +267,22 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
-    Alpine.data('atharAccessCode', ({ expiresAt = 0, resendAvailableAt = 0, attemptsRemaining = 0, messages }) => ({
+    Alpine.data('atharAccessFlow', ({ codeSent = false, expiresAt = 0, resendAvailableAt = 0, attemptsRemaining = 0, messages }) => ({
+        codeSent: Boolean(codeSent),
         expiresAt: Number(expiresAt),
         resendAvailableAt: Number(resendAvailableAt),
         attemptsRemaining: Number(attemptsRemaining),
         messages,
+        requestPending: false,
+        notice: { type: '', message: '' },
+        fieldErrors: {},
         now: Math.floor(Date.now() / 1000),
         timer: null,
         init() {
             this.tick();
-            this.$nextTick(() => this.focusFirstEmpty());
+            if (this.codeSent) {
+                this.$nextTick(() => this.focusFirstEmpty());
+            }
             this.timer = window.setInterval(() => this.tick(), 1000);
         },
         destroy() {
@@ -349,6 +355,74 @@ document.addEventListener('alpine:init', () => {
             event.preventDefault();
             this.distributeDigits(event.clipboardData?.getData('text') ?? '', index);
         },
+        fieldError(field) {
+            const errors = this.fieldErrors[field];
+
+            return Array.isArray(errors) ? (errors[0] ?? '') : (errors ?? '');
+        },
+        clearFieldErrors() {
+            this.fieldErrors = {};
+        },
+        showNotice(type, message) {
+            this.notice = { type, message };
+        },
+        handleFailure(data) {
+            this.fieldErrors = data?.errors ?? {};
+            const firstError = Object.values(this.fieldErrors)
+                .flatMap((error) => Array.isArray(error) ? error : [error])
+                .find((error) => typeof error === 'string' && error !== '');
+
+            this.showNotice('error', data?.message ?? firstError ?? this.messages.request_failed);
+        },
+        resetCodeInputs() {
+            this.inputs().forEach((input) => {
+                input.value = '';
+            });
+        },
+        applyChallenge(data) {
+            this.codeSent = Boolean(data.code_sent);
+            this.expiresAt = Number(data.code_expires_at ?? 0);
+            this.resendAvailableAt = Number(data.resend_available_at ?? 0);
+            this.attemptsRemaining = Number(data.attempts_remaining ?? 0);
+        },
+        async requestCode(event) {
+            if (this.requestPending) {
+                return;
+            }
+
+            const form = event.currentTarget;
+            this.requestPending = true;
+            this.clearFieldErrors();
+            this.notice = { type: '', message: '' };
+
+            try {
+                const response = await fetch(form.action, {
+                    method: form.method || 'POST',
+                    body: new FormData(form),
+                    credentials: 'same-origin',
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                const data = await response.json();
+
+                if (! response.ok) {
+                    this.handleFailure(data);
+
+                    return;
+                }
+
+                this.applyChallenge(data);
+                this.resetCodeInputs();
+                this.showNotice('success', data.message ?? this.messages.code_sent);
+                this.$nextTick(() => this.focusFirstEmpty());
+            } catch {
+                this.showNotice('error', this.messages.request_failed);
+            } finally {
+                this.requestPending = false;
+            }
+        },
         secondsUntil(timestamp) {
             return Math.max(0, timestamp - this.now);
         },
@@ -371,31 +445,36 @@ document.addEventListener('alpine:init', () => {
             return this.secondsUntil(this.resendAvailableAt) > 0;
         },
         verifyIsDisabled() {
-            return this.isExpired() || this.isLocked();
+            return this.requestPending || this.isExpired() || this.isLocked();
         },
         statusMessage() {
             const status = [];
+            const statusMessages = this.messages.code_status;
             const formattedAttempts = new Intl.NumberFormat(document.documentElement.lang || undefined).format(this.attemptsRemaining);
 
             if (this.isLocked()) {
-                status.push(this.messages.attempts_exhausted);
+                status.push(statusMessages.attempts_exhausted);
             } else {
-                status.push(this.replace(this.messages.attempts_remaining, ':count', formattedAttempts));
+                status.push(this.replace(statusMessages.attempts_remaining, ':count', formattedAttempts));
             }
 
             status.push(this.isExpired()
-                ? this.messages.expired
-                : this.replace(this.messages.expires_in, ':time', this.formattedDuration(this.secondsUntil(this.expiresAt))));
+                ? statusMessages.expired
+                : this.replace(statusMessages.expires_in, ':time', this.formattedDuration(this.secondsUntil(this.expiresAt))));
 
             if (this.resendIsLocked()) {
-                status.push(this.replace(this.messages.resend_in, ':time', this.formattedDuration(this.secondsUntil(this.resendAvailableAt))));
+                status.push(this.replace(statusMessages.resend_in, ':time', this.formattedDuration(this.secondsUntil(this.resendAvailableAt))));
             }
 
-            return status.join(' ');
+            return [...status, this.messages.code_help].join(' ');
         },
         resendLabel() {
+            if (this.requestPending) {
+                return this.messages.resending;
+            }
+
             return this.resendIsLocked()
-                ? this.replace(this.messages.resend_in, ':time', this.formattedDuration(this.secondsUntil(this.resendAvailableAt)))
+                ? this.replace(this.messages.code_status.resend_in, ':time', this.formattedDuration(this.secondsUntil(this.resendAvailableAt)))
                 : this.messages.resend;
         },
     }));

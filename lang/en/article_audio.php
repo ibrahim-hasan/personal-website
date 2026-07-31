@@ -43,6 +43,7 @@ return [
         'not_generated' => 'Not tested',
         'queued' => 'Sample queued',
         'processing' => 'Generating sample',
+        'stalled' => 'Sample stalled — retry needed',
         'ready' => 'Sample ready',
         'failed' => 'Sample failed',
         'stale' => 'Sample is stale',

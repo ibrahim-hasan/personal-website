@@ -219,14 +219,17 @@ class LegalPagesTest extends TestCase
             ->assertSee('name="terms_accepted"', false)
             ->assertSee('required', false)
             ->assertSee('href="'.localized_route('terms', locale: 'en').'"', false)
-            ->assertSee('href="'.localized_route('privacy', locale: 'en').'"', false);
+            ->assertSee('href="'.localized_route('privacy', locale: 'en').'"', false)
+            ->assertSee('target="_blank" rel="noopener noreferrer"', false);
 
         $consultation = file_get_contents(resource_path('views/livewire/website/consultation-request.blade.php'));
         $community = file_get_contents(resource_path('views/livewire/website/article-community.blade.php'));
 
         $this->assertStringContainsString("localized_route('privacy')", $consultation);
+        $this->assertStringContainsString('target="_blank" rel="noopener noreferrer"', $consultation);
         $this->assertStringContainsString("__('community.contribution_notice'", $community);
         $this->assertStringContainsString("__('community.reply_notice'", $community);
         $this->assertStringContainsString("__('community.report_notice'", $community);
+        $this->assertStringContainsString('target="_blank" rel="noopener noreferrer"', $community);
     }
 }

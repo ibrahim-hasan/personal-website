@@ -39,6 +39,10 @@ class AtharAdminLocalizationTest extends TestCase
                 $this->assertTranslated("admin.athar.delivery_modes.{$state->value}", $state->label());
             }
 
+            foreach (['email_link', 'email_code', 'link'] as $method) {
+                $this->assertTranslated("admin.athar.verification_methods.{$method}", __("admin.athar.verification_methods.{$method}"));
+            }
+
             foreach (AtharContributionStatus::cases() as $state) {
                 $this->assertTranslated("admin.athar.contribution_statuses.{$state->value}", $state->label());
             }

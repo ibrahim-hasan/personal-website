@@ -9,6 +9,7 @@ use App\Models\ArticleNarration;
 use App\Services\ArticleAudio\ArticleAudioScript;
 use App\Services\ArticleAudio\ArticleNarrationScript;
 use App\Services\ArticleAudio\StoreUploadedArticleAudio;
+use App\Services\ElevenLabs\ElevenLabsTextToSpeech;
 use App\Services\OpenAI\OpenAiNarrationEditor;
 use App\Support\Ai\ElevenLabsExecutionBudget;
 use App\Support\Editorial\ArticleCatalog;
@@ -122,6 +123,8 @@ class ManageArticleAudio extends Page
                     $sampleUrl = $narrationIsCurrent ? $narration?->sampleUrl((string) $modelId) : null;
                     $sampleIsGenerating = $narrationIsCurrent
                         && $narration?->sampleIsGenerating((string) $modelId) === true;
+                    $sampleIsStalled = $narrationIsCurrent
+                        && $narration?->sampleIsStalled((string) $modelId) === true;
                     $sampleIsCurrent = $sampleUrl !== null;
 
                     $modelRows[] = [
@@ -129,9 +132,10 @@ class ManageArticleAudio extends Page
                         'label' => (string) data_get($profile, 'label', $modelId),
                         'sample' => $sample,
                         'sample_url' => $sampleUrl,
-                        'sample_status_label' => $this->sampleStatusLabel($narration, $sample, $sampleIsCurrent),
-                        'sample_status_color' => $this->sampleStatusColor($sample, $sampleIsCurrent),
+                        'sample_status_label' => $this->sampleStatusLabel($sample, $sampleIsCurrent, $sampleIsStalled),
+                        'sample_status_color' => $this->sampleStatusColor($sample, $sampleIsCurrent, $sampleIsStalled),
                         'is_sample_generating' => $sampleIsGenerating,
+                        'is_sample_stalled' => $sampleIsStalled,
                         'can_generate_full' => $narrationIsCurrent
                             && $narration?->isApprovedFor($sourceHash) === true,
                     ];
@@ -172,7 +176,12 @@ class ManageArticleAudio extends Page
     /** @return array<string, mixed> */
     public function configuration(): array
     {
-        $voiceId = (string) config('services.elevenlabs.voice_id');
+        $speech = app(ElevenLabsTextToSpeech::class);
+        $voiceIds = collect(['ar', 'en'])->mapWithKeys(
+            fn (string $locale): array => [$locale => $speech->voiceId($locale)],
+        )->all();
+        $configurationLocale = in_array(app()->getLocale(), ['ar', 'en'], true) ? app()->getLocale() : 'ar';
+        $voiceId = $voiceIds[$configurationLocale];
         $elevenLabsKeyConfigured = filled(config('services.elevenlabs.api_key'));
         $openAiKeyConfigured = filled(config('ai.providers.openai.key'));
         $voiceConfigured = $voiceId !== '';
@@ -183,6 +192,9 @@ class ManageArticleAudio extends Page
             'upload_ready' => $uploadReady,
             'preparation_ready' => $openAiKeyConfigured,
             'synthesis_ready' => $elevenLabsKeyConfigured && $voiceConfigured,
+            'synthesis_ready_by_locale' => collect($voiceIds)
+                ->mapWithKeys(fn (string $id, string $locale): array => [$locale => $elevenLabsKeyConfigured && $id !== ''])
+                ->all(),
             'openai_key_configured' => $openAiKeyConfigured,
             'api_key_configured' => $elevenLabsKeyConfigured,
             'voice_configured' => $voiceConfigured,
@@ -353,7 +365,29 @@ class ManageArticleAudio extends Page
                 });
 
                 foreach ($configuredModelIds as $modelId) {
-                    $query->orWhereIn("samples->{$modelId}->status", ['queued', 'processing']);
+                    $sampleStalledAt = now()
+                        ->subSeconds(ElevenLabsExecutionBudget::sampleStalledAfterSeconds($modelId));
+                    $sampleStalledAtIso = $sampleStalledAt->toIso8601String();
+
+                    $query->orWhere(function (Builder $query) use ($modelId, $sampleStalledAt, $sampleStalledAtIso): void {
+                        $query
+                            ->whereIn("samples->{$modelId}->status", ['queued', 'processing'])
+                            ->where(function (Builder $query) use ($modelId, $sampleStalledAt, $sampleStalledAtIso): void {
+                                $query
+                                    ->where("samples->{$modelId}->started_at", '>=', $sampleStalledAtIso)
+                                    ->orWhere(function (Builder $query) use ($modelId, $sampleStalledAtIso): void {
+                                        $query
+                                            ->whereNull("samples->{$modelId}->started_at")
+                                            ->where("samples->{$modelId}->queued_at", '>=', $sampleStalledAtIso);
+                                    })
+                                    ->orWhere(function (Builder $query) use ($modelId, $sampleStalledAt): void {
+                                        $query
+                                            ->whereNull("samples->{$modelId}->started_at")
+                                            ->whereNull("samples->{$modelId}->queued_at")
+                                            ->where('updated_at', '>=', $sampleStalledAt);
+                                    });
+                            });
+                    });
                 }
             })
             ->exists();
@@ -463,10 +497,14 @@ class ManageArticleAudio extends Page
     }
 
     /** @param array<string, mixed>|null $sample */
-    private function sampleStatusLabel(?ArticleNarration $narration, ?array $sample, bool $isCurrent): string
+    private function sampleStatusLabel(?array $sample, bool $isCurrent, bool $isStalled): string
     {
         if ($sample === null) {
             return __('article_audio.sample_status.not_generated');
+        }
+
+        if ($isStalled) {
+            return __('article_audio.sample_status.stalled');
         }
 
         if (! $isCurrent && data_get($sample, 'status') === 'ready') {
@@ -477,8 +515,12 @@ class ManageArticleAudio extends Page
     }
 
     /** @param array<string, mixed>|null $sample */
-    private function sampleStatusColor(?array $sample, bool $isCurrent): string
+    private function sampleStatusColor(?array $sample, bool $isCurrent, bool $isStalled): string
     {
+        if ($isStalled) {
+            return 'warning';
+        }
+
         if (! $isCurrent && data_get($sample, 'status') === 'ready') {
             return 'warning';
         }

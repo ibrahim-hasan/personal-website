@@ -23,7 +23,7 @@
         </form>
         <p class="athar-privacy">
             <span>{{ __('legal.privacy.athar_short_prefix') }}</span>
-            <a href="{{ localized_route('privacy') }}">{{ __('legal.documents.privacy') }}</a>
+            <a href="{{ localized_route('privacy') }}" target="_blank" rel="noopener noreferrer">{{ __('legal.documents.privacy') }}</a>
         </p>
     </section>
 </x-layouts.athar>

@@ -126,7 +126,7 @@ return [
         'public_text' => 'Suggested Public Text',
         'work_context' => 'Work Context',
         'identity_display' => 'Name Display',
-        'send_email' => 'Send invitation by email',
+        'send_email' => 'Send a signed link by email',
         'delivery_mode' => 'Delivery method',
         'share_link' => 'Private share link',
         'verified_at' => 'Verified At',
@@ -298,8 +298,13 @@ return [
             'ibrahim_suggested' => 'Ibrahim suggested',
         ],
         'delivery_modes' => [
-            'email' => 'Email delivery',
+            'email' => 'Signed email link',
             'link' => 'Private link',
+        ],
+        'verification_methods' => [
+            'email_link' => 'Signed email link',
+            'email_code' => 'Verification code (legacy)',
+            'link' => 'Shared private link',
         ],
         'consent_events' => [
             'approved' => 'Approved',
@@ -372,9 +377,9 @@ return [
         'archived' => 'Archived',
     ],
     'hints' => [
-        'athar_email_optional' => 'Optional. Leave it blank to create an invitation with a private link.',
-        'athar_send_email' => 'Sends the invitation to this address. A shareable link is always created.',
-        'athar_link_warning' => 'The private link opens the invitation. Share it only with the intended person; it expires and can be revoked from the admin.',
+        'athar_email_optional' => 'Optional. Leave it blank to create an invitation with a manually shareable private link.',
+        'athar_send_email' => 'Sends an expiring signed link to this address. The recipient can continue without a verification code.',
+        'athar_link_warning' => 'Email invitations use an expiring signed link. Manually shared invitations use a revocable bearer link; share it only with the intended person.',
         'athar_placement' => 'Defines which page may show the text after review and consent.',
         'athar_placement_key' => 'Optional: targets a specific section or case study within the selected page.',
         'athar_identity_display' => 'How the contributor name appears publicly. Anonymous hides it entirely.',

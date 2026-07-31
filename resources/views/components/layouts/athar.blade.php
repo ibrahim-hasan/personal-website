@@ -23,11 +23,18 @@
                 @php
                     $supportedLocales = config('app.supported_locales', []);
                     $alternateLocale = collect($supportedLocales)->except(current_locale())->keys()->first();
+                    $routeName = (string) request()->route()?->getName();
+                    $isEmailAccessRoute = str_contains($routeName, 'athar.email-access');
+                    $alternateUrl = $isEmailAccessRoute
+                        && isset($invitation)
+                        && $invitation instanceof \App\Models\AtharInvitation
+                        ? \App\Support\AtharAccess::emailAccessUrl($invitation, $alternateLocale)
+                        : localized_route('athar.show', ['token' => request()->route('token')], true, $alternateLocale);
                 @endphp
                 <nav class="athar-language" aria-label="{{ __('site.nav.languages') }}">
                     @if ($alternateLocale)
                         <a
-                            href="{{ localized_route('athar.show', ['token' => request()->route('token')], true, $alternateLocale) }}"
+                            href="{{ $alternateUrl }}"
                             lang="{{ $alternateLocale }}"
                             hreflang="{{ $alternateLocale }}"
                         >{{ data_get($supportedLocales, $alternateLocale.'.native') }}</a>

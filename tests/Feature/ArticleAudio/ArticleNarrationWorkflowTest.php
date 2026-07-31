@@ -11,6 +11,7 @@ use App\Models\ArticleAudio;
 use App\Models\ArticleNarration;
 use App\Models\User;
 use App\Services\ArticleAudio\ArticleNarrationScript;
+use App\Support\Ai\ElevenLabsExecutionBudget;
 use App\Support\Editorial\ArticleCatalog;
 use Database\Seeders\ArticleSeeder;
 use Database\Seeders\PermissionSeeder;
@@ -227,6 +228,72 @@ class ArticleNarrationWorkflowTest extends TestCase
             ->get(ManageArticleAudio::getUrl())
             ->assertOk()
             ->assertSee(__('article_audio.generation_disabled.synthesis_unavailable'));
+    }
+
+    public function test_locale_specific_voice_configuration_enables_the_matching_generation_controls(): void
+    {
+        config()->set('services.elevenlabs.voice_id', null);
+        config()->set('services.elevenlabs.voice_ids', [
+            'ar' => 'arabic-editorial-voice',
+            'en' => '',
+        ]);
+        $editor = $this->editor();
+        $this->approvedNarration();
+
+        $response = $this->actingAs($editor)->get(ManageArticleAudio::getUrl())->assertOk();
+
+        foreach (['sample', 'generate'] as $path) {
+            $matched = preg_match(
+                sprintf('~<form\\b(?=[^>]*action="[^"]*article-audio/ai-value/ar/%s")[^>]*>.*?</form>~s', $path),
+                $response->getContent(),
+                $matches,
+            );
+
+            $this->assertSame(1, $matched);
+            $this->assertDoesNotMatchRegularExpression('/\\sdisabled(?:=|(?=\\s|>))/', $matches[0]);
+        }
+    }
+
+    public function test_stalled_sample_does_not_disable_controls_or_block_a_retry(): void
+    {
+        $editor = $this->editor();
+        $narration = $this->approvedNarration();
+        $narration->forceFill([
+            'samples' => [
+                'eleven_v3' => [
+                    'status' => 'processing',
+                    'started_at' => now()
+                        ->subSeconds(ElevenLabsExecutionBudget::sampleStalledAfterSeconds('eleven_v3') + 1)
+                        ->toIso8601String(),
+                ],
+            ],
+        ])->save();
+
+        $this->assertTrue($narration->refresh()->sampleIsStalled('eleven_v3'));
+        $this->assertFalse($narration->sampleIsGenerating('eleven_v3'));
+
+        Livewire::actingAs($editor)
+            ->test(ManageArticleAudio::class)
+            ->assertSet('activeWork', false);
+
+        $response = $this->actingAs($editor)->get(ManageArticleAudio::getUrl())->assertOk();
+        $matched = preg_match(
+            '~<form\\b(?=[^>]*action="[^"]*article-audio/ai-value/ar/sample")[^>]*>.*?</form>~s',
+            $response->getContent(),
+            $matches,
+        );
+
+        $this->assertSame(1, $matched);
+        $this->assertDoesNotMatchRegularExpression('/\\sdisabled(?:=|(?=\\s|>))/', $matches[0]);
+
+        $this->actingAs($editor)
+            ->post(route('filament.admin.article-audio.sample.generate', [
+                'article' => 'ai-value',
+                'locale' => 'ar',
+            ]), ['model_id' => 'eleven_v3'])
+            ->assertRedirect(ManageArticleAudio::getUrl());
+
+        Queue::assertPushed(GenerateArticleAudioSample::class, 1);
     }
 
     public function test_stale_or_unconfigured_sample_work_does_not_lock_the_admin_page(): void

@@ -198,7 +198,7 @@
                 </button>
                 <p>
                     {!! __('site.consultation.privacy', [
-                        'privacy' => '<a class="underline decoration-current/40 underline-offset-4 hover:decoration-current" data-no-navigate href="'.e(localized_route('privacy')).'">'.e(__('legal.documents.privacy')).'</a>',
+                        'privacy' => '<a class="underline decoration-current/40 underline-offset-4 hover:decoration-current" data-no-navigate href="'.e(localized_route('privacy')).'" target="_blank" rel="noopener noreferrer">'.e(__('legal.documents.privacy')).'</a>',
                     ]) !!}
                 </p>
             </div>

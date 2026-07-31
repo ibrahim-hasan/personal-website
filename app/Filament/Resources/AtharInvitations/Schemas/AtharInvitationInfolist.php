@@ -8,6 +8,7 @@ use App\Enums\AtharInvitationStatus;
 use App\Enums\AtharPlacement;
 use App\Models\AtharInvitation;
 use App\Models\User;
+use App\Support\AtharAccess;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -65,12 +66,14 @@ class AtharInvitationInfolist
                     TextEntry::make('share_url')
                         ->label(__('admin.fields.share_link'))
                         ->getStateUsing(fn (AtharInvitation $record): ?string => filled($record->token_ciphertext)
-                            ? localized_route(
-                                'athar.show',
-                                ['token' => $record->token_ciphertext],
-                                true,
-                                $record->preferred_locale,
-                            )
+                            ? $record->delivery_mode === AtharInvitationDeliveryMode::Email
+                                ? AtharAccess::emailAccessUrl($record)
+                                : localized_route(
+                                    'athar.show',
+                                    ['token' => $record->token_ciphertext],
+                                    true,
+                                    $record->preferred_locale,
+                                )
                             : null)
                         ->placeholder(__('admin.values.not_available'))
                         ->copyable()

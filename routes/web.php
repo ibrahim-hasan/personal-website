@@ -76,6 +76,8 @@ $registerLocalizedRoutes = function (?string $routeLocale = null): void {
 
     Route::prefix('/athar/{token}')->group(function (): void {
         Route::get('/', [AtharController::class, 'show'])->name('athar.show');
+        Route::get('/email-access', [AtharController::class, 'emailAccess'])->middleware('throttle:athar-email-access')->name('athar.email-access');
+        Route::post('/email-access', [AtharController::class, 'confirmEmailAccess'])->middleware('throttle:athar-email-access')->name('athar.email-access.confirm');
         Route::post('/code', [AtharController::class, 'requestCode'])->middleware('throttle:athar-code')->name('athar.code');
         Route::post('/verify', [AtharController::class, 'verifyCode'])->middleware('throttle:athar-code')->name('athar.verify');
         Route::post('/draft', [AtharController::class, 'saveDraft'])->middleware('throttle:athar-write')->name('athar.draft');

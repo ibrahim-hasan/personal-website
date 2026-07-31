@@ -127,6 +127,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('athar-code', fn (Request $request): Limit => Limit::perMinute(10)->by($request->ip().'|'.$request->route('token')));
+        RateLimiter::for('athar-email-access', fn (Request $request): Limit => Limit::perMinute(12)->by($request->ip().'|'.$request->route('token')));
         RateLimiter::for('athar-write', fn (Request $request): Limit => Limit::perMinute(12)->by($request->ip().'|'.$request->route('token')));
     }
 

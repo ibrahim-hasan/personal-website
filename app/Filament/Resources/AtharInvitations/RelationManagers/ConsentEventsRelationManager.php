@@ -30,7 +30,8 @@ class ConsentEventsRelationManager extends RelationManager
                     ->formatStateUsing(fn (AtharConsentEventType $state): string => $state->label()),
                 TextColumn::make('verification_method')
                     ->label(__('admin.fields.verification_method'))
-                    ->badge(),
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => __("admin.athar.verification_methods.{$state}")),
                 TextColumn::make('identity_display')
                     ->label(__('admin.fields.identity_display'))
                     ->formatStateUsing(fn (AtharIdentityDisplay $state): string => $state->label()),

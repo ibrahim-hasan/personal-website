@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use App\Enums\ArticleNarrationStatus;
+use App\Support\Ai\ElevenLabsExecutionBudget;
+use Carbon\CarbonInterface;
 use Database\Factories\ArticleNarrationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -99,7 +102,21 @@ class ArticleNarration extends Model
 
     public function sampleIsGenerating(string $modelId): bool
     {
-        return in_array(data_get($this->sample($modelId), 'status'), ['queued', 'processing'], true);
+        return in_array(data_get($this->sample($modelId), 'status'), ['queued', 'processing'], true)
+            && ! $this->sampleIsStalled($modelId);
+    }
+
+    public function sampleIsStalled(string $modelId): bool
+    {
+        $sample = $this->sample($modelId);
+
+        if (! in_array(data_get($sample, 'status'), ['queued', 'processing'], true)) {
+            return false;
+        }
+
+        return $this->sampleActivityAt($sample)?->lt(
+            now()->subSeconds(ElevenLabsExecutionBudget::sampleStalledAfterSeconds($modelId)),
+        ) === true;
     }
 
     public function hasCurrentSample(string $modelId): bool
@@ -187,6 +204,26 @@ class ArticleNarration extends Model
         $this->setRawAttributes($updated->getAttributes(), true);
 
         return true;
+    }
+
+    /** @param array<string, mixed>|null $sample */
+    private function sampleActivityAt(?array $sample): ?CarbonInterface
+    {
+        foreach (['started_at', 'queued_at'] as $attribute) {
+            $value = data_get($sample, $attribute);
+
+            if (! is_string($value) || $value === '') {
+                continue;
+            }
+
+            $activityAt = Carbon::make($value);
+
+            if ($activityAt !== null) {
+                return $activityAt;
+            }
+        }
+
+        return $this->updated_at;
     }
 
     protected static function booted(): void

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Athar\ApproveAndPublishAtharVersion;
 use App\Actions\Athar\CancelAtharPrivateDataDeletion;
 use App\Actions\Athar\CreateContributorPublicNote;
+use App\Actions\Athar\GrantAtharEmailAccess;
 use App\Actions\Athar\IssueAtharAccessChallenge;
 use App\Actions\Athar\RequestAtharPrivateDataDeletion;
 use App\Actions\Athar\RestoreAtharPublication;
@@ -26,6 +27,7 @@ use App\Support\AtharAccess;
 use App\Support\AtharPublicationSnapshot;
 use App\Support\AtharTextLimits;
 use App\Support\Turnstile;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +36,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Throwable;
 
 class AtharController extends Controller
 {
@@ -105,7 +108,35 @@ class AtharController extends Controller
         ]);
     }
 
-    public function requestCode(Request $request, string $token, IssueAtharAccessChallenge $issue): RedirectResponse
+    public function emailAccess(Request $request, string $token): View|RedirectResponse
+    {
+        $invitation = $this->signedEmailInvitation($request, $token);
+        if ($invitation === null) {
+            return view('athar.unavailable');
+        }
+        if (AtharAccess::verified($request, $invitation)) {
+            return $this->atharRedirect($token);
+        }
+
+        return view('athar.email-access', [
+            'invitation' => $invitation,
+            'continueUrl' => $request->fullUrl(),
+        ]);
+    }
+
+    public function confirmEmailAccess(Request $request, string $token, GrantAtharEmailAccess $grant): View|RedirectResponse
+    {
+        $invitation = $this->signedEmailInvitation($request, $token);
+        if ($invitation === null) {
+            return view('athar.unavailable');
+        }
+
+        $grant->handle($invitation, $request);
+
+        return $this->atharRedirect($token);
+    }
+
+    public function requestCode(Request $request, string $token, IssueAtharAccessChallenge $issue): JsonResponse|RedirectResponse
     {
         $invitation = AtharAccess::invitation($token);
         if ($invitation === null || ! $invitation->isAccessible()) {
@@ -118,34 +149,61 @@ class AtharController extends Controller
             return $this->atharRedirect($token);
         }
 
-        if ($this->turnstile->enabled()
-            && ! $this->turnstile->verify((string) $request->input('cf-turnstile-response'), $this->turnstile->clientIp($request))) {
-            return back()->withErrors(['turnstile' => __('validation.turnstile')]);
-        }
-
         $isResend = $request->session()->get('athar.code_sent') === $invitation->getKey()
             && blank($request->input('email'));
+        if (! $isResend
+            && $this->turnstile->enabled()
+            && ! $this->turnstile->verify((string) $request->input('cf-turnstile-response'), $this->turnstile->clientIp($request))) {
+            return $this->codeErrorResponse($request, 'turnstile', __('validation.turnstile'));
+        }
+
+        $email = (string) $request->input('email');
+        if (! $isResend) {
+            $emailValidator = Validator::make($request->all(), ['email' => ['required', 'email', 'max:255']]);
+            if ($emailValidator->fails()) {
+                return $this->codeErrorResponse($request, 'email', __('athar.validation.email'));
+            }
+            $email = (string) $emailValidator->validated()['email'];
+        }
         $emailHash = $isResend
             ? $invitation->email_hash
-            : hash_hmac('sha256', strtolower(trim((string) Validator::make($request->all(), ['email' => ['required', 'email', 'max:255']])->validate()['email'])), (string) config('app.key'));
+            : hash_hmac('sha256', strtolower(trim($email)), (string) config('app.key'));
         if (! is_string($invitation->email_hash) || ! is_string($emailHash) || ! hash_equals($invitation->email_hash, $emailHash)) {
-            return back()->withErrors(['email' => __('athar.validation.email')]);
+            return $this->codeErrorResponse($request, 'email', __('athar.validation.email'));
         }
         $feedbackKey = $isResend ? 'code' : 'email';
         $challenge = AtharAccess::latestChallenge($invitation);
         $resendAvailableAt = AtharAccess::resendAvailableAt($challenge);
         if ($resendAvailableAt !== null && $resendAvailableAt > now()->timestamp) {
-            return back()->withErrors([$feedbackKey => __('athar.access.resend_wait', ['seconds' => $resendAvailableAt - now()->timestamp])]);
+            return $this->codeErrorResponse($request, $feedbackKey, __('athar.access.resend_wait', ['seconds' => $resendAvailableAt - now()->timestamp]), 429);
         }
         $rateLimitKey = AtharAccess::codeRequestRateLimitKey($request, $invitation);
         if (RateLimiter::tooManyAttempts($rateLimitKey, AtharAccess::maxCodeRequestsPerHour())) {
-            return back()->withErrors([$feedbackKey => __('athar.access.request_limit')]);
+            return $this->codeErrorResponse($request, $feedbackKey, __('athar.access.request_limit'), 429);
         }
-        $issue->handle($invitation, $request);
+        try {
+            $challenge = $issue->handle($invitation, $request);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return $this->codeErrorResponse($request, $feedbackKey, __('athar.access.request_failed'), 503);
+        }
         RateLimiter::hit($rateLimitKey, 60 * 60);
         $request->session()->put('athar.code_sent', $invitation->getKey());
+        $message = __('athar.access.code_sent');
+        $payload = [
+            'message' => $message,
+            'code_sent' => true,
+            'code_expires_at' => $challenge->expires_at->timestamp,
+            'resend_available_at' => AtharAccess::resendAvailableAt($challenge),
+            'attempts_remaining' => $challenge->attemptsRemaining(),
+        ];
 
-        return $this->atharRedirect($token);
+        if ($request->expectsJson()) {
+            return response()->json($payload);
+        }
+
+        return $this->atharRedirect($token)->with('status', $message);
     }
 
     public function verifyCode(Request $request, string $token, VerifyAtharAccessChallenge $verify): RedirectResponse
@@ -309,6 +367,36 @@ class AtharController extends Controller
             static fn (mixed $digit): string => is_scalar($digit) ? (string) $digit : '',
             $digits,
         ));
+    }
+
+    private function signedEmailInvitation(Request $request, string $token): ?AtharInvitation
+    {
+        if (! $request->hasValidSignature()) {
+            return null;
+        }
+
+        $invitation = AtharAccess::invitation($token);
+
+        return $invitation !== null
+            && $invitation->delivery_mode === AtharInvitationDeliveryMode::Email
+            && $invitation->isAccessible()
+            ? $invitation
+            : null;
+    }
+
+    /**
+     * Return JSON for the enhanced form and a normal form error otherwise.
+     */
+    private function codeErrorResponse(Request $request, string $field, string $message, int $status = 422): JsonResponse|RedirectResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'errors' => [$field => [$message]],
+            ], $status);
+        }
+
+        return back()->withErrors([$field => $message]);
     }
 
     /**

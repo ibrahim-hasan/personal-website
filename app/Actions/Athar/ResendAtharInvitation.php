@@ -6,6 +6,7 @@ use App\Enums\AtharInvitationDeliveryMode;
 use App\Enums\AtharInvitationStatus;
 use App\Models\AtharInvitation;
 use App\Notifications\AtharInvitationNotification;
+use App\Support\AtharAccess;
 use Illuminate\Support\Facades\Notification;
 
 class ResendAtharInvitation
@@ -16,7 +17,7 @@ class ResendAtharInvitation
         abort_if(in_array($invitation->status, [AtharInvitationStatus::Revoked, AtharInvitationStatus::Expired], true), 422);
         abort_unless(is_string($invitation->email) && $invitation->email !== '', 422);
 
-        $shareUrl = localized_route('athar.show', ['token' => $invitation->token_ciphertext], true, $invitation->preferred_locale);
+        $shareUrl = AtharAccess::emailAccessUrl($invitation);
 
         Notification::route('mail', $invitation->email)->notify(new AtharInvitationNotification(
             $shareUrl,

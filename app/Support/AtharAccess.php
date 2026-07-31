@@ -7,12 +7,13 @@ use App\Models\AtharAccessChallenge;
 use App\Models\AtharInvitation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 class AtharAccess
 {
     /**
-     * How long an email-code session grant remains valid, in minutes.
+     * How long an email or link verification session grant remains valid, in minutes.
      */
     public static function sessionTtlMinutes(): int
     {
@@ -37,6 +38,23 @@ class AtharAccess
     public static function codeHash(string $code): string
     {
         return hash_hmac('sha256', $code, (string) config('app.key'));
+    }
+
+    public static function emailAccessUrl(AtharInvitation $invitation, ?string $locale = null): string
+    {
+        $targetLocale = $locale ?? $invitation->preferred_locale;
+        $routeName = $targetLocale === default_locale()
+            ? 'athar.email-access'
+            : $targetLocale.'.athar.email-access';
+        $expiresAt = now()->addHours((int) config('athar.access.email_link_ttl_hours', 72));
+
+        if ($invitation->expires_at?->isFuture() && $invitation->expires_at->isBefore($expiresAt)) {
+            $expiresAt = $invitation->expires_at;
+        }
+
+        return URL::temporarySignedRoute($routeName, $expiresAt, [
+            'token' => $invitation->token_ciphertext,
+        ]);
     }
 
     public static function normalizeCode(string $code): string
@@ -99,11 +117,12 @@ class AtharAccess
         return 'athar-code-request|'.$invitation->getKey().'|'.$ipHash;
     }
 
-    public static function grant(Request $request, AtharInvitation $invitation): void
+    public static function grant(Request $request, AtharInvitation $invitation, string $method = 'email_link'): void
     {
         $grant = [
             'verified_at' => now()->timestamp,
             'fingerprint' => self::fingerprint($request),
+            'method' => $method,
         ];
         $request->session()->put(self::sessionKey($invitation), $grant);
         Cookie::queue(cookie(
@@ -124,8 +143,8 @@ class AtharAccess
      *
      * A link-mode invitation is accessible solely by holding the token (the
      * link is the credential). An email-mode invitation additionally requires
-     * a live, fingerprint-bound session grant established by verifying the
-     * six-digit access code — possession of the token alone is not enough.
+     * a live, fingerprint-bound session grant established by the signed email
+     * link or legacy access code — possession of the token alone is not enough.
      */
     public static function verified(Request $request, AtharInvitation $invitation): bool
     {
@@ -163,9 +182,18 @@ class AtharAccess
     /**
      * The consent-audit attestation of how this invitation was accessed.
      */
-    public static function verificationMethod(AtharInvitation $invitation): string
+    public static function verificationMethod(AtharInvitation $invitation, Request $request): string
     {
-        return $invitation->delivery_mode === AtharInvitationDeliveryMode::Link ? 'link' : 'email_code';
+        if ($invitation->delivery_mode === AtharInvitationDeliveryMode::Link) {
+            return 'link';
+        }
+
+        $grant = $request->session()->get(self::sessionKey($invitation));
+        if (! is_array($grant)) {
+            $grant = self::cookieGrant($request, $invitation);
+        }
+
+        return is_string($grant['method'] ?? null) ? $grant['method'] : 'email_code';
     }
 
     public static function forget(Request $request, AtharInvitation $invitation): void

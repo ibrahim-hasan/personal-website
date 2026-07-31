@@ -157,7 +157,8 @@ Sign in → create or edit localized content → upload managed media → review
 ### Permissioned contributor proof
 
 - Athar is a private, contributor-led reflection flow designed to make publication consideration easy without making it automatic. The contributor sends their own words for review, may keep them private, and must approve the exact public version before anything appears.
-- Athar invitations use one private bearer link as the access credential. Email is optional delivery convenience: the admin may send the same link by email, while the admin always receives a copyable opaque link. The public form stays calm and uncluttered; privacy is enforced by the opaque token, expiry, revocation, no-store headers, and the localized privacy notice.
+- Athar invitations use a private access credential. Email delivery uses a temporary signed link, while a manually shared invitation uses a copyable opaque bearer link. The public form stays calm and uncluttered; privacy is enforced by the access credential, expiry, revocation, no-store headers, and the localized privacy notice.
+- When an invitation is sent by email, the email uses a temporary signed access link and establishes the private session after an explicit confirmation. When Ibrahim shares an invitation himself, it remains a revocable bearer link with no email or OTP requirement; the admin surface must make this distinction clear.
 - Only text selected or edited by the contributor may be attributed to them publicly. Ibrahim may add a clearly separate factual work-context line, never a silent rewrite.
 - One exact approved proof card may appear on one named website placement only. Any material change, new language, or new placement requires a new exact approval.
 - Contributors can withdraw website publication through a simple self-service path. Private-data deletion follows the reviewed retention policy as a separate request.

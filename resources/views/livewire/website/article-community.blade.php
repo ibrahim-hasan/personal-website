@@ -80,8 +80,8 @@
                                 <div class="mt-3 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                                     <p class="text-xs leading-5 text-ink-muted">
                                         {!! __('community.contribution_notice', [
-                                            'terms' => '<a class="text-link" data-no-navigate href="'.e(localized_route('terms')).'">'.e(__('legal.documents.terms')).'</a>',
-                                            'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'">'.e(__('legal.documents.privacy')).'</a>',
+                                            'terms' => '<a class="text-link" data-no-navigate href="'.e(localized_route('terms')).'" target="_blank" rel="noopener noreferrer">'.e(__('legal.documents.terms')).'</a>',
+                                            'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'" target="_blank" rel="noopener noreferrer">'.e(__('legal.documents.privacy')).'</a>',
                                         ]) !!}
                                     </p>
                                     <button type="submit" wire:loading.attr="disabled" wire:target="postComment" class="button-primary min-h-11 w-full shrink-0 disabled:cursor-wait disabled:opacity-60 sm:w-auto">
@@ -136,8 +136,8 @@
                                         @error('replyBody') <p class="mt-2 text-sm text-danger" role="alert">{{ $message }}</p> @enderror
                                         <p class="mt-2 text-xs leading-5 text-ink-muted">
                                             {!! __('community.reply_notice', [
-                                                'terms' => '<a class="text-link" data-no-navigate href="'.e(localized_route('terms')).'">'.e(__('legal.documents.terms')).'</a>',
-                                                'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'">'.e(__('legal.documents.privacy')).'</a>',
+                                                'terms' => '<a class="text-link" data-no-navigate href="'.e(localized_route('terms')).'" target="_blank" rel="noopener noreferrer">'.e(__('legal.documents.terms')).'</a>',
+                                                'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'" target="_blank" rel="noopener noreferrer">'.e(__('legal.documents.privacy')).'</a>',
                                             ]) !!}
                                         </p>
                                         <div class="mt-3 flex justify-end gap-3">
@@ -198,7 +198,7 @@
                         @error('reportDetails') <p class="mt-2 text-sm text-danger" role="alert">{{ $message }}</p> @enderror
                         <p class="mt-3 text-xs leading-5 text-ink-muted">
                             {!! __('community.report_notice', [
-                                'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'">'.e(__('legal.documents.privacy')).'</a>',
+                                'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'" target="_blank" rel="noopener noreferrer">'.e(__('legal.documents.privacy')).'</a>',
                             ]) !!}
                         </p>
                         <div class="mt-6 flex justify-end gap-3">

@@ -47,6 +47,7 @@ class CreateAtharInvitation
         }
 
         $shareUrl = localized_route('athar.show', ['token' => $token], true, $preferredLocale);
+        $accessUrl = $shareUrl;
 
         $invitation = DB::transaction(fn (): AtharInvitation => AtharInvitation::query()->create([
             'created_by' => $creator->getKey(), 'token_hash' => AtharAccess::tokenHash($token),
@@ -61,13 +62,16 @@ class CreateAtharInvitation
         ]));
 
         if ($sendEmail) {
+            $accessUrl = AtharAccess::emailAccessUrl($invitation);
             Notification::route('mail', $invitation->email)->notify(new AtharInvitationNotification(
-                $shareUrl,
+                $accessUrl,
                 $invitation->preferred_locale,
             ));
+        } else {
+            $accessUrl = $shareUrl;
         }
 
-        return ['invitation' => $invitation, 'token' => $token, 'url' => $shareUrl, 'send_email' => $sendEmail];
+        return ['invitation' => $invitation, 'token' => $token, 'url' => $accessUrl, 'send_email' => $sendEmail];
     }
 
     /**

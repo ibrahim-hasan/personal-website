@@ -51,14 +51,14 @@
                     >
                     <span>
                         {!! __('reader_auth.terms_acceptance', [
-                            'terms' => '<a class="text-link" data-no-navigate href="'.e(localized_route('terms')).'">'.e(__('legal.documents.terms')).'</a>',
+                            'terms' => '<a class="text-link" data-no-navigate href="'.e(localized_route('terms')).'" target="_blank" rel="noopener noreferrer">'.e(__('legal.documents.terms')).'</a>',
                         ]) !!}
                     </span>
                 </label>
                 @error('terms_accepted') <span id="reader-register-terms-error" class="-mt-3 block text-sm text-danger" role="alert">{{ $message }}</span> @enderror
                 <p class="-mt-2 text-xs leading-5 text-ink-muted">
                     {!! __('reader_auth.privacy_notice', [
-                        'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'">'.e(__('legal.documents.privacy')).'</a>',
+                        'privacy' => '<a class="text-link" data-no-navigate href="'.e(localized_route('privacy')).'" target="_blank" rel="noopener noreferrer">'.e(__('legal.documents.privacy')).'</a>',
                     ]) !!}
                 </p>
                 <div id="reader-register-turnstile">

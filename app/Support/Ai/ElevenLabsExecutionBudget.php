@@ -87,6 +87,11 @@ final class ElevenLabsExecutionBudget
         return self::uniqueFor(self::fullJobTimeout());
     }
 
+    public static function sampleStalledAfterSeconds(string $modelId): int
+    {
+        return self::uniqueFor(self::sampleJobTimeout($modelId));
+    }
+
     private static function sampleMaxSegments(string $modelId): int
     {
         $sampleCharacters = max(1, (int) config('services.elevenlabs.sample_characters', 650));

@@ -6,6 +6,7 @@ use App\Enums\AtharContributionStatus;
 use App\Enums\AtharPublicationStatus;
 use App\Models\AtharPublicationVersion;
 use App\Notifications\AtharApprovalNotification;
+use App\Support\AtharAccess;
 use Illuminate\Support\Facades\Notification;
 
 class SendAtharApproval
@@ -17,7 +18,7 @@ class SendAtharApproval
         $invitation = $version->contribution->invitation;
         if (filled($invitation->email)) {
             Notification::route('mail', $invitation->email)->notify(new AtharApprovalNotification(
-                localized_route('athar.show', ['token' => $invitation->token_ciphertext], true, $invitation->preferred_locale),
+                AtharAccess::emailAccessUrl($invitation),
                 $invitation->preferred_locale,
             ));
         }

@@ -40,7 +40,7 @@ class VerifyAtharAccessChallenge
                 'verified_at' => now(),
                 'status' => $invitation->status === AtharInvitationStatus::Sent ? AtharInvitationStatus::Verified : $invitation->status,
             ])->save();
-            AtharAccess::grant($request, $invitation);
+            AtharAccess::grant($request, $invitation, 'email_code');
 
             return AtharAccessChallengeResult::Verified;
         });

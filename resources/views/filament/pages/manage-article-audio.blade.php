@@ -256,12 +256,12 @@
                                             @if ($canGenerate)
                                                 @php
                                                     $sampleDisabledReason = match (true) {
-                                                        ! $configuration['synthesis_ready'] => __('article_audio.generation_disabled.synthesis_unavailable'),
+                                                        ! $configuration['synthesis_ready_by_locale'][$row['locale']] => __('article_audio.generation_disabled.synthesis_unavailable'),
                                                         $row['has_active_work'] => __('article_audio.generation_disabled.work_in_progress'),
                                                         default => null,
                                                     };
                                                     $fullDisabledReason = match (true) {
-                                                        ! $configuration['synthesis_ready'] => __('article_audio.generation_disabled.synthesis_unavailable'),
+                                                        ! $configuration['synthesis_ready_by_locale'][$row['locale']] => __('article_audio.generation_disabled.synthesis_unavailable'),
                                                         $row['has_active_work'] => __('article_audio.generation_disabled.work_in_progress'),
                                                         ! $model['can_generate_full'] => __('article_audio.generation_disabled.approval_required'),
                                                         default => null,

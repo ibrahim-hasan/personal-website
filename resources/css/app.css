@@ -1355,6 +1355,9 @@ html[dir='rtl'] .precision-stage__finale strong {
 .athar-actions--stack { flex-direction: column; align-items: stretch; max-width: 20rem; margin-inline: auto; }
 .athar-form--secondary { margin-top: .5rem; }
 .athar-help, .athar-privacy { color: var(--color-ink-muted); font-size: .84rem; line-height: 1.65; }
+.athar-form-status { margin-top: 1.25rem; padding: .8rem 1rem; border: 1px solid color-mix(in oklab, var(--color-violet-600) 28%, transparent); background: var(--color-violet-50); color: var(--color-ink-soft); font-size: .9rem; line-height: 1.65; }
+.athar-form-status--success { border-color: color-mix(in oklab, oklch(.42 .1 155) 35%, transparent); background: color-mix(in oklab, oklch(.42 .1 155) 7%, var(--color-canvas-bright)); color: oklch(.36 .08 155); }
+.athar-form-status--error { border-color: color-mix(in oklab, var(--color-danger) 35%, transparent); background: color-mix(in oklab, var(--color-danger) 7%, var(--color-canvas-bright)); color: oklch(.45 .16 25); }
 .athar-privacy { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: 2.25rem; }
 .athar-error { color: oklch(.45 .16 25); font-size: .85rem; }
 .athar-success { color: oklch(.42 .1 155); font-size: .9rem; }

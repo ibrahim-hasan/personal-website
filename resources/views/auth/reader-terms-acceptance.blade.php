@@ -7,9 +7,9 @@
             <p class="mt-4 text-base leading-7 text-ink-muted">{{ __('reader_auth.accept_terms_description') }}</p>
 
             <div class="mt-7 border-y border-ink/10 py-5 text-sm leading-6 text-ink-muted">
-                <a href="{{ localized_route('terms') }}" data-no-navigate class="text-link">{{ __('legal.documents.terms') }}</a>
+                <a href="{{ localized_route('terms') }}" data-no-navigate target="_blank" rel="noopener noreferrer" class="text-link">{{ __('legal.documents.terms') }}</a>
                 <span class="px-2" aria-hidden="true">·</span>
-                <a href="{{ localized_route('privacy') }}" data-no-navigate class="text-link">{{ __('legal.documents.privacy') }}</a>
+                <a href="{{ localized_route('privacy') }}" data-no-navigate target="_blank" rel="noopener noreferrer" class="text-link">{{ __('legal.documents.privacy') }}</a>
             </div>
 
             <form method="POST" action="{{ localized_route('reader.terms.acceptance.store') }}" class="mt-7 space-y-5">
@@ -31,7 +31,7 @@
                     >
                     <span>
                         {!! __('reader_auth.accept_current_terms', [
-                            'terms' => '<a class="text-link" data-no-navigate href="'.e(localized_route('terms')).'">'.e(__('legal.documents.terms')).'</a>',
+                            'terms' => '<a class="text-link" data-no-navigate href="'.e(localized_route('terms')).'" target="_blank" rel="noopener noreferrer">'.e(__('legal.documents.terms')).'</a>',
                         ]) !!}
                     </span>
                 </label>

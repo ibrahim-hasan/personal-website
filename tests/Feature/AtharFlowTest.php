@@ -13,6 +13,7 @@ use App\Models\AtharAccessChallenge;
 use App\Models\AtharContribution;
 use App\Models\AtharInvitation;
 use App\Models\User;
+use App\Notifications\AtharAccessCodeNotification;
 use App\Notifications\AtharInvitationNotification;
 use App\Support\AtharAccess;
 use App\Support\AtharPublicProof;
@@ -68,6 +69,9 @@ class AtharFlowTest extends TestCase
         $this->assertNull($invitation->personal_reason);
         $this->assertNull($invitation->placement_key);
         $this->assertSame('anonymous', $invitation->identity_display->value);
+        $this->assertStringContainsString('/en/athar/'.$token.'/email-access', $created['url']);
+        $this->assertStringContainsString('expires=', $created['url']);
+        $this->assertStringContainsString('signature=', $created['url']);
         Notification::assertSentOnDemand(AtharInvitationNotification::class);
 
         $response = $this->get(route('en.athar.show', ['token' => $token]));
@@ -78,6 +82,7 @@ class AtharFlowTest extends TestCase
             ->assertSee('href="'.asset('apple-touch-icon.png').'"', false)
             ->assertSee(__('athar.access.title'))
             ->assertSee('name="email"', false)
+            ->assertSee('target="_blank" rel="noopener noreferrer"', false)
             ->assertSee('lang="en"', false)
             ->assertDontSee('lang="ar" hreflang="ar"', false)
             ->assertDontSee('athar-mark__feature', false)
@@ -86,7 +91,11 @@ class AtharFlowTest extends TestCase
             ->assertDontSee('friend@example.com');
         $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
 
-        $this->grantAtharSession($token, $invitation, locale: 'en');
+        $this->get($created['url'])
+            ->assertOk()
+            ->assertSee(__('athar.email_access.title'))
+            ->assertSee(__('athar.email_access.continue'));
+        $this->post($created['url'])->assertRedirect();
 
         $response = $this->get(route('en.athar.show', ['token' => $token]));
         $response
@@ -94,6 +103,7 @@ class AtharFlowTest extends TestCase
             ->assertSee(__('athar.reflection.title'))
             ->assertSee(__('athar.reflection.body'))
             ->assertSee(__('athar.reflection.review'))
+            ->assertSee('target="_blank" rel="noopener noreferrer"', false)
             ->assertDontSee('ما الذي بقي معك من تجربتنا؟')
             ->assertSee('lang="en"', false)
             ->assertSee('action="'.route('en.athar.submit', ['token' => $token]).'"', false)
@@ -171,7 +181,11 @@ class AtharFlowTest extends TestCase
         $this->assertSame('Amina Noor', data_get($version->fresh()->public_payload, 'en.display_name'));
         $this->assertSame('Product builder | Manager at Example', data_get($version->fresh()->public_payload, 'en.display_position'));
         $this->assertSame('completed', $invitation->fresh()->status->value);
-        $this->assertDatabaseHas('athar_publication_consent_events', ['publication_version_id' => $version->getKey(), 'event_type' => 'approved']);
+        $this->assertDatabaseHas('athar_publication_consent_events', [
+            'publication_version_id' => $version->getKey(),
+            'event_type' => 'approved',
+            'verification_method' => 'email_link',
+        ]);
         $this->get(route('en.athar.show', ['token' => $token]))
             ->assertOk()
             ->assertSee(__('athar.published.words'))
@@ -290,6 +304,7 @@ class AtharFlowTest extends TestCase
         $this->assertNull($invitation->email_hash);
         $this->assertNull($invitation->sent_at);
         $this->assertStringContainsString('/en/athar/', $created['url']);
+        $this->assertStringNotContainsString('signature=', $created['url']);
         Notification::assertNothingSent();
 
         $this->get($created['url'])
@@ -433,6 +448,43 @@ class AtharFlowTest extends TestCase
             ->assertSee('required dir="rtl" :dir="textDirection"', false);
     }
 
+    public function test_email_access_requires_a_valid_unexpired_signed_url(): void
+    {
+        Notification::fake();
+        $created = app(CreateAtharInvitation::class)->handle(User::factory()->create(), [
+            'email' => 'friend@example.com',
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+
+        $this->get($created['url'])->assertOk()->assertSee(__('athar.email_access.title'));
+        $this->get($created['url'].'&signature=invalid')
+            ->assertOk()
+            ->assertSee(__('athar.unavailable.title'));
+
+        $this->travel(73)->hours();
+        $this->get($created['url'])
+            ->assertOk()
+            ->assertSee(__('athar.unavailable.title'));
+        $this->travelBack();
+    }
+
+    public function test_arabic_email_access_uses_the_localized_signed_route(): void
+    {
+        Notification::fake();
+        $created = app(CreateAtharInvitation::class)->handle(User::factory()->create(), [
+            'email' => 'friend@example.com',
+            'preferred_locale' => 'ar',
+            'placement' => AtharPlacement::About,
+        ]);
+
+        $this->assertStringContainsString('/athar/'.$created['token'].'/email-access', $created['url']);
+        $this->get($created['url'])
+            ->assertOk()
+            ->assertSee('lang="ar"', false)
+            ->assertSee(__('athar.email_access.title'));
+    }
+
     public function test_arabic_digits_are_accepted_for_the_email_access_code(): void
     {
         app()->setLocale('ar');
@@ -472,26 +524,61 @@ class AtharFlowTest extends TestCase
             'placement' => AtharPlacement::About,
         ]);
 
-        $this->post(route('en.athar.code', ['token' => $created['token']]), ['email' => 'friend@example.com'])
-            ->assertRedirect();
+        $this->withHeaders([
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ])->post(route('en.athar.code', ['token' => $created['token']]), ['email' => 'friend@example.com'])
+            ->assertOk()
+            ->assertJsonPath('code_sent', true)
+            ->assertJsonPath('attempts_remaining', 6)
+            ->assertJsonPath('message', __('athar.access.code_sent'));
+        Notification::assertSentOnDemandTimes(AtharAccessCodeNotification::class, 1);
 
         $challenge = AtharAccessChallenge::query()->where('invitation_id', $created['invitation']->getKey())->latest('id')->firstOrFail();
         $this->assertSame(6, $challenge->attemptsRemaining());
         $this->get(route('en.athar.show', ['token' => $created['token']]))
             ->assertOk()
-            ->assertSee('atharAccessCode', false)
+            ->assertSee('atharAccessFlow', false)
             ->assertSee('attemptsRemaining', false)
             ->assertSee('resendAvailableAt', false)
+            ->assertSee(__('athar.access.code_status.attempts_remaining', ['count' => 6]), false)
             ->assertSee('The code has a limited lifetime and a limited number of attempts.', false);
 
-        $this->post(route('en.athar.code', ['token' => $created['token']]))
-            ->assertSessionHasErrors('code');
+        $response = $this->withHeaders([
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ])->post(route('en.athar.code', ['token' => $created['token']]));
+        $response->assertStatus(429)->assertJsonPath('errors.code.0', $response->json('message'));
 
         $this->travel(61)->seconds();
-        $this->post(route('en.athar.code', ['token' => $created['token']]))
-            ->assertRedirect();
+        $this->withHeaders([
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ])->post(route('en.athar.code', ['token' => $created['token']]))
+            ->assertOk()
+            ->assertJsonPath('code_sent', true)
+            ->assertJsonPath('attempts_remaining', 6);
+        Notification::assertSentOnDemandTimes(AtharAccessCodeNotification::class, 2);
         $this->assertSame(2, AtharAccessChallenge::query()->where('invitation_id', $created['invitation']->getKey())->count());
         $this->travelBack();
+    }
+
+    public function test_email_code_request_returns_inline_validation_feedback_for_json_clients(): void
+    {
+        Notification::fake();
+        $created = app(CreateAtharInvitation::class)->handle(User::factory()->create(), [
+            'email' => 'friend@example.com',
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+
+        $this->withHeaders([
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ])->post(route('en.athar.code', ['token' => $created['token']]), ['email' => 'wrong@example.com'])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.email.0', __('athar.validation.email'))
+            ->assertJsonPath('message', __('athar.validation.email'));
     }
 
     public function test_email_access_code_locks_after_six_failed_attempts_and_requires_a_new_code(): void
@@ -657,6 +744,38 @@ class AtharFlowTest extends TestCase
         $this->assertDatabaseMissing('athar_access_challenges', [
             'invitation_id' => $created['invitation']->getKey(),
         ]);
+    }
+
+    public function test_resending_an_access_code_does_not_require_a_second_turnstile_token(): void
+    {
+        Notification::fake();
+        config()->set('services.turnstile.secret', 'test-secret');
+        Http::fake([
+            'challenges.cloudflare.com/*' => Http::response(['success' => true], 200),
+        ]);
+
+        $created = app(CreateAtharInvitation::class)->handle(User::factory()->create(), [
+            'email' => 'friend@example.com',
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+
+        $this->post(route('en.athar.code', ['token' => $created['token']]), [
+            'email' => 'friend@example.com',
+            'cf-turnstile-response' => 'verified-token',
+        ])->assertRedirect();
+
+        $this->travel(61)->seconds();
+        $this->withHeaders([
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ])->post(route('en.athar.code', ['token' => $created['token']]))
+            ->assertOk()
+            ->assertJsonPath('code_sent', true);
+
+        Notification::assertSentOnDemandTimes(AtharAccessCodeNotification::class, 2);
+        Http::assertSentCount(1);
+        $this->travelBack();
     }
 
     public function test_email_mode_writes_are_blocked_until_the_access_code_is_verified(): void
