@@ -75,12 +75,12 @@ class PortfolioAtlasTest extends TestCase
             );
 
             foreach ($projects as $project) {
-                $this->assertSame('', $project['image']);
-                $this->assertSame('', $project['alt']);
-                $this->assertSame('', $project['logo']);
-                $this->assertSame('', $project['logo_alt']);
-                $this->assertSame('', $project['image_media']['src']);
-                $this->assertSame('', $project['logo_media']['src']);
+                $this->assertNotSame('', $project['image']);
+                $this->assertNotSame('', $project['alt']);
+                $this->assertNotSame('', $project['logo']);
+                $this->assertNotSame('', $project['logo_alt']);
+                $this->assertNotSame('', $project['image_media']['src']);
+                $this->assertNotSame('', $project['logo_media']['src']);
             }
             $this->assertResolvedItems(
                 PortfolioAtlas::lenses(),

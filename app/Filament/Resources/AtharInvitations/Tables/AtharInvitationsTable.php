@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AtharInvitations\Tables;
 
+use App\Actions\Athar\DeleteAtharPrivateMessage;
 use App\Actions\Athar\RevokeAtharInvitation;
 use App\Enums\AtharContributionStatus;
 use App\Enums\AtharInvitationDeliveryMode;
@@ -89,6 +90,20 @@ class AtharInvitationsTable
                     ->action(function (AtharInvitation $record, RevokeAtharInvitation $revoke): void {
                         $revoke->handle($record);
                         Notification::make()->title(__('admin.messages.athar_revoked'))->success()->send();
+                    }),
+                Action::make('delete_private_message')
+                    ->label(__('admin.actions.athar_delete_private_message'))
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading(__('admin.confirmations.athar_delete_private_message_heading'))
+                    ->modalDescription(__('admin.confirmations.athar_delete_private_message_description'))
+                    ->authorize('deletePrivateMessage')
+                    ->visible(fn (AtharInvitation $record): bool => $record->contribution !== null
+                        && $record->contribution->status !== AtharContributionStatus::DeletionRequested)
+                    ->action(function (AtharInvitation $record, DeleteAtharPrivateMessage $delete): void {
+                        $delete->handle($record->contribution);
+                        Notification::make()->title(__('admin.messages.athar_private_message_deleted'))->success()->send();
                     }),
             ]);
     }

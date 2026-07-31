@@ -37,6 +37,11 @@ class AtharInvitationPolicy
         return $user->can('manage athar_retention') && ! $invitation->contribution()->exists();
     }
 
+    public function deletePrivateMessage(User $user, AtharInvitation $invitation): bool
+    {
+        return $user->can('manage athar_retention') && $invitation->contribution()->exists();
+    }
+
     public function deleteAny(User $user): bool
     {
         return false;

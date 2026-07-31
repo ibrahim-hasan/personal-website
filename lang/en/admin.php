@@ -150,6 +150,7 @@ return [
         'athar_resent' => 'Invitation email resent.',
         'athar_hidden' => 'Publication hidden from the public site.',
         'athar_unhidden' => 'Publication restored to the public site.',
+        'athar_private_message_deleted' => 'The private Athar message was deleted.',
         'athar_expired' => ':count invitations expired.',
         'athar_version_updated' => 'Publication version updated.',
     ],
@@ -158,6 +159,11 @@ return [
         'athar_resend' => 'Resend invitation',
         'athar_hide' => 'Hide',
         'athar_unhide' => 'Unhide',
+        'athar_delete_private_message' => 'Delete private message',
+    ],
+    'confirmations' => [
+        'athar_delete_private_message_heading' => 'Delete this private Athar message?',
+        'athar_delete_private_message_description' => 'This permanently removes the contributor’s private draft and source. Any separately approved public endorsement remains unchanged.',
     ],
     'oauth_clients' => [
         'navigation_label' => 'OAuth clients',

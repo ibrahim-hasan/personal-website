@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Notifications\AtharAccessCodeNotification;
 use App\Notifications\AtharInvitationNotification;
 use App\Support\AtharAccess;
+use App\Support\AtharPlacementDestination;
 use App\Support\AtharPublicProof;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -217,6 +218,31 @@ class AtharFlowTest extends TestCase
     public function test_invalid_or_expired_token_is_a_generic_unavailable_state(): void
     {
         $this->get(route('athar.show', ['token' => str_repeat('x', 64)]))->assertOk()->assertSee(__('athar.unavailable.title'));
+    }
+
+    public function test_about_destination_label_is_localized_without_exposing_the_translation_key(): void
+    {
+        Notification::fake();
+        $created = app(CreateAtharInvitation::class)->handle(User::factory()->create(), [
+            'email' => '',
+            'send_email' => false,
+            'preferred_locale' => 'ar',
+            'placement' => AtharPlacement::About,
+        ]);
+
+        $this->post(route('athar.submit', ['token' => $created['token']]), ['freeform' => 'رسالة قصيرة.'])->assertRedirect();
+        $this->post(route('athar.approve', ['token' => $created['token']]), [
+            'consent' => '1',
+            'text' => 'رسالة قصيرة.',
+            'identity_display' => 'anonymous',
+        ])->assertRedirect();
+
+        $this->get(route('athar.show', ['token' => $created['token']]))
+            ->assertOk()
+            ->assertSee('صفحة نبذة عني', false)
+            ->assertDontSee('athar.destinations.about_overview', false);
+        $this->assertSame('صفحة نبذة عني', AtharPlacementDestination::label(AtharPlacement::About, null, 'ar'));
+        $this->assertSame('the About page', AtharPlacementDestination::label(AtharPlacement::About, null, 'en'));
     }
 
     public function test_a_sealed_contribution_without_a_version_opens_directly_in_approval_preview(): void

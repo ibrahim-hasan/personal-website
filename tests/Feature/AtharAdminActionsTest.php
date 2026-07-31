@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Athar\DeleteAtharPrivateMessage;
 use App\Actions\Athar\ExpireAtharInvitations;
 use App\Actions\Athar\HideAtharPublication;
 use App\Actions\Athar\RevokeAtharInvitation;
@@ -137,6 +138,31 @@ class AtharAdminActionsTest extends TestCase
         $this->assertNotEmpty(AtharPublicProof::forPlacement(AtharPlacement::About, 'en'));
     }
 
+    public function test_admin_deletion_removes_private_message_data_without_removing_published_proof(): void
+    {
+        $invitation = AtharInvitation::factory()->create(['placement' => AtharPlacement::About]);
+        $contribution = AtharContribution::factory()
+            ->for($invitation, 'invitation')
+            ->submitted()
+            ->create(['draft_payload' => ['freeform' => 'A saved private draft.']]);
+        $version = AtharPublicationVersion::factory()
+            ->for($contribution, 'contribution')
+            ->create([
+                'status' => AtharPublicationStatus::Published,
+                'placement' => AtharPlacement::About,
+                'approved_locales' => ['en'],
+            ]);
+
+        $deleted = app(DeleteAtharPrivateMessage::class)->handle($contribution);
+
+        $this->assertSame(AtharContributionStatus::DeletionRequested, $deleted->status);
+        $this->assertNull($deleted->sealed_payload);
+        $this->assertNull($deleted->draft_payload);
+        $this->assertNull($deleted->source_hash);
+        $this->assertNull($deleted->deleted_at);
+        $this->assertModelExists($version);
+    }
+
     public function test_public_attribution_is_frozen_on_the_published_version(): void
     {
         $invitation = AtharInvitation::factory()->create([
@@ -223,5 +249,21 @@ class AtharAdminActionsTest extends TestCase
 
         $policy = app(AtharInvitationPolicy::class);
         $this->assertTrue($policy->revoke($admin, $invitation));
+    }
+
+    public function test_private_message_deletion_policy_requires_retention_permission(): void
+    {
+        $this->seed([PermissionSeeder::class, RoleSeeder::class]);
+
+        $admin = User::factory()->create();
+        $invitation = AtharInvitation::factory()->create();
+        AtharContribution::factory()->for($invitation, 'invitation')->create();
+        $policy = app(AtharInvitationPolicy::class);
+
+        $this->assertFalse($policy->deletePrivateMessage($admin, $invitation));
+
+        $admin->givePermissionTo(Permission::firstOrCreate(['name' => 'manage athar_retention', 'guard_name' => 'web']));
+
+        $this->assertTrue($policy->deletePrivateMessage($admin, $invitation));
     }
 }

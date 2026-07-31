@@ -96,7 +96,7 @@ class WebsitePagesTest extends TestCase
         $this->assertStringContainsString('lang="ar"', $englishPage);
     }
 
-    public function test_homepage_uses_optimized_hero_video_and_selected_work_without_a_legacy_atlas(): void
+    public function test_homepage_uses_optimized_hero_video_and_restored_practice_atlas(): void
     {
         $this->assertFileExists(public_path('videos/hero/ibrahim-hero.mp4'));
         $this->assertFileExists(public_path('videos/hero/ibrahim-hero.webm'));
@@ -130,8 +130,8 @@ class WebsitePagesTest extends TestCase
             ->assertSee('preload="none"', false)
             ->assertSee('data-hero-video-finale', false)
             ->assertSee('data-hero-video-replay', false)
-            ->assertSee('data-hero-video-toggle', false)
-            ->assertSee('شغّل الفيديو', false)
+            ->assertDontSee('data-hero-video-toggle', false)
+            ->assertDontSee('شغّل الفيديو', false)
             ->assertSee('ابدأ من المشكلة', false)
             ->assertDontSee('precision-stage__note', false)
             ->assertDontSee('heroStage(', false)
@@ -139,26 +139,30 @@ class WebsitePagesTest extends TestCase
             ->assertSee('images/ibrahim/ibrahim-speaking-editorial.webp', false)
             ->assertSee('أعمال مختارة', false)
             ->assertSee('الموسوعة الرقمية', false)
-            ->assertDontSee('كود مومنتس', false)
-            ->assertDontSee('فروم سكراتش', false)
-            ->assertDontSee('atlas-constellation', false)
-            ->assertDontSee('atlas-chapter__brand--code-moments', false)
-            ->assertDontSee('images/brands/companies/code-moments-on-light.svg', false)
-            ->assertDontSee('images/brands/companies/from-scratch-on-light.svg', false)
+            ->assertDontSee('مواقف تتكرر في العمل', false)
+            ->assertSee('كود مومنتس', false)
+            ->assertSee('فروم سكراتش', false)
+            ->assertSee('atlas-constellation', false)
+            ->assertSee('atlas-chapter__brand--code-moments', false)
+            ->assertSee('images/brands/companies/code-moments-on-light.svg', false)
+            ->assertSee('images/brands/companies/from-scratch-on-light.svg', false)
             ->assertSee('اطلب استشارة مجانية', false)
-            ->assertDontSee('https://fromscratch-solutions.com', false)
-            ->assertDontSee('https://codemoments.com', false)
-            ->assertDontSee('خبرات انتقلت إلى الممارسة الحالية', false)
+            ->assertSee('https://fromscratch-solutions.com', false)
+            ->assertSee('https://codemoments.com', false)
+            ->assertSee('أدواري اليوم', false)
             ->assertDontSee('data-now', false)
             ->assertDontSee('images/brands/companies/code-moments-on-dark.svg', false)
             ->assertSee('الموسوعة الرقمية', false)
-            ->assertDontSee('<h3>From Scratch</h3>', false)
-            ->assertDontSee('From Scratch Solutions', false)
-            ->assertDontSee('IBRAHIM HASAN / IN PRACTICE', false)
             ->assertDontSee('مساحة الصورة الشخصية — تُبنى لاحقاً', false)
             ->assertDontSee('مساحة المشهد — تُبنى لاحقاً', false)
             ->assertDontSee('Strategy / Systems / AI', false)
-            ->assertDontSee('images/ibrahim/ibrahim-hasan-portrait.png', false);
+            ->assertDontSee('images/ibrahim/ibrahim-hasan-portrait.png', false)
+            ->assertSeeInOrder([
+                'experience-trajectory',
+                'decision-room-experience',
+                'practice-section',
+                'work-theatre--atlas',
+            ], false);
 
         $this->get('/en/about')
             ->assertOk()
@@ -209,7 +213,7 @@ class WebsitePagesTest extends TestCase
             ->assertSee('site-footer__cta-action', false);
     }
 
-    public function test_homepage_keeps_its_precision_motion_and_seven_part_content_composition(): void
+    public function test_homepage_keeps_its_precision_motion_and_restored_practice_atlas(): void
     {
         $this->get('/en')
             ->assertOk()
@@ -224,8 +228,8 @@ class WebsitePagesTest extends TestCase
             ->assertSee('work-theatre--atlas', false)
             ->assertSee('writing-section', false)
             ->assertSee('about-teaser', false)
-            ->assertDontSee('atlas-constellation', false)
-            ->assertDontSee('My roles today', false)
+            ->assertSee('atlas-constellation', false)
+            ->assertSee('My roles today', false)
             ->assertDontSee('PRECISION / PRACTICE', false)
             ->assertDontSee('precision-stage__note', false)
             ->assertSee('Request a free consultation', false);

@@ -144,7 +144,28 @@ class AtharAdminLocalizationTest extends TestCase
             ->get('/admin/athar-invitations/'.$invitation->getKey())
             ->assertOk()
             ->assertSee(__('admin.sections.athar_private'))
-            ->assertSee('Private source visible only to this role.', false);
+            ->assertSee('Private source visible only to this role.', false)
+            ->assertDontSee(__('admin.actions.athar_delete_private_message'));
+    }
+
+    public function test_retention_admin_can_see_the_confirmed_private_message_delete_action(): void
+    {
+        $this->seed(PermissionSeeder::class);
+        $role = Role::create(['name' => 'athar retention admin', 'guard_name' => 'web']);
+        $role->syncPermissions([
+            Permission::firstOrCreate(['name' => 'view_any athar_invitations', 'guard_name' => 'web']),
+            Permission::firstOrCreate(['name' => 'view athar_invitations', 'guard_name' => 'web']),
+            Permission::firstOrCreate(['name' => 'manage athar_retention', 'guard_name' => 'web']),
+        ]);
+        $admin = User::factory()->create();
+        $admin->assignRole($role);
+        $invitation = AtharInvitation::factory()->create();
+        AtharContribution::factory()->for($invitation, 'invitation')->submitted()->create();
+
+        $this->actingAs($admin)
+            ->get('/admin/athar-invitations/'.$invitation->getKey())
+            ->assertOk()
+            ->assertSee(__('admin.actions.athar_delete_private_message'));
     }
 
     public function test_admin_keeps_publication_copy_and_identity_contributor_led(): void

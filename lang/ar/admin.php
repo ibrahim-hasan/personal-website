@@ -150,6 +150,7 @@ return [
         'athar_resent' => 'تمت إعادة إرسال رسالة الدعوة.',
         'athar_hidden' => 'تم إخفاء النشر عن الموقع العام.',
         'athar_unhidden' => 'تمت إعادة النشر إلى الموقع العام.',
+        'athar_private_message_deleted' => 'تم حذف رسالة أثر الخاصة.',
         'athar_expired' => 'انتهت صلاحية :count دعوة.',
         'athar_version_updated' => 'تم تحديث نسخة النشر.',
     ],
@@ -158,6 +159,11 @@ return [
         'athar_resend' => 'إعادة إرسال الدعوة',
         'athar_hide' => 'إخفاء',
         'athar_unhide' => 'إلغاء الإخفاء',
+        'athar_delete_private_message' => 'حذف الرسالة الخاصة',
+    ],
+    'confirmations' => [
+        'athar_delete_private_message_heading' => 'هل تريد حذف رسالة أثر الخاصة؟',
+        'athar_delete_private_message_description' => 'سيؤدي هذا إلى حذف مسودة المساهم ومصدره الخاص نهائياً. لن يتأثر أي نص عام تمت الموافقة عليه بشكل منفصل.',
     ],
     'oauth_clients' => [
         'navigation_label' => 'عملاء OAuth',

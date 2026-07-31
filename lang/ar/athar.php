@@ -14,6 +14,7 @@ return [
         'work_overview' => 'صفحة الأعمال',
         'services_overview' => 'صفحة الخدمات',
         'about' => 'صفحة نبذة عني',
+        'about_overview' => 'صفحة نبذة عني',
         'service_detail' => 'صفحة خدمة «:name»',
         'project_detail' => 'دراسة حالة «:name»',
     ],

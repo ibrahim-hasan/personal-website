@@ -94,19 +94,6 @@
                             aria-hidden="true"
                         ></video>
 
-                        <button
-                            type="button"
-                            class="precision-stage__playback"
-                            data-hero-video-toggle
-                            data-label-play="{{ __('site.home.video_play') }}"
-                            data-label-pause="{{ __('site.home.video_pause') }}"
-                            aria-label="{{ __('site.home.video_play') }}"
-                        >
-                            <x-phosphor-play class="size-5" data-hero-video-play-icon aria-hidden="true" />
-                            <x-phosphor-pause class="size-5" data-hero-video-pause-icon aria-hidden="true" hidden />
-                            <span class="sr-only" data-hero-video-toggle-label>{{ __('site.home.video_play') }}</span>
-                        </button>
-
                         <div class="precision-stage__finale" data-hero-video-finale aria-hidden="true" inert>
                             <span class="precision-stage__finale-mark" aria-hidden="true"></span>
                             <p>{{ __('site.home.video_finale_eyebrow') }}</p>
@@ -161,17 +148,82 @@
                 <p class="copy-lead mt-8 max-w-[58ch] text-violet-100" data-reveal="copy">
                     {{ __('site.home.manifesto_body') }}
                 </p>
-                <div class="manifesto-situations" data-reveal="copy" aria-labelledby="common-situations-title">
-                    <h3 id="common-situations-title">{{ __('site.home.common_situations_title') }}</h3>
-                    <ul>
-                        @foreach ($focus as $situation)
-                            <li>
-                                <strong>{{ $situation['value'] }}</strong>
-                                <span>{{ $situation['label'] }}</span>
-                            </li>
-                        @endforeach
-                    </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="practice-atlas" class="atlas-section">
+        <div class="site-container">
+            <div class="atlas-intro">
+                <div>
+                    <p class="signal-label">{{ __('site.home.atlas_eyebrow') }}</p>
+                    <h2 class="display-section mt-6 max-w-[13ch]" data-reveal="headline">{{ __('site.home.atlas_title') }}</h2>
                 </div>
+                <p class="copy-lead max-w-[58ch] lg:justify-self-end" data-reveal="copy">{{ __('site.home.atlas_body') }}</p>
+            </div>
+
+            <div class="atlas-constellation">
+                @foreach ($companies as $company)
+                    <article @class([
+                        'atlas-chapter',
+                        'atlas-chapter--featured' => $loop->last,
+                    ]) style="--atlas-index: {{ $loop->index }}; --reveal-index: {{ $loop->index }}" data-reveal="chapter">
+                        <div class="atlas-chapter__head">
+                            <span class="atlas-chapter__role">{{ $company['role'] }}</span>
+                            <p>{{ $company['relationship'] }}</p>
+                        </div>
+                        @if ($company['logo_on_light'] !== '')
+                            <div @class([
+                                'atlas-chapter__brand',
+                                'atlas-chapter__brand--code-moments' => $company['id'] === 'code-moments',
+                                'atlas-chapter__brand--from-scratch' => $company['id'] === 'from-scratch',
+                            ])>
+                                <img
+                                    src="{{ asset($company['logo_on_light']) }}"
+                                    alt="{{ $company['logo_alt'] }}"
+                                    width="{{ $company['logo_on_light_width'] }}"
+                                    height="{{ $company['logo_on_light_height'] }}"
+                                    loading="lazy"
+                                    decoding="async"
+                                >
+                            </div>
+                        @endif
+                        @php
+                            $actionUrl = $company['action']['external']
+                                ? $company['action']['url']
+                                : localized_route('contact').'#consultation';
+                        @endphp
+                        <div class="atlas-chapter__content">
+                            <div class="atlas-chapter__copy">
+                                <h3>{{ $company['name'] }}</h3>
+                                <p class="atlas-chapter__tagline">{{ $company['tagline'] }}</p>
+                                <p class="atlas-chapter__summary">{{ $company['summary'] }}</p>
+                            </div>
+                            @if ($loop->last)
+                                <div class="atlas-chapter__focus">
+                                    <span>{{ __('site.home.atlas_focus_personal') }}</span>
+                                    <ul>
+                                        @foreach ($company['focus'] as $focus)
+                                            <li>{{ $focus }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                            <a
+                                href="{{ $actionUrl }}"
+                                @class([
+                                    'atlas-chapter__action',
+                                    $loop->last ? 'button-outline-light' : 'button-primary',
+                                ])
+                                @if ($company['action']['external']) target="_blank" rel="noopener noreferrer" @endif
+                                data-magnetic
+                            >
+                                {{ $company['action']['label'] }}
+                                <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
+                            </a>
+                        </div>
+                    </article>
+                @endforeach
             </div>
         </div>
     </section>

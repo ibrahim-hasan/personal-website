@@ -587,7 +587,7 @@ final class PortfolioAtlas
         $publicProject = $project->toPortfolioArray(app()->getLocale());
 
         if (app(ProjectCaseStudyPublicationValidator::class)->validate($project)->isEligible()) {
-            $publicProject['detail_url'] = localized_route('work.show', ['project' => $project]);
+            $publicProject['detail_url'] = localized_route('work').'#project-'.$project->key;
         }
 
         return $publicProject;

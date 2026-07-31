@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ProjectAssetPermissionStatus;
 use App\Models\Project;
 use App\Support\LocaleSlugger;
 use App\Support\PortfolioAtlas;
@@ -33,6 +34,10 @@ class ProjectSeeder extends Seeder
                 'image_alt' => $project['alt'],
                 'logo' => $project['logo'] ?: null,
                 'logo_alt' => $project['logo_alt'],
+                'image_permission_status' => ProjectAssetPermissionStatus::Approved,
+                'image_permission_reference' => 'Owner-approved existing public portfolio image.',
+                'logo_permission_status' => ProjectAssetPermissionStatus::Approved,
+                'logo_permission_reference' => 'Owner-approved existing public portfolio logo.',
                 'tags' => $project['tags'],
                 'sort_order' => $index + 1,
                 'featured' => $index < 5,

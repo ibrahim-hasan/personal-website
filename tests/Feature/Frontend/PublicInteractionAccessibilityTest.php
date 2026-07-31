@@ -60,10 +60,11 @@ class PublicInteractionAccessibilityTest extends TestCase
             ->assertOk()
             ->assertSee('data-uses-livewire="false"', false)
             ->assertSee('class="service-index"', false)
-            ->assertSee('href="#service-', false)
+            ->assertSee('x-data="serviceTabs(', false)
             ->assertSee('class="service-detail', false)
-            ->assertDontSee('role="tablist"', false)
-            ->assertDontSee('role="tabpanel"', false)
+            ->assertSee('role="tablist"', false)
+            ->assertSee('role="tabpanel"', false)
+            ->assertSee('data-analytics-ui-location="services_index"', false)
             ->assertDontSee('livewire.min.js', false);
 
         $this->get('/en/work')
@@ -76,8 +77,8 @@ class PublicInteractionAccessibilityTest extends TestCase
             ->assertSee('aria-current="page"', false)
             ->assertSee('class="filter-bar__arrow"', false)
             ->assertSee('class="case-study__identity"', false)
-            ->assertDontSee('class="case-study__brand"', false)
-            ->assertSee('class="media-placeholder', false)
+            ->assertSee('class="case-study__brand"', false)
+            ->assertDontSee('class="media-placeholder', false)
             ->assertDontSee('class="project-brand"', false)
             ->assertDontSee('<figcaption>', false);
 

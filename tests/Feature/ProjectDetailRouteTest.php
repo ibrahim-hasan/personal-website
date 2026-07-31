@@ -5,13 +5,9 @@ namespace Tests\Feature;
 use App\Enums\ProjectAssetPermissionStatus;
 use App\Enums\ProjectDeliveryEntity;
 use App\Enums\ProjectDisclosureLevel;
-use App\Enums\ProjectEvidenceKind;
 use App\Enums\ProjectEvidenceLevel;
-use App\Enums\ProjectEvidenceState;
 use App\Enums\ProjectPermissionStatus;
 use App\Models\Project;
-use App\Models\ProjectEvidence;
-use App\Models\Service;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,104 +15,34 @@ class ProjectDetailRouteTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_complete_case_studies_resolve_by_localized_slug_and_keep_private_references_out_of_the_public_page(): void
+    public function test_legacy_project_detail_urls_redirect_to_the_matching_localized_work_card(): void
     {
         $project = $this->eligibleProject();
-        $service = Service::factory()->create();
-        $project->services()->attach($service, ['sort_order' => 10]);
-        ProjectEvidence::factory()->create([
-            'project_id' => $project->getKey(),
-            'kind' => ProjectEvidenceKind::Qualitative,
-            'state' => ProjectEvidenceState::Approved,
-            'is_public' => true,
-            'label' => ['ar' => 'ملاحظة ميدانية', 'en' => 'Field observation'],
-            'result_text' => ['ar' => 'أصبح سير العمل أوضح للفريق.', 'en' => 'The workflow became clearer for the team.'],
-            'source_owner' => 'PRIVATE SOURCE OWNER',
-            'source_reference' => 'PRIVATE SOURCE REFERENCE',
-            'permission_reference' => 'PRIVATE EVIDENCE PERMISSION',
-        ]);
-
-        $arabicUrl = localized_route('work.show', ['project' => $project], locale: 'ar');
-        $englishUrl = localized_route('work.show', ['project' => $project], locale: 'en');
-
-        $this->get($arabicUrl)
-            ->assertOk()
-            ->assertSee('دراسة حالة', false)
-            ->assertSee('ملخص تنفيذي يوضح نطاق العمل.', false)
-            ->assertSee('ملاحظة ميدانية', false)
-            ->assertSee('hreflang="en" href="'.$englishUrl.'"', false)
-            ->assertSee('"@type":"CreativeWork"', false)
-            ->assertSee(localized_route('services.show', ['service' => $service], locale: 'ar'), false)
-            ->assertDontSee('PRIVATE SOURCE OWNER', false)
-            ->assertDontSee('PRIVATE SOURCE REFERENCE', false)
-            ->assertDontSee('PRIVATE EVIDENCE PERMISSION', false)
-            ->assertDontSee('PRIVATE PROJECT PERMISSION', false)
-            ->assertDontSee('site-footer__cta', false);
-
-        $this->get($englishUrl)
-            ->assertOk()
-            ->assertSee('Case study', false)
-            ->assertSee('An executive summary of the work.', false)
-            ->assertSee('hreflang="ar" href="'.$arabicUrl.'"', false);
-        $this->get('/work/'.$project->getTranslation('slug', 'en'))->assertNotFound();
-    }
-
-    public function test_incomplete_inactive_and_non_detailed_projects_cannot_resolve_as_public_case_studies(): void
-    {
-        $notDetailed = $this->eligibleProject(['is_detailed_case_study' => false]);
-        $inactive = $this->eligibleProject(['is_active' => false]);
-        $incomplete = $this->eligibleProject(['case_study_sections' => ['ar' => []]]);
-
-        foreach ([$notDetailed, $inactive, $incomplete] as $project) {
-            $this->get(localized_route('work.show', ['project' => $project], locale: 'ar'))
-                ->assertNotFound();
-        }
-    }
-
-    public function test_revoked_assets_are_withheld_without_withdrawing_an_otherwise_approved_case_study(): void
-    {
-        $project = $this->eligibleProject([
-            'image' => 'images/projects/private-image.webp',
-            'image_alt' => ['ar' => 'وصف خاص للصورة', 'en' => 'Private image description'],
-            'image_permission_status' => ProjectAssetPermissionStatus::Revoked,
-        ]);
 
         $this->get(localized_route('work.show', ['project' => $project], locale: 'ar'))
-            ->assertOk()
-            ->assertDontSee('private-image.webp', false)
-            ->assertDontSee('وصف خاص للصورة', false);
+            ->assertRedirect(localized_route('work', locale: 'ar').'#project-'.$project->key);
+
+        $this->get(localized_route('work.show', ['project' => $project], locale: 'en'))
+            ->assertRedirect(localized_route('work', locale: 'en').'#project-'.$project->key);
     }
 
-    public function test_anonymized_cases_suppress_media_relationships_and_structured_data(): void
+    public function test_inactive_projects_do_not_resolve_through_the_retired_detail_url(): void
     {
-        $project = $this->eligibleProject([
-            'permission_status' => ProjectPermissionStatus::ApprovedAnonymized,
-            'disclosure_level' => ProjectDisclosureLevel::Anonymized,
-            'image' => 'images/projects/anonymous-source.webp',
-            'logo' => 'images/brands/projects/anonymous-source.webp',
-        ]);
-        $service = Service::factory()->create();
-        $project->services()->attach($service, ['sort_order' => 10]);
+        $project = $this->eligibleProject(['is_active' => false]);
 
         $this->get(localized_route('work.show', ['project' => $project], locale: 'ar'))
-            ->assertOk()
-            ->assertDontSee('anonymous-source.webp', false)
-            ->assertDontSee('"@type":"CreativeWork"', false)
-            ->assertDontSee(__('site.work.delivery_entity'), false)
-            ->assertDontSee(__('site.work.related_services'), false)
-            ->assertDontSee(localized_route('services.show', ['service' => $service], locale: 'ar'), false)
-            ->assertDontSee('PRIVATE PROJECT PERMISSION', false);
+            ->assertNotFound();
     }
 
-    public function test_work_overview_links_only_projects_that_pass_the_complete_case_study_gate(): void
+    public function test_work_overview_keeps_links_only_for_projects_that_pass_the_existing_case_study_gate(): void
     {
         $eligible = $this->eligibleProject();
         $notDetailed = $this->eligibleProject(['is_detailed_case_study' => false]);
 
         $this->get('/work')
             ->assertOk()
-            ->assertSee(localized_route('work.show', ['project' => $eligible], locale: 'ar'), false)
-            ->assertDontSee(localized_route('work.show', ['project' => $notDetailed], locale: 'ar'), false);
+            ->assertSee(localized_route('work', locale: 'ar').'#project-'.$eligible->key, false)
+            ->assertDontSee(localized_route('work', locale: 'ar').'#project-'.$notDetailed->key, false);
     }
 
     /** @param array<string, mixed> $overrides */

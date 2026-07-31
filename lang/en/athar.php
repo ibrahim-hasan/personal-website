@@ -14,6 +14,7 @@ return [
         'work_overview' => 'the Work page',
         'services_overview' => 'the Services page',
         'about' => 'the About page',
+        'about_overview' => 'the About page',
         'service_detail' => 'the “:name” service page',
         'project_detail' => 'the “:name” case study',
     ],

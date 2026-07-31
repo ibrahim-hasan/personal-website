@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\ProjectAssetPermissionStatus;
 use App\Models\Project;
+use Database\Seeders\ProjectSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -96,6 +97,52 @@ class ProjectMediaTest extends TestCase
         $this->assertSame('', $portfolioProject['alt']);
         $this->assertSame('', $portfolioProject['logo']);
         $this->assertSame('', $portfolioProject['logo_alt']);
+    }
+
+    public function test_curated_legacy_media_repair_approves_only_the_existing_public_portfolio_assets(): void
+    {
+        $curatedProject = Project::factory()->create([
+            'key' => 'digi-pedia',
+            'image' => 'images/projects/atlas/digi-pedia-ai-learning.webp',
+            'logo' => 'images/brands/projects/digi-pedia.webp',
+        ]);
+        $unapprovedProject = Project::factory()->create([
+            'key' => 'unapproved-project',
+            'image' => 'images/projects/atlas/unapproved.webp',
+            'logo' => 'images/brands/projects/unapproved.webp',
+        ]);
+        $migration = require database_path('migrations/2026_07_31_210443_approve_curated_legacy_project_media.php');
+
+        $migration->up();
+
+        $curatedProject->refresh();
+        $unapprovedProject->refresh();
+
+        $this->assertSame(ProjectAssetPermissionStatus::Approved, $curatedProject->image_permission_status);
+        $this->assertSame('Owner-approved existing public portfolio image.', $curatedProject->image_permission_reference);
+        $this->assertSame(ProjectAssetPermissionStatus::Approved, $curatedProject->logo_permission_status);
+        $this->assertSame('Owner-approved existing public portfolio logo.', $curatedProject->logo_permission_reference);
+        $this->assertSame(ProjectAssetPermissionStatus::Unreviewed, $unapprovedProject->image_permission_status);
+        $this->assertSame(ProjectAssetPermissionStatus::Unreviewed, $unapprovedProject->logo_permission_status);
+
+        $migration->up();
+
+        $curatedProject->refresh();
+
+        $this->assertSame('Owner-approved existing public portfolio image.', $curatedProject->image_permission_reference);
+        $this->assertSame('Owner-approved existing public portfolio logo.', $curatedProject->logo_permission_reference);
+    }
+
+    public function test_project_seeder_approves_the_curated_legacy_media_for_fresh_installations(): void
+    {
+        $this->seed(ProjectSeeder::class);
+
+        $project = Project::query()->where('key', 'digi-pedia')->firstOrFail();
+
+        $this->assertTrue($project->mayRenderImage());
+        $this->assertTrue($project->mayRenderLogo());
+        $this->assertSame('images/projects/atlas/digi-pedia-ai-learning.webp', $project->toPortfolioArray('en')['image']);
+        $this->assertSame('images/brands/projects/digi-pedia.webp', $project->toPortfolioArray('en')['logo']);
     }
 
     public function test_legacy_media_backfill_is_idempotent(): void

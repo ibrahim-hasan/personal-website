@@ -55,7 +55,7 @@ class ServiceController extends Controller
                     'key' => $project->key,
                     'title' => (string) $project->getTranslation('title', $locale, false),
                     'summary' => (string) $project->getTranslation('summary', $locale, false),
-                    'url' => localized_route('work.show', ['project' => $project], locale: $locale),
+                    'url' => localized_route('work', locale: $locale).'#project-'.$project->key,
                 ];
             })
             ->filter()

@@ -122,8 +122,8 @@ class PersonalContentTest extends TestCase
         $project = collect(PortfolioAtlas::projects())->firstWhere('key', 'digi-pedia');
 
         $this->assertSame('Digi-Pedia, Updated', $project['title']);
-        $this->assertFalse($seededProject->mayRenderImage());
-        $this->assertFalse($seededProject->mayRenderLogo());
+        $this->assertTrue($seededProject->mayRenderImage());
+        $this->assertTrue($seededProject->mayRenderLogo());
         $this->get('/en/work')
             ->assertOk()
             ->assertSee('Digi-Pedia, Updated');
@@ -131,9 +131,9 @@ class PersonalContentTest extends TestCase
         $this->get('/en')
             ->assertOk()
             ->assertSee('class="project-atlas__identity"', false)
-            ->assertSee('class="media-placeholder', false)
-            ->assertDontSee('class="project-brand project-brand--digi-pedia"', false)
-            ->assertDontSee('alt="Digi Pedia logo"', false);
+            ->assertSee('images/projects/atlas/digi-pedia-ai-learning.webp', false)
+            ->assertSee('class="project-brand project-brand--digi-pedia"', false)
+            ->assertSee('alt="Digi Pedia logo"', false);
     }
 
     public function test_empty_canonical_tables_render_intentional_public_empty_states(): void

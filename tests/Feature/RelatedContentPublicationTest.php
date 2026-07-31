@@ -61,7 +61,7 @@ class RelatedContentPublicationTest extends TestCase
         $this->assertTrue($validator->validate($project->fresh())->isEligible());
     }
 
-    public function test_service_and_project_details_render_public_related_articles_in_selected_order(): void
+    public function test_service_details_render_public_related_articles_in_selected_order(): void
     {
         $service = Service::factory()->create(['key' => 'service-related-output']);
         $project = $this->eligibleProject('project-related-output');
@@ -73,11 +73,6 @@ class RelatedContentPublicationTest extends TestCase
             $secondArticle->getKey() => ['sort_order' => 0],
             $firstArticle->getKey() => ['sort_order' => 1],
         ]);
-        $project->articles()->sync([
-            $secondArticle->getKey() => ['sort_order' => 0],
-            $firstArticle->getKey() => ['sort_order' => 1],
-        ]);
-
         $articleUrls = [
             localized_route('writing.show', ['article' => $secondArticle], locale: 'ar'),
             localized_route('writing.show', ['article' => $firstArticle], locale: 'ar'),
@@ -87,11 +82,6 @@ class RelatedContentPublicationTest extends TestCase
             ->assertOk()
             ->assertSee(__('site.services.related_projects'), false)
             ->assertSee(__('site.services.related_articles'), false)
-            ->assertSeeInOrder($articleUrls, false);
-
-        $this->get(localized_route('work.show', ['project' => $project], locale: 'ar'))
-            ->assertOk()
-            ->assertSee(__('site.work.related_articles'), false)
             ->assertSeeInOrder($articleUrls, false);
     }
 

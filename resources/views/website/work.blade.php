@@ -51,7 +51,8 @@
                 <div class="case-list">
                 @foreach ($work as $item)
                     <article
-                        class="case-study case-study--real"
+                        id="project-{{ $item['key'] }}"
+                        class="case-study case-study--real scroll-mt-32"
                         style="--reveal-index: {{ $loop->index }}"
                         data-reveal="case"
                     >
