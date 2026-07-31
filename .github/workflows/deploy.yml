@@ -12,27 +12,15 @@ on:
   workflow_dispatch:
     inputs:
       operation:
-        description: "Choose a protected release or rollback operation."
+        description: "Choose a protected production release or rollback operation."
         required: true
         default: release
         type: choice
         options:
           - release
           - rollback
-      environment:
-        description: "Target environment. Production protection is enforced in GitHub."
-        required: true
-        default: staging
-        type: choice
-        options:
-          - staging
-          - production
       revision:
         description: "Required for a release: full 40-character commit SHA reachable from production. Ignored for rollback."
-        required: false
-        type: string
-      source_artifact_run_id:
-        description: "Required only for production: successful staging release run ID containing this SHA's artifact."
         required: false
         type: string
       rollback_release:
@@ -42,14 +30,37 @@ on:
 
 permissions:
   contents: read
-  actions: read
 
 jobs:
+  dispatch_guard:
+    name: Validate production-only manual dispatch
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the production workflow branch
+        shell: bash
+        env:
+          OPERATION: ${{ inputs.operation }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$GITHUB_REF" != "refs/heads/production" ]]; then
+            echo "Manual release and rollback operations must be dispatched from the production branch." >&2
+            exit 1
+          fi
+
+          if [[ "$OPERATION" != "release" && "$OPERATION" != "rollback" ]]; then
+            echo "The manual operation must be release or rollback." >&2
+            exit 1
+          fi
+
   validate:
     name: CI checks
+    needs: dispatch_guard
     if: >-
-      github.event_name != 'workflow_dispatch' ||
-      inputs.operation == 'release'
+      always() &&
+      (github.event_name != 'workflow_dispatch' ||
+      (needs.dispatch_guard.result == 'success' && inputs.operation == 'release'))
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -210,10 +221,10 @@ jobs:
           fi
 
       - name: Package immutable frontend artifact
-        if: github.event_name == 'workflow_dispatch' && inputs.operation == 'release' && inputs.environment == 'staging'
+        if: github.event_name == 'workflow_dispatch' && inputs.operation == 'release'
         env:
           RELEASE_REVISION: ${{ steps.revision.outputs.revision }}
-          RELEASE_ENVIRONMENT: ${{ inputs.environment }}
+          RELEASE_ENVIRONMENT: production
         run: |
           set -euo pipefail
           mkdir -p release-artifact/public
@@ -221,7 +232,7 @@ jobs:
           printf '{"revision":"%s","environment":"%s"}\n' "$RELEASE_REVISION" "$RELEASE_ENVIRONMENT" > release-artifact/release-manifest.json
 
       - name: Retain release artifact
-        if: github.event_name == 'workflow_dispatch' && inputs.operation == 'release' && inputs.environment == 'staging'
+        if: github.event_name == 'workflow_dispatch' && inputs.operation == 'release'
         uses: actions/upload-artifact@v4
         with:
           name: release-build-${{ steps.revision.outputs.revision }}
@@ -230,12 +241,18 @@ jobs:
           retention-days: 90
 
   release:
-    name: Release ${{ inputs.environment }}
-    needs: validate
-    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'release'
+    name: Release production
+    needs:
+      - dispatch_guard
+      - validate
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.operation == 'release' &&
+      needs.dispatch_guard.result == 'success' &&
+      needs.validate.result == 'success'
     runs-on: ubuntu-latest
     environment:
-      name: ${{ inputs.environment }}
+      name: production
     concurrency:
       group: ibrahim-website-release
       cancel-in-progress: false
@@ -248,45 +265,23 @@ jobs:
       DEPLOY_READINESS_URL: ${{ vars.DEPLOY_READINESS_URL }}
       DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
       DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-      DEPLOY_TARGET: ${{ inputs.environment }}
+      DEPLOY_TARGET: production
       RELEASE_REVISION: ${{ needs.validate.outputs.revision }}
     steps:
       - name: Validate release dispatch
         shell: bash
-        env:
-          SOURCE_ARTIFACT_RUN_ID: ${{ inputs.source_artifact_run_id }}
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
-          case "$DEPLOY_TARGET" in
-            staging)
-              if [[ -n "$SOURCE_ARTIFACT_RUN_ID" ]]; then
-                echo "Staging releases must build the artifact in this workflow run." >&2
-                exit 1
-              fi
-              ;;
-            production)
-              if [[ ! "$SOURCE_ARTIFACT_RUN_ID" =~ ^[0-9]+$ ]]; then
-                echo "Production releases require the successful staging artifact workflow run ID." >&2
-                exit 1
-              fi
+          if [[ "$GITHUB_REF" != "refs/heads/production" ]]; then
+            echo "Manual production releases must be dispatched from the production branch." >&2
+            exit 1
+          fi
 
-              if [[ "$(gh run view "$SOURCE_ARTIFACT_RUN_ID" --repo "$GITHUB_REPOSITORY" --json conclusion --jq '.conclusion')" != "success" ]]; then
-                echo "The source staging release workflow did not complete successfully." >&2
-                exit 1
-              fi
-
-              if [[ "$(gh run view "$SOURCE_ARTIFACT_RUN_ID" --repo "$GITHUB_REPOSITORY" --json event --jq '.event')" != "workflow_dispatch" ]]; then
-                echo "The source artifact must come from a manually dispatched staging release." >&2
-                exit 1
-              fi
-              ;;
-            *)
-              echo "The deployment target must be staging or production." >&2
-              exit 1
-              ;;
-          esac
+          if [[ "$DEPLOY_TARGET" != "production" ]]; then
+            echo "The deployment target must be production." >&2
+            exit 1
+          fi
 
           if [[ ! "$RELEASE_REVISION" =~ ^[0-9a-f]{40}$ ]]; then
             echo "The validated release revision is invalid." >&2
@@ -308,22 +303,11 @@ jobs:
       - name: Install Deployer
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Download this run's staging artifact
-        if: inputs.environment == 'staging'
+      - name: Download this run's release artifact
         uses: actions/download-artifact@v4
         with:
           name: release-build-${{ needs.validate.outputs.revision }}
           path: .release-artifact
-
-      - name: Download approved staging artifact
-        if: inputs.environment == 'production'
-        uses: actions/download-artifact@v4
-        with:
-          name: release-build-${{ needs.validate.outputs.revision }}
-          path: .release-artifact
-          repository: ${{ github.repository }}
-          run-id: ${{ inputs.source_artifact_run_id }}
-          github-token: ${{ github.token }}
 
       - name: Verify immutable frontend artifact
         shell: bash
@@ -343,8 +327,8 @@ jobs:
           fi
 
           artifact_environment="$(php -r '$manifest = json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); echo $manifest["environment"] ?? "";' "$manifest")"
-          if [[ "$artifact_environment" != "staging" ]]; then
-            echo "Production candidates must use an artifact produced by a staging release." >&2
+          if [[ "$artifact_environment" != "production" ]]; then
+            echo "The release artifact must come from this production-only release workflow." >&2
             exit 1
           fi
 
@@ -385,11 +369,15 @@ jobs:
           vendor/bin/dep deploy "$DEPLOY_TARGET" --revision "$RELEASE_REVISION" --no-interaction
 
   rollback:
-    name: Roll back ${{ inputs.environment }}
-    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'rollback'
+    name: Roll back production
+    needs: dispatch_guard
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.operation == 'rollback' &&
+      needs.dispatch_guard.result == 'success'
     runs-on: ubuntu-latest
     environment:
-      name: ${{ inputs.environment }}
+      name: production
     concurrency:
       group: ibrahim-website-release
       cancel-in-progress: false
@@ -402,7 +390,7 @@ jobs:
       DEPLOY_READINESS_URL: ${{ vars.DEPLOY_READINESS_URL }}
       DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
       DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-      DEPLOY_TARGET: ${{ inputs.environment }}
+      DEPLOY_TARGET: production
       ROLLBACK_RELEASE: ${{ inputs.rollback_release }}
     steps:
       - name: Validate rollback dispatch
@@ -410,13 +398,15 @@ jobs:
         run: |
           set -euo pipefail
 
-          case "$DEPLOY_TARGET" in
-            staging|production) ;;
-            *)
-              echo "The deployment target must be staging or production." >&2
-              exit 1
-              ;;
-          esac
+          if [[ "$GITHUB_REF" != "refs/heads/production" ]]; then
+            echo "Manual production rollbacks must be dispatched from the production branch." >&2
+            exit 1
+          fi
+
+          if [[ "$DEPLOY_TARGET" != "production" ]]; then
+            echo "The deployment target must be production." >&2
+            exit 1
+          fi
 
           if [[ ! "$ROLLBACK_RELEASE" =~ ^[0-9]+$ ]]; then
             echo "A numeric existing Deployer release number is required for rollback." >&2

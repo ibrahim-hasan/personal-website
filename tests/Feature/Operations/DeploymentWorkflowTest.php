@@ -27,15 +27,24 @@ class DeploymentWorkflowTest extends TestCase
         $this->assertStringNotContainsString('${{ secrets.', $validationJob);
     }
 
-    public function test_the_workflow_reuses_the_staging_artifact_for_production_and_retains_release_evidence(): void
+    public function test_the_workflow_uses_a_same_run_artifact_for_a_guarded_production_only_release(): void
     {
         $workflow = $this->workflow();
 
-        $this->assertStringContainsString('source_artifact_run_id:', $workflow);
-        $this->assertStringContainsString('Production releases require the successful staging artifact workflow run ID.', $workflow);
-        $this->assertStringContainsString('run-id: ${{ inputs.source_artifact_run_id }}', $workflow);
+        $this->assertStringContainsString('dispatch_guard:', $workflow);
+        $this->assertStringContainsString('Manual release and rollback operations must be dispatched from the production branch.', $workflow);
+        $this->assertStringContainsString('name: production', $workflow);
+        $this->assertStringContainsString('DEPLOY_TARGET: production', $workflow);
+        $this->assertStringContainsString("if: github.event_name == 'workflow_dispatch' && inputs.operation == 'release'", $workflow);
+        $this->assertStringContainsString('RELEASE_ENVIRONMENT: production', $workflow);
+        $this->assertStringContainsString("- name: Download this run's release artifact", $workflow);
+        $this->assertStringContainsString('if [[ "$artifact_environment" != "production" ]];', $workflow);
         $this->assertStringContainsString('The artifact revision does not match the validated release revision.', $workflow);
         $this->assertStringContainsString('retention-days: 90', $workflow);
+        $this->assertStringNotContainsString('source_artifact_run_id:', $workflow);
+        $this->assertStringNotContainsString('run-id:', $workflow);
+        $this->assertStringNotContainsString('inputs.environment', $workflow);
+        $this->assertStringNotContainsString('staging', $workflow);
     }
 
     public function test_deployer_requires_shared_passport_keys_and_preserves_safe_rollback_behavior(): void
@@ -44,8 +53,8 @@ class DeploymentWorkflowTest extends TestCase
 
         $this->assertNotFalse($recipe);
         $this->assertStringContainsString("set('keep_releases', 5);", $recipe);
-        $this->assertStringContainsString("host('staging')", $recipe);
         $this->assertStringContainsString("host('production')", $recipe);
+        $this->assertStringNotContainsString("host('staging')", $recipe);
         $this->assertStringContainsString("task('deploy:assert-explicit-revision'", $recipe);
         $this->assertStringContainsString("task('artisan:assert-passport-keys'", $recipe);
         $this->assertStringNotContainsString('passport:keys', $recipe);

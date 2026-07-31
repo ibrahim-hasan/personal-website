@@ -7,7 +7,7 @@ This is the repository's only operational source of truth. It defines the path f
 - Do not commit, push, deploy, rotate credentials, alter DNS, create infrastructure, or change a production secret without separate explicit authorization.
 - Deploy a reviewed immutable Git SHA and the exact frontend artifact built for that SHA. Never deploy an implicit branch head.
 - Production deployment must be manual and protected. A source push, pull request, or merge must never deploy production automatically.
-- Keep staging and production completely separate: hostnames, system users, release paths, databases, Redis prefixes, application keys, Passport key pairs, deploy keys, mail delivery, AI/audio quotas, R2 buckets, and analytics settings.
+- No staging environment is provisioned. Never present production as staging, or route production credentials, paths, data, or media through a fictitious staging target.
 - Never put credentials, connection strings with credentials, private keys, bearer values, recovery codes, or token-shaped examples in this document, source control, CI logs, artifacts, tickets, or screenshots.
 - Preserve the existing dirty Article and Athar workstreams while release work proceeds. Do not reset, clean, stash, or overwrite user-owned changes.
 - Never seed production during a normal deployment. Do not move serialized jobs between queue backends. Do not blind-rollback production migrations or purge queues during a code rollback.
@@ -25,9 +25,9 @@ This is the repository's only operational source of truth. It defines the path f
 | Deployment tooling | Deployer 8 configuration and a GitHub Actions production workflow exist |
 | Retained releases | Five release directories |
 
-The current GitHub workflow validates pushes to `production` and permits releases only through a manual exact-SHA dispatch. A production dispatch also requires the matching successful staging artifact and the configured protected environment approval. The Deployer recipe fails closed when either shared Passport key is missing or has unsafe permissions; it does not generate replacement keys during deployment. The external staging, environment-protection, secret, and host prerequisites in this runbook must still be completed before any release is authorized.
+The current GitHub workflow validates pushes and pull requests for `main` and `production`, and permits a release only through a manual exact-SHA dispatch from the `production` branch. The workflow builds one immutable artifact during its own validated run and reuses that artifact for the protected production deployment. The Deployer recipe fails closed when either shared Passport key is missing or has unsafe permissions; it does not generate replacement keys during deployment. Because no staging environment exists, the local QA, CI, protected approval, backup, rollback, and post-deployment checks in this runbook are mandatory before and during every production release.
 
-## 3. Environment topology
+## 3. Production topology and release model
 
 ### Production
 
@@ -38,14 +38,13 @@ The current GitHub workflow validates pushes to `production` and permits release
 - Redis with a production-specific prefix; never Redis Cluster for Horizon
 - Cloudflare Full (strict), after direct origin HTTPS verification
 
-### Protected staging
+### Current operating model
 
-- Application: `https://staging.ibrahimhasan.net`
-- Public media: `https://media-staging.ibrahimhasan.net`
-- Cloudflare Access required before application access
-- Dedicated CloudPanel site user, release path, database, database user, Redis prefix, application key, Passport key pair, SSH/deploy key, GitHub environment, mail sandbox, AI/audio quota credentials, and R2 bucket
-- `APP_DEBUG=false`, no analytics, and a site-wide noindex response policy
-- No copied production PII. Use synthetic or irreversibly anonymized fixture data only.
+- There is no staging hostname, host, database, Redis prefix, application key, deploy key, media bucket, or GitHub environment.
+- A manual release or rollback must be dispatched with `production` selected in the GitHub Actions branch selector. The exact SHA selects the candidate; it does not select the workflow definition.
+- The workflow fails before production approval or secret access when it is dispatched from another branch. This prevents a stale `main` workflow definition from validating or deploying a production candidate.
+- The protected GitHub `production` environment remains the only place that stores deployment secrets and requires approval.
+- A real staging environment may be added later, but it must be introduced as a separate reviewed topology and never by reusing production resources.
 
 Every included HTTPS subdomain must be ready before enabling HSTS. Do not enable COEP, COOP, or CORP globally without compatibility evidence.
 
@@ -53,8 +52,8 @@ Every included HTTPS subdomain must be ready before enabling HSTS. Do not enable
 
 ### Secret sources and permissions
 
-- Store production and staging secrets only in their respective approved secret stores or server-side protected environment files.
-- Ensure environment files are readable only by the corresponding site user.
+- Store production secrets only in the approved secret store or server-side protected environment file.
+- Ensure the production environment file is readable only by the production site user.
 - Use separate read-only repository deploy keys for server checkout and separate CI-to-server deployment keys. Pin known-host fingerprints; do not perform runtime host-key scanning.
 - Scope database users to their own database. Scope R2 tokens to the required bucket and object operations only. Keep bucket administration and deletion authority separate from the application token.
 - Keep Passport private and public keys as a matched, pre-provisioned pair. The release must fail if either key is missing or has unsafe permissions. Never invoke `passport:keys --force` during deployment, and never replace a surviving key merely because its counterpart is absent.
@@ -119,7 +118,7 @@ Never deserialize or manually transfer jobs between backends.
 
 ### Scheduler
 
-Install one system scheduler trigger per environment. The scheduler currently owns:
+Install one production system scheduler trigger. The scheduler currently owns:
 
 - Horizon metrics snapshots every five minutes.
 - Production Passport cleanup.
@@ -132,7 +131,7 @@ The release requires a scheduler heartbeat, alerting when it is older than two m
 ## 6. Storage, media, and data separation
 
 - Keep framework cache, logs, sessions, and private application storage on the shared protected release storage as configured for the site.
-- Use a dedicated production R2 bucket and a separate staging bucket. Serve approved public media only through the appropriate custom media domain.
+- Use a dedicated production R2 bucket. Serve approved public media only through the production custom media domain.
 - Do not make private storage, backups, logs, environment files, or source maps public.
 - Before changing a media disk or R2 delivery configuration, verify upload, conversion, read, range requests for audio, deletion, and durable URLs using a disposable test object; then remove that test object.
 - A media migration needs an inventory, read-back audit, retry plan, and rollback plan before switching public delivery. Do not alter vendor files on a server to test storage.
@@ -179,20 +178,19 @@ Run in an isolated environment with PHP 8.4, MySQL 8, Redis, and Node 22:
 
 CI and pull requests must not receive production secrets.
 
-### Manual exact-SHA release
+### Manual production-only exact-SHA release
 
-The replacement GitHub workflow must require an operator to select an exact validated Git SHA and target environment:
+There is no staging release path. An operator must dispatch the workflow with `production` selected in the Actions branch selector, then choose a full 40-character Git SHA reachable from `production`:
 
-1. Verify CI for the chosen SHA.
-2. Build one immutable frontend artifact for that SHA.
-3. Deploy that SHA and artifact to protected staging.
-4. Run staging migrations, release checks, protected readiness, queue/scheduler smoke tests, and the approved browser QA matrix.
-5. Require protected production-environment approval.
-6. Deploy the exact same SHA and artifact to production.
-7. Run production release checks and smoke tests.
-8. Retain release evidence for 90 days.
+1. The workflow rejects any manual dispatch that did not start from the `production` branch, before a protected environment is requested or deployment secrets are available.
+2. Verify the full CI suite for the chosen SHA.
+3. Build one immutable frontend artifact for that SHA in the same workflow run.
+4. Require protected production-environment approval.
+5. Deploy the exact validated SHA and same-run artifact to production.
+6. Run production release checks, protected readiness, queue/scheduler smoke tests, and the approved browser QA matrix.
+7. Retain the release artifact and release evidence for 90 days.
 
-Use Deployer's exact revision/target support. The deploy job needs only the narrowest possible repository permission, separate staging/production keys, pinned host fingerprints, one concurrency group, no production seeding, no key generation, five retained releases, and a manual protected rollback action.
+Use Deployer's exact revision/target support. The deploy job uses only the narrowest repository permission, pinned host fingerprints, one concurrency group, no production seeding, no key generation, five retained releases, and a manual protected production rollback action.
 
 ## 9. Backups, restore drills, and privacy alignment
 
@@ -208,22 +206,26 @@ Before the first release governed by this runbook, provision and prove:
 
 The target recovery point objective is one hour and the target recovery time objective is four hours. Backup retention and deletion must align with the published privacy policy, including backup-deletion delay. A backup that has not been restored in an isolated environment is not a verified backup.
 
-## 10. Staging and production release gates
+## 10. Production release gates
 
-Before production approval, retain evidence that all of the following passed on the exact candidate:
+Before authorizing the protected production job, retain evidence that the following passed for the exact candidate:
 
-- configuration cache rebuild and route cache behavior;
+- full CI, including the fresh MySQL migration, content lint, PHPUnit suite, frontend build, and formatting check;
+- local configuration-cache and route-cache behavior appropriate to the candidate;
+- backup restore drill and rollback rehearsal;
+- Arabic and English core journeys, accessibility, privacy, CSP, security-header, and browser QA gates from the implementation plan.
+
+After deployment, retain redacted evidence that the following passed in production:
+
 - Laravel migrations with no pending migration after deployment;
 - both Horizon supervisors running and processing their intended queues;
 - `horizon:snapshot` present in `schedule:list` and metrics arriving;
 - default queue notification and an audio job completing without timeout or duplicate execution;
 - protected readiness and public Arabic/English Home checks;
-- media upload/conversion/playback/deletion against the environment-specific media domain;
-- consent-dependent analytics behavior;
-- backup restore drill and rollback rehearsal;
-- Arabic and English core journeys, accessibility, privacy, CSP, security-header, and browser QA gates from the implementation plan.
+- media upload/conversion/playback/deletion against the production media domain; and
+- consent-dependent analytics behavior.
 
-Staging must be production-shaped, but it must not use production credentials or PII. The production candidate is rejected if staging cannot prove the same SHA and artifact.
+The absence of staging is an accepted operational risk, not evidence that a production release is safe. Do not use production credentials or paths to simulate staging.
 
 ## 11. Rollback and incident response
 
@@ -245,7 +247,7 @@ The repository can define the contracts above but cannot perform these actions w
 - CloudPanel users, site roots, PHP extensions, process-manager entries, and scheduler triggers.
 - Cloudflare DNS, TLS, Access, R2 buckets, custom domains, and HSTS.
 - GitHub branch protection, environments, approvals, deploy keys, and workflow changes.
-- Staging and production databases, Redis instances/prefixes, mail sandbox, monitoring, secret-manager, and backup systems.
+- Production database, Redis instance/prefix, monitoring, secret-manager, and backup systems.
 - Passport key provisioning/rotation, MFA break-glass execution, and production deployment/rollback.
 
 No one may treat this document as approval to perform those actions.

@@ -26,12 +26,6 @@ set('writable_dirs', [
     'storage/logs',
 ]);
 
-host('staging')
-    ->setHostname((string) getenv('DEPLOY_HOST'))
-    ->setRemoteUser((string) (getenv('DEPLOY_USER') ?: 'ibrahim-staging'))
-    ->setPort((int) (getenv('DEPLOY_PORT') ?: 22))
-    ->setDeployPath((string) getenv('DEPLOY_PATH'));
-
 host('production')
     ->setHostname((string) getenv('DEPLOY_HOST'))
     ->setRemoteUser((string) (getenv('DEPLOY_USER') ?: 'ibrahim-production'))
