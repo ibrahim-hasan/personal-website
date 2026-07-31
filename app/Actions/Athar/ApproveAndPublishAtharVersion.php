@@ -17,9 +17,9 @@ use Illuminate\Support\Facades\DB;
 
 class ApproveAndPublishAtharVersion
 {
-    public function handle(AtharPublicationVersion $version, Request $request, string $text, AtharIdentityDisplay $identityDisplay, string $displayName): AtharPublicationVersion
+    public function handle(AtharPublicationVersion $version, Request $request, string $text, AtharIdentityDisplay $identityDisplay, string $displayName, string $displayPosition): AtharPublicationVersion
     {
-        return DB::transaction(function () use ($version, $request, $text, $identityDisplay, $displayName): AtharPublicationVersion {
+        return DB::transaction(function () use ($version, $request, $text, $identityDisplay, $displayName, $displayPosition): AtharPublicationVersion {
             abort_unless($request->boolean('consent'), 422, __('athar.validation.consent_required'));
             $record = AtharPublicationVersion::query()
                 ->whereKey($version->getKey())
@@ -42,6 +42,7 @@ class ApproveAndPublishAtharVersion
             $payload[$locale]['text'] = $text;
             $payload[$locale]['identity_display'] = $identityDisplay->value;
             $payload[$locale]['display_name'] = $displayName;
+            $payload[$locale]['display_position'] = $displayPosition;
             $record->forceFill([
                 'public_payload' => $payload,
                 'snapshot_hash' => AtharPublicationSnapshot::hash($payload),

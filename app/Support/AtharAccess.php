@@ -3,8 +3,10 @@
 namespace App\Support;
 
 use App\Enums\AtharInvitationDeliveryMode;
+use App\Models\AtharAccessChallenge;
 use App\Models\AtharInvitation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Str;
 
 class AtharAccess
@@ -12,7 +14,20 @@ class AtharAccess
     /**
      * How long an email-code session grant remains valid, in minutes.
      */
-    public const int SESSION_TTL_MINUTES = 60;
+    public static function sessionTtlMinutes(): int
+    {
+        return max(1, (int) config('athar.access.session_ttl_minutes', 3 * 24 * 60));
+    }
+
+    public static function resendCooldownSeconds(): int
+    {
+        return max(1, (int) config('athar.access.resend_cooldown_seconds', 60));
+    }
+
+    public static function maxCodeRequestsPerHour(): int
+    {
+        return max(1, (int) config('athar.access.max_code_requests_per_hour', 5));
+    }
 
     public static function tokenHash(string $token): string
     {
@@ -60,12 +75,48 @@ class AtharAccess
         return AtharInvitation::query()->where('token_hash', self::tokenHash($token))->first();
     }
 
+    public static function latestChallenge(AtharInvitation $invitation): ?AtharAccessChallenge
+    {
+        return AtharAccessChallenge::query()
+            ->where('invitation_id', $invitation->getKey())
+            ->latest('id')
+            ->first();
+    }
+
+    public static function resendAvailableAt(?AtharAccessChallenge $challenge): ?int
+    {
+        if ($challenge?->requested_at === null) {
+            return null;
+        }
+
+        return $challenge->requested_at->addSeconds(self::resendCooldownSeconds())->timestamp;
+    }
+
+    public static function codeRequestRateLimitKey(Request $request, AtharInvitation $invitation): string
+    {
+        $ipHash = hash_hmac('sha256', (string) $request->ip(), (string) config('app.key'));
+
+        return 'athar-code-request|'.$invitation->getKey().'|'.$ipHash;
+    }
+
     public static function grant(Request $request, AtharInvitation $invitation): void
     {
-        $request->session()->put(self::sessionKey($invitation), [
+        $grant = [
             'verified_at' => now()->timestamp,
             'fingerprint' => self::fingerprint($request),
-        ]);
+        ];
+        $request->session()->put(self::sessionKey($invitation), $grant);
+        Cookie::queue(cookie(
+            self::cookieName($invitation),
+            json_encode($grant, JSON_THROW_ON_ERROR),
+            self::sessionTtlMinutes(),
+            config('session.path', '/'),
+            config('session.domain'),
+            (bool) (config('session.secure') ?? $request->isSecure()),
+            true,
+            false,
+            config('session.same_site', 'lax'),
+        ));
     }
 
     /**
@@ -87,6 +138,9 @@ class AtharAccess
         }
 
         $grant = $request->session()->get(self::sessionKey($invitation));
+        if (! is_array($grant)) {
+            $grant = self::cookieGrant($request, $invitation);
+        }
 
         if (! is_array($grant)) {
             return false;
@@ -99,7 +153,7 @@ class AtharAccess
             return false;
         }
 
-        if (now()->timestamp - $verifiedAt > self::SESSION_TTL_MINUTES * 60) {
+        if (now()->timestamp - $verifiedAt >= self::sessionTtlMinutes() * 60) {
             return false;
         }
 
@@ -117,11 +171,29 @@ class AtharAccess
     public static function forget(Request $request, AtharInvitation $invitation): void
     {
         $request->session()->forget(self::sessionKey($invitation));
+        Cookie::queue(Cookie::forget(self::cookieName($invitation), config('session.path', '/'), config('session.domain')));
     }
 
     private static function sessionKey(AtharInvitation $invitation): string
     {
         return 'athar.verified.'.$invitation->getKey();
+    }
+
+    private static function cookieName(AtharInvitation $invitation): string
+    {
+        return 'athar-verified-'.$invitation->getKey();
+    }
+
+    private static function cookieGrant(Request $request, AtharInvitation $invitation): ?array
+    {
+        $value = $request->cookie(self::cookieName($invitation));
+        if (! is_string($value) || $value === '') {
+            return null;
+        }
+
+        $grant = json_decode($value, true);
+
+        return is_array($grant) ? $grant : null;
     }
 
     private static function fingerprint(Request $request): string

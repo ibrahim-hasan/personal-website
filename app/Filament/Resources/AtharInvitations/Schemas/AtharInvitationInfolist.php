@@ -30,6 +30,9 @@ class AtharInvitationInfolist
                         ->formatStateUsing(fn (AtharInvitationDeliveryMode $state): string => $state->label())
                         ->color(fn (AtharInvitationDeliveryMode $state): string => $state->color()),
                     TextEntry::make('recipient_name')->label(__('admin.fields.recipient_name')),
+                    TextEntry::make('recipient_position')
+                        ->label(__('admin.fields.recipient_position'))
+                        ->placeholder('—'),
                     TextEntry::make('status')
                         ->label(__('admin.fields.status'))
                         ->badge()

@@ -44,6 +44,10 @@ class AtharInvitationForm
                         TextInput::make('recipient_name')
                             ->label(__('admin.fields.recipient_name'))
                             ->maxLength(255),
+                        TextInput::make('recipient_position')
+                            ->label(__('admin.fields.recipient_position'))
+                            ->helperText(__('admin.hints.athar_recipient_position'))
+                            ->maxLength(255),
                         Select::make('preferred_locale')
                             ->label(__('admin.fields.preferred_language'))
                             ->options([

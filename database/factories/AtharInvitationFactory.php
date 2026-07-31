@@ -36,6 +36,7 @@ class AtharInvitationFactory extends Factory
             'email' => $email,
             'delivery_mode' => AtharInvitationDeliveryMode::Email,
             'recipient_name' => fake()->name(),
+            'recipient_position' => fake()->jobTitle(),
             'relationship' => AtharRelationship::FormerClient,
             'preferred_locale' => 'en',
             'personal_reason' => fake()->sentence(),

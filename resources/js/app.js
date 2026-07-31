@@ -44,6 +44,33 @@ const moveCompositeFocus = (event) => {
     controls[nextIndex].click();
 };
 
+const arabicCharacterPattern = /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]/u;
+const letterPattern = /\p{Letter}/u;
+
+const pageDirection = () => {
+    const documentDirection = document.documentElement.getAttribute('dir');
+
+    if (documentDirection === 'rtl' || documentDirection === 'ltr') {
+        return documentDirection;
+    }
+
+    return document.documentElement.lang.toLowerCase().startsWith('ar') ? 'rtl' : 'ltr';
+};
+
+const detectTextDirection = (value, fallback) => {
+    for (const character of value) {
+        if (arabicCharacterPattern.test(character)) {
+            return 'rtl';
+        }
+
+        if (letterPattern.test(character)) {
+            return 'ltr';
+        }
+    }
+
+    return fallback;
+};
+
 document.addEventListener('alpine:init', () => {
     const Alpine = window.Alpine;
 
@@ -148,12 +175,15 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
-    Alpine.data('atharReflection', ({ max, messages, initial = '', identityDisplay = 'anonymous', displayName = '' }) => ({
+    Alpine.data('atharReflection', ({ max, messages, initial = '', identityDisplay = 'anonymous', displayName = '', displayPosition = '' }) => ({
         max,
         messages,
         text: initial,
+        pageDirection: pageDirection(),
+        textDirection: pageDirection(),
         identityDisplay,
         displayName,
+        displayPosition,
         identityMenuOpen: false,
         identityMenuReady: false,
         count: 0,
@@ -164,6 +194,7 @@ document.addEventListener('alpine:init', () => {
         },
         update(value) {
             this.text = value;
+            this.textDirection = detectTextDirection(value, this.pageDirection);
             this.count = [...value].length;
             this.progress = Math.min(100, (this.count / this.max) * 100);
             this.message = this.getMessage();
@@ -202,11 +233,16 @@ document.addEventListener('alpine:init', () => {
             return new Intl.NumberFormat(document.documentElement.lang || undefined).format(this.max);
         },
         attribution() {
-            return this.identityDisplay === 'anonymous'
-                ? ''
-                : this.identityDisplay === 'first_name'
-                    ? (this.displayName.trim().split(/\s+/u)[0] ?? '')
-                    : this.displayName.trim();
+            if (this.identityDisplay === 'anonymous') {
+                return '';
+            }
+
+            const name = this.identityDisplay === 'first_name'
+                ? (this.displayName.trim().split(/\s+/u)[0] ?? '')
+                : this.displayName.trim();
+            const position = this.displayPosition.trim();
+
+            return [name, position].filter(Boolean).join(' | ');
         },
         enhanceIdentityMenu() {
             this.identityMenuReady = true;
@@ -228,6 +264,139 @@ document.addEventListener('alpine:init', () => {
             };
 
             this.$nextTick(() => this.$refs[refs[value]]?.focus());
+        },
+    }));
+
+    Alpine.data('atharAccessCode', ({ expiresAt = 0, resendAvailableAt = 0, attemptsRemaining = 0, messages }) => ({
+        expiresAt: Number(expiresAt),
+        resendAvailableAt: Number(resendAvailableAt),
+        attemptsRemaining: Number(attemptsRemaining),
+        messages,
+        now: Math.floor(Date.now() / 1000),
+        timer: null,
+        init() {
+            this.tick();
+            this.$nextTick(() => this.focusFirstEmpty());
+            this.timer = window.setInterval(() => this.tick(), 1000);
+        },
+        destroy() {
+            if (this.timer !== null) {
+                window.clearInterval(this.timer);
+            }
+        },
+        tick() {
+            this.now = Math.floor(Date.now() / 1000);
+        },
+        inputs() {
+            return Array.from(this.$root.querySelectorAll('[data-athar-code-digit]'));
+        },
+        normalizeDigits(value) {
+            const arabicIndic = '٠١٢٣٤٥٦٧٨٩';
+            const easternArabic = '۰۱۲۳۴۵۶۷۸۹';
+
+            return String(value)
+                .replace(/[٠-٩]/g, (digit) => String(arabicIndic.indexOf(digit)))
+                .replace(/[۰-۹]/g, (digit) => String(easternArabic.indexOf(digit)))
+                .replace(/[^0-9]/g, '');
+        },
+        focusFirstEmpty() {
+            const input = this.inputs().find((field) => field.value === '');
+            input?.focus();
+        },
+        distributeDigits(value, startIndex) {
+            const digits = this.normalizeDigits(value);
+            const inputs = this.inputs();
+            if (digits === '' || inputs.length === 0) {
+                return;
+            }
+
+            digits.slice(0, inputs.length - startIndex).split('').forEach((digit, offset) => {
+                inputs[startIndex + offset].value = digit;
+            });
+
+            inputs[Math.min(startIndex + digits.length, inputs.length - 1)]?.focus();
+        },
+        handleInput(event, index) {
+            const digits = this.normalizeDigits(event.target.value);
+            if (digits.length > 1) {
+                this.distributeDigits(digits, index);
+
+                return;
+            }
+
+            event.target.value = digits;
+            if (digits !== '') {
+                this.inputs()[index + 1]?.focus();
+            }
+        },
+        handleKeydown(event, index) {
+            const inputs = this.inputs();
+            if (event.key === 'Backspace' && event.target.value === '' && index > 0) {
+                event.preventDefault();
+                inputs[index - 1].value = '';
+                inputs[index - 1].focus();
+            }
+            if (event.key === 'ArrowLeft' && index > 0) {
+                event.preventDefault();
+                inputs[index - 1].focus();
+            }
+            if (event.key === 'ArrowRight' && index < inputs.length - 1) {
+                event.preventDefault();
+                inputs[index + 1].focus();
+            }
+        },
+        handlePaste(event, index) {
+            event.preventDefault();
+            this.distributeDigits(event.clipboardData?.getData('text') ?? '', index);
+        },
+        secondsUntil(timestamp) {
+            return Math.max(0, timestamp - this.now);
+        },
+        formattedDuration(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainder = String(seconds % 60).padStart(2, '0');
+
+            return `${minutes}:${remainder}`;
+        },
+        replace(message, token, value) {
+            return message.replace(token, value);
+        },
+        isExpired() {
+            return this.expiresAt === 0 || this.secondsUntil(this.expiresAt) === 0;
+        },
+        isLocked() {
+            return this.attemptsRemaining === 0;
+        },
+        resendIsLocked() {
+            return this.secondsUntil(this.resendAvailableAt) > 0;
+        },
+        verifyIsDisabled() {
+            return this.isExpired() || this.isLocked();
+        },
+        statusMessage() {
+            const status = [];
+            const formattedAttempts = new Intl.NumberFormat(document.documentElement.lang || undefined).format(this.attemptsRemaining);
+
+            if (this.isLocked()) {
+                status.push(this.messages.attempts_exhausted);
+            } else {
+                status.push(this.replace(this.messages.attempts_remaining, ':count', formattedAttempts));
+            }
+
+            status.push(this.isExpired()
+                ? this.messages.expired
+                : this.replace(this.messages.expires_in, ':time', this.formattedDuration(this.secondsUntil(this.expiresAt))));
+
+            if (this.resendIsLocked()) {
+                status.push(this.replace(this.messages.resend_in, ':time', this.formattedDuration(this.secondsUntil(this.resendAvailableAt))));
+            }
+
+            return status.join(' ');
+        },
+        resendLabel() {
+            return this.resendIsLocked()
+                ? this.replace(this.messages.resend_in, ':time', this.formattedDuration(this.secondsUntil(this.resendAvailableAt)))
+                : this.messages.resend;
         },
     }));
 

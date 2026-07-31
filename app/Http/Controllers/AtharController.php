@@ -14,6 +14,7 @@ use App\Actions\Athar\SealAtharContribution;
 use App\Actions\Athar\SendAtharApproval;
 use App\Actions\Athar\VerifyAtharAccessChallenge;
 use App\Actions\Athar\WithdrawAtharPublication;
+use App\Enums\AtharAccessChallengeResult;
 use App\Enums\AtharContributionStatus;
 use App\Enums\AtharIdentityDisplay;
 use App\Enums\AtharInvitationDeliveryMode;
@@ -28,6 +29,7 @@ use App\Support\Turnstile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -44,9 +46,14 @@ class AtharController extends Controller
             return view('athar.unavailable');
         }
         if (! AtharAccess::verified($request, $invitation)) {
+            $challenge = AtharAccess::latestChallenge($invitation);
+
             return view('athar.access', [
                 'invitation' => $invitation,
-                'codeSent' => $request->session()->get('athar.code_sent') === $invitation->getKey(),
+                'codeSent' => $request->session()->get('athar.code_sent') === $invitation->getKey() && $challenge !== null,
+                'codeExpiresAt' => $challenge?->expires_at?->timestamp,
+                'resendAvailableAt' => AtharAccess::resendAvailableAt($challenge),
+                'attemptsRemaining' => $challenge?->attemptsRemaining(),
             ]);
         }
         $pendingInput = $request->session()->pull($this->pendingInputKey($invitation), []);
@@ -107,6 +114,9 @@ class AtharController extends Controller
         if ($invitation->delivery_mode === AtharInvitationDeliveryMode::Link) {
             return $this->atharRedirect($token);
         }
+        if (AtharAccess::verified($request, $invitation)) {
+            return $this->atharRedirect($token);
+        }
 
         if ($this->turnstile->enabled()
             && ! $this->turnstile->verify((string) $request->input('cf-turnstile-response'), $this->turnstile->clientIp($request))) {
@@ -121,7 +131,18 @@ class AtharController extends Controller
         if (! is_string($invitation->email_hash) || ! is_string($emailHash) || ! hash_equals($invitation->email_hash, $emailHash)) {
             return back()->withErrors(['email' => __('athar.validation.email')]);
         }
+        $feedbackKey = $isResend ? 'code' : 'email';
+        $challenge = AtharAccess::latestChallenge($invitation);
+        $resendAvailableAt = AtharAccess::resendAvailableAt($challenge);
+        if ($resendAvailableAt !== null && $resendAvailableAt > now()->timestamp) {
+            return back()->withErrors([$feedbackKey => __('athar.access.resend_wait', ['seconds' => $resendAvailableAt - now()->timestamp])]);
+        }
+        $rateLimitKey = AtharAccess::codeRequestRateLimitKey($request, $invitation);
+        if (RateLimiter::tooManyAttempts($rateLimitKey, AtharAccess::maxCodeRequestsPerHour())) {
+            return back()->withErrors([$feedbackKey => __('athar.access.request_limit')]);
+        }
         $issue->handle($invitation, $request);
+        RateLimiter::hit($rateLimitKey, 60 * 60);
         $request->session()->put('athar.code_sent', $invitation->getKey());
 
         return $this->atharRedirect($token);
@@ -134,10 +155,17 @@ class AtharController extends Controller
             return $this->atharRedirect($token);
         }
         $data = Validator::make([
-            'code' => AtharAccess::normalizeCode((string) $request->input('code')),
+            'code' => AtharAccess::normalizeCode($this->submittedAccessCode($request)),
         ], ['code' => ['required', 'digits:6']])->validate();
-        if (! $verify->handle($invitation, (string) $data['code'], $request)) {
-            return back()->withErrors(['code' => __('athar.access.invalid_code')]);
+        $result = $verify->handle($invitation, (string) $data['code'], $request);
+        if ($result !== AtharAccessChallengeResult::Verified) {
+            $message = match ($result) {
+                AtharAccessChallengeResult::Expired => __('athar.access.code_expired'),
+                AtharAccessChallengeResult::Locked => __('athar.access.attempts_exhausted'),
+                default => __('athar.access.invalid_code'),
+            };
+
+            return back()->withErrors(['code' => $message]);
         }
 
         return $this->atharRedirect($token);
@@ -176,7 +204,7 @@ class AtharController extends Controller
         }
         $version = $this->contribution($invitation)->publicationVersions()->latest('version')->firstOrFail();
         $data = $this->publicationData($request, true, true);
-        $approve->handle($version, $request, $data['text'], $data['identity_display'], $data['display_name']);
+        $approve->handle($version, $request, $data['text'], $data['identity_display'], $data['display_name'], $data['display_position']);
 
         return $this->atharRedirect($token);
     }
@@ -189,7 +217,7 @@ class AtharController extends Controller
         }
         $version = $this->contribution($invitation)->publicationVersions()->latest('version')->firstOrFail();
         $data = $this->publicationData($request, false, false);
-        $save->handle($version, $data['text'], $data['identity_display'], $data['display_name']);
+        $save->handle($version, $data['text'], $data['identity_display'], $data['display_name'], $data['display_position']);
 
         return $this->atharRedirect($token)->with('status', __('athar.approval.draft_saved'));
     }
@@ -255,6 +283,7 @@ class AtharController extends Controller
                 'text' => $request->input('text'),
                 'identity_display' => $request->input('identity_display'),
                 'display_name' => $request->input('display_name'),
+                'display_position' => $request->input('display_position'),
             ]);
 
             return $this->atharRedirect($token)
@@ -264,8 +293,26 @@ class AtharController extends Controller
         return $invitation;
     }
 
+    private function submittedAccessCode(Request $request): string
+    {
+        $code = $request->input('code');
+        if (is_string($code)) {
+            return $code;
+        }
+
+        $digits = $request->input('code_digits', []);
+        if (! is_array($digits)) {
+            return '';
+        }
+
+        return implode('', array_map(
+            static fn (mixed $digit): string => is_scalar($digit) ? (string) $digit : '',
+            $digits,
+        ));
+    }
+
     /**
-     * @return array{text: string, identity_display: AtharIdentityDisplay, display_name: string}
+     * @return array{text: string, identity_display: AtharIdentityDisplay, display_name: string, display_position: string}
      */
     private function publicationData(Request $request, bool $requiresText, bool $requiresConsent): array
     {
@@ -275,6 +322,7 @@ class AtharController extends Controller
                 : ['nullable', 'string', 'max:'.AtharTextLimits::PUBLIC_MAX],
             'identity_display' => ['required', Rule::enum(AtharIdentityDisplay::class)],
             'display_name' => ['nullable', 'string', 'max:255'],
+            'display_position' => ['nullable', 'string', 'max:255'],
         ];
         if ($requiresConsent) {
             $rules['consent'] = ['accepted'];
@@ -294,6 +342,7 @@ class AtharController extends Controller
             'text' => (string) ($data['text'] ?? ''),
             'identity_display' => $identityDisplay,
             'display_name' => $this->displayName($identityDisplay, (string) ($data['display_name'] ?? '')),
+            'display_position' => $this->displayPosition($identityDisplay, (string) ($data['display_position'] ?? '')),
         ];
     }
 
@@ -310,6 +359,11 @@ class AtharController extends Controller
         }
 
         return $displayName;
+    }
+
+    private function displayPosition(AtharIdentityDisplay $identityDisplay, string $displayPosition): string
+    {
+        return $identityDisplay === AtharIdentityDisplay::Anonymous ? '' : trim($displayPosition);
     }
 
     private function pendingInputKey(AtharInvitation $invitation): string

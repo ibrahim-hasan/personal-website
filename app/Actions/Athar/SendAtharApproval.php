@@ -6,7 +6,6 @@ use App\Enums\AtharContributionStatus;
 use App\Enums\AtharPublicationStatus;
 use App\Models\AtharPublicationVersion;
 use App\Notifications\AtharApprovalNotification;
-use App\Support\AtharPublicationSnapshot;
 use Illuminate\Support\Facades\Notification;
 
 class SendAtharApproval
@@ -20,7 +19,6 @@ class SendAtharApproval
             Notification::route('mail', $invitation->email)->notify(new AtharApprovalNotification(
                 localized_route('athar.show', ['token' => $invitation->token_ciphertext], true, $invitation->preferred_locale),
                 $invitation->preferred_locale,
-                AtharPublicationSnapshot::destinationLabel($version, $invitation->preferred_locale),
             ));
         }
         $version->contribution->forceFill(['status' => AtharContributionStatus::AwaitingApproval])->save();

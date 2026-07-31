@@ -20,13 +20,13 @@ class AtharInvitation extends Model
     use HasFactory;
 
     protected $fillable = [
-        'created_by', 'token_hash', 'token_ciphertext', 'email_hash', 'email', 'recipient_name',
+        'created_by', 'token_hash', 'token_ciphertext', 'email_hash', 'email', 'recipient_name', 'recipient_position',
         'delivery_mode', 'relationship', 'preferred_locale', 'personal_reason',
         'placement', 'placement_key', 'identity_display', 'status', 'expires_at', 'sent_at',
         'verified_at', 'revoked_at',
     ];
 
-    protected $hidden = ['token_hash', 'token_ciphertext', 'email_hash', 'email', 'recipient_name', 'personal_reason'];
+    protected $hidden = ['token_hash', 'token_ciphertext', 'email_hash', 'email', 'recipient_name', 'recipient_position', 'personal_reason'];
 
     protected function casts(): array
     {

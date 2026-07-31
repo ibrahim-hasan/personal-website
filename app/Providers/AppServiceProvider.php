@@ -126,7 +126,7 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute($limit)->by('csp-report-receiver');
         });
 
-        RateLimiter::for('athar-code', fn (Request $request): Limit => Limit::perMinute(5)->by($request->ip().'|'.$request->route('token')));
+        RateLimiter::for('athar-code', fn (Request $request): Limit => Limit::perMinute(10)->by($request->ip().'|'.$request->route('token')));
         RateLimiter::for('athar-write', fn (Request $request): Limit => Limit::perMinute(12)->by($request->ip().'|'.$request->route('token')));
     }
 

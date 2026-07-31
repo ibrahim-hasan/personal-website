@@ -71,8 +71,11 @@ final class AtharPublicProof
                 $name = $identityDisplay === AtharIdentityDisplay::Anonymous
                     ? ''
                     : trim((string) ($payload['display_name'] ?? $version->display_name));
+                $position = $identityDisplay === AtharIdentityDisplay::Anonymous
+                    ? ''
+                    : trim((string) ($payload['display_position'] ?? ''));
 
-                return ['text' => (string) ($payload['text'] ?? ''), 'context' => (string) ($payload['context'] ?? ''), 'name' => $name, 'locale' => $locale];
+                return ['text' => (string) ($payload['text'] ?? ''), 'context' => (string) ($payload['context'] ?? ''), 'name' => collect([$name, $position])->filter()->implode(' | '), 'locale' => $locale];
             })->filter(fn (array $card): bool => $card['text'] !== '')->values()->all();
     }
 }

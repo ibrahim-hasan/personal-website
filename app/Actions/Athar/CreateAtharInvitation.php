@@ -52,7 +52,7 @@ class CreateAtharInvitation
             'created_by' => $creator->getKey(), 'token_hash' => AtharAccess::tokenHash($token),
             'token_ciphertext' => $token, 'delivery_mode' => $sendEmail ? AtharInvitationDeliveryMode::Email : AtharInvitationDeliveryMode::Link,
             'email_hash' => $email === null ? null : hash_hmac('sha256', $email, (string) config('app.key')), 'email' => $email,
-            'recipient_name' => $attributes['recipient_name'] ?? null, 'relationship' => null,
+            'recipient_name' => $attributes['recipient_name'] ?? null, 'recipient_position' => $attributes['recipient_position'] ?? null, 'relationship' => null,
             'preferred_locale' => $preferredLocale,
             'personal_reason' => null,
             'placement' => $placement, 'placement_key' => $placementKey, 'identity_display' => AtharIdentityDisplay::Anonymous,

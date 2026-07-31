@@ -10,7 +10,12 @@
             <div class="athar-final-preview athar-final-preview--readonly" dir="{{ $payloadLocale }}" lang="{{ $payloadLocale }}">
                 <p class="athar-final-preview__label">{{ __('athar.published.words') }}</p>
                 <blockquote class="athar-final-preview__quote">{{ $payload['text'] ?? '' }}</blockquote>
-                @if (filled($payload['display_name'] ?? $version->display_name))<p class="athar-final-preview__name">{{ $payload['display_name'] ?? $version->display_name }}</p>@endif
+                @php
+                    $displayName = trim((string) ($payload['display_name'] ?? $version->display_name));
+                    $displayPosition = trim((string) ($payload['display_position'] ?? ''));
+                    $attribution = collect([$displayName, $displayPosition])->filter()->implode(' | ');
+                @endphp
+                @if (filled($attribution))<p class="athar-final-preview__name" dir="auto">{{ $attribution }}</p>@endif
                 @if (filled($payload['context'] ?? ''))<p class="athar-final-preview__context-label">{{ __('athar.published.context') }}</p><p class="athar-final-preview__context">{{ $payload['context'] }}</p>@endif
             </div>
             @if ($version->status->value === 'published')

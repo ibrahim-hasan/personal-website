@@ -29,6 +29,21 @@ class AtharAccessChallenge extends Model
 
     public function isUsable(): bool
     {
-        return $this->consumed_at === null && $this->expires_at->isFuture() && $this->attempts < 6;
+        return $this->consumed_at === null && ! $this->isExpired() && ! $this->isLocked();
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at->isPast();
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->attempts >= (int) config('athar.access.code_max_attempts', 6);
+    }
+
+    public function attemptsRemaining(): int
+    {
+        return max(0, (int) config('athar.access.code_max_attempts', 6) - $this->attempts);
     }
 }

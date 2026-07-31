@@ -90,6 +90,7 @@ class AtharAdminLocalizationTest extends TestCase
             ->assertSee(__('admin.fields.email_address'))
             ->assertSee(__('admin.fields.delivery_mode'))
             ->assertSee(__('admin.fields.status'))
+            ->assertSee(__('admin.fields.recipient_position'))
             ->assertSee(__('admin.athar.invitation_statuses.sent'))
             ->assertSee(__('admin.athar.delivery_modes.email'))
             ->assertSee(__('admin.athar.placements.about'))
@@ -164,7 +165,8 @@ class AtharAdminLocalizationTest extends TestCase
             ->assertOk()
             ->assertDontSee(__('admin.fields.relationship'))
             ->assertDontSee(__('admin.fields.personal_reason'))
-            ->assertDontSee(__('admin.fields.identity_display'));
+            ->assertDontSee(__('admin.fields.identity_display'))
+            ->assertSee(__('admin.fields.recipient_position'));
     }
 
     private function bootAdminPanel(): void

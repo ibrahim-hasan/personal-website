@@ -21,7 +21,7 @@ class AtharAccessChallengeFactory extends Factory
         return [
             'invitation_id' => AtharInvitation::factory(),
             'code_hash' => hash('sha256', '123456'),
-            'expires_at' => now()->addMinutes(10),
+            'expires_at' => now()->addMinutes((int) config('athar.access.code_ttl_minutes', 10)),
             'attempts' => 0,
             'requested_at' => now(),
             'ip_hash' => hash('sha256', fake()->ipv4()),

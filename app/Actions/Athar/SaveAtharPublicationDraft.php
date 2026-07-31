@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\DB;
 
 class SaveAtharPublicationDraft
 {
-    public function handle(AtharPublicationVersion $version, string $text, AtharIdentityDisplay $identityDisplay, string $displayName): AtharPublicationVersion
+    public function handle(AtharPublicationVersion $version, string $text, AtharIdentityDisplay $identityDisplay, string $displayName, string $displayPosition): AtharPublicationVersion
     {
-        return DB::transaction(function () use ($version, $text, $identityDisplay, $displayName): AtharPublicationVersion {
+        return DB::transaction(function () use ($version, $text, $identityDisplay, $displayName, $displayPosition): AtharPublicationVersion {
             $record = AtharPublicationVersion::query()
                 ->whereKey($version->getKey())
                 ->lockForUpdate()
@@ -27,6 +27,7 @@ class SaveAtharPublicationDraft
             $payload[$locale]['text'] = $text;
             $payload[$locale]['identity_display'] = $identityDisplay->value;
             $payload[$locale]['display_name'] = $displayName;
+            $payload[$locale]['display_position'] = $displayPosition;
 
             $record->forceFill([
                 'public_payload' => $payload,
