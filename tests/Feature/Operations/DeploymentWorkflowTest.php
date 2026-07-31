@@ -43,9 +43,10 @@ class DeploymentWorkflowTest extends TestCase
         $this->assertStringContainsString('RELEASE_REVISION: ${{ github.sha }}', $workflow);
         $this->assertStringContainsString('npm run build', $workflow);
         $this->assertStringContainsString('vendor/bin/dep deploy production --revision "$RELEASE_REVISION" --no-interaction', $workflow);
+        $this->assertStringNotContainsString('DEPLOY_READINESS_URL', $workflow);
     }
 
-    public function test_deployer_requires_shared_passport_keys_and_preserves_safe_release_checks(): void
+    public function test_deployer_requires_shared_passport_keys_and_keeps_health_and_readiness_checks_server_configured(): void
     {
         $recipe = file_get_contents(base_path('deploy.php'));
 
@@ -59,13 +60,14 @@ class DeploymentWorkflowTest extends TestCase
         $this->assertStringContainsString("before('artisan:migrate', 'artisan:assert-passport-keys');", $recipe);
         $this->assertStringContainsString("task('artisan:record-scheduler-heartbeat'", $recipe);
         $this->assertStringContainsString("task('artisan:release-check'", $recipe);
-        $this->assertStringContainsString("task('deploy:readiness-check'", $recipe);
-        $this->assertStringContainsString('operations:check-readiness --url=', $recipe);
-        $this->assertStringContainsString('DEPLOY_READINESS_URL', $recipe);
-        $this->assertStringNotContainsString('DEPLOY_READINESS_SECRET', $recipe);
+        $this->assertStringContainsString("task('deploy:readiness-check', artisan('operations:check-readiness --no-interaction', ['showOutput']));", $recipe);
         $this->assertStringContainsString("after('deploy:symlink', 'artisan:record-scheduler-heartbeat');", $recipe);
         $this->assertStringContainsString("after('deploy:symlink', 'artisan:release-check');", $recipe);
+        $this->assertStringContainsString("after('deploy:symlink', 'deploy:health-check');", $recipe);
         $this->assertStringContainsString("after('deploy:symlink', 'deploy:readiness-check');", $recipe);
+        $this->assertStringNotContainsString('DEPLOY_READINESS_URL', $recipe);
+        $this->assertStringNotContainsString('operations:check-readiness --url=', $recipe);
+        $this->assertStringContainsString("after('rollback', 'deploy:readiness-check');", $recipe);
     }
 
     private function workflow(): string

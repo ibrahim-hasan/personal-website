@@ -33,7 +33,7 @@ host('production')
     ->setDeployPath((string) getenv('DEPLOY_PATH'));
 
 task('deploy:validate-runtime-configuration', function (): void {
-    foreach (['DEPLOY_HOST', 'DEPLOY_USER', 'DEPLOY_PATH', 'DEPLOY_HEALTH_URL', 'DEPLOY_READINESS_URL'] as $variable) {
+    foreach (['DEPLOY_HOST', 'DEPLOY_USER', 'DEPLOY_PATH', 'DEPLOY_HEALTH_URL'] as $variable) {
         if (trim((string) getenv($variable)) === '') {
             throw new RuntimeException("$variable must be configured before deployment.");
         }
@@ -89,15 +89,7 @@ task('deploy:health-check', function (): void {
     run('curl --fail --silent --show-error --max-time 20 '.escapeshellarg($healthUrl));
 });
 
-task('deploy:readiness-check', function (): void {
-    $readinessUrl = trim((string) getenv('DEPLOY_READINESS_URL'));
-
-    if ($readinessUrl === '') {
-        throw new RuntimeException('DEPLOY_READINESS_URL must be configured before deployment.');
-    }
-
-    run('{{bin/php}} {{bin/artisan}} operations:check-readiness --url='.escapeshellarg($readinessUrl).' --no-interaction');
-});
+task('deploy:readiness-check', artisan('operations:check-readiness --no-interaction', ['showOutput']));
 
 task('deploy:prepare-application', [
     'deploy:upload-build',

@@ -46,7 +46,6 @@ Variables:
 
 - `DEPLOY_PATH`
 - `DEPLOY_HEALTH_URL`
-- `DEPLOY_READINESS_URL`
 
 Do not put secret values in this repository, Action logs, tickets, or screenshots.
 
@@ -56,10 +55,10 @@ The production server needs only:
 
 - the existing shared `.env` file;
 - the existing shared Passport key pair at `storage/oauth-private.key` and `storage/oauth-public.key`, with mode `0600`;
-- the configured health and readiness endpoints; and
+- the configured health endpoint plus `READINESS_PROBE_URL` and `READINESS_SECRET` in its shared `.env`; and
 - the existing Horizon and scheduler processes.
 
-Deployer keeps the latest five releases, applies the pushed revision, reloads Horizon, and runs its existing health and readiness checks.
+Deployer keeps the latest five releases, applies the pushed revision, reloads Horizon, and runs its existing health and server-configured readiness checks.
 
 ## If a release is bad
 
