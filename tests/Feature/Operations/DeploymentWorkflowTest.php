@@ -58,6 +58,8 @@ class DeploymentWorkflowTest extends TestCase
         $this->assertStringContainsString("task('artisan:assert-passport-keys'", $recipe);
         $this->assertStringNotContainsString('passport:keys', $recipe);
         $this->assertStringContainsString("before('artisan:migrate', 'artisan:assert-passport-keys');", $recipe);
+        $this->assertStringContainsString('run("chmod 600 $keyPath");', $recipe);
+        $this->assertStringContainsString('Shared Passport key material could not be secured with mode 0600.', $recipe);
         $this->assertStringContainsString("task('artisan:record-scheduler-heartbeat'", $recipe);
         $this->assertStringContainsString("task('artisan:release-check'", $recipe);
         $this->assertStringContainsString("task('deploy:readiness-check', artisan('operations:check-readiness --no-interaction', ['showOutput']));", $recipe);

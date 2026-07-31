@@ -73,8 +73,10 @@ task('artisan:assert-passport-keys', function (): void {
             throw new RuntimeException('Shared Passport key material is missing. Provision it through the secret manager before deploying.');
         }
 
+        run("chmod 600 $keyPath");
+
         if (trim(run("stat -c '%a' $keyPath")) !== '600') {
-            throw new RuntimeException('Shared Passport key material must use mode 0600 before deploying.');
+            throw new RuntimeException('Shared Passport key material could not be secured with mode 0600.');
         }
     }
 });

@@ -54,7 +54,7 @@ Do not put secret values in this repository, Action logs, tickets, or screenshot
 The production server needs only:
 
 - the existing shared `.env` file;
-- the existing shared Passport key pair at `storage/oauth-private.key` and `storage/oauth-public.key`, with mode `0600`;
+- the existing shared Passport key pair at `storage/oauth-private.key` and `storage/oauth-public.key`; Deployer secures both to mode `0600` before use;
 - the configured health endpoint plus `READINESS_PROBE_URL` and `READINESS_SECRET` in its shared `.env`; and
 - the existing Horizon and scheduler processes.
 
