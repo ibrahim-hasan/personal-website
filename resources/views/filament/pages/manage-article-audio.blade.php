@@ -264,20 +264,23 @@
                                                         </x-filament::button>
                                                     </form>
 
-                                                    @if ($model['can_generate_full'])
-                                                        <form
-                                                            method="POST"
-                                                            action="{{ route('filament.admin.article-audio.generate', ['article' => $row['key'], 'locale' => $row['locale']]) }}"
-                                                            x-data
-                                                            x-on:submit="if (! window.confirm(@js(__('article_audio.actions.confirm_full_generation')))) $event.preventDefault()"
+                                                    <form
+                                                        method="POST"
+                                                        action="{{ route('filament.admin.article-audio.generate', ['article' => $row['key'], 'locale' => $row['locale']]) }}"
+                                                        x-data
+                                                        x-on:submit="if (! window.confirm(@js(__('article_audio.actions.confirm_full_generation')))) $event.preventDefault()"
+                                                    >
+                                                        @csrf
+                                                        <input type="hidden" name="model_id" value="{{ $model['id'] }}">
+                                                        <x-filament::button
+                                                            type="submit"
+                                                            size="sm"
+                                                            icon="heroicon-o-speaker-wave"
+                                                            :disabled="! $configuration['synthesis_ready'] || ! $model['can_generate_full'] || $hasActiveWork || $row['is_generating']"
                                                         >
-                                                            @csrf
-                                                            <input type="hidden" name="model_id" value="{{ $model['id'] }}">
-                                                            <x-filament::button type="submit" size="sm" icon="heroicon-o-speaker-wave" :disabled="$hasActiveWork || $row['is_generating']">
-                                                                {{ $row['is_generating'] ? __('article_audio.actions.generating') : __('article_audio.actions.generate_full') }}
-                                                            </x-filament::button>
-                                                        </form>
-                                                    @endif
+                                                            {{ $row['is_generating'] ? __('article_audio.actions.generating') : __('article_audio.actions.generate_full') }}
+                                                        </x-filament::button>
+                                                    </form>
                                                 </div>
                                             @endif
                                         </article>
@@ -298,16 +301,14 @@
                                 <p class="mt-1 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-300">{{ __('article_audio.upload.description') }}</p>
                             </div>
                             @if ($canGenerate)
-                                <form method="POST" action="{{ route('filament.admin.article-audio.upload', ['article' => $row['key'], 'locale' => $row['locale']]) }}" enctype="multipart/form-data" class="flex flex-col gap-3 sm:flex-row sm:items-end">
-                                    @csrf
-                                    <label class="min-w-56 text-sm font-medium text-gray-700 dark:text-gray-200">
-                                        <span class="sr-only">{{ __('article_audio.upload.file') }}</span>
-                                        <input type="file" name="audio" accept="audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/webm,.mp3,.wav,.ogg,.m4a,.webm" required class="block w-full rounded-lg border border-gray-300 bg-white text-sm text-gray-700 file:mr-3 file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-semibold dark:border-white/10 dark:bg-gray-950 dark:text-gray-200 dark:file:bg-white/10" />
-                                    </label>
-                                    <x-filament::button type="submit" color="success" icon="heroicon-o-arrow-up-tray">
-                                        {{ __('article_audio.upload.action') }}
-                                    </x-filament::button>
-                                </form>
+                                <x-filament::button
+                                    type="button"
+                                    color="success"
+                                    icon="heroicon-o-arrow-up-tray"
+                                    wire:click="mountAction('uploadAudio', @js(['article_key' => $row['key'], 'locale' => $row['locale']]))"
+                                >
+                                    {{ __('article_audio.upload.action') }}
+                                </x-filament::button>
                             @endif
                         </section>
 

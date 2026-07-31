@@ -8,13 +8,19 @@ use App\Models\ArticleAudio;
 use App\Models\ArticleNarration;
 use App\Services\ArticleAudio\ArticleAudioScript;
 use App\Services\ArticleAudio\ArticleNarrationScript;
+use App\Services\ArticleAudio\StoreUploadedArticleAudio;
 use App\Services\OpenAI\OpenAiNarrationEditor;
 use App\Support\Ai\ElevenLabsExecutionBudget;
 use App\Support\Editorial\ArticleCatalog;
 use BackedEnum;
+use Filament\Actions\Action;
+use Filament\Forms\Components\FileUpload;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 
 class ManageArticleAudio extends Page
@@ -127,8 +133,7 @@ class ManageArticleAudio extends Page
                         'sample_status_color' => $this->sampleStatusColor($sample, $sampleIsCurrent),
                         'is_sample_generating' => $sampleIsGenerating,
                         'can_generate_full' => $narrationIsCurrent
-                            && $narration?->isApprovedFor($sourceHash) === true
-                            && $sampleIsCurrent,
+                            && $narration?->isApprovedFor($sourceHash) === true,
                     ];
                 }
 
@@ -192,6 +197,88 @@ class ManageArticleAudio extends Page
     public function canGenerate(): bool
     {
         return auth()->user()?->can('update articles') === true;
+    }
+
+    public function uploadAudioAction(): Action
+    {
+        return Action::make('uploadAudio')
+            ->label(__('article_audio.upload.action'))
+            ->icon('heroicon-o-arrow-up-tray')
+            ->color('success')
+            ->modalHeading(__('article_audio.upload.title'))
+            ->modalDescription(__('article_audio.upload.description'))
+            ->modalSubmitActionLabel(__('article_audio.upload.action'))
+            ->authorize(fn (): bool => $this->canGenerate())
+            ->schema([
+                FileUpload::make('audio')
+                    ->label(__('article_audio.upload.file'))
+                    ->acceptedFileTypes([
+                        'audio/mpeg',
+                        'audio/wav',
+                        'audio/x-wav',
+                        'audio/wave',
+                        'audio/ogg',
+                        'audio/mp4',
+                        'audio/x-m4a',
+                        'audio/webm',
+                    ])
+                    ->maxSize(102400)
+                    ->maxFiles(1)
+                    ->maxParallelUploads(1)
+                    ->previewable(false)
+                    ->storeFiles(false)
+                    ->visibility('private')
+                    ->required(),
+            ])
+            ->action(function (
+                array $arguments,
+                array $data,
+                ArticleCatalog $articles,
+                StoreUploadedArticleAudio $storeUploadedArticleAudio,
+            ): void {
+                abort_unless($this->canGenerate(), 403);
+
+                $articleKey = $arguments['article_key'] ?? null;
+                $locale = $arguments['locale'] ?? null;
+
+                abort_unless(
+                    is_string($articleKey) && is_string($locale) && in_array($locale, ['ar', 'en'], true),
+                    404,
+                );
+
+                $article = $articles->findByKey($articleKey);
+
+                abort_if($article === null, 404);
+
+                $file = $data['audio'] ?? null;
+
+                if (! $file instanceof UploadedFile) {
+                    throw ValidationException::withMessages([
+                        'audio' => __('validation.required', ['attribute' => __('article_audio.upload.file')]),
+                    ]);
+                }
+
+                $audio = $storeUploadedArticleAudio->handle(
+                    $article,
+                    $locale,
+                    $file,
+                    auth()->id(),
+                );
+
+                if ($audio === null) {
+                    Notification::make()
+                        ->title(__('article_audio.notifications.already_generating'))
+                        ->info()
+                        ->send();
+
+                    return;
+                }
+
+                Notification::make()
+                    ->title(__('article_audio.notifications.uploaded'))
+                    ->success()
+                    ->send();
+            });
     }
 
     private function detectActiveWork(): bool

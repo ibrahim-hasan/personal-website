@@ -9,7 +9,7 @@
         <form method="post" action="{{ localized_route('athar.submit', ['token' => request()->route('token')]) }}" class="athar-form" x-data="atharReflection({ max: {{ \App\Support\AtharTextLimits::REFLECTION_MAX }}, initial: @js($draft), messages: @js(__('athar.reflection.counter')) })" x-init="init()">
             @csrf
             <label for="freeform">{{ __('athar.reflection.note_label') }}</label>
-            <textarea id="freeform" name="freeform" rows="10" maxlength="{{ \App\Support\AtharTextLimits::REFLECTION_MAX }}" required autofocus x-ref="field" @input="update($event.target.value)" aria-describedby="athar-reflection-meter" placeholder="{{ __('athar.reflection.note_placeholder') }}" @if ($errors->has('freeform')) aria-invalid="true" @endif>{{ $draft }}</textarea>
+            <textarea id="freeform" name="freeform" rows="10" maxlength="{{ \App\Support\AtharTextLimits::REFLECTION_MAX }}" required autofocus dir="auto" x-ref="field" @input="update($event.target.value)" aria-describedby="athar-reflection-meter" placeholder="{{ __('athar.reflection.note_placeholder') }}" @if ($errors->has('freeform')) aria-invalid="true" @endif>{{ $draft }}</textarea>
             <div id="athar-reflection-meter" class="athar-writing-meter" aria-live="polite">
                 <span class="athar-writing-meter__message" x-text="message">{{ __('athar.reflection.counter.start') }}</span>
                 <span class="athar-writing-meter__count"><strong x-text="formattedCount()">0</strong> / <span x-text="formattedMax()">{{ \App\Support\AtharTextLimits::REFLECTION_MAX }}</span></span>

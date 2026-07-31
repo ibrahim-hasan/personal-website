@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\GenerateArticleAudioRequest;
 use App\Jobs\GenerateArticleAudio;
 use App\Models\ArticleAudio;
-use App\Models\ArticleNarration;
 use App\Services\ArticleAudio\ArticleAudioScript;
 use App\Services\ElevenLabs\ElevenLabsTextToSpeech;
 use App\Support\Editorial\ArticleCatalog;
@@ -51,17 +50,6 @@ class GenerateArticleAudioController extends Controller
             return redirect(ManageArticleAudio::getUrl());
         }
 
-        $narration = ArticleNarration::query()->find($script->narrationId);
-
-        if ($narration === null || ! $narration->hasCurrentSample($modelId)) {
-            Notification::make()
-                ->title(__('article_audio.notifications.sample_required'))
-                ->warning()
-                ->send();
-
-            return redirect(ManageArticleAudio::getUrl());
-        }
-
         $audio = ArticleAudio::query()->firstOrCreate(
             ['article_key' => $article, 'locale' => $locale],
             ['status' => ArticleAudioStatus::Queued, 'queued_at' => now()],
@@ -88,7 +76,7 @@ class GenerateArticleAudioController extends Controller
             'last_error' => null,
         ])->save();
 
-        GenerateArticleAudio::dispatch($article, $locale, $modelId);
+        GenerateArticleAudio::dispatch($article, $locale, $modelId, skipSampleRequirement: true);
 
         Notification::make()
             ->title(__('article_audio.notifications.queued'))

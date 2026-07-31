@@ -24,6 +24,11 @@ class AtharInvitationNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)->subject(__('athar.mail.invitation_subject', locale: $this->language))->greeting(__('athar.access.eyebrow', locale: $this->language))->line(__('athar.access.body', locale: $this->language))->action(__('athar.access.open_invitation', locale: $this->language), $this->url);
+        return (new MailMessage)
+            ->subject(__('athar.mail.invitation_subject', locale: $this->language))
+            ->greeting(__('athar.mail.invitation_greeting', locale: $this->language))
+            ->line(__('athar.mail.invitation_intro', locale: $this->language))
+            ->line(__('athar.mail.invitation_privacy', locale: $this->language))
+            ->action(__('athar.mail.invitation_action', locale: $this->language), $this->url);
     }
 }

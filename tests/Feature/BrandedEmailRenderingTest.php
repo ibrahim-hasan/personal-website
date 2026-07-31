@@ -115,7 +115,11 @@ class BrandedEmailRenderingTest extends TestCase
             'ar',
         );
 
-        $this->assertStringContainsString('أدعوك إلى كتابة ما تتذكّره من تجربة عملنا معاً بطريقتك. تصلني رسالتك بشكل خاص، ولن يظهر شيء منها على موقعي تلقائياً.', $arabicInvitationHtml);
+        $this->assertStringContainsString('أدعوك إلى أن تكتب، بطريقتك، ما بقي معك من تجربة عملنا معاً. سأقرأ كلماتك بنفسي.', $arabicInvitationHtml);
+        $this->assertStringContainsString('فتح صفحة أثر', $arabicInvitationHtml);
+        $this->assertStringContainsString('href="https://ibrahimhasan.test/athar/invitation"', $arabicInvitationHtml);
+        $this->assertStringContainsString('background-color: #5b2c7d', $arabicInvitationHtml);
+        $this->assertStringContainsString('max-width: 100%', $arabicInvitationHtml);
 
         $arabicApprovalHtml = $this->renderMailMessage(
             (new AtharApprovalNotification('https://ibrahimhasan.test/athar/approval', 'ar'))->toMail($recipient),
@@ -128,7 +132,11 @@ class BrandedEmailRenderingTest extends TestCase
         $englishInvitation = new AtharInvitationNotification('https://ibrahimhasan.test/en/athar/invitation', 'en');
 
         $this->assertSame('en', $englishInvitation->locale);
-        $this->assertBrandedDirection($this->renderMailMessage($englishInvitation->toMail($recipient), 'en'), 'en', 'ltr', 'left');
+        $englishInvitationHtml = $this->renderMailMessage($englishInvitation->toMail($recipient), 'en');
+        $this->assertBrandedDirection($englishInvitationHtml, 'en', 'ltr', 'left');
+        $this->assertStringContainsString('I’d like to hear, in your own words, what has stayed with you from our time working or thinking together.', $englishInvitationHtml);
+        $this->assertStringContainsString('Open Athar', $englishInvitationHtml);
+        $this->assertStringContainsString('href="https://ibrahimhasan.test/en/athar/invitation"', $englishInvitationHtml);
     }
 
     public function test_consultation_mailable_locks_its_queued_locale_and_uses_the_shared_branded_shell(): void
@@ -221,7 +229,8 @@ class BrandedEmailRenderingTest extends TestCase
         $this->assertStringNotContainsString('ممارسة استراتيجية في التقنية', $html);
 
         if (str_contains($html, 'class="button ')) {
-            $this->assertMatchesRegularExpression('/<table[^>]*width="100%"[^>]*border="0"/', $html);
+            $this->assertMatchesRegularExpression('/<table class="action"[^>]*width="100%"/', $html);
+            $this->assertStringContainsString('display: inline-block;', $html);
         }
 
         if ($direction === 'rtl') {

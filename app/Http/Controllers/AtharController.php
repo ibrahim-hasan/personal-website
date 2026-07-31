@@ -153,7 +153,7 @@ class AtharController extends Controller
         $data = Validator::make($request->all(), ['freeform' => ['nullable', 'string', 'max:'.AtharTextLimits::REFLECTION_MAX]])->validate();
         $save->handle($contribution, ['freeform' => $data['freeform'] ?? '']);
 
-        return back()->with('status', __('athar.reflection.draft_saved'));
+        return $this->atharRedirect($token)->with('status', __('athar.reflection.draft_saved'));
     }
 
     public function seal(Request $request, string $token, SealAtharContribution $seal): RedirectResponse
@@ -191,7 +191,7 @@ class AtharController extends Controller
         $data = $this->publicationData($request, false, false);
         $save->handle($version, $data['text'], $data['identity_display'], $data['display_name']);
 
-        return back()->with('status', __('athar.approval.draft_saved'));
+        return $this->atharRedirect($token)->with('status', __('athar.approval.draft_saved'));
     }
 
     public function withdraw(Request $request, string $token, WithdrawAtharPublication $withdraw): RedirectResponse

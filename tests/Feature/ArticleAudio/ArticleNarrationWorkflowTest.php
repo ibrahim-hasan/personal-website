@@ -88,10 +88,10 @@ class ArticleNarrationWorkflowTest extends TestCase
         $this->assertNotNull($narration->approved_at);
     }
 
-    public function test_short_sample_is_required_before_full_generation_for_the_selected_model(): void
+    public function test_editor_can_choose_full_generation_or_a_short_sample_independently(): void
     {
         $editor = $this->editor();
-        $narration = $this->approvedNarration();
+        $this->approvedNarration();
         $fullUrl = route('filament.admin.article-audio.generate', [
             'article' => 'ai-value',
             'locale' => 'ar',
@@ -101,7 +101,12 @@ class ArticleNarrationWorkflowTest extends TestCase
             ->post($fullUrl, ['model_id' => 'eleven_v3'])
             ->assertRedirect(ManageArticleAudio::getUrl());
 
-        Queue::assertNotPushed(GenerateArticleAudio::class);
+        Queue::assertPushed(GenerateArticleAudio::class, function (GenerateArticleAudio $job): bool {
+            return $job->articleKey === 'ai-value'
+                && $job->locale === 'ar'
+                && $job->modelId === 'eleven_v3'
+                && $job->skipSampleRequirement;
+        });
 
         $this->actingAs($editor)
             ->post(route('filament.admin.article-audio.sample.generate', [
@@ -111,26 +116,6 @@ class ArticleNarrationWorkflowTest extends TestCase
             ->assertRedirect(ManageArticleAudio::getUrl());
 
         Queue::assertPushed(GenerateArticleAudioSample::class, fn (GenerateArticleAudioSample $job): bool => $job->modelId === 'eleven_v3');
-
-        $narration->refresh()->updateSample('eleven_v3', [
-            'status' => 'ready',
-            'script_hash' => $narration->scriptFingerprint(),
-            'voice_id' => 'arabic-editorial-voice',
-            'disk' => 'public',
-            'path' => 'article-audio/samples/ar/approved-v3.mp3',
-            'generated_at' => now()->toIso8601String(),
-        ]);
-        Storage::disk('public')->put('article-audio/samples/ar/approved-v3.mp3', 'sample-audio');
-
-        $this->actingAs($editor)
-            ->post($fullUrl, ['model_id' => 'eleven_v3'])
-            ->assertRedirect(ManageArticleAudio::getUrl());
-
-        Queue::assertPushed(GenerateArticleAudio::class, function (GenerateArticleAudio $job): bool {
-            return $job->articleKey === 'ai-value'
-                && $job->locale === 'ar'
-                && $job->modelId === 'eleven_v3';
-        });
     }
 
     public function test_admin_page_exposes_workflow_controls_without_rendering_provider_secrets(): void
@@ -142,7 +127,10 @@ class ArticleNarrationWorkflowTest extends TestCase
             ->get(ManageArticleAudio::getUrl())
             ->assertOk()
             ->assertSee(__('article_audio.actions.generate_sample'))
+            ->assertSee(__('article_audio.actions.generate_full'))
             ->assertSee(__('article_audio.actions.approve'))
+            ->assertSee("mountAction('uploadAudio'", false)
+            ->assertDontSee('name="audio" accept=', false)
             ->assertDontSee('openai-server-only-secret', false)
             ->assertDontSee('eleven-server-only-secret', false);
     }

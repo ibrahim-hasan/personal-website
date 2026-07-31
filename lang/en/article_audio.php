@@ -14,10 +14,10 @@ return [
         'characters' => 'Characters',
         'generated_at' => 'Generated',
         'added_at' => 'Added',
-        'workflow_description' => 'Turn the article into a narration-ready script, review it yourself, test a short sample, then generate the full recording only after approval.',
+        'workflow_description' => 'Prepare a narration-ready script, review and approve it, then choose either a full recording or a short sample to compare models.',
         'auto_refresh_locked' => 'A task is running. This notice refreshes automatically while the rest of the page stays untouched.',
         'processing_complete' => 'Processing finished. Refresh the results when you are ready.',
-        'cost_guard' => 'Full generation is locked until the script is approved and the selected model has a current sample.',
+        'cost_guard' => 'Full generation needs a current approved narration script. A short sample is optional when you want to compare models before spending credits.',
         'characters_per_request' => 'characters per request',
     ],
     'status' => [
@@ -50,8 +50,8 @@ return [
     'workflow' => [
         'prepare' => 'Narration prep',
         'review' => 'Review and approve',
-        'sample' => 'Compare samples',
-        'publish' => 'Generate and publish',
+        'sample' => 'Optional sample',
+        'publish' => 'Generate recording',
     ],
     'labels' => [
         'script' => 'Script',
@@ -104,7 +104,7 @@ return [
         'generate_sample' => 'Generate short sample',
         'generating_sample' => 'Generating sample…',
         'generate_full' => 'Generate full recording',
-        'confirm_full_generation' => 'The script and sample have been reviewed. Full generation will consume ElevenLabs credits. Continue?',
+        'confirm_full_generation' => 'The approved narration script will be sent to ElevenLabs and count toward your credits. Continue?',
         'refresh_results' => 'Refresh results',
     ],
     'narration' => [
@@ -123,10 +123,10 @@ return [
         'action' => 'Upload audio',
     ],
     'sample' => [
-        'title' => 'Listen before spending full-article credits',
-        'description' => 'Generate a short sample from the current script for each model. Compare calmness, pauses, and pronunciation before choosing.',
+        'title' => 'Try a short sample when useful',
+        'description' => 'Generate a short sample from the current script for each model to compare calmness, pauses, and pronunciation. You can also generate the full recording as soon as the script is approved.',
         'empty' => 'No sample has been generated for this model.',
-        'approval_gate' => 'You can test samples now, but full generation stays locked until the script is approved.',
+        'approval_gate' => 'You can generate a sample from the draft. Full generation needs an approved script only; a sample is optional.',
     ],
     'final' => [
         'title' => 'Currently published recording',
@@ -148,7 +148,6 @@ return [
         'sample_generating' => 'This sample is already generating.',
         'sample_queued' => 'The short sample was queued.',
         'narration_required' => 'Approve a current narration script before full generation.',
-        'sample_required' => 'Listen to a current sample of the selected model first.',
         'uploaded' => 'Your article audio was uploaded.',
     ],
     'errors' => [

@@ -14,7 +14,7 @@ class SaveAtharContributionDraft
             return $contribution;
         }
 
-        return DB::transaction(fn (): AtharContribution => tap($contribution->lockForUpdate()->firstOrFail(), function (AtharContribution $record) use ($payload): void {
+        return DB::transaction(fn (): AtharContribution => tap(AtharContribution::query()->whereKey($contribution->getKey())->lockForUpdate()->firstOrFail(), function (AtharContribution $record) use ($payload): void {
             $record->forceFill(['draft_payload' => $payload, 'draft_updated_at' => now()])->save();
         }));
     }

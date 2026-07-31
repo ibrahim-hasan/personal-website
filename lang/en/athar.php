@@ -59,7 +59,7 @@ return [
     'receipt' => [
         'title' => 'Your words reached me',
         'body' => 'Thank you for sharing your words. They mean a great deal to me, and may become part of the pages on my site. This page will show the exact version I intend to publish.',
-        'ready_body' => 'Choose the exact public text (up to 350 characters) and how your name appears. Nothing is published until you approve this card.',
+        'ready_body' => 'Choose the exact public text as it will appear here, and how your name appears. Nothing is published until you approve this card.',
     ],
     'public_choice' => [
         'title' => 'Choose what may appear on the site',
@@ -79,8 +79,8 @@ return [
         'context' => 'Work context',
         'placement' => 'Where it will appear',
         'identity' => 'How should your name appear?',
-        'scope' => 'This exact card will appear only in :destination on my website. I will not use it on social media, in proposals, or anywhere else without asking you separately.',
-        'consent' => 'I agree to publish the exact text and name choice shown above only in :destination on Ibrahim’s website.',
+        'scope' => 'This exact text will appear only on my website. I will not use it on social media, in proposals, or anywhere else without asking you separately.',
+        'consent' => 'I agree to publish the exact text and name choice shown above only on Ibrahim’s website.',
         'publish' => 'Publish as shown',
         'save_draft' => 'Save edits as draft',
         'draft_saved' => 'Your edits were saved as a draft. You can return to them any time before approving publication.',
@@ -134,7 +134,11 @@ return [
         'preferred_locale' => 'Choose a supported language for this invitation.',
     ],
     'mail' => [
-        'invitation_subject' => 'A private invitation from me',
+        'invitation_subject' => 'A personal invitation to leave an Athar',
+        'invitation_greeting' => 'A reflection from our time together',
+        'invitation_intro' => 'I’d like to hear, in your own words, what has stayed with you from our time working or thinking together. I’ll read your note myself.',
+        'invitation_privacy' => 'Your note will come directly to me. Nothing will appear on my site unless you review the final text and explicitly approve it.',
+        'invitation_action' => 'Open Athar',
         'code_subject' => 'Your Athar verification code',
         'approval_subject' => 'Review your exact Athar text',
         'approval_action' => 'Review the text',

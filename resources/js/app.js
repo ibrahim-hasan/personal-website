@@ -154,6 +154,8 @@ document.addEventListener('alpine:init', () => {
         text: initial,
         identityDisplay,
         displayName,
+        identityMenuOpen: false,
+        identityMenuReady: false,
         count: 0,
         progress: 0,
         message: messages.start,
@@ -205,6 +207,27 @@ document.addEventListener('alpine:init', () => {
                 : this.identityDisplay === 'first_name'
                     ? (this.displayName.trim().split(/\s+/u)[0] ?? '')
                     : this.displayName.trim();
+        },
+        enhanceIdentityMenu() {
+            this.identityMenuReady = true;
+            this.$nextTick(() => this.$refs.identitySelect?.classList.add('is-enhanced'));
+        },
+        toggleIdentityMenu() {
+            this.identityMenuOpen = ! this.identityMenuOpen;
+        },
+        selectIdentity(value) {
+            this.identityDisplay = value;
+            this.identityMenuOpen = false;
+            this.$nextTick(() => this.$refs.identityTrigger?.focus());
+        },
+        focusIdentityOption(value) {
+            const refs = {
+                full_name: 'identityOptionFullName',
+                first_name: 'identityOptionFirstName',
+                anonymous: 'identityOptionAnonymous',
+            };
+
+            this.$nextTick(() => this.$refs[refs[value]]?.focus());
         },
     }));
 

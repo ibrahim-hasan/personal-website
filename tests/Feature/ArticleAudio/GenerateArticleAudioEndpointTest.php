@@ -40,18 +40,11 @@ class GenerateArticleAudioEndpointTest extends TestCase
         $article = app(ArticleCatalog::class)->findByKey('ai-value');
         $this->assertNotNull($article);
         $source = app(ArticleNarrationScript::class)->build($article, 'ar');
-        $narration = ArticleNarration::factory()->approved()->create([
+        ArticleNarration::factory()->approved()->create([
             'article_key' => 'ai-value',
             'locale' => 'ar',
             'source_hash' => hash('sha256', $source),
             'script' => $source,
-        ]);
-        $narration->updateSample('eleven_multilingual_v2', [
-            'status' => 'ready',
-            'script_hash' => $narration->scriptFingerprint(),
-            'voice_id' => 'abcd1234voice5678wxyz',
-            'disk' => 'public',
-            'path' => 'article-audio/samples/ar/current-v2.mp3',
         ]);
     }
 
@@ -78,7 +71,9 @@ class GenerateArticleAudioEndpointTest extends TestCase
         $this->assertNotNull($audio->queued_at);
         $this->assertSame(64, strlen((string) $audio->content_hash));
 
-        Queue::assertPushed(GenerateArticleAudio::class, fn (GenerateArticleAudio $job): bool => $job->articleKey === 'ai-value' && $job->locale === 'ar');
+        Queue::assertPushed(GenerateArticleAudio::class, fn (GenerateArticleAudio $job): bool => $job->articleKey === 'ai-value'
+            && $job->locale === 'ar'
+            && $job->skipSampleRequirement);
     }
 
     public function test_guest_is_redirected_and_viewer_without_edit_permission_is_forbidden(): void

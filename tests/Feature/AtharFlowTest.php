@@ -95,7 +95,9 @@ class AtharFlowTest extends TestCase
             ->assertSee('lang="en"', false)
             ->assertSee('action="'.route('en.athar.submit', ['token' => $token]).'"', false)
             ->assertDontSee('name="email"', false);
-        $this->assertStringContainsString('maxlength="2000"', $response->getContent());
+        $this->assertStringContainsString('maxlength="350"', $response->getContent());
+        $this->assertStringContainsString('id="freeform"', $response->getContent());
+        $this->assertStringContainsString('dir="auto"', $response->getContent());
         $this->post(route('en.athar.submit', ['token' => $token]), ['freeform' => 'A thoughtful note about the work.'])->assertRedirect();
         $this->get(route('en.athar.show', ['token' => $token, 'choose' => '1']))
             ->assertOk()
@@ -119,13 +121,20 @@ class AtharFlowTest extends TestCase
             ->assertSee('name="text"', false)
             ->assertSee(__('athar.approval.edit'), false)
             ->assertSee('maxlength="350"', false)
+            ->assertSee('class="athar-final-preview__quote" dir="auto"', false)
+            ->assertSee('id="athar-approval-text"', false)
+            ->assertSee('dir="auto"', false)
+            ->assertSee('class="athar-identity-select"', false)
+            ->assertSee('role="listbox"', false)
+            ->assertSee(__('athar.approval.scope'), false)
+            ->assertSee(__('athar.approval.consent'), false)
             ->assertSee('A thoughtful note about the work.', false);
         $this->post(route('en.athar.approval.draft', ['token' => $token]), [
             'text' => 'A saved endorsement draft.',
             'identity_display' => 'first_name',
             'display_name' => 'Amina Noor',
         ])
-            ->assertRedirect()
+            ->assertRedirect(route('en.athar.show', ['token' => $token]))
             ->assertSessionHas('status', __('athar.approval.draft_saved'));
         $this->assertSame('awaiting_approval', $version->fresh()->status->value);
         $this->assertSame('A saved endorsement draft.', data_get($version->fresh()->public_payload, 'en.text'));
@@ -291,6 +300,35 @@ class AtharFlowTest extends TestCase
         Notification::assertNothingSent();
     }
 
+    public function test_saving_a_private_draft_persists_it_for_the_current_invitation_after_redirect(): void
+    {
+        app()->setLocale('en');
+        $creator = User::factory()->create();
+        $first = app(CreateAtharInvitation::class)->handle($creator, [
+            'send_email' => false,
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+        $firstContribution = $first['invitation']->contribution()->create(['status' => 'draft']);
+        $second = app(CreateAtharInvitation::class)->handle($creator, [
+            'send_email' => false,
+            'preferred_locale' => 'en',
+            'placement' => AtharPlacement::About,
+        ]);
+        $draft = 'A private draft that should remain visible after saving.';
+
+        $this->post(route('en.athar.draft', ['token' => $second['token']]), ['freeform' => $draft])
+            ->assertRedirect(route('en.athar.show', ['token' => $second['token']]))
+            ->assertSessionHas('status', __('athar.reflection.draft_saved'));
+
+        $this->assertSame($draft, data_get($second['invitation']->contribution()->firstOrFail()->fresh()->draft_payload, 'freeform'));
+        $this->assertNull(data_get($firstContribution->fresh()->draft_payload, 'freeform'));
+        $this->get($second['url'])
+            ->assertOk()
+            ->assertSee($draft, false)
+            ->assertSee(__('athar.reflection.draft_saved'));
+    }
+
     public function test_email_delivery_requires_a_valid_email_when_enabled(): void
     {
         $this->expectException(ValidationException::class);
@@ -314,11 +352,11 @@ class AtharFlowTest extends TestCase
             'placement' => AtharPlacement::About,
         ]);
 
-        $this->post(route('athar.submit', ['token' => $created['token']]), ['freeform' => str_repeat('x', 2001)])
+        $this->post(route('athar.submit', ['token' => $created['token']]), ['freeform' => str_repeat('x', 351)])
             ->assertSessionHasErrors('freeform');
     }
 
-    public function test_a_long_private_reflection_requires_a_separate_short_public_excerpt(): void
+    public function test_reflection_and_public_approval_use_the_same_350_character_limit(): void
     {
         app()->setLocale('en');
         $created = app(CreateAtharInvitation::class)->handle(User::factory()->create(), [
@@ -328,15 +366,15 @@ class AtharFlowTest extends TestCase
         ]);
         $privateText = str_repeat('x', 351);
 
-        $this->post(route('en.athar.submit', ['token' => $created['token']]), ['freeform' => $privateText])->assertRedirect();
+        $this->post(route('en.athar.submit', ['token' => $created['token']]), ['freeform' => $privateText])
+            ->assertSessionHasErrors('freeform');
+
+        $this->post(route('en.athar.submit', ['token' => $created['token']]), ['freeform' => str_repeat('x', 350)])
+            ->assertRedirect();
 
         $version = $created['invitation']->contribution()->firstOrFail()->publicationVersions()->latest('version')->firstOrFail();
-        $this->assertSame($privateText, data_get($created['invitation']->contribution()->firstOrFail()->fresh()->sealed_payload, 'freeform'));
-        $this->assertSame('', data_get($version->public_payload, 'en.text'));
-        $this->get(route('en.athar.show', ['token' => $created['token']]))
-            ->assertOk()
-            ->assertSee(__('athar.approval.edit_hint'))
-            ->assertDontSee($privateText, false);
+        $this->assertSame(str_repeat('x', 350), data_get($created['invitation']->contribution()->firstOrFail()->fresh()->sealed_payload, 'freeform'));
+        $this->assertSame(str_repeat('x', 350), data_get($version->public_payload, 'en.text'));
         $this->post(route('en.athar.approve', ['token' => $created['token']]), [
             'consent' => '1',
             'text' => $privateText,
