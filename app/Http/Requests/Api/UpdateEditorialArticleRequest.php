@@ -67,6 +67,10 @@ class UpdateEditorialArticleRequest extends FormRequest
             'seo_description.en' => ['required_with:seo_description', 'string', 'max:170'],
             'topic_keys' => ['sometimes', 'array', 'min:1', 'max:30'],
             'topic_keys.*' => ['required', 'string', 'max:80', 'distinct'],
+            'service_keys' => ['sometimes', 'array', 'max:30'],
+            'service_keys.*' => ['required', 'string', 'max:80', 'distinct'],
+            'project_keys' => ['sometimes', 'array', 'max:30'],
+            'project_keys.*' => ['required', 'string', 'max:80', 'distinct'],
             'source_url' => ['nullable', 'url', 'max:2048'],
         ];
     }

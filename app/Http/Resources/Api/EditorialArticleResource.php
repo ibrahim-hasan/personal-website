@@ -28,6 +28,8 @@ class EditorialArticleResource extends JsonResource
             'seo_title' => $this->getTranslations('seo_title'),
             'seo_description' => $this->getTranslations('seo_description'),
             'topic_keys' => $this->topic_keys,
+            'service_keys' => $this->relatedServiceKeys(),
+            'project_keys' => $this->relatedProjectKeys(),
             'is_published' => $this->is_published,
             'status' => $this->trashed() ? 'archived' : ($this->is_published ? 'published' : 'draft'),
             'revision' => $this->editorial_revision,

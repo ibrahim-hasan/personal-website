@@ -86,12 +86,21 @@ final class ProjectCaseStudyPublicationValidator
      */
     public function validateForPublicRelation(Project $project): ProjectCaseStudyPublicationEligibility
     {
+        return $this->validateForArticleRelation($project, null);
+    }
+
+    /**
+     * Validate a Project selected from a draft Article without letting that
+     * Article invalidate the Project while its own relation is updated.
+     */
+    public function validateForArticleRelation(Project $project, ?Article $sourceArticle): ProjectCaseStudyPublicationEligibility
+    {
         $violations = [];
         $this->validateProjectState($project, $violations);
         $this->validateTranslations($project, $violations);
         $this->validateCaseStudySections($project, $violations);
         $this->validatePermissionAndDisclosure($project, $violations);
-        $this->validateDirectRelations($project, $violations);
+        $this->validateDirectRelations($project, $violations, $sourceArticle);
 
         $mayRenderImage = $this->validateAsset($project, 'image', $violations);
         $mayRenderLogo = $this->validateAsset($project, 'logo', $violations);
@@ -114,6 +123,11 @@ final class ProjectCaseStudyPublicationValidator
     public function isEligibleForPublicRelation(Project $project): bool
     {
         return $this->validateForPublicRelation($project)->isEligible();
+    }
+
+    public function isEligibleForArticleRelation(Project $project, ?Article $sourceArticle): bool
+    {
+        return $this->validateForArticleRelation($project, $sourceArticle)->isEligible();
     }
 
     /** @param list<string> $violations */
@@ -233,7 +247,7 @@ final class ProjectCaseStudyPublicationValidator
     }
 
     /** @param list<string> $violations */
-    private function validateDirectRelations(Project $project, array &$violations): void
+    private function validateDirectRelations(Project $project, array &$violations, ?Article $sourceArticle = null): void
     {
         $services = $project->relationLoaded('services')
             ? $project->getRelation('services')
@@ -253,6 +267,7 @@ final class ProjectCaseStudyPublicationValidator
 
         $articles
             ->filter(fn (mixed $article): bool => $article instanceof Article)
+            ->reject(fn (Article $article): bool => $sourceArticle !== null && $article->is($sourceArticle))
             ->each(function (Article $article) use (&$violations): void {
                 if (! $this->articlePublicationValidator->isPubliclyEligible($article)) {
                     $violations[] = "relation.article.{$article->key}.not_public";

@@ -36,6 +36,30 @@ final class ServicePublicationValidator
     }
 
     /**
+     * Validate a Service selected from a draft Article without letting that
+     * Article make the Service ineligible for its own relation update.
+     *
+     * All other related Projects and Articles remain subject to the ordinary
+     * public-relation gate.
+     *
+     * @return array<string, list<string>>
+     */
+    public function violationsForArticleRelation(Service $service, ?Article $sourceArticle): array
+    {
+        $violations = $this->intrinsicValidator->violations($service);
+
+        $this->validateRelatedProjects($service, $violations, $sourceArticle);
+        $this->validateRelatedArticles($service, $violations, $sourceArticle);
+
+        return $violations;
+    }
+
+    public function isEligibleForArticleRelation(Service $service, ?Article $sourceArticle): bool
+    {
+        return $this->violationsForArticleRelation($service, $sourceArticle) === [];
+    }
+
+    /**
      * The non-recursive Service eligibility path used when a Project validates
      * a directly selected Service relation.
      */
@@ -61,7 +85,7 @@ final class ServicePublicationValidator
     /**
      * @param  array<string, list<string>>  $violations
      */
-    private function validateRelatedProjects(Service $service, array &$violations): void
+    private function validateRelatedProjects(Service $service, array &$violations, ?Article $sourceArticle = null): void
     {
         $projects = $service->relationLoaded('projects')
             ? $service->getRelation('projects')
@@ -71,8 +95,8 @@ final class ServicePublicationValidator
 
         $projects
             ->filter(fn (mixed $project): bool => $project instanceof Project)
-            ->each(function (Project $project) use (&$violations): void {
-                if (! $this->projectPublicationValidator->isEligibleForPublicRelation($project)) {
+            ->each(function (Project $project) use (&$violations, $sourceArticle): void {
+                if (! $this->projectPublicationValidator->isEligibleForArticleRelation($project, $sourceArticle)) {
                     $violations["relation.project.{$project->key}"][] = 'The selected Project is not publicly publishable.';
 
                     return;
@@ -87,7 +111,7 @@ final class ServicePublicationValidator
     /**
      * @param  array<string, list<string>>  $violations
      */
-    private function validateRelatedArticles(Service $service, array &$violations): void
+    private function validateRelatedArticles(Service $service, array &$violations, ?Article $sourceArticle = null): void
     {
         $articles = $service->relationLoaded('articles')
             ? $service->getRelation('articles')
@@ -95,6 +119,7 @@ final class ServicePublicationValidator
 
         $articles
             ->filter(fn (mixed $article): bool => $article instanceof Article)
+            ->reject(fn (Article $article): bool => $sourceArticle !== null && $article->is($sourceArticle))
             ->each(function (Article $article) use (&$violations): void {
                 if (! $this->articlePublicationValidator->isPubliclyEligible($article)) {
                     $violations["relation.article.{$article->key}"][] = 'The selected Article is not publicly publishable.';

@@ -13,6 +13,7 @@ class EditorialApiAuditLog extends Model
         'client_id',
         'user_id',
         'article_id',
+        'related_content_keys',
         'request_id',
         'action',
         'outcome',
@@ -23,6 +24,7 @@ class EditorialApiAuditLog extends Model
     protected function casts(): array
     {
         return [
+            'related_content_keys' => 'array',
             'occurred_at' => 'immutable_datetime',
         ];
     }

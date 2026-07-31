@@ -24,6 +24,7 @@ class EditorialArticleController extends Controller
         $query = $status === 'archived' ? Article::onlyTrashed() : Article::query();
 
         $articles = $query
+            ->with(['services:id,key', 'projects:id,key'])
             ->when($status === 'draft', fn ($query) => $query->where('is_published', false))
             ->when($status === 'published', fn ($query) => $query->where('is_published', true))
             ->orderByDesc('id')
@@ -48,6 +49,8 @@ class EditorialArticleController extends Controller
 
     public function show(Article $article): JsonResponse
     {
+        $article->loadMissing(['services:id,key', 'projects:id,key']);
+
         return $this->response($article);
     }
 
@@ -70,6 +73,8 @@ class EditorialArticleController extends Controller
 
     private function response(Article $article, int $status = 200): JsonResponse
     {
+        $article->loadMissing(['services:id,key', 'projects:id,key']);
+
         return (new EditorialArticleResource($article))
             ->response()
             ->setStatusCode($status)
