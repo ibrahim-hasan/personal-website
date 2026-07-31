@@ -10,11 +10,14 @@ class DeploymentWorkflowTest extends TestCase
     {
         $workflow = $this->workflow();
 
+        $this->assertStringContainsString('name: CI and manual release', $workflow);
         $this->assertStringContainsString('pull_request:', $workflow);
-        $this->assertStringContainsString("push:\n    branches:\n      - '**'", $workflow);
+        $this->assertStringContainsString("pull_request:\n    branches:\n      - main\n      - production", $workflow);
+        $this->assertStringContainsString("push:\n    branches:\n      - main\n      - production", $workflow);
+        $this->assertStringNotContainsString("- '**'", $workflow);
         $this->assertStringContainsString('workflow_dispatch:', $workflow);
         $this->assertStringContainsString("inputs.operation == 'release'", $workflow);
-        $this->assertStringContainsString('Full 40-character commit SHA to release', $workflow);
+        $this->assertStringContainsString('Required for a release: full 40-character commit SHA reachable from production.', $workflow);
         $this->assertStringContainsString('git merge-base --is-ancestor "$revision" origin/production', $workflow);
         $this->assertStringContainsString('vendor/bin/dep deploy "$DEPLOY_TARGET" --revision "$RELEASE_REVISION" --no-interaction', $workflow);
         $this->assertStringContainsString('php artisan content:lint', $workflow);

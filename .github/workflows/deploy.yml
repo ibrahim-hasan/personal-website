@@ -1,14 +1,18 @@
-name: Validate and release
+name: CI and manual release
 
 on:
   pull_request:
+    branches:
+      - main
+      - production
   push:
     branches:
-      - '**'
+      - main
+      - production
   workflow_dispatch:
     inputs:
       operation:
-        description: "Choose the protected release operation."
+        description: "Choose a protected release or rollback operation."
         required: true
         default: release
         type: choice
@@ -16,7 +20,7 @@ on:
           - release
           - rollback
       environment:
-        description: "Target environment. Production protection must be configured in GitHub."
+        description: "Target environment. Production protection is enforced in GitHub."
         required: true
         default: staging
         type: choice
@@ -24,15 +28,15 @@ on:
           - staging
           - production
       revision:
-        description: "Full 40-character commit SHA to release. It must be reachable from production."
+        description: "Required for a release: full 40-character commit SHA reachable from production. Ignored for rollback."
         required: false
         type: string
       source_artifact_run_id:
-        description: "Required for production releases: successful staging release workflow run ID containing this SHA's artifact."
+        description: "Required only for production: successful staging release run ID containing this SHA's artifact."
         required: false
         type: string
       rollback_release:
-        description: "Required for rollbacks: an existing numeric Deployer release number."
+        description: "Required only for rollback: an existing numeric Deployer release number."
         required: false
         type: string
 
@@ -42,7 +46,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate candidate
+    name: CI checks
     if: >-
       github.event_name != 'workflow_dispatch' ||
       inputs.operation == 'release'
