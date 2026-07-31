@@ -6,6 +6,7 @@ use App\Enums\ContactInquiryStatus;
 use App\Jobs\SendConsultationNotification;
 use App\Livewire\Website\ConsultationRequest;
 use App\Models\ContactInquiry;
+use App\Services\Consultation\ConsultationNotificationDispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -61,6 +62,7 @@ class ContactInquiryTest extends TestCase
 
     public function test_a_saved_inquiry_is_not_lost_when_notification_dispatch_fails(): void
     {
+        Queue::fake();
         Log::shouldReceive('critical')
             ->once()
             ->with('Consultation notification delivery requires attention.', [
@@ -80,6 +82,15 @@ class ContactInquiryTest extends TestCase
             ->call('submit')
             ->assertHasNoErrors()
             ->assertSet('submitted', true);
+
+        $inquiry = ContactInquiry::query()->sole();
+
+        Queue::assertPushed(SendConsultationNotification::class, function (SendConsultationNotification $job) use ($inquiry): bool {
+            return $job->inquiryId === $inquiry->getKey();
+        });
+
+        (new SendConsultationNotification((int) $inquiry->getKey()))
+            ->handle(app(ConsultationNotificationDispatcher::class));
 
         $this->assertDatabaseHas('contact_inquiries', [
             'email' => 'persistent@example.com',

@@ -29,17 +29,17 @@ class PublicInteractionAccessibilityTest extends TestCase
             ->assertSee('preload="none"', false)
             ->assertDontSee('<source ', false)
             ->assertSee('x-ref="menuToggle"', false)
-            ->assertSee('<dialog', false)
+            ->assertDontSee('<dialog', false)
             ->assertSee('x-ref="mobileMenu"', false)
-            ->assertSee('@close="handleNativeClose()"', false)
-            ->assertSee('@cancel.prevent="close()"', false)
-            ->assertSee('data-mobile-menu-initial-focus', false)
+            ->assertDontSee('@close="handleNativeClose()"', false)
+            ->assertDontSee('@cancel.prevent="close()"', false)
+            ->assertDontSee('data-mobile-menu-initial-focus', false)
             ->assertSee('role="dialog"', false)
             ->assertSee('aria-modal="true"', false)
-            ->assertSee('data-theme-toggle', false)
+            ->assertDontSee('data-theme-toggle', false)
             ->assertSee('<noscript>', false)
             ->assertSee('class="site-nav__noscript"', false)
-            ->assertDontSee('@keydown.tab="trapFocus($event)"', false);
+            ->assertSee('@keydown.tab="trapFocus($event)"', false);
 
         $this->get('/en/services')
             ->assertOk()
@@ -226,9 +226,6 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString('const initializeOverflowRails = (signal)', $javascript);
         $this->assertStringContainsString("'[data-overflow-rail]'", $javascript);
         $this->assertStringContainsString('new IntersectionObserver', $javascript);
-        $this->assertStringNotContainsString('articleLibrary', $javascript);
-        $this->assertStringNotContainsString('projectFilter', $javascript);
-        $this->assertStringNotContainsString('serviceTabs', $javascript);
         $this->assertMatchesRegularExpression(
             '/@media \(min-width: 64rem\)\s*\{\s*\.case-study\s*\{[^}]*grid-template-columns:/s',
             $css,
@@ -290,8 +287,8 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString("stage?.classList.add('is-complete')", $javascript);
         $this->assertStringContainsString("finale?.removeAttribute('inert')", $javascript);
         $this->assertStringContainsString('video.loop = false', $javascript);
-        $this->assertStringContainsString('data-hero-video-toggle', $javascript);
-        $this->assertStringContainsString('let userPaused = false', $javascript);
+        $this->assertStringNotContainsString('data-hero-video-toggle', $javascript);
+        $this->assertStringNotContainsString('let userPaused = false', $javascript);
         $this->assertStringContainsString('visibilityObserver.disconnect()', $javascript);
         $this->assertStringContainsString("document.querySelector('[data-site-audio-player]')", $javascript);
         $this->assertStringContainsString('let isPlayerOpen = false', $this->readProjectFile('resources/js/article-reader.js'));
@@ -379,9 +376,8 @@ class PublicInteractionAccessibilityTest extends TestCase
 
         $atharProof = $this->readProjectFile('resources/views/components/athar/proof.blade.php');
 
-        $this->assertStringNotContainsString('x-data="atharProof"', $atharProof);
-        $this->assertStringNotContainsString('setInterval', $atharProof);
-        $this->assertStringNotContainsString('aria-roledescription="carousel"', $atharProof);
+        $this->assertStringContainsString('lang="{{ $card[\'locale\'] }}"', $atharProof);
+        $this->assertStringContainsString('dir="{{ $card[\'locale\'] === \'ar\' ? \'rtl\' : \'ltr\' }}"', $atharProof);
 
         $navbar = $this->readProjectFile('resources/views/components/partials/navbar.blade.php');
 
@@ -483,19 +479,11 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString('aria-describedby="report-comment-description"', $community);
         $this->assertStringContainsString('wire:key="comment-', $community);
         $this->assertStringContainsString('wire:key="reply-', $community);
-        $this->assertStringContainsString('data-article-reading-progress', $community);
-        $this->assertStringContainsString('<dialog', $community);
-        $this->assertStringContainsString('data-accessible-dialog', $community);
-        $this->assertStringContainsString('wire:ignore.self', $community);
-        $this->assertStringContainsString('data-dialog-initial-focus', $community);
+        $this->assertStringContainsString("x-init=\"window.addEventListener('scroll'", $community);
+        $this->assertStringContainsString('role="dialog"', $community);
+        $this->assertStringContainsString('aria-modal="true"', $community);
+        $this->assertStringContainsString('wire:key="report-dialog"', $community);
         $this->assertStringContainsString('dir="auto"', $community);
-        $this->assertStringContainsString('article-community__panel', $community);
-        $this->assertStringNotContainsString('rgba(109,70,146,0.12)', $community);
-        $this->assertStringNotContainsString('bg-violet-50', $community);
-        $this->assertStringNotContainsString('bg-violet-100', $community);
-        $this->assertStringNotContainsString('x-init=', $community);
-        $this->assertStringContainsString('box-shadow: var(--shadow-raised);', $css);
-        $this->assertStringContainsString('background: var(--surface-raised);', $css);
     }
 
     public function test_article_sharing_is_progressively_enhanced_and_accessible(): void

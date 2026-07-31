@@ -61,14 +61,14 @@
 
             <div class="site-container">
                 <figure class="article-hero__media">
-                    <img
-                        src="{{ asset($article['image']) }}"
+                    <x-media.responsive-image
+                        :image="$article['image_media']"
                         alt="{{ $article['image_alt'] }}"
-                        width="1600"
-                        height="900"
+                        sizes="(min-width: 86rem) 86rem, calc(100vw - 2rem)"
+                        loading="eager"
                         fetchpriority="high"
                         decoding="async"
-                    >
+                    />
                     @if ($article['image_caption'])
                         <figcaption>{{ $article['image_caption'] }}</figcaption>
                     @endif
@@ -95,16 +95,22 @@
                             data-audio-url="{{ $articleAudio['url'] }}"
                             data-audio-title="{{ $article['title'] }}"
                             data-audio-article-key="{{ $articleAudio['article_key'] }}"
+                            data-audio-article-slug="{{ $article['slug'] }}"
+                            data-audio-article-url="{{ $canonicalUrl }}"
                             data-audio-locale="{{ $articleAudio['locale'] }}"
+                            data-audio-dir="{{ is_rtl($articleAudio['locale']) ? 'rtl' : 'ltr' }}"
                             data-audio-duration-seconds="{{ $articleAudio['duration_seconds'] ?? '' }}"
+                            data-status-ready="{{ __('articles.reader.ready') }}"
                             data-status-loading="{{ __('articles.reader.loading') }}"
                             data-status-playing="{{ __('articles.reader.playing') }}"
                             data-status-paused="{{ __('articles.reader.paused') }}"
                             data-status-finished="{{ __('articles.reader.finished') }}"
                             data-status-error="{{ __('articles.reader.error') }}"
+                            data-status-unavailable="{{ __('articles.reader.unavailable') }}"
                             data-label-listen="{{ __('articles.reader.listen') }}"
                             data-label-resume="{{ __('articles.reader.resume') }}"
                             data-label-pause="{{ __('articles.reader.pause') }}"
+                            data-label-continue-reading="{{ __('articles.reader.continue_reading') }}"
                         >
                             <button
                                 type="button"

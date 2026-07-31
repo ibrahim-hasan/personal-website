@@ -58,8 +58,8 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString('https://www.google-analytics.com', $policy);
         $this->assertStringContainsString('https://fonts.bunny.net', $policy);
         $this->assertStringContainsString('https://media-staging.ibrahimhasan.net', $policy);
-        $this->assertMatchesRegularExpression('/<script\s+nonce="([^"]+)"\s+data-theme-prepaint>/', $content);
-        preg_match('/<script\s+nonce="([^"]+)"\s+data-theme-prepaint>/', $content, $nonceMatches);
+        $this->assertMatchesRegularExpression('/<script\s+nonce="([^"]+)"\s+type="application\/ld\+json">/', $content);
+        preg_match('/<script\s+nonce="([^"]+)"\s+type="application\/ld\+json">/', $content, $nonceMatches);
         $this->assertStringContainsString("'nonce-{$nonceMatches[1]}'", $policy);
         $this->assertMatchesRegularExpression(
             '/<script\s+nonce="'.preg_quote($nonceMatches[1], '/').'"\s+type="application\/ld\+json">/',

@@ -2,6 +2,7 @@
     :title="__('site.contact.title')"
     :description="__('site.contact.description')"
     activeMenu="true"
+    suppressTerminalCta
     :usesLivewire="true">
 
     <section class="page-intro contact-intro">

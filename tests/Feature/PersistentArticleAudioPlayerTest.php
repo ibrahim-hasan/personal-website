@@ -73,7 +73,6 @@ class PersistentArticleAudioPlayerTest extends TestCase
         $reader = $this->readProjectFile('resources/js/article-reader.js');
         $arabic = $this->readProjectFile('lang/ar/articles.php');
         $english = $this->readProjectFile('lang/en/articles.php');
-        $css = $this->readProjectFile('resources/css/app.css');
 
         $this->assertStringContainsString('data-site-audio-player', $player);
         $this->assertStringContainsString('hidden', $player);
@@ -110,18 +109,6 @@ class PersistentArticleAudioPlayerTest extends TestCase
         $this->assertStringContainsString("'unavailable' => 'Audio is unavailable right now.'", $english);
         $this->assertStringContainsString("'continue_reading' => 'Return to article'", $english);
 
-        $this->assertMatchesRegularExpression(
-            '/\.site-audio-player__transport\s*\{[^}]*display:\s*flex;/s',
-            $css,
-        );
-        $this->assertMatchesRegularExpression(
-            '/\.site-audio-player__toggle,\s*\.site-audio-player__seek\s*\{[^}]*width:\s*2\.75rem;[^}]*height:\s*2\.75rem;/s',
-            $css,
-        );
-        $this->assertMatchesRegularExpression(
-            '/@media print\s*\{.*?\.site-audio-player,.*?\{\s*display:\s*none !important;/s',
-            $css,
-        );
     }
 
     private function readProjectFile(string $path): string

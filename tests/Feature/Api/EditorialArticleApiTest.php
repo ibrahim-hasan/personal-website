@@ -137,6 +137,7 @@ class EditorialArticleApiTest extends TestCase
     {
         $article = Article::factory()->create(['is_published' => false, 'editorial_revision' => 1]);
         $originalBody = $article->getTranslations('body');
+        $originalRevision = $article->editorial_revision;
 
         $this->asClient(['articles:write'])
             ->withHeaders(['Idempotency-Key' => 'partial-legacy-update-001', 'If-Match' => '"1"'])
@@ -146,7 +147,36 @@ class EditorialArticleApiTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['sections', 'closing']);
 
-        $this->assertSame($originalBody, $article->fresh()->getTranslations('body'));
+        $this->assertEquals($originalBody, $article->fresh()->getTranslations('body'));
+        $this->assertSame($originalRevision, $article->fresh()->editorial_revision);
+    }
+
+    public function test_a_malformed_rich_body_update_is_rejected_without_replacing_existing_content(): void
+    {
+        $article = Article::factory()->create(['is_published' => false, 'editorial_revision' => 1]);
+        $originalBody = $article->getTranslations('body');
+        $originalRevision = $article->editorial_revision;
+
+        $this->asClient(['articles:write'])
+            ->withHeaders(['Idempotency-Key' => 'malformed-rich-update-001', 'If-Match' => '"1"'])
+            ->patchJson('/api/v1/articles/'.$article->getKey(), [
+                'body' => [
+                    'ar' => [
+                        'type' => 'paragraph',
+                        'content' => [['type' => 'text', 'text' => 'This is not a document root.']],
+                    ],
+                    'en' => $this->articleBodyDocument(
+                        'The opening article paragraph.',
+                        'The idea',
+                        str_repeat('Useful practical detail. ', 35),
+                    ),
+                ],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['body.ar']);
+
+        $this->assertEquals($originalBody, $article->fresh()->getTranslations('body'));
+        $this->assertSame($originalRevision, $article->fresh()->editorial_revision);
     }
 
     public function test_a_published_article_must_be_unpublished_before_content_or_media_changes(): void

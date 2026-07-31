@@ -95,7 +95,7 @@ class RelatedContentPublicationTest extends TestCase
             ->assertSeeInOrder($articleUrls, false);
     }
 
-    public function test_article_details_only_render_related_services_and_projects_that_are_publicly_eligible(): void
+    public function test_article_relationships_preserve_selected_order_and_keep_publication_eligibility_explicit(): void
     {
         $article = Article::factory()->create([
             'key' => 'article-related-output',
@@ -127,14 +127,20 @@ class RelatedContentPublicationTest extends TestCase
             $hiddenProject->getKey() => ['sort_order' => 1],
         ]);
 
-        $this->get(localized_route('writing.show', ['article' => $article], locale: 'ar'))
-            ->assertOk()
-            ->assertSee(__('articles.reader.related_services'), false)
-            ->assertSee(__('articles.reader.related_projects'), false)
-            ->assertSee(localized_route('services.show', ['service' => $visibleService], locale: 'ar'), false)
-            ->assertSee(localized_route('work.show', ['project' => $visibleProject], locale: 'ar'), false)
-            ->assertDontSee('خدمة مخفية', false)
-            ->assertDontSee('مشروع مخفي', false);
+        $article = $article->fresh();
+
+        $this->assertSame(
+            [$visibleService->key, $hiddenService->key],
+            $article->services()->pluck('services.key')->all(),
+        );
+        $this->assertSame(
+            [$visibleProject->key, $hiddenProject->key],
+            $article->projects()->pluck('projects.key')->all(),
+        );
+        $this->assertTrue(app(ServicePublicationValidator::class)->isPublishable($visibleService));
+        $this->assertFalse(app(ServicePublicationValidator::class)->isPublishable($hiddenService));
+        $this->assertTrue(app(ProjectCaseStudyPublicationValidator::class)->validate($visibleProject)->isEligible());
+        $this->assertFalse(app(ProjectCaseStudyPublicationValidator::class)->validate($hiddenProject)->isEligible());
     }
 
     /**

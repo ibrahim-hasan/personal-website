@@ -136,4 +136,32 @@ class ConsultationNotificationDeliveryTest extends TestCase
         $this->assertSame(1, $inquiry->notification_attempts);
         $this->assertNull($inquiry->notification_next_retry_at);
     }
+
+    public function test_the_notification_is_durably_marked_queued_before_its_identifier_only_job_is_dispatched(): void
+    {
+        $inquiry = ContactInquiry::factory()->create([
+            'notification_status' => 'pending',
+            'notification_next_retry_at' => now()->addMinute(),
+        ]);
+        $bus = Mockery::mock(Dispatcher::class);
+        $bus->shouldReceive('dispatch')
+            ->once()
+            ->withArgs(function (mixed $job) use ($inquiry): bool {
+                $storedInquiry = ContactInquiry::query()->findOrFail($inquiry->getKey());
+
+                return $job instanceof SendConsultationNotification
+                    && $job->inquiryId === $inquiry->getKey()
+                    && $storedInquiry->notification_status === 'queued'
+                    && $storedInquiry->notification_next_retry_at === null;
+            })
+            ->andReturnNull();
+
+        $dispatched = (new ConsultationNotificationDispatcher($bus))->dispatch($inquiry);
+
+        $inquiry->refresh();
+
+        $this->assertTrue($dispatched);
+        $this->assertSame('queued', $inquiry->notification_status);
+        $this->assertNull($inquiry->notification_next_retry_at);
+    }
 }

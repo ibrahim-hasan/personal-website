@@ -123,7 +123,7 @@
                                         </div>
                                     @endif
                                 </div>
-                                <p class="mt-4 whitespace-pre-line text-[0.98rem] leading-7 text-ink-soft">{{ $comment->body }}</p>
+                                <p class="mt-4 whitespace-pre-line text-[0.98rem] leading-7 text-ink-soft" dir="auto">{{ $comment->body }}</p>
 
                                 @if ($canParticipate)
                                     <button type="button" wire:click="startReply({{ $comment->getKey() }})" class="mt-2 inline-flex min-h-11 items-center font-sans text-sm font-bold text-violet-700 underline decoration-violet-300 underline-offset-4 transition-colors hover:text-violet-900 hover:decoration-violet-700">{{ __('community.reply') }}</button>
@@ -158,7 +158,7 @@
                                                         <time class="text-xs text-ink-muted" datetime="{{ $reply->created_at->toAtomString() }}">{{ $reply->created_at->diffForHumans() }}</time>
                                                     </div>
                                                 </div>
-                                                <p class="mt-3 whitespace-pre-line text-sm leading-7 text-ink-soft">{{ $reply->body }}</p>
+                                                <p class="mt-3 whitespace-pre-line text-sm leading-7 text-ink-soft" dir="auto">{{ $reply->body }}</p>
                                             </article>
                                         @endforeach
                                     </div>

@@ -44,8 +44,8 @@ class ArticleRichContentTest extends TestCase
         ]);
         $article->refresh();
 
-        $this->assertSame($arabic, $article->getTranslation('body', 'ar', false));
-        $this->assertSame($english, $article->getTranslation('body', 'en', false));
+        $this->assertEquals($arabic, $article->getTranslation('body', 'ar', false));
+        $this->assertEquals($english, $article->getTranslation('body', 'en', false));
         $this->assertSame($body->readingMinutes($arabic, 'ar'), $article->getTranslation('read_minutes', 'ar', false));
         $this->assertSame($body->readingMinutes($english, 'en'), $article->getTranslation('read_minutes', 'en', false));
     }

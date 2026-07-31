@@ -86,7 +86,10 @@ jobs:
       DB_DATABASE: ibrahim_website
       DB_USERNAME: ibrahim_website
       DB_PASSWORD: testing
-      CACHE_STORE: redis
+      # Keep PHPUnit cache state process-local. The Redis service remains the
+      # queue backend under test, while test throttles and unique-job locks
+      # cannot leak between database-transaction test cases.
+      CACHE_STORE: array
       QUEUE_CONNECTION: redis
       REDIS_HOST: 127.0.0.1
       REDIS_PORT: 6379

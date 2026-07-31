@@ -1323,6 +1323,128 @@ const initializeConsultationTurnstile = (signal) => {
     }
 };
 
+const analyticsInteractionEvents = new Set([
+    'primary_cta_click',
+    'service_cta_click',
+    'article_related_click',
+    'direct_contact_click',
+    'consultation_form_start',
+    'consultation_submit_success',
+    'consultation_submit_error',
+    'language_switch',
+]);
+const controlledConsultationErrorCategories = new Set([
+    'validation',
+    'turnstile',
+    'rate_limited',
+    'provider',
+    'network',
+    'unknown',
+]);
+const analyticsAttributeProperties = [
+    ['analyticsUiLocation', 'ui_location'],
+    ['analyticsDestinationCategory', 'destination_category'],
+    ['analyticsServiceSlug', 'service_slug'],
+    ['analyticsContentSlug', 'content_slug'],
+    ['analyticsContactChannel', 'contact_channel'],
+];
+const analyticsStateNodes = new WeakSet();
+let hasTrackedConsultationFormStart = false;
+
+const trackAnalyticsInteraction = (eventName, payload = {}) => {
+    if (! analyticsInteractionEvents.has(eventName)) {
+        return false;
+    }
+
+    return window.IbrahimAnalytics?.track(eventName, payload) === true;
+};
+
+const analyticsPayloadForElement = (element) => analyticsAttributeProperties.reduce((payload, [datasetKey, property]) => {
+    const value = element.dataset[datasetKey];
+
+    if (typeof value === 'string') {
+        payload[property] = value;
+    }
+
+    return payload;
+}, {});
+
+const consultationErrorCategory = (category) => (
+    typeof category === 'string' && controlledConsultationErrorCategories.has(category)
+        ? category
+        : 'unknown'
+);
+
+const initializeAnalyticsEventTracking = (signal) => {
+    const trackConsultationState = (element) => {
+        if (analyticsStateNodes.has(element)) {
+            return;
+        }
+
+        const isSuccess = element.hasAttribute('data-analytics-consultation-success');
+        const eventName = isSuccess ? 'consultation_submit_success' : 'consultation_submit_error';
+        const payload = isSuccess
+            ? { ui_location: 'contact_form' }
+            : {
+                ui_location: 'contact_form',
+                error_category: consultationErrorCategory(element.dataset.analyticsConsultationError),
+            };
+
+        if (trackAnalyticsInteraction(eventName, payload)) {
+            analyticsStateNodes.add(element);
+        }
+    };
+    const trackConsultationStates = () => {
+        document.querySelectorAll('[data-analytics-consultation-success], [data-analytics-consultation-error]')
+            .forEach(trackConsultationState);
+    };
+    const trackConsultationStart = (event) => {
+        if (hasTrackedConsultationFormStart || !(event.target instanceof Element)) {
+            return;
+        }
+
+        const form = event.target.closest('[data-analytics-consultation-form]');
+
+        if (!form?.isConnected) {
+            return;
+        }
+
+        hasTrackedConsultationFormStart = trackAnalyticsInteraction('consultation_form_start', {
+            ui_location: 'contact_form',
+        });
+    };
+    const trackConsultationError = (event) => {
+        const detail = event instanceof CustomEvent ? event.detail : null;
+
+        trackAnalyticsInteraction('consultation_submit_error', {
+            ui_location: 'contact_form',
+            error_category: consultationErrorCategory(detail?.category),
+        });
+    };
+
+    document.addEventListener('click', (event) => {
+        if (!(event.target instanceof Element)) {
+            return;
+        }
+
+        const element = event.target.closest('[data-analytics-event]');
+
+        if (element?.isConnected) {
+            trackAnalyticsInteraction(element.dataset.analyticsEvent ?? '', analyticsPayloadForElement(element));
+        }
+    }, { signal });
+    document.addEventListener('focusin', trackConsultationStart, { signal });
+    document.addEventListener('input', trackConsultationStart, { signal });
+    document.addEventListener('change', trackConsultationStart, { signal });
+    window.addEventListener('consultation-submitted', () => {
+        trackAnalyticsInteraction('consultation_submit_success', { ui_location: 'contact_form' });
+    }, { signal });
+    window.addEventListener('consultation-submit-error', trackConsultationError, { signal });
+    window.addEventListener('analytics-consent-updated', trackConsultationStates, { signal });
+
+    trackConsultationStates();
+};
+
 const initializeFrontEnhancements = () => {
     frontEnhancementController?.abort();
     frontEnhancementController = new AbortController();
@@ -1336,6 +1458,7 @@ const initializeFrontEnhancements = () => {
     initializeOverflowRails(frontEnhancementController.signal);
     initializeBackToTop(frontEnhancementController.signal);
     initializeConsultationTurnstile(frontEnhancementController.signal);
+    initializeAnalyticsEventTracking(frontEnhancementController.signal);
     void initializeArticleSharing(frontEnhancementController.signal);
 };
 

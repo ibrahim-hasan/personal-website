@@ -97,12 +97,12 @@ class LegalPagesTest extends TestCase
         $this->assertStringContainsString('clearAnalyticsCookies()', $analytics);
         $this->assertStringContainsString('allow_google_signals: false', $analytics);
         $this->assertStringContainsString('allow_ad_personalization_signals: false', $analytics);
+        $this->assertStringContainsString('revokeGoogleAnalytics', $analytics);
         $this->assertStringContainsString('allowedAnalyticsEvents', $analytics);
         $this->assertStringContainsString('allowedAnalyticsProperties', $analytics);
         $this->assertStringContainsString('sanitizeAnalyticsPayload', $analytics);
         $this->assertStringContainsString('window.IbrahimAnalytics', $analytics);
         $this->assertStringContainsString('pendingAnalyticsEvents = []', $analytics);
-        $this->assertStringContainsString('revokeGoogleAnalytics', $analytics);
         foreach ([
             'primary_cta_click',
             'service_cta_click',

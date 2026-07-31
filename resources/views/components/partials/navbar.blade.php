@@ -227,3 +227,90 @@
         </nav>
     </div>
 </header>
+
+<noscript>
+    <nav class="site-nav__noscript" aria-label="{{ __('site.nav.mobile') }}">
+        <div class="site-container site-nav__noscript-inner">
+            <ul class="site-nav__noscript-links" role="list">
+                @foreach ($links as $link)
+                    @php
+                        $patterns = [
+                            $link['route'],
+                            $link['route'].'.*',
+                            '*.'.$link['route'],
+                            '*.'.$link['route'].'.*',
+                        ];
+                        $isActive = request()->routeIs(...$patterns);
+                    @endphp
+                    <li>
+                        <a
+                            href="{{ localized_route($link['route']) }}"
+                            class="site-nav__noscript-link"
+                            @if ($isActive) aria-current="page" @endif
+                        >
+                            {{ $link['label'] }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+
+            <div class="site-nav__noscript-actions">
+                <a
+                    href="{{ localized_route('contact') }}#consultation"
+                    class="site-nav__noscript-cta"
+                    @if (request()->routeIs('contact', '*.contact')) aria-current="page" @endif
+                >
+                    {{ __('site.actions.free_consultation') }}
+                </a>
+
+                @foreach (config('app.supported_locales', []) as $locale => $language)
+                    @continue(current_locale() === $locale)
+                    <a
+                        href="{{ $alternateUrls[$locale] ?? localized_current_url($locale) }}"
+                        class="site-nav__noscript-utility-link"
+                        hreflang="{{ $locale }}"
+                        lang="{{ $locale }}"
+                    >
+                        {{ $language['native'] }}
+                    </a>
+                @endforeach
+
+                @guest
+                    <a
+                        href="{{ localized_route('reader.login') }}"
+                        class="site-nav__noscript-utility-link"
+                        @if (request()->routeIs('reader.login', '*.reader.login')) aria-current="page" @endif
+                    >
+                        {{ __('reader_auth.sign_in') }}
+                    </a>
+                    <a
+                        href="{{ localized_route('reader.register') }}"
+                        class="site-nav__noscript-utility-link"
+                        @if (request()->routeIs('reader.register', '*.reader.register')) aria-current="page" @endif
+                    >
+                        {{ __('reader_auth.create_account') }}
+                    </a>
+                @else
+                    <a
+                        href="{{ localized_route('reader.library') }}"
+                        class="site-nav__noscript-utility-link"
+                        @if (request()->routeIs('reader.library', '*.reader.library')) aria-current="page" @endif
+                    >
+                        {{ __('reader_auth.library_title') }}
+                    </a>
+                    <a
+                        href="{{ localized_route('reader.account') }}"
+                        class="site-nav__noscript-utility-link"
+                        @if (request()->routeIs('reader.account', '*.reader.account')) aria-current="page" @endif
+                    >
+                        {{ __('reader_auth.account_settings') }}
+                    </a>
+                    <form method="POST" action="{{ localized_route('reader.logout') }}" class="site-nav__noscript-logout">
+                        @csrf
+                        <button type="submit" class="site-nav__noscript-utility-link">{{ __('reader_auth.logout') }}</button>
+                    </form>
+                @endguest
+            </div>
+        </div>
+    </nav>
+</noscript>

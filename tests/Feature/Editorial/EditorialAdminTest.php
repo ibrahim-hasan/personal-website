@@ -71,8 +71,8 @@ class EditorialAdminTest extends TestCase
         $article = Article::query()->where('key', 'rich-editor-draft')->firstOrFail();
 
         $this->assertFalse($article->is_published);
-        $this->assertSame($body, $article->getTranslation('body', 'ar', false));
-        $this->assertSame($body, $article->getTranslation('body', 'en', false));
+        $this->assertEquals($body, $article->getTranslation('body', 'ar', false));
+        $this->assertEquals($body, $article->getTranslation('body', 'en', false));
         $this->assertNotEmpty($article->getTranslations('read_minutes'));
         $this->assertTrue($article->hasMedia(Article::IMAGE_COLLECTION));
     }

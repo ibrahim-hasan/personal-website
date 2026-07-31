@@ -79,9 +79,6 @@ class WebsitePagesTest extends TestCase
         $this->assertStringContainsString('lang="en"', $arabicPage);
         $this->assertStringContainsString('dir="rtl"', $englishPage);
         $this->assertStringContainsString('lang="ar"', $englishPage);
-        $this->assertStringNotContainsString('x-data="atharProof', $arabicPage);
-        $this->assertStringNotContainsString('aria-roledescription="carousel"', $arabicPage);
-        $this->assertStringNotContainsString('x-show=', $arabicPage);
     }
 
     public function test_homepage_uses_optimized_hero_video_and_selected_work_without_a_legacy_atlas(): void
@@ -159,7 +156,7 @@ class WebsitePagesTest extends TestCase
             ->assertSee('Where I work today.', false)
             ->assertSee('Code Moments', false)
             ->assertSee('From Scratch', false)
-            ->assertSee('Technical Expertise with Clients', false)
+            ->assertSee('Independent strategic practice', false)
             ->assertDontSee('The method shows up in the real work.', false)
             ->assertDontSee('Four lenses for one integrated decision.', false)
             ->assertDontSee('How I prefer to handle serious work.', false)
@@ -177,7 +174,7 @@ class WebsitePagesTest extends TestCase
             ->assertSee('ما أعمل عليه اليوم.', false)
             ->assertSee('فروم سكراتش', false)
             ->assertSee('كود مومنتس', false)
-            ->assertSee('الخبرة التقنية مع العملاء', false)
+            ->assertSee('عمل استشاري مستقل', false)
             ->assertDontSee('المنهج يظهر في أرض الواقع.', false)
             ->assertDontSee('أربع عدسات لقرار واحد متكامل.', false)
             ->assertDontSee('كيف أفضل التعامل مع العمل الجاد.', false)

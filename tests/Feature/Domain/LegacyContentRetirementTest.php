@@ -45,9 +45,12 @@ class LegacyContentRetirementTest extends TestCase
     {
         $this->seed(PermissionSeeder::class);
 
-        $this->assertSame(57, Permission::query()->count());
+        $this->assertSame(60, Permission::query()->count());
         $this->assertTrue(Permission::query()->where('name', 'update articles')->exists());
         $this->assertTrue(Permission::query()->where('name', 'publish articles')->exists());
+        $this->assertTrue(Permission::query()->where('name', 'publish services')->exists());
+        $this->assertTrue(Permission::query()->where('name', 'publish projects')->exists());
+        $this->assertTrue(Permission::query()->where('name', 'approve project_evidence')->exists());
         $this->assertTrue(Permission::query()->where('name', 'view_any contact_inquiries')->exists());
 
         foreach ([

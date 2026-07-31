@@ -76,7 +76,7 @@ class EditorialArticleRelationsApiTest extends TestCase
         $this->assertSame([$secondProject->key, $firstProject->key], $snapshot->project_keys);
 
         $audit = EditorialApiAuditLog::query()->sole();
-        $this->assertSame([
+        $this->assertEquals([
             'service_keys' => [$secondService->key, $firstService->key],
             'project_keys' => [$secondProject->key, $firstProject->key],
         ], $audit->related_content_keys);

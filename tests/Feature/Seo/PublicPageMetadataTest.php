@@ -172,7 +172,7 @@ class PublicPageMetadataTest extends TestCase
     private function structuredData(string $html): array
     {
         $matched = preg_match(
-            '/<script type="application\/ld\+json">(.+?)<\/script>/s',
+            '/<script\b[^>]*\btype="application\/ld\+json"[^>]*>(.+?)<\/script>/s',
             $html,
             $matches,
         );

@@ -833,6 +833,85 @@ html[dir='rtl'] .brand-mark__name {
     justify-content: flex-start;
 }
 
+.site-nav__noscript {
+    display: block;
+    padding-block-start: 5rem;
+    background: var(--color-canvas);
+    color: var(--color-ink);
+}
+
+body:has(.site-nav__noscript) .menu-toggle {
+    display: none;
+}
+
+.site-nav__noscript-inner {
+    display: grid;
+    gap: 1rem;
+    padding-block: 1rem;
+    border-block-end: 1px solid color-mix(in oklab, var(--color-ink) 18%, transparent);
+}
+
+.site-nav__noscript-links,
+.site-nav__noscript-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.site-nav__noscript-link,
+.site-nav__noscript-cta,
+.site-nav__noscript-utility-link {
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 0.75rem;
+    border: 1px solid color-mix(in oklab, var(--color-ink) 18%, transparent);
+    border-radius: var(--control-radius);
+    font-family: var(--family-ui);
+    font-size: 0.85rem;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.site-nav__noscript-link,
+.site-nav__noscript-utility-link {
+    background: var(--color-canvas-bright);
+    color: var(--color-ink);
+}
+
+.site-nav__noscript-link[aria-current='page'],
+.site-nav__noscript-utility-link[aria-current='page'] {
+    border-color: var(--color-violet-600);
+    color: var(--color-violet-700);
+}
+
+.site-nav__noscript-cta {
+    border-color: var(--color-violet-600);
+    background: var(--color-violet-600);
+    color: var(--color-canvas-bright);
+}
+
+.site-nav__noscript-cta[aria-current='page'] {
+    background: var(--color-violet-700);
+}
+
+.site-nav__noscript-link:focus-visible,
+.site-nav__noscript-cta:focus-visible,
+.site-nav__noscript-utility-link:focus-visible {
+    outline: 2px solid var(--color-violet-500);
+    outline-offset: 2px;
+}
+
+.site-nav__noscript-logout {
+    min-width: 0;
+}
+
+.site-nav__noscript-logout .site-nav__noscript-utility-link {
+    width: 100%;
+}
+
 /* Media placeholders */
 .media-placeholder {
     border: 1px solid color-mix(in oklab, var(--color-ink) 44%, transparent);
@@ -5752,6 +5831,10 @@ html[dir='rtl'].motion-capable .manifesto-section__copy::before {
     .site-nav__account,
     .site-nav__account-trigger {
         display: grid;
+    }
+
+    .site-nav__noscript {
+        display: none;
     }
 
     .mobile-menu {

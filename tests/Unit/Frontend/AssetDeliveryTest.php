@@ -43,8 +43,9 @@ class AssetDeliveryTest extends TestCase
 
         $this->assertStringContainsString("import './google-analytics';", $entrypoint);
         $this->assertStringContainsString('meta[name="google-analytics-id"]', $loader);
+        $this->assertStringContainsString("const analyticsContextMeta = () => document.querySelector('meta[name=\"analytics-context\"]');", $loader);
         $this->assertStringContainsString('https://www.googletagmanager.com/gtag/js?id=', $loader);
-        $this->assertStringContainsString("window.gtag('config', measurementId, {", $loader);
+        $this->assertStringContainsString("safeGtag('config', measurementId, {", $loader);
         $this->assertStringContainsString('send_page_view: false', $loader);
     }
 }

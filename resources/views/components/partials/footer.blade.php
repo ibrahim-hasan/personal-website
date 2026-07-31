@@ -1,3 +1,7 @@
+@props([
+    'suppressTerminalCta' => false,
+])
+
 @php
     $year = now()->year;
     $contact = \App\Support\SiteContent::contact();
@@ -5,17 +9,19 @@
 @endphp
 
 <footer class="site-footer" aria-label="{{ __('site.footer.label') }}">
-    <section class="site-footer__cta">
-        <div class="site-container site-footer__cta-layout">
-            <h2 class="display-section max-w-4xl text-canvas">
-                {{ __('site.footer.cta_title') }}
-            </h2>
-            <a href="{{ localized_route('contact') }}#consultation" wire:navigate class="button-light site-footer__cta-action" data-magnetic>
-                <span>{{ __('site.actions.free_consultation') }}</span>
-                <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
-            </a>
-        </div>
-    </section>
+    @unless ($suppressTerminalCta)
+        <section class="site-footer__cta">
+            <div class="site-container site-footer__cta-layout">
+                <h2 class="display-section max-w-4xl text-canvas">
+                    {{ __('site.footer.cta_title') }}
+                </h2>
+                <a href="{{ localized_route('contact') }}#consultation" wire:navigate class="button-light site-footer__cta-action" data-magnetic>
+                    <span>{{ __('site.actions.free_consultation') }}</span>
+                    <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
+                </a>
+            </div>
+        </section>
+    @endunless
 
     <div class="site-container grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-[1.1fr_0.65fr_1fr]">
         <div>

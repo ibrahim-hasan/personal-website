@@ -189,7 +189,7 @@ class ArticleCommunityTest extends TestCase
 
         $this->assertTrue(
             collect($queries)->contains(fn (string $query): bool => str_contains($query, 'article_reading_progress')
-                && str_contains($query, 'on conflict')),
+                && (str_contains($query, 'on conflict') || str_contains($query, 'on duplicate key'))),
             'The first progress write must use the unique-key upsert path.',
         );
         $this->assertDatabaseCount(ArticleReadingProgress::class, 1);
