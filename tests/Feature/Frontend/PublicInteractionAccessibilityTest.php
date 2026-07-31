@@ -126,6 +126,18 @@ class PublicInteractionAccessibilityTest extends TestCase
         $javascript = $this->readProjectFile('resources/js/app.js');
 
         $this->assertMatchesRegularExpression('/\.writing-section\s*\{[^}]*background:\s*#ded3ea;/s', $css);
+        $this->assertMatchesRegularExpression(
+            '/\.experience-trajectory__grid\s*\{[^}]*padding-block-end:\s*clamp\(4\.5rem, 10vw, 7rem\);/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.decision-room-band\s*\{[^}]*color:\s*var\(--color-ink\);/s',
+            $css,
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            "/html\\[dir='rtl'\\]\\.motion-capable \\[data-reveal='step'\\]/s",
+            $css,
+        );
 
         $this->assertMatchesRegularExpression(
             '/\.motion-capable \[data-reveal\]\s*\{[^}]*opacity:\s*1;/s',

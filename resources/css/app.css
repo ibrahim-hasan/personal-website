@@ -4272,6 +4272,7 @@ html[dir='rtl'] .atlas-chapter h3 {
 .experience-trajectory__grid {
     display: grid;
     gap: 4rem;
+    padding-block-end: clamp(4.5rem, 10vw, 7rem);
 }
 
 .experience-trajectory__title {
@@ -4514,6 +4515,7 @@ html[dir='rtl'] .project-atlas__copy h3 {
 .decision-room-band {
     padding-block: clamp(6rem, 11vw, 10rem);
     background: var(--color-canvas-deep);
+    color: var(--color-ink);
 }
 
 .decision-room-band__intro {
@@ -5548,11 +5550,6 @@ html[dir='rtl'].motion-capable [data-reveal='copy'] {
 .motion-capable [data-reveal='editorial-row'].motion-complete > .publication-row__copy,
 .motion-capable [data-reveal='editorial-row'].motion-complete > .writing-row__content {
     will-change: auto;
-}
-
-html[dir='rtl'].motion-capable [data-reveal='step'],
-html[dir='rtl'].motion-capable [data-reveal='row'] {
-    translate: 0 2rem;
 }
 
 .motion-capable [data-reveal='case'] {
