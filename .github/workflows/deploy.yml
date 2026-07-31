@@ -191,9 +191,17 @@ jobs:
             exit 1
           fi
 
-          generated_files="$(git ls-files | grep -E \
-            '^(public/build/|vendor/|node_modules/|storage/framework/|bootstrap/cache/|\.phpunit\.cache$|\.env$)' \
-            || true)"
+          generated_files="$(git ls-files -- \
+            'public/build/**' \
+            'vendor/**' \
+            'node_modules/**' \
+            'storage/framework/**' \
+            'bootstrap/cache/**' \
+            '.phpunit.cache' \
+            '.env' \
+            ':(exclude)bootstrap/cache/.gitignore' \
+            ':(exclude)storage/framework/.gitignore' \
+            ':(exclude)storage/framework/**/.gitignore')"
 
           if [[ -n "$generated_files" ]]; then
             echo "Generated artifacts or environment files are tracked:" >&2
