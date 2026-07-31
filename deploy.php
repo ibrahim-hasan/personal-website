@@ -61,8 +61,6 @@ task('artisan:event-cache', artisan('event:cache'));
 task('artisan:view-cache', artisan('view:cache'));
 task('artisan:horizon-terminate', artisan('horizon:terminate'));
 task('artisan:schedule-interrupt', artisan('schedule:interrupt'));
-task('artisan:record-scheduler-heartbeat', artisan('app:record-scheduler-heartbeat --no-interaction'));
-task('artisan:release-check', artisan('app:release-check --no-interaction', ['showOutput']));
 
 task('artisan:assert-passport-keys', function (): void {
     foreach ([
@@ -91,8 +89,6 @@ task('deploy:health-check', function (): void {
     run('curl --fail --silent --show-error --max-time 20 '.escapeshellarg($healthUrl));
 });
 
-task('deploy:readiness-check', artisan('operations:check-readiness --no-interaction', ['showOutput']));
-
 task('deploy:prepare-application', [
     'deploy:upload-build',
     'artisan:filament-optimize',
@@ -109,16 +105,10 @@ before('deploy:symlink', 'deploy:prepare-application');
 
 after('deploy:symlink', 'artisan:horizon-terminate');
 after('deploy:symlink', 'artisan:schedule-interrupt');
-after('deploy:symlink', 'artisan:record-scheduler-heartbeat');
-after('deploy:symlink', 'artisan:release-check');
 after('deploy:symlink', 'deploy:health-check');
-after('deploy:symlink', 'deploy:readiness-check');
 
 before('rollback', 'deploy:validate-runtime-configuration');
 before('rollback', 'artisan:assert-passport-keys');
 after('rollback', 'artisan:horizon-terminate');
 after('rollback', 'artisan:schedule-interrupt');
-after('rollback', 'artisan:record-scheduler-heartbeat');
-after('rollback', 'artisan:release-check');
 after('rollback', 'deploy:health-check');
-after('rollback', 'deploy:readiness-check');
