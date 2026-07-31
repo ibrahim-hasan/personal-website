@@ -102,7 +102,9 @@ class ManageArticleAudio extends Page
                     && hash_equals((string) $narration->source_hash, $sourceHash)
                     && hash_equals((string) $narration->prompt_version, OpenAiNarrationEditor::promptVersion());
                 $trackModel = $track?->model_id ?: (string) config('services.elevenlabs.model_id');
-                $contentHash = $scripts->publicFingerprint($article, $locale, $trackModel);
+                $contentHash = $track?->isUploaded()
+                    ? $sourceHash
+                    : $scripts->publicFingerprint($article, $locale, $trackModel);
                 $isStale = $track !== null && $track->isStale($contentHash);
                 $pathExists = $track?->path !== null
                     && Storage::disk($track->disk)->exists($track->path);
@@ -142,12 +144,14 @@ class ManageArticleAudio extends Page
                     'is_stale' => $isStale,
                     'is_generating' => $track?->isGenerating() === true,
                     'audio_url' => $isCurrent ? $track?->publicUrl() : null,
+                    'audio_source' => $track?->isUploaded() ? 'uploaded' : 'generated',
                     'error_message' => $this->trackErrorMessage($track),
                     'narration' => $narration,
                     'narration_is_current' => $narrationIsCurrent,
                     'narration_is_approved' => $narrationIsCurrent && $narration?->isApprovedFor($sourceHash) === true,
                     'narration_status_label' => $this->narrationStatusLabel($narration, $narrationIsCurrent),
                     'narration_status_color' => $this->narrationStatusColor($narration, $narrationIsCurrent),
+                    'narration_error_message' => filled($narration?->last_error) ? $narration->last_error : null,
                     'is_preparing' => $narration?->isPreparing() === true,
                     'models' => $modelRows,
                     'has_active_work' => $track?->isGenerating() === true
@@ -167,9 +171,11 @@ class ManageArticleAudio extends Page
         $elevenLabsKeyConfigured = filled(config('services.elevenlabs.api_key'));
         $openAiKeyConfigured = filled(config('ai.providers.openai.key'));
         $voiceConfigured = $voiceId !== '';
+        $uploadReady = true;
 
         return [
-            'ready' => $elevenLabsKeyConfigured && $voiceConfigured && $openAiKeyConfigured,
+            'ready' => $uploadReady || ($elevenLabsKeyConfigured && $voiceConfigured && $openAiKeyConfigured),
+            'upload_ready' => $uploadReady,
             'preparation_ready' => $openAiKeyConfigured,
             'synthesis_ready' => $elevenLabsKeyConfigured && $voiceConfigured,
             'openai_key_configured' => $openAiKeyConfigured,

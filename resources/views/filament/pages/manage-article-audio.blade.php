@@ -106,6 +106,11 @@
                                 <x-filament::badge :color="$row['status_color']">
                                     {{ __('article_audio.labels.audio') }} · {{ $row['status_label'] }}
                                 </x-filament::badge>
+                                @if ($row['track'])
+                                    <x-filament::badge color="gray">
+                                        {{ __('article_audio.sources.'.$row['audio_source']) }}
+                                    </x-filament::badge>
+                                @endif
                             </div>
                             <h3 class="mt-2 truncate text-base font-semibold leading-7 text-gray-950 dark:text-white" dir="{{ $row['locale'] === 'ar' ? 'rtl' : 'ltr' }}">
                                 {{ $row['title'] }}
@@ -125,6 +130,13 @@
                         @elseif ($row['is_stale'])
                             <div class="rounded-xl border border-warning-200 bg-warning-50 px-4 py-3 text-sm text-warning-700 dark:border-warning-500/20 dark:bg-warning-500/10 dark:text-warning-200">
                                 {{ __('article_audio.page.stale_explanation') }}
+                            </div>
+                        @endif
+
+                        @if ($row['narration_error_message'])
+                            <div class="rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 text-sm leading-6 text-danger-700 dark:border-danger-500/20 dark:bg-danger-500/10 dark:text-danger-200">
+                                <p class="font-semibold">{{ __('article_audio.narration.preparation_error') }}</p>
+                                <p class="mt-1">{{ $row['narration_error_message'] }}</p>
                             </div>
                         @endif
 
@@ -280,17 +292,38 @@
                             </div>
                         @endif
 
+                        <section class="grid gap-5 rounded-xl border border-dashed border-success-300 bg-success-50/50 p-5 dark:border-success-500/30 dark:bg-success-500/5 lg:grid-cols-[1fr_auto] lg:items-end">
+                            <div>
+                                <h4 class="font-semibold text-gray-950 dark:text-white">{{ __('article_audio.upload.title') }}</h4>
+                                <p class="mt-1 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-300">{{ __('article_audio.upload.description') }}</p>
+                            </div>
+                            @if ($canGenerate)
+                                <form method="POST" action="{{ route('filament.admin.article-audio.upload', ['article' => $row['key'], 'locale' => $row['locale']]) }}" enctype="multipart/form-data" class="flex flex-col gap-3 sm:flex-row sm:items-end">
+                                    @csrf
+                                    <label class="min-w-56 text-sm font-medium text-gray-700 dark:text-gray-200">
+                                        <span class="sr-only">{{ __('article_audio.upload.file') }}</span>
+                                        <input type="file" name="audio" accept="audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/webm,.mp3,.wav,.ogg,.m4a,.webm" required class="block w-full rounded-lg border border-gray-300 bg-white text-sm text-gray-700 file:mr-3 file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-semibold dark:border-white/10 dark:bg-gray-950 dark:text-gray-200 dark:file:bg-white/10" />
+                                    </label>
+                                    <x-filament::button type="submit" color="success" icon="heroicon-o-arrow-up-tray">
+                                        {{ __('article_audio.upload.action') }}
+                                    </x-filament::button>
+                                </form>
+                            @endif
+                        </section>
+
                         @if ($row['audio_url'])
                             <div class="rounded-xl bg-success-50 p-4 dark:bg-success-500/10">
                                 <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                                    <h4 class="font-semibold text-success-900 dark:text-success-100">{{ __('article_audio.final.title') }}</h4>
-                                    <span class="font-mono text-xs text-success-700 dark:text-success-300" dir="ltr">{{ $row['track']?->model_id }}</span>
+                                    <h4 class="font-semibold text-success-900 dark:text-success-100">{{ $row['track']?->isUploaded() ? __('article_audio.final.uploaded_title') : __('article_audio.final.title') }}</h4>
+                                    @if ($row['track']?->model_id)
+                                        <span class="font-mono text-xs text-success-700 dark:text-success-300" dir="ltr">{{ $row['track']?->model_id }}</span>
+                                    @endif
                                 </div>
                                 <audio class="w-full" controls preload="metadata" src="{{ $row['audio_url'] }}">
                                     {{ __('article_audio.page.audio_unsupported') }}
                                 </audio>
                                 <p class="mt-2 text-xs text-success-700 dark:text-success-300">
-                                    {{ __('article_audio.page.generated_at') }}: {{ $row['track']?->generated_at?->diffForHumans() }}
+                                    {{ $row['track']?->isUploaded() ? __('article_audio.page.added_at') : __('article_audio.page.generated_at') }}: {{ $row['track']?->generated_at?->diffForHumans() }}
                                 </p>
                             </div>
                         @endif

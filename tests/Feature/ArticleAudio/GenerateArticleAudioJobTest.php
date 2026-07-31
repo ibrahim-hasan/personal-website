@@ -135,6 +135,36 @@ class GenerateArticleAudioJobTest extends TestCase
         Http::assertSentCount(2);
     }
 
+    public function test_stale_generation_job_does_not_replace_an_uploaded_track(): void
+    {
+        Storage::disk('public')->put('article-audio/ar/editor-recording.mp3', 'editor-audio');
+        ArticleAudio::factory()->create([
+            'article_key' => 'ai-value',
+            'locale' => 'ar',
+            'source_type' => ArticleAudio::SOURCE_UPLOADED,
+            'status' => ArticleAudioStatus::Ready,
+            'path' => 'article-audio/ar/editor-recording.mp3',
+            'content_hash' => app(ArticleNarrationScript::class)->fingerprint(
+                app(ArticleCatalog::class)->findByKey('ai-value'),
+                'ar',
+            ),
+        ]);
+
+        Http::preventStrayRequests();
+
+        app()->call([
+            new GenerateArticleAudio('ai-value', 'ar', 'eleven_multilingual_v2'),
+            'handle',
+        ]);
+
+        $audio = ArticleAudio::query()->where('article_key', 'ai-value')->where('locale', 'ar')->firstOrFail();
+
+        $this->assertSame(ArticleAudio::SOURCE_UPLOADED, $audio->source_type);
+        $this->assertSame(ArticleAudioStatus::Ready, $audio->status);
+        $this->assertSame('article-audio/ar/editor-recording.mp3', $audio->path);
+        Storage::disk('public')->assertExists('article-audio/ar/editor-recording.mp3');
+    }
+
     public function test_failed_job_records_a_sanitized_error_without_deleting_previous_audio(): void
     {
         Storage::disk('public')->put('article-audio/ar/previous.mp3', 'previous-audio');

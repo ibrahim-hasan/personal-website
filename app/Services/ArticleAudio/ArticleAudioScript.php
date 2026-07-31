@@ -48,6 +48,11 @@ class ArticleAudioScript
             ?? $this->source->fingerprint($article, $locale);
     }
 
+    public function sourceFingerprint(Article $article, string $locale): string
+    {
+        return $this->source->fingerprint($article, $locale);
+    }
+
     private function voiceId(string $locale): string
     {
         return trim((string) (

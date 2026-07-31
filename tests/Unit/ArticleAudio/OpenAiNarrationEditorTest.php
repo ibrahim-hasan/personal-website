@@ -80,6 +80,25 @@ class OpenAiNarrationEditorTest extends TestCase
         }
     }
 
+    public function test_non_compliant_provider_output_falls_back_to_the_exact_source_for_review(): void
+    {
+        $source = str_repeat('هذه جملة عربية تحافظ على المصدر. ', 15);
+
+        ArticleNarrationEditor::fake([[
+            'script' => str_replace('المصدر', 'المعنى', $source),
+            'notes' => [],
+            'pronunciation_notes' => [],
+        ]])->preventStrayPrompts();
+
+        $draft = app(OpenAiNarrationEditor::class)->prepare($source, 'ar');
+
+        $this->assertSame($source, $draft->script);
+        $this->assertContains(
+            'The provider output was rejected because it did not satisfy the narration source contract. The original source was preserved for manual review.',
+            $draft->notes,
+        );
+    }
+
     public function test_transient_provider_overload_is_retried_before_returning_the_draft(): void
     {
         $source = str_repeat('This sentence preserves the source article meaning and order. ', 12);

@@ -16,6 +16,8 @@ class NarrationDraftValidator
 
     private const ALLOWED_AUDIO_TAGS_PATTERN = '/(?:[ \t]*\[(?:thoughtful|short pause|long pause|exhales)\][ \t]*)+/u';
 
+    private const ANY_AUDIO_TAG_PATTERN = '/\[[^\]]*\]/u';
+
     public function validate(string $script, string $source): void
     {
         $script = trim($script);
@@ -24,6 +26,8 @@ class NarrationDraftValidator
         if ($script === '') {
             throw new UnexpectedValueException('The narration draft is empty.');
         }
+
+        $this->validateAudioTagPlacement($script);
 
         if (! hash_equals($this->withoutArabicDiacritics($source), $this->withoutArabicDiacritics($this->withoutAllowedAudioTags($script)))) {
             throw new UnexpectedValueException('The narration draft may only add Arabic diacritics and approved audio tags to the source text.');
@@ -67,6 +71,28 @@ class NarrationDraftValidator
     private function withoutAllowedAudioTags(string $value): string
     {
         return trim(preg_replace(self::ALLOWED_AUDIO_TAGS_PATTERN, ' ', $value) ?? $value);
+    }
+
+    private function validateAudioTagPlacement(string $script): void
+    {
+        preg_match_all(self::ANY_AUDIO_TAG_PATTERN, $script, $matches, PREG_OFFSET_CAPTURE);
+
+        foreach ($matches[0] ?? [] as [$tag, $byteOffset]) {
+            if (! preg_match('/^\[(?:thoughtful|short pause|long pause|exhales)\]$/u', $tag)) {
+                throw new UnexpectedValueException('The narration draft contains an unsupported audio tag.');
+            }
+
+            $prefix = substr($script, 0, $byteOffset);
+            $prefixLength = mb_strlen($prefix);
+            $previous = $prefixLength > 0 ? mb_substr($prefix, -1) : '';
+            $suffix = mb_substr($script, $prefixLength + mb_strlen($tag));
+            $next = $suffix !== '' ? mb_substr($suffix, 0, 1) : '';
+
+            if (($previous !== '' && preg_match('/[\p{L}\p{M}\p{N}]/u', $previous) === 1)
+                || ($next !== '' && preg_match('/[\p{L}\p{M}\p{N}]/u', $next) === 1)) {
+                throw new UnexpectedValueException('Audio tags must sit between words, not inside a word or name.');
+            }
+        }
     }
 
     /**

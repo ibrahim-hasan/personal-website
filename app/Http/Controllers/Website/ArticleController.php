@@ -38,7 +38,9 @@ class ArticleController extends Controller
 
         if ($audio !== null) {
             $modelId = $audio->model_id ?: (string) config('services.elevenlabs.model_id');
-            $contentHash = $this->scripts->publicFingerprint($resolvedArticle, $locale, $modelId);
+            $contentHash = $audio->isUploaded()
+                ? $this->scripts->sourceFingerprint($resolvedArticle, $locale)
+                : $this->scripts->publicFingerprint($resolvedArticle, $locale, $modelId);
 
             if ($audio->isStale($contentHash)) {
                 $audio = null;

@@ -47,6 +47,7 @@ final readonly class HomepageAudioSpotlight
                 'status',
                 'disk',
                 'path',
+                'source_type',
                 'model_id',
                 'content_hash',
                 'generated_at',
@@ -70,7 +71,9 @@ final readonly class HomepageAudioSpotlight
             }
 
             $modelId = $track->model_id ?: (string) config('services.elevenlabs.model_id');
-            $contentHash = $this->scripts->publicFingerprint($article, $locale, $modelId);
+            $contentHash = $track->isUploaded()
+                ? $this->scripts->sourceFingerprint($article, $locale)
+                : $this->scripts->publicFingerprint($article, $locale, $modelId);
 
             if ($track->isStale($contentHash) || ! Storage::disk($track->disk)->exists($track->path)) {
                 continue;

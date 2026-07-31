@@ -21,6 +21,7 @@ class ArticleAudioFactory extends Factory
         return [
             'article_key' => 'ai-value',
             'locale' => 'ar',
+            'source_type' => ArticleAudio::SOURCE_GENERATED,
             'requested_by_user_id' => null,
             'status' => ArticleAudioStatus::Ready,
             'disk' => 'public',
