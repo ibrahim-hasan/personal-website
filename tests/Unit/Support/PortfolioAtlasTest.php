@@ -2,14 +2,26 @@
 
 namespace Tests\Unit\Support;
 
+use App\Models\Project;
 use App\Support\PortfolioAtlas;
+use Database\Seeders\ProjectSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PortfolioAtlasTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(ProjectSeeder::class);
+    }
+
     public function test_project_ids_are_unique_and_the_selection_is_stable(): void
     {
-        $projectIds = array_column(PortfolioAtlas::projects(), 'id');
+        $projectKeys = array_column(PortfolioAtlas::projects(), 'key');
 
         $this->assertSame([
             'digi-pedia',
@@ -20,8 +32,8 @@ class PortfolioAtlasTest extends TestCase
             'taifk',
             'bosalty',
             '2060-investments',
-        ], $projectIds);
-        $this->assertCount(count($projectIds), array_unique($projectIds));
+        ], $projectKeys);
+        $this->assertCount(count($projectKeys), array_unique($projectKeys));
     }
 
     public function test_projects_only_use_declared_decision_lenses(): void
@@ -54,11 +66,22 @@ class PortfolioAtlasTest extends TestCase
                 PortfolioAtlas::experience(),
                 ['id', 'step', 'title', 'summary'],
             );
+            $projects = PortfolioAtlas::projects();
+
             $this->assertResolvedItems(
-                PortfolioAtlas::projects(),
-                ['id', 'title', 'sector', 'summary', 'challenge', 'response', 'outcome', 'lens', 'image', 'alt', 'logo', 'logo_alt'],
+                $projects,
+                ['key', 'id', 'title', 'sector', 'summary', 'challenge', 'response', 'outcome', 'lens'],
                 'tags',
             );
+
+            foreach ($projects as $project) {
+                $this->assertSame('', $project['image']);
+                $this->assertSame('', $project['alt']);
+                $this->assertSame('', $project['logo']);
+                $this->assertSame('', $project['logo_alt']);
+                $this->assertSame('', $project['image_media']['src']);
+                $this->assertSame('', $project['logo_media']['src']);
+            }
             $this->assertResolvedItems(
                 PortfolioAtlas::lenses(),
                 ['id', 'label', 'description', 'question'],
@@ -82,6 +105,10 @@ class PortfolioAtlasTest extends TestCase
 
     public function test_featured_projects_support_lens_filtering_and_limits(): void
     {
+        Project::query()
+            ->where('key', 'taifk')
+            ->update(['featured' => true]);
+
         $this->assertCount(4, PortfolioAtlas::featuredProjects());
 
         $operationsProjects = PortfolioAtlas::featuredProjects('operations', 2);
@@ -96,7 +123,7 @@ class PortfolioAtlasTest extends TestCase
     {
         $this->assertSame(
             ['digi-pedia', 'wafaa', 'rannan', 'maazim', 'rafid-360', 'taifk'],
-            array_column(PortfolioAtlas::homepageProjects(), 'id'),
+            array_column(PortfolioAtlas::homepageProjects(), 'key'),
         );
         $this->assertSame([], PortfolioAtlas::homepageProjects(0));
     }
@@ -153,9 +180,9 @@ class PortfolioAtlasTest extends TestCase
         }
     }
 
-    public function test_every_project_has_a_non_empty_atlas_image_path(): void
+    public function test_project_defaults_reference_existing_atlas_media_assets(): void
     {
-        foreach (PortfolioAtlas::projects() as $project) {
+        foreach (PortfolioAtlas::projectDefaults() as $project) {
             $this->assertNotSame('', trim($project['image']));
             $this->assertMatchesRegularExpression(
                 '#^images/projects/atlas/[a-z0-9-]+\.webp$#',

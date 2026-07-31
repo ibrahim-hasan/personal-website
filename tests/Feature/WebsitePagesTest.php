@@ -2,10 +2,25 @@
 
 namespace Tests\Feature;
 
+use Database\Seeders\ArticleSeeder;
+use Database\Seeders\ProjectSeeder;
+use Database\Seeders\ServiceSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class WebsitePagesTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(ServiceSeeder::class);
+        $this->seed(ProjectSeeder::class);
+        $this->seed(ArticleSeeder::class);
+    }
+
     public function test_public_layout_uses_the_violet_diamond_favicon(): void
     {
         $this->assertFileExists(public_path('favicon.svg'));

@@ -287,7 +287,7 @@ class Project extends Model implements HasMedia, LocalizedUrlRoutable
                 : PublicImage::hidden(self::LOGO_WIDTH, self::LOGO_HEIGHT),
             'logo_alt' => $mayRenderLogo ? $this->translation('logo_alt', $locale) : '',
             'tags' => collect($this->tags ?? [])
-                ->map(fn (array $tag): string => (string) ($tag[$locale] ?? ''))
+                ->map(fn (array $tag): string => $this->tagTranslation($tag, $locale))
                 ->filter()
                 ->values()
                 ->all(),
@@ -376,5 +376,13 @@ class Project extends Model implements HasMedia, LocalizedUrlRoutable
     private function translation(string $attribute, string $locale): string
     {
         return (string) $this->getTranslation($attribute, $locale);
+    }
+
+    /** @param array<string, mixed> $tag */
+    private function tagTranslation(array $tag, string $locale): string
+    {
+        $fallbackLocale = (string) config('app.fallback_locale', 'en');
+
+        return (string) ($tag[$locale] ?? $tag[$fallbackLocale] ?? '');
     }
 }
