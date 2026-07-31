@@ -91,6 +91,40 @@ class NarrationMarkupTest extends TestCase
         );
     }
 
+    public function test_validator_allows_browser_line_endings_without_relaxing_the_source_contract(): void
+    {
+        $validator = new NarrationDraftValidator;
+        $source = "عنوان المقال؟\n\nهذه فقرة عربية تحافظ على النص الأصلي.\n\nوهذه فقرة ثانية.";
+
+        $validator->validate(
+            str_replace("\n", "\r\n", $source),
+            $source,
+        );
+
+        $this->addToAssertionCount(1);
+    }
+
+    public function test_validator_allows_an_approved_audio_tag_on_its_own_paragraph_line(): void
+    {
+        (new NarrationDraftValidator)->validate(
+            "الفكرة الأولى.\n\n[short pause]\n\nالفكرة الثانية.",
+            "الفكرة الأولى.\n\nالفكرة الثانية.",
+        );
+
+        $this->addToAssertionCount(1);
+    }
+
+    public function test_validator_rejects_an_approved_audio_tag_that_changes_paragraph_spacing(): void
+    {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('only add Arabic diacritics');
+
+        (new NarrationDraftValidator)->validate(
+            "الفكرة الأولى.\n[short pause]\n\nالفكرة الثانية.",
+            "الفكرة الأولى.\n\nالفكرة الثانية.",
+        );
+    }
+
     public function test_validator_rejects_an_approved_tag_inside_a_word(): void
     {
         $this->expectException(UnexpectedValueException::class);

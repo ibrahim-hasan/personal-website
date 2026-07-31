@@ -16,12 +16,14 @@ class NarrationDraftValidator
 
     private const ALLOWED_AUDIO_TAGS_PATTERN = '/(?:[ \t]*\[(?:thoughtful|short pause|long pause|exhales)\][ \t]*)+/u';
 
+    private const STANDALONE_ALLOWED_AUDIO_TAGS_PATTERN = '/(\n+)[ \t]*\[(?:thoughtful|short pause|long pause|exhales)\][ \t]*(\n+)/u';
+
     private const ANY_AUDIO_TAG_PATTERN = '/\[[^\]]*\]/u';
 
     public function validate(string $script, string $source): void
     {
-        $script = trim($script);
-        $source = trim($source);
+        $script = trim($this->normalizeLineEndings($script));
+        $source = trim($this->normalizeLineEndings($source));
 
         if ($script === '') {
             throw new UnexpectedValueException('The narration draft is empty.');
@@ -68,8 +70,19 @@ class NarrationDraftValidator
         return preg_replace(self::ARABIC_DIACRITICS_PATTERN, '', $value) ?? $value;
     }
 
+    public function normalizeLineEndings(string $value): string
+    {
+        return str_replace(["\r\n", "\r"], "\n", $value);
+    }
+
     private function withoutAllowedAudioTags(string $value): string
     {
+        $value = preg_replace_callback(
+            self::STANDALONE_ALLOWED_AUDIO_TAGS_PATTERN,
+            static fn (array $matches): string => $matches[1] === $matches[2] ? $matches[1] : $matches[0],
+            $value,
+        ) ?? $value;
+
         return trim(preg_replace(self::ALLOWED_AUDIO_TAGS_PATTERN, ' ', $value) ?? $value);
     }
 

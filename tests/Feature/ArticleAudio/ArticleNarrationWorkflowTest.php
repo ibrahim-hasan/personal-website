@@ -69,7 +69,7 @@ class ArticleNarrationWorkflowTest extends TestCase
             'prepared_at' => now(),
         ])->save();
 
-        $reviewed = $source;
+        $reviewed = str_replace("\n", "\r\n", $source);
 
         $this->actingAs($editor)
             ->put(route('filament.admin.article-audio.narration.update', [
@@ -84,7 +84,7 @@ class ArticleNarrationWorkflowTest extends TestCase
         $narration->refresh();
 
         $this->assertSame(ArticleNarrationStatus::Approved, $narration->status);
-        $this->assertSame($reviewed, $narration->script);
+        $this->assertSame($source, $narration->script);
         $this->assertNotNull($narration->approved_at);
     }
 

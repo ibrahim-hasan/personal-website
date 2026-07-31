@@ -46,7 +46,7 @@ class UpdateArticleNarrationController extends Controller
             return redirect(ManageArticleAudio::getUrl());
         }
 
-        $script = trim((string) $request->validated('script'));
+        $script = trim($validator->normalizeLineEndings((string) $request->validated('script')));
 
         try {
             $validator->validate($script, $sourceText);
