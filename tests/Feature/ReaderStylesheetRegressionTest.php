@@ -33,5 +33,9 @@ class ReaderStylesheetRegressionTest extends TestCase
             '/\.reader-checkbox:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--color-violet-700\);/s',
             $css,
         );
+        $this->assertMatchesRegularExpression(
+            "/\.form-alert h2\[tabindex='-1'\]:focus\s*\{[^}]*outline:\s*0;/s",
+            $css,
+        );
     }
 }

@@ -84,7 +84,7 @@ class TurnstileTest extends TestCase
             'bad-token',
             function (string $message) use (&$failed): void {
                 $failed = true;
-                $this->assertSame('validation.turnstile', $message);
+                $this->assertSame(__('validation.turnstile'), $message);
             },
         );
 

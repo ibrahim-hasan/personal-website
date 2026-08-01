@@ -91,7 +91,10 @@ class ReaderAccountTest extends TestCase
                 'progress' => 1,
                 'comments' => 1,
             ])
-            ->assertViewHas('canDeleteAccount', true);
+            ->assertViewHas('canDeleteAccount', true)
+            ->assertSee('reader-surface', false)
+            ->assertSee('reader-form-control', false)
+            ->assertDontSee('site-footer__cta', false);
     }
 
     public function test_a_reader_can_update_their_name_without_reentering_their_password(): void

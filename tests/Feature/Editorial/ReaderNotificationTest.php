@@ -64,7 +64,8 @@ class ReaderNotificationTest extends TestCase
             ->assertOk()
             ->assertSee('All caught up')
             ->assertSee('No reader updates yet')
-            ->assertSee('When your contribution is approved or someone replies, the update will appear here.');
+            ->assertSee('When your contribution is approved or someone replies, the update will appear here.')
+            ->assertDontSee('site-footer__cta', false);
     }
 
     public function test_a_reader_cannot_see_or_open_another_readers_notification(): void

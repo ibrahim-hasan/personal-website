@@ -2,6 +2,7 @@
     :title="__('reader_auth.account_title')"
     :description="__('reader_auth.account_description')"
     robots="noindex, nofollow, noarchive, noimageindex"
+    suppressTerminalCta
 >
     @php
         $profileErrors = $errors->getBag('profile');
@@ -11,7 +12,7 @@
 
     <section class="min-h-[75vh] bg-canvas pb-20 pt-32 sm:pb-24 sm:pt-36" aria-labelledby="reader-account-title">
         <div class="site-container">
-            <header class="flex flex-col justify-between gap-8 border-b border-ink/15 pb-8 lg:flex-row lg:items-end">
+            <header class="flex flex-col justify-between gap-8 border-b border-ink/15 pb-8 lg:flex-row lg:items-end lg:justify-start lg:gap-10">
                 <div class="max-w-2xl">
                     <p class="signal-label">{{ __('reader_auth.reader_account') }}</p>
                     <h1 id="reader-account-title" class="mt-5 font-display text-4xl font-black leading-[1.08] text-ink sm:text-6xl">

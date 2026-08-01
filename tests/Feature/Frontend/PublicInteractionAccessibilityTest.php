@@ -84,12 +84,12 @@ class PublicInteractionAccessibilityTest extends TestCase
 
         $this->get('/en/writing')
             ->assertOk()
-            ->assertSee('class="publication-topics-shell" data-overflow-rail', false)
+            ->assertSee('class="filter-bar-shell" data-overflow-rail', false)
             ->assertSee('data-overflow-rail-previous', false)
             ->assertSee('data-overflow-rail-next', false)
             ->assertSee('?topic=', false)
             ->assertSee('aria-current="page"', false)
-            ->assertSee('class="publication-topics__arrow"', false)
+            ->assertSee('class="filter-bar__arrow"', false)
             ->assertSee('Show more topics', false)
             ->assertDontSee('x-show="matches(', false)
             ->assertDontSee('class="statement-band"', false)
@@ -162,11 +162,6 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertMatchesRegularExpression('/\.site-footer__cta-action\s*\{[^}]*inline-size:\s*min\(100%, 22rem\);[^}]*min-block-size:\s*clamp\(4rem, 4\.5vw, 4\.5rem\);[^}]*justify-content:\s*space-between;/s', $css);
         $this->assertMatchesRegularExpression('/@media \(min-width: 64rem\)\s*\{\s*\.site-footer__cta-layout\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) clamp\(18rem, 22vw, 22rem\);[^}]*align-items:\s*center;/s', $css);
         $this->assertMatchesRegularExpression('/@media \(min-width: 64rem\)\s*\{.*?\.site-footer__cta-action\s*\{[^}]*inline-size:\s*100%;[^}]*justify-self:\s*stretch;/s', $css);
-        $this->assertMatchesRegularExpression('/\.publication-topics\s*\{[^}]*overflow-x:\s*auto;/s', $css);
-        $this->assertMatchesRegularExpression(
-            '/\.publication-topics\s*\{[^}]*align-items:\s*center;[^}]*padding-block:\s*0\.525rem;/s',
-            $css,
-        );
         $this->assertMatchesRegularExpression(
             '/\.publication-row__meta\s*\{[^}]*align-items:\s*baseline;[^}]*gap:\s*0\.45rem 0\.7rem;/s',
             $css,
@@ -469,6 +464,7 @@ class PublicInteractionAccessibilityTest extends TestCase
 
         $navbar = $this->readProjectFile('resources/views/components/partials/navbar.blade.php');
         $account = $this->readProjectFile('resources/views/website/reader-account.blade.php');
+        $library = $this->readProjectFile('resources/views/website/reader-library.blade.php');
 
         $this->assertStringContainsString("localized_route('reader.login')", $navbar);
         $this->assertStringContainsString("localized_route('reader.library')", $navbar);
@@ -501,6 +497,30 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString('autocomplete="current-password"', $account);
         $this->assertStringContainsString("@method('DELETE')", $account);
         $this->assertStringContainsString('robots="noindex, nofollow, noarchive, noimageindex"', $account);
+        $this->assertStringContainsString('suppressTerminalCta', $account);
+        $this->assertStringContainsString('suppressTerminalCta', $library);
+        $this->assertStringContainsString('lg:justify-start', $account);
+        $this->assertStringContainsString('lg:justify-start', $library);
+        $this->assertMatchesRegularExpression(
+            '/\.reader-surface\s*\{[^}]*border:\s*1px solid[^}]*background:\s*var\(--color-canvas-bright\);/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.reader-form-control\s*\{[^}]*border:\s*1px solid[^}]*background:\s*var\(--color-canvas\);/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.reader-form-control:focus-visible\s*\{[^}]*border-color:\s*var\(--color-violet-700\);[^}]*box-shadow:/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            "/\\.reader-form-control\\[aria-invalid='true'\\]\\s*\\{[^}]*border-color:\\s*var\\(--color-danger\\);/s",
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.reader-feedback\s*\{[^}]*border-inline-start:\s*3px solid var\(--color-violet-700\);/s',
+            $css,
+        );
 
         $community = $this->readProjectFile('resources/views/livewire/website/article-community.blade.php');
 
@@ -657,15 +677,6 @@ class PublicInteractionAccessibilityTest extends TestCase
             '/\.publication-row__kind\s*\{[^}]*border-radius:\s*999px;/s',
             $css,
         );
-        $this->assertMatchesRegularExpression(
-            '/\.publication-topics button\s*\{[^}]*border-radius:\s*999px;/s',
-            $css,
-        );
-        $this->assertMatchesRegularExpression(
-            '/\.publication-topics__arrow\s*\{[^}]*border-radius:\s*50%;/s',
-            $css,
-        );
-
         foreach ([$navbar, $decisionRoom, $readerAccount] as $markup) {
             $this->assertStringContainsString('rounded-[var(--control-radius)]', $markup);
             $this->assertStringNotContainsString('rounded-[0.2rem]', $markup);

@@ -235,6 +235,23 @@ class WebsitePagesTest extends TestCase
             ->assertSee('Request a free consultation', false);
     }
 
+    public function test_home_method_section_does_not_leave_an_empty_dark_tail_after_the_decision_room(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $sectionStart = strpos($css, '.experience-trajectory {');
+
+        $this->assertNotFalse($sectionStart);
+
+        $sectionEnd = strpos($css, "\n}", $sectionStart);
+
+        $this->assertNotFalse($sectionEnd);
+
+        $sectionRules = substr($css, $sectionStart, $sectionEnd - $sectionStart);
+
+        $this->assertStringContainsString('padding-block-start: clamp(6rem, 12vw, 11rem);', $sectionRules);
+        $this->assertStringNotContainsString('padding-block: clamp(6rem, 12vw, 11rem);', $sectionRules);
+    }
+
     public function test_homepage_presents_a_consulting_partnership_without_employment_or_stack_copy(): void
     {
         $this->get('/')

@@ -38,6 +38,8 @@ class WritingFilteringTest extends TestCase
             ->assertSee('href="'.localized_route('writing', locale: 'en').'"', false)
             ->assertSee('noindex, follow, noarchive', false)
             ->assertSee('aria-current="page"', false)
+            ->assertSee('class="filter-bar-shell" data-overflow-rail', false)
+            ->assertSee('class="filter-bar"', false)
             ->assertSee('data-overflow-rail', false);
     }
 

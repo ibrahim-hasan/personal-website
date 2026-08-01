@@ -60,15 +60,16 @@
                     <p>{{ __('articles.index.library') }}</p>
                     <h2>{{ __('articles.index.all_articles') }}</h2>
                 </div>
-                <div class="publication-topics-shell" data-overflow-rail>
-                    <button type="button" class="publication-topics__arrow" data-overflow-rail-previous hidden aria-label="{{ __('articles.index.previous_topics') }}">
+                <div class="filter-bar-shell" data-overflow-rail>
+                    <button type="button" class="filter-bar__arrow" data-overflow-rail-previous hidden aria-label="{{ __('articles.index.previous_topics') }}">
                         <x-phosphor-caret-left class="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
                     </button>
-                    <nav class="publication-topics" data-overflow-rail-scroll aria-label="{{ __('articles.index.filter_by_topic') }}">
-                    <span class="publication-topics__edge" data-overflow-rail-start aria-hidden="true"></span>
+                    <nav class="filter-bar" data-overflow-rail-scroll aria-label="{{ __('articles.index.filter_by_topic') }}">
+                    <span class="filter-bar__edge" data-overflow-rail-start aria-hidden="true"></span>
                     <a
                         href="{{ localized_route('writing') }}"
-                        class="{{ $selectedTopic === null ? 'is-active' : '' }}"
+                        class="button-quiet min-h-11 px-4 {{ $selectedTopic === null ? 'is-active' : '' }}"
+                        wire:navigate.preserve-scroll
                         @if ($selectedTopic === null) aria-current="page" @endif
                     >
                         {{ __('articles.index.all_topics') }}
@@ -76,15 +77,16 @@
                     @foreach ($topics as $key => $topic)
                         <a
                             href="{{ localized_route('writing', ['topic' => $key]) }}"
-                            class="{{ $selectedTopic === $key ? 'is-active' : '' }}"
+                            class="button-quiet min-h-11 px-4 {{ $selectedTopic === $key ? 'is-active' : '' }}"
+                            wire:navigate.preserve-scroll
                             @if ($selectedTopic === $key) aria-current="page" @endif
                         >
                             {{ $topic }}
                         </a>
                     @endforeach
-                    <span class="publication-topics__edge" data-overflow-rail-end aria-hidden="true"></span>
+                    <span class="filter-bar__edge" data-overflow-rail-end aria-hidden="true"></span>
                     </nav>
-                    <button type="button" class="publication-topics__arrow" data-overflow-rail-next hidden aria-label="{{ __('articles.index.next_topics') }}">
+                    <button type="button" class="filter-bar__arrow" data-overflow-rail-next hidden aria-label="{{ __('articles.index.next_topics') }}">
                         <x-phosphor-caret-right class="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
                     </button>
                 </div>

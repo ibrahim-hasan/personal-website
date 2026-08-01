@@ -65,6 +65,26 @@ class ReaderAuthenticationTest extends TestCase
         ])->assertRedirect('/writing/an-article');
     }
 
+    public function test_login_renders_a_localized_turnstile_error_without_leaking_the_translation_key(): void
+    {
+        config()->set('services.turnstile.secret', 'test-secret');
+        Http::fake([
+            'challenges.cloudflare.com/*' => Http::response(['success' => false], 200),
+        ]);
+
+        $this->from('/reader/login')
+            ->post('/reader/login', [
+                'email' => 'reader@example.com',
+                'password' => 'reader-password',
+                'cf-turnstile-response' => 'forged-token',
+            ])
+            ->assertRedirect('/reader/login');
+
+        $this->get('/reader/login')
+            ->assertSee(__('validation.turnstile'), false)
+            ->assertDontSee('validation.turnstile', false);
+    }
+
     public function test_english_reader_library_login_preserves_the_intended_locale(): void
     {
         $reader = User::factory()->create([

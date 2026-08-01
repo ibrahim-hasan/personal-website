@@ -1,7 +1,12 @@
-<x-layouts.front :title="__('reader_auth.library_title')" :description="__('reader_auth.library_description')" robots="noindex, nofollow, noarchive, noimageindex">
+<x-layouts.front
+    :title="__('reader_auth.library_title')"
+    :description="__('reader_auth.library_description')"
+    robots="noindex, nofollow, noarchive, noimageindex"
+    suppressTerminalCta
+>
     <section class="min-h-[75vh] bg-canvas pb-20 pt-32 sm:pb-24 sm:pt-36" aria-labelledby="reader-library-title">
         <div class="site-container">
-            <div class="flex flex-col justify-between gap-8 border-b border-ink/15 pb-8 lg:flex-row lg:items-end">
+            <div class="flex flex-col justify-between gap-8 border-b border-ink/15 pb-8 lg:flex-row lg:items-end lg:justify-start lg:gap-10">
                 <div>
                     <p class="signal-label">{{ __('reader_auth.community') }}</p>
                     <h1 id="reader-library-title" class="mt-5 font-display text-4xl font-black leading-[1.08] text-ink sm:text-6xl">{{ __('reader_auth.library_title') }}</h1>

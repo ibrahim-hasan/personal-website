@@ -40,13 +40,13 @@ class TurnstileToken implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! is_string($value)) {
-            $fail('validation.turnstile');
+            $fail(__('validation.turnstile'));
 
             return;
         }
 
         if (! $this->turnstile->verify($value, $this->turnstile->clientIp($this->request))) {
-            $fail('validation.turnstile');
+            $fail(__('validation.turnstile'));
         }
     }
 }

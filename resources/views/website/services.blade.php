@@ -3,13 +3,13 @@
     :description="__('site.services.description')"
     activeMenu="true">
 
-    <section class="page-intro page-intro--violet">
+    <section class="page-intro">
         <div class="site-container page-intro__grid">
             <div>
-                <p class="signal-label signal-label--light">{{ __('site.services.eyebrow') }}</p>
-                <h1 class="display-page mt-7 max-w-[13ch] text-canvas">{{ __('site.services.heading') }}</h1>
+                <p class="signal-label">{{ __('site.services.eyebrow') }}</p>
+                <h1 class="display-page mt-7 max-w-[13ch]">{{ __('site.services.heading') }}</h1>
             </div>
-            <p class="copy-lead max-w-[58ch] text-violet-100 lg:self-end lg:justify-self-end">{{ __('site.services.body') }}</p>
+            <p class="copy-lead max-w-[58ch] lg:self-end lg:justify-self-end">{{ __('site.services.body') }}</p>
         </div>
     </section>
 
