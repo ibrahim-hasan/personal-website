@@ -278,8 +278,8 @@ class Project extends Model implements HasMedia, LocalizedUrlRoutable
             'lens' => $this->lens,
             'image' => $mayRenderImage ? $this->imageUrl() : '',
             'image_media' => $mayRenderImage
-                ? $this->responsiveImage(self::THUMBNAIL_CONVERSION, self::CARD_WIDTH, self::CARD_HEIGHT)
-                : PublicImage::hidden(self::CARD_WIDTH, self::CARD_HEIGHT),
+                ? $this->responsiveImage(self::IMAGE_CONVERSION, self::HERO_WIDTH, self::HERO_HEIGHT)
+                : PublicImage::hidden(self::HERO_WIDTH, self::HERO_HEIGHT),
             'alt' => $mayRenderImage ? $this->translation('image_alt', $locale) : '',
             'logo' => $mayRenderLogo ? $this->logoUrl() : '',
             'logo_media' => $mayRenderLogo

@@ -73,10 +73,10 @@ class PublicResponsiveMediaTest extends TestCase
         $project->refresh();
         $portfolioProject = $project->toPortfolioArray('en');
 
-        $this->assertStringContainsString(Project::THUMBNAIL_CONVERSION, $portfolioProject['image_media']['src']);
+        $this->assertStringContainsString(Project::IMAGE_CONVERSION, $portfolioProject['image_media']['src']);
         $this->assertNotSame('', $portfolioProject['image_media']['srcset']);
-        $this->assertSame(Project::CARD_WIDTH, $portfolioProject['image_media']['width']);
-        $this->assertSame(Project::CARD_HEIGHT, $portfolioProject['image_media']['height']);
+        $this->assertSame(Project::HERO_WIDTH, $portfolioProject['image_media']['width']);
+        $this->assertSame(Project::HERO_HEIGHT, $portfolioProject['image_media']['height']);
         $this->assertStringContainsString(Project::LOGO_CONVERSION, $portfolioProject['logo_media']['src']);
         $this->assertNotSame('', $portfolioProject['logo_media']['srcset']);
         $this->assertSame(Project::LOGO_WIDTH, $portfolioProject['logo_media']['width']);
