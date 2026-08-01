@@ -1183,14 +1183,67 @@ const initializeOverflowRails = (signal) => {
         }
 
         const visibleEdges = { start: true, end: false };
-        let hasOverflow = false;
+        let hasOverflow = null;
+        let previousDisabled = null;
+        let nextDisabled = null;
+        let updateFrame = null;
+
         const updateControls = () => {
-            hasOverflow = rail.scrollWidth > rail.clientWidth + 1;
-            container.toggleAttribute('data-overflow-active', hasOverflow);
-            previous.hidden = ! hasOverflow;
-            next.hidden = ! hasOverflow;
-            previous.disabled = ! hasOverflow || visibleEdges.start;
-            next.disabled = ! hasOverflow || visibleEdges.end;
+            const nextHasOverflow = rail.scrollWidth > rail.clientWidth + 1;
+            const nextPreviousDisabled = ! nextHasOverflow || visibleEdges.start;
+            const nextNextDisabled = ! nextHasOverflow || visibleEdges.end;
+
+            if (hasOverflow !== nextHasOverflow) {
+                hasOverflow = nextHasOverflow;
+
+                if (previous.hidden !== ! nextHasOverflow) {
+                    previous.hidden = ! nextHasOverflow;
+                }
+
+                if (next.hidden !== ! nextHasOverflow) {
+                    next.hidden = ! nextHasOverflow;
+                }
+            }
+
+            if (previousDisabled !== nextPreviousDisabled) {
+                previousDisabled = nextPreviousDisabled;
+
+                if (previous.disabled !== nextPreviousDisabled) {
+                    previous.disabled = nextPreviousDisabled;
+                }
+            }
+
+            if (nextDisabled !== nextNextDisabled) {
+                nextDisabled = nextNextDisabled;
+
+                if (next.disabled !== nextNextDisabled) {
+                    next.disabled = nextNextDisabled;
+                }
+            }
+        };
+        const queueControlUpdate = () => {
+            if (signal.aborted || updateFrame !== null) {
+                return;
+            }
+
+            updateFrame = window.requestAnimationFrame(() => {
+                updateFrame = null;
+
+                if (! signal.aborted) {
+                    updateControls();
+                }
+            });
+        };
+        const updateAfterFontsLoad = () => {
+            const fontReady = document.fonts?.ready;
+
+            if (fontReady) {
+                fontReady.then(queueControlUpdate).catch(() => {});
+            }
+        };
+        const initializeControls = () => {
+            queueControlUpdate();
+            updateAfterFontsLoad();
         };
         const scroll = (direction) => {
             const scrollDirection = getComputedStyle(rail).direction === 'rtl' ? -direction : direction;
@@ -1212,20 +1265,30 @@ const initializeOverflowRails = (signal) => {
                     }
                 });
 
-                updateControls();
+                queueControlUpdate();
             }, { root: rail, threshold: 1 })
             : null;
-        const resizeObserver = 'ResizeObserver' in window ? new ResizeObserver(updateControls) : null;
+        const resizeObserver = 'ResizeObserver' in window ? new ResizeObserver(queueControlUpdate) : null;
 
         edgeObserver?.observe(start);
         edgeObserver?.observe(end);
+        resizeObserver?.observe(container);
         resizeObserver?.observe(rail);
         previous.addEventListener('click', () => scroll(-1), { signal });
         next.addEventListener('click', () => scroll(1), { signal });
-        rail.addEventListener('scroll', updateControls, { passive: true, signal });
-        updateControls();
+        rail.addEventListener('scroll', queueControlUpdate, { passive: true, signal });
+
+        if (document.readyState === 'complete') {
+            initializeControls();
+        } else {
+            window.addEventListener('load', initializeControls, { once: true, signal });
+        }
 
         signal.addEventListener('abort', () => {
+            if (updateFrame !== null) {
+                window.cancelAnimationFrame(updateFrame);
+            }
+
             edgeObserver?.disconnect();
             resizeObserver?.disconnect();
         }, { once: true });
@@ -1355,7 +1418,7 @@ const initializeArticleSharing = async (signal) => {
     }
 };
 
-const initializePageMotion = (signal) => {
+const initializePageMotion = (signal, { skipWorkFilterEntranceMotion = false } = {}) => {
     initializeScrollProgress(signal);
 
     if (reducedMotion.matches) {
@@ -1416,7 +1479,15 @@ const initializePageMotion = (signal) => {
         });
     };
 
-    revealElements.forEach((element) => revealObserver.observe(element));
+    if (skipWorkFilterEntranceMotion) {
+        revealElements
+            .filter((element) => element.closest('.work-archive') !== null)
+            .forEach((element) => element.classList.add('is-revealed', 'motion-complete'));
+    }
+
+    revealElements
+        .filter((element) => ! element.classList.contains('is-revealed'))
+        .forEach((element) => revealObserver.observe(element));
     initialRevealFrame = window.requestAnimationFrame(revealVisibleElements);
 
     const methodSteps = document.querySelectorAll('[data-method-step]');
@@ -1529,6 +1600,71 @@ const initializePageMotion = (signal) => {
 };
 
 let frontEnhancementController = null;
+
+let workFilterNavigationPending = false;
+
+let workFilterNavigationResetTimeout = null;
+
+const resetWorkFilterNavigation = () => {
+    workFilterNavigationPending = false;
+    document.documentElement.removeAttribute('data-work-filter-navigation');
+
+    if (workFilterNavigationResetTimeout !== null) {
+        window.clearTimeout(workFilterNavigationResetTimeout);
+        workFilterNavigationResetTimeout = null;
+    }
+};
+
+const markWorkFilterNavigation = (event) => {
+    const destination = event instanceof CustomEvent ? event.detail?.url : null;
+    const isWorkFilterNavigation = destination instanceof URL
+        && document.querySelector('.work-archive') !== null
+        && destination.origin === window.location.origin
+        && destination.pathname === window.location.pathname
+        && (destination.search !== window.location.search || event.detail?.history === true);
+
+    if (! isWorkFilterNavigation) {
+        return;
+    }
+
+    workFilterNavigationPending = true;
+    document.documentElement.setAttribute('data-work-filter-navigation', 'true');
+
+    if (workFilterNavigationResetTimeout !== null) {
+        window.clearTimeout(workFilterNavigationResetTimeout);
+    }
+
+    workFilterNavigationResetTimeout = window.setTimeout(resetWorkFilterNavigation, 5000);
+};
+
+const preserveWorkFilterNavigationState = (event) => {
+    if (! workFilterNavigationPending || ! (event instanceof CustomEvent) || typeof event.detail?.onSwap !== 'function') {
+        return;
+    }
+
+    event.detail.onSwap(() => {
+        document.documentElement.setAttribute('data-work-filter-navigation', 'true');
+    });
+};
+
+const consumeWorkFilterNavigation = () => {
+    const skipWorkFilterEntranceMotion = workFilterNavigationPending;
+
+    if (skipWorkFilterEntranceMotion) {
+        workFilterNavigationPending = false;
+
+        if (workFilterNavigationResetTimeout !== null) {
+            window.clearTimeout(workFilterNavigationResetTimeout);
+            workFilterNavigationResetTimeout = null;
+        }
+
+        window.requestAnimationFrame(() => {
+            document.documentElement.removeAttribute('data-work-filter-navigation');
+        });
+    }
+
+    return skipWorkFilterEntranceMotion;
+};
 
 let consultationTurnstileWidgetId = null;
 
@@ -1720,13 +1856,13 @@ const initializeAnalyticsEventTracking = (signal) => {
     trackConsultationStates();
 };
 
-const initializeFrontEnhancements = () => {
+const initializeFrontEnhancements = ({ skipWorkFilterEntranceMotion = false } = {}) => {
     frontEnhancementController?.abort();
     frontEnhancementController = new AbortController();
 
     enableInternalNavigation();
     initializeHeroVideos(frontEnhancementController.signal);
-    initializePageMotion(frontEnhancementController.signal);
+    initializePageMotion(frontEnhancementController.signal, { skipWorkFilterEntranceMotion });
     initializeAccessibleDialogs(frontEnhancementController.signal);
     initializeArticleReadingProgress(frontEnhancementController.signal);
     initializeViewportStack(frontEnhancementController.signal);
@@ -1743,4 +1879,8 @@ if (document.readyState === 'loading') {
     initializeFrontEnhancements();
 }
 
-document.addEventListener('livewire:navigated', initializeFrontEnhancements);
+document.addEventListener('livewire:navigate', markWorkFilterNavigation);
+document.addEventListener('livewire:navigating', preserveWorkFilterNavigationState);
+document.addEventListener('livewire:navigated', () => {
+    initializeFrontEnhancements({ skipWorkFilterEntranceMotion: consumeWorkFilterNavigation() });
+});

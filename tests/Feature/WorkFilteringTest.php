@@ -41,7 +41,25 @@ class WorkFilteringTest extends TestCase
 
         $this->assertStringContainsString('const hasWireNavigateDirective = (link)', $javascript);
         $this->assertStringContainsString("name.startsWith('wire:navigate.')", $javascript);
+        $this->assertStringContainsString('const markWorkFilterNavigation = (event)', $javascript);
+        $this->assertStringContainsString('const isWorkFilterNavigation = destination instanceof URL', $javascript);
+        $this->assertStringContainsString("document.addEventListener('livewire:navigate', markWorkFilterNavigation);", $javascript);
+        $this->assertStringContainsString('const preserveWorkFilterNavigationState = (event)', $javascript);
+        $this->assertStringContainsString("document.addEventListener('livewire:navigating', preserveWorkFilterNavigationState);", $javascript);
+        $this->assertStringContainsString('skipWorkFilterEntranceMotion', $javascript);
+        $this->assertStringContainsString("element.closest('.work-archive')", $javascript);
+        $this->assertStringContainsString('const queueControlUpdate = () => {', $javascript);
+        $this->assertStringContainsString('let updateFrame = null;', $javascript);
+        $this->assertStringContainsString('const initializeControls = () => {', $javascript);
+        $this->assertStringContainsString('const updateAfterFontsLoad = () => {', $javascript);
+        $this->assertStringContainsString('resizeObserver?.observe(container);', $javascript);
+        $this->assertStringContainsString('const fontReady = document.fonts?.ready;', $javascript);
+        $this->assertStringContainsString("window.addEventListener('load', initializeControls", $javascript);
+        $this->assertStringNotContainsString("toggleAttribute('data-overflow-active'", $javascript);
         $this->assertStringContainsString('.filter-bar :is(a, button)', $css);
+        $this->assertStringContainsString('.filter-bar-shell > .filter-bar', $css);
+        $this->assertStringContainsString('grid-column: 2;', $css);
+        $this->assertStringContainsString("html[data-work-filter-navigation='true'].motion-capable .work-archive [data-reveal]", $css);
     }
 
     public function test_invalid_lens_returns_a_404_and_an_empty_lens_redirects_to_the_canonical_work_page(): void

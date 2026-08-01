@@ -2140,6 +2140,11 @@ html[dir='rtl'] .writing-audio-feature__copy strong {
     gap: 0.55rem;
 }
 
+.filter-bar-shell > .filter-bar {
+    grid-column: 2;
+    min-width: 0;
+}
+
 .filter-bar__arrow {
     width: 2.75rem;
     height: 2.75rem;
@@ -5759,6 +5764,23 @@ html[dir='rtl'].motion-capable [data-reveal='copy'] {
     translate: 0 3.5rem;
     scale: 0.985;
     filter: none;
+}
+
+html[data-work-filter-navigation='true'].motion-capable .work-archive [data-reveal] {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    rotate: 0deg;
+    clip-path: inset(0 0 0 0);
+    filter: blur(0);
+    transition: none;
+    will-change: auto;
+}
+
+html[data-work-filter-navigation='true'].motion-capable .work-archive [data-reveal='case'] .project-brand {
+    opacity: 1;
+    translate: 0 0;
+    transition: none;
 }
 
 .motion-capable [data-reveal].is-revealed {
