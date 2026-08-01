@@ -44,6 +44,27 @@ class ReaderAccountTest extends TestCase
             ->assertSee(__('reader_auth.logout', locale: 'en'));
     }
 
+    public function test_reader_account_navigation_uses_the_shared_editorial_switcher(): void
+    {
+        $reader = User::factory()->create();
+
+        $this->actingAs($reader)
+            ->get('/reader/account')
+            ->assertOk()
+            ->assertSee('class="reader-account-nav"', false)
+            ->assertSee('reader-account-nav__switcher', false)
+            ->assertSee('reader-account-nav__link is-active', false)
+            ->assertSee('reader-account-nav__logout-button', false)
+            ->assertSee('aria-current="page"', false);
+
+        $styles = file_get_contents(resource_path('css/app.css'));
+
+        $this->assertIsString($styles);
+        $this->assertStringContainsString('.reader-account-nav__switcher', $styles);
+        $this->assertStringContainsString('.reader-account-nav__link.is-active::after', $styles);
+        $this->assertStringContainsString('.reader-account-nav__logout', $styles);
+    }
+
     public function test_an_unverified_reader_can_open_their_account_with_activity_stats(): void
     {
         $reader = User::factory()->unverified()->create();

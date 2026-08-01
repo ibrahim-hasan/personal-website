@@ -5172,6 +5172,93 @@ html[dir='rtl'] .about-intro__portrait {
     background: var(--color-violet-50);
 }
 
+.reader-account-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+}
+
+.reader-account-nav__switcher {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: stretch;
+    gap: clamp(0.9rem, 2vw, 1.5rem);
+    border-block-end: 1px solid color-mix(in oklab, var(--color-ink) 18%, transparent);
+}
+
+.reader-account-nav__link {
+    position: relative;
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    gap: 0.55rem;
+    padding-block: 0.65rem;
+    color: var(--color-ink-muted);
+    font-family: var(--family-ui);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.15;
+    transition: color 180ms ease;
+}
+
+.reader-account-nav__link::after {
+    position: absolute;
+    content: '';
+    inset-inline: 0;
+    inset-block-end: -1px;
+    height: 2px;
+    background: var(--color-violet-700);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 180ms var(--ease-out-quart);
+}
+
+html[dir='rtl'] .reader-account-nav__link::after {
+    transform-origin: right center;
+}
+
+.reader-account-nav__link.is-active {
+    color: var(--color-violet-800);
+}
+
+.reader-account-nav__link.is-active::after {
+    transform: scaleX(1);
+}
+
+.reader-account-nav__link:hover {
+    color: var(--color-violet-800);
+}
+
+.reader-account-nav__link:focus-visible,
+.reader-account-nav__logout-button:focus-visible {
+    outline: 2px solid var(--color-violet-700);
+    outline-offset: 4px;
+}
+
+.reader-account-nav__logout {
+    padding-inline-start: 1.25rem;
+    border-inline-start: 1px solid color-mix(in oklab, var(--color-ink) 15%, transparent);
+}
+
+.reader-account-nav__logout-button {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    gap: 0.55rem;
+    padding-block: 0.65rem;
+    color: var(--color-ink-muted);
+    font-family: var(--family-ui);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.15;
+    transition: color 180ms ease;
+}
+
+.reader-account-nav__logout-button:hover {
+    color: var(--color-violet-800);
+}
+
 .reader-form-control {
     border: 1px solid color-mix(in oklab, var(--color-ink) 20%, transparent);
     background: var(--color-canvas);
@@ -5231,6 +5318,29 @@ html[dir='rtl'] .about-intro__portrait {
     border-inline-start: 3px solid var(--color-violet-700);
     background: var(--color-violet-100);
     color: var(--color-violet-900);
+}
+
+@media (max-width: 39.999rem) {
+    .reader-account-nav {
+        align-items: stretch;
+    }
+
+    .reader-account-nav__switcher {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .reader-account-nav__link {
+        min-width: 0;
+        flex: 1 1 0;
+        justify-content: center;
+        white-space: nowrap;
+    }
+
+    .reader-account-nav__logout {
+        padding-inline-start: 0;
+        border-inline-start: 0;
+    }
 }
 
 .service-choice__grid {
