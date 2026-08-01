@@ -20,6 +20,7 @@ class SendAtharApproval
             Notification::route('mail', $invitation->email)->notify(new AtharApprovalNotification(
                 AtharAccess::emailAccessUrl($invitation),
                 $invitation->preferred_locale,
+                $invitation->getKey(),
             ));
         }
         $version->contribution->forceFill(['status' => AtharContributionStatus::AwaitingApproval])->save();

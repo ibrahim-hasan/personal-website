@@ -162,6 +162,7 @@ Sign in → create or edit localized content → upload managed media → review
 - Only text selected or edited by the contributor may be attributed to them publicly. Ibrahim may add a clearly separate factual work-context line, never a silent rewrite.
 - One exact approved proof card may appear on one named website placement only. Any material change, new language, or new placement requires a new exact approval.
 - Contributors can withdraw website publication through a simple self-service path. Private-data deletion follows the reviewed retention policy as a separate request.
+- Administrators with retention authority can permanently delete one Athar invitation through an explicit confirmation. This removes its access credentials, contribution, public versions, consent events, and any live proof; it is never a bulk action.
 
 ## SEO, discoverability, and performance
 

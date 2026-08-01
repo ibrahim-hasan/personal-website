@@ -220,6 +220,48 @@ class AtharFlowTest extends TestCase
         $this->get(route('athar.show', ['token' => str_repeat('x', 64)]))->assertOk()->assertSee(__('athar.unavailable.title'));
     }
 
+    public function test_public_proof_copy_is_specific_to_each_page_in_both_locales(): void
+    {
+        foreach ([
+            ['ar', 'work', 'كيف تصف تجربة العمل معي؟'],
+            ['ar', 'services', 'ما رأيك بجودة الخدمات التي أقدمها؟'],
+            ['ar', 'about', 'إبراهيم كما يصفه الخبراء'],
+            ['en', 'work', 'How would you describe working with me?'],
+            ['en', 'services', 'How would you rate the quality of my services?'],
+            ['en', 'about', 'Ibrahim, in the words of experts'],
+        ] as [$locale, $placement, $title]) {
+            app()->setLocale($locale);
+
+            $this->view('components.athar.proof', [
+                'cards' => [[
+                    'text' => 'A consented reflection.',
+                    'context' => '',
+                    'name' => '',
+                    'locale' => $locale,
+                ]],
+                'placement' => $placement,
+            ])->assertSee($title, false);
+        }
+
+        foreach ([
+            ['ar', 'من يعرف طريقة العمل', 'كيف يصف إبراهيم من عمل معه؟'],
+            ['en', 'People who know the work', 'How do people who have worked with Ibrahim describe him?'],
+        ] as [$locale, $label, $title]) {
+            app()->setLocale($locale);
+
+            $this->view('components.athar.proof', [
+                'cards' => [[
+                    'text' => 'A consented reflection.',
+                    'context' => '',
+                    'name' => '',
+                    'locale' => $locale,
+                ]],
+            ])
+                ->assertSee($label, false)
+                ->assertSee($title, false);
+        }
+    }
+
     public function test_about_destination_label_is_localized_without_exposing_the_translation_key(): void
     {
         Notification::fake();

@@ -22,6 +22,7 @@ class ResendAtharInvitation
         Notification::route('mail', $invitation->email)->notify(new AtharInvitationNotification(
             $shareUrl,
             $invitation->preferred_locale,
+            $invitation->getKey(),
         ));
     }
 }

@@ -66,6 +66,7 @@ class CreateAtharInvitation
             Notification::route('mail', $invitation->email)->notify(new AtharInvitationNotification(
                 $accessUrl,
                 $invitation->preferred_locale,
+                $invitation->getKey(),
             ));
         } else {
             $accessUrl = $shareUrl;

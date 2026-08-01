@@ -3,10 +3,10 @@
 return [
     'name' => 'Athar',
     'tagline' => 'The trace of working together',
-    'public_label' => 'From the work',
-    'proof_title' => 'What remains after working together',
+    'public_label' => 'People who know the work',
+    'proof_title' => 'How do people who have worked with Ibrahim describe him?',
     'proof_labels' => ['work' => 'From the project', 'services' => 'From the collaboration', 'about' => 'From people who know the work'],
-    'proof_titles' => ['work' => 'What changed in the work?', 'services' => 'What was collaboration like?', 'about' => 'What do people say about working with me?'],
+    'proof_titles' => ['work' => 'How would you describe working with me?', 'services' => 'How would you rate the quality of my services?', 'about' => 'Ibrahim, in the words of experts'],
     'disclosure' => 'Shared with the writer’s permission.',
     'slider' => ['label' => 'Selected endorsements', 'controls' => 'Endorsement navigation', 'region' => 'Endorsements from the work', 'previous' => 'Previous endorsement', 'next' => 'Next endorsement', 'pause' => 'Pause autoplay', 'play' => 'Play autoplay'],
     'placements' => ['work' => 'Work', 'services' => 'Services', 'about' => 'About'],

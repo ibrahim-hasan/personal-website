@@ -42,6 +42,11 @@ class AtharInvitationPolicy
         return $user->can('manage athar_retention') && $invitation->contribution()->exists();
     }
 
+    public function purge(User $user, AtharInvitation $invitation): bool
+    {
+        return $user->can('manage athar_retention');
+    }
+
     public function deleteAny(User $user): bool
     {
         return false;

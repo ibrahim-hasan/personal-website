@@ -151,6 +151,7 @@ return [
         'athar_hidden' => 'Publication hidden from the public site.',
         'athar_unhidden' => 'Publication restored to the public site.',
         'athar_private_message_deleted' => 'The private Athar message was deleted.',
+        'athar_invitation_deleted' => 'The Athar invitation and all related data were permanently deleted.',
         'athar_expired' => ':count invitations expired.',
         'athar_version_updated' => 'Publication version updated.',
     ],
@@ -160,10 +161,13 @@ return [
         'athar_hide' => 'Hide',
         'athar_unhide' => 'Unhide',
         'athar_delete_private_message' => 'Delete private message',
+        'athar_delete_invitation' => 'Delete invitation permanently',
     ],
     'confirmations' => [
         'athar_delete_private_message_heading' => 'Delete this private Athar message?',
         'athar_delete_private_message_description' => 'This permanently removes the contributor’s private draft and source. Any separately approved public endorsement remains unchanged.',
+        'athar_delete_invitation_heading' => 'Delete this Athar invitation permanently?',
+        'athar_delete_invitation_description' => 'This permanently removes the invitation link, private message, any published proof, and its consent history. This cannot be undone.',
     ],
     'oauth_clients' => [
         'navigation_label' => 'OAuth clients',

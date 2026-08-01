@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AtharInvitations\Pages;
 
+use App\Actions\Athar\DeleteAtharInvitation;
 use App\Actions\Athar\DeleteAtharPrivateMessage;
 use App\Enums\AtharContributionStatus;
 use App\Filament\Resources\AtharInvitations\AtharInvitationResource;
@@ -32,6 +33,20 @@ class ViewAtharInvitation extends ViewRecord
                 ->action(function (AtharInvitation $record, DeleteAtharPrivateMessage $delete): void {
                     $delete->handle($record->contribution);
                     Notification::make()->title(__('admin.messages.athar_private_message_deleted'))->success()->send();
+                }),
+            Action::make('delete_permanently')
+                ->label(__('admin.actions.athar_delete_invitation'))
+                ->icon('heroicon-o-trash')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->modalHeading(__('admin.confirmations.athar_delete_invitation_heading'))
+                ->modalDescription(__('admin.confirmations.athar_delete_invitation_description'))
+                ->modalSubmitActionLabel(__('admin.actions.athar_delete_invitation'))
+                ->authorize('purge')
+                ->successRedirectUrl(AtharInvitationResource::getUrl('index'))
+                ->action(function (AtharInvitation $record, DeleteAtharInvitation $delete): void {
+                    $delete->handle($record);
+                    Notification::make()->title(__('admin.messages.athar_invitation_deleted'))->success()->send();
                 }),
         ];
     }
