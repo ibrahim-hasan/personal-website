@@ -703,29 +703,29 @@ class AtharFlowTest extends TestCase
     public function test_email_access_session_remains_valid_for_three_days_and_not_longer(): void
     {
         Notification::fake();
+        $verifiedAt = $this->freezeSecond();
         $created = app(CreateAtharInvitation::class)->handle(User::factory()->create(), [
             'email' => 'friend@example.com',
             'preferred_locale' => 'en',
             'placement' => AtharPlacement::About,
         ]);
-        $verifiedAt = now();
 
         $response = $this->grantAtharSession($created['token'], $created['invitation'], locale: 'en');
         $accessCookie = collect($response->headers->getCookies())->first(fn ($cookie): bool => $cookie->getName() === 'athar-verified-'.$created['invitation']->getKey());
         $this->assertNotNull($accessCookie);
         $this->flushSession();
         $this->withUnencryptedCookie($accessCookie->getName(), $accessCookie->getValue());
-        $this->travelTo($verifiedAt->addDays(3)->subSecond());
+        $this->travelTo($verifiedAt->copy()->addDays(3)->subSecond());
         $this->get(route('en.athar.show', ['token' => $created['token']]))
             ->assertOk()
             ->assertSee(__('athar.reflection.title'));
 
-        $this->travelTo($verifiedAt->addDays(3));
+        $this->travelTo($verifiedAt->copy()->addDays(3));
         $this->get(route('en.athar.show', ['token' => $created['token']]))
             ->assertOk()
             ->assertSee(__('athar.access.title'));
 
-        $this->travelTo($verifiedAt->addDays(3)->addSecond());
+        $this->travelTo($verifiedAt->copy()->addDays(3)->addSecond());
         $this->get(route('en.athar.show', ['token' => $created['token']]))
             ->assertOk()
             ->assertSee(__('athar.access.title'));
