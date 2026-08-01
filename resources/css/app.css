@@ -5140,6 +5140,99 @@ html[dir='rtl'] .about-intro__portrait {
     line-height: 1.55;
 }
 
+/* Reader surfaces and controls */
+.reader-auth-card,
+.reader-surface {
+    min-width: 0;
+    border: 1px solid color-mix(in oklab, var(--color-ink) 15%, transparent);
+    background: var(--color-canvas-bright);
+}
+
+.reader-auth-card {
+    box-shadow: 0.65rem 0.65rem 0 color-mix(in oklab, var(--color-violet-700) 11%, transparent);
+}
+
+.reader-surface--accent {
+    border-color: color-mix(in oklab, var(--color-violet-700) 25%, transparent);
+    background: var(--color-violet-50);
+    box-shadow: 0.6rem 0.6rem 0 color-mix(in oklab, var(--color-violet-700) 11%, transparent);
+}
+
+.reader-surface--accent .reader-surface {
+    border-color: color-mix(in oklab, var(--color-violet-700) 20%, transparent);
+    background: var(--color-canvas-bright);
+}
+
+.reader-surface--danger {
+    border-color: color-mix(in oklab, var(--color-danger) 35%, transparent);
+}
+
+.reader-surface--muted {
+    border-color: color-mix(in oklab, var(--color-violet-700) 20%, transparent);
+    background: var(--color-violet-50);
+}
+
+.reader-form-control {
+    border: 1px solid color-mix(in oklab, var(--color-ink) 20%, transparent);
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--family-body);
+    font-size: 1rem;
+    line-height: 1.5;
+    transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.reader-form-control:hover {
+    border-color: color-mix(in oklab, var(--color-violet-700) 48%, var(--color-ink) 20%);
+}
+
+.reader-form-control:focus-visible {
+    border-color: var(--color-violet-700);
+    background: var(--color-violet-50);
+    outline: 0;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-violet-300) 36%, transparent);
+}
+
+.reader-form-control[aria-invalid='true'] {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-danger) 18%, transparent);
+}
+
+.reader-form-control--danger:focus-visible {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-danger) 22%, transparent);
+}
+
+.reader-checkbox {
+    accent-color: var(--color-violet-700);
+}
+
+.reader-checkbox--danger {
+    accent-color: var(--color-danger);
+}
+
+.reader-checkbox:focus-visible {
+    outline: 2px solid var(--color-violet-700);
+    outline-offset: 3px;
+}
+
+.reader-checkbox--danger:focus-visible,
+.reader-checkbox[aria-invalid='true'] {
+    outline-color: var(--color-danger);
+}
+
+.reader-icon-surface {
+    border: 1px solid color-mix(in oklab, var(--color-violet-700) 30%, transparent);
+    background: var(--color-violet-100);
+    color: var(--color-violet-800);
+}
+
+.reader-feedback {
+    border-inline-start: 3px solid var(--color-violet-700);
+    background: var(--color-violet-100);
+    color: var(--color-violet-900);
+}
+
 .service-choice__grid {
     margin-top: 0.8rem;
     display: grid;
