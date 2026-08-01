@@ -3,7 +3,8 @@
     :description="__('site.work.description')"
     :canonicalUrl="localized_route('work')"
     :robots="$isFiltered ? 'noindex, follow, noarchive' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'"
-    activeMenu="true">
+    activeMenu="true"
+    :usesLivewire="true">
 
     <section class="page-intro work-intro">
         <div class="site-container page-intro__grid">
@@ -28,12 +29,14 @@
                     <a
                         href="{{ localized_route('work') }}"
                         class="button-quiet min-h-11 px-4 {{ $selectedLens === null ? 'is-active' : '' }}"
+                        wire:navigate.preserve-scroll
                         @if ($selectedLens === null) aria-current="page" @endif
                     >{{ __('site.work.all') }}</a>
                     @foreach ($lenses as $lens)
                         <a
                             href="{{ localized_route('work', ['lens' => $lens['id']]) }}"
                             class="button-quiet min-h-11 px-4 {{ $selectedLens === $lens['id'] ? 'is-active' : '' }}"
+                            wire:navigate.preserve-scroll
                             @if ($selectedLens === $lens['id']) aria-current="page" @endif
                         >{{ $lens['label'] }}</a>
                     @endforeach

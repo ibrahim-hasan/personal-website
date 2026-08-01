@@ -25,6 +25,8 @@ class WorkFilteringTest extends TestCase
             ->assertOk()
             ->assertSee('Operations project', false)
             ->assertDontSee('AI project', false)
+            ->assertSee('data-uses-livewire="true"', false)
+            ->assertSee('wire:navigate.preserve-scroll', false)
             ->assertSee('aria-current="page"', false)
             ->assertSee('<link rel="canonical" href="'.url('/en/work').'">', false)
             ->assertSee('<meta name="robots" content="noindex, follow, noarchive">', false);
@@ -33,6 +35,13 @@ class WorkFilteringTest extends TestCase
 
         $this->assertStringNotContainsString('x-show=', $workView);
         $this->assertStringNotContainsString('projectFilter(', $workView);
+
+        $javascript = file_get_contents(resource_path('js/app.js'));
+        $css = file_get_contents(resource_path('css/app.css'));
+
+        $this->assertStringContainsString('const hasWireNavigateDirective = (link)', $javascript);
+        $this->assertStringContainsString("name.startsWith('wire:navigate.')", $javascript);
+        $this->assertStringContainsString('.filter-bar :is(a, button)', $css);
     }
 
     public function test_invalid_lens_returns_a_404_and_an_empty_lens_redirects_to_the_canonical_work_page(): void

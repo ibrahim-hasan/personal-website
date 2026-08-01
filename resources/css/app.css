@@ -2163,7 +2163,7 @@ html[dir='rtl'] .writing-audio-feature__copy strong {
     color: var(--color-violet-50);
 }
 
-.filter-bar button {
+.filter-bar :is(a, button) {
     min-height: 2.75rem;
     flex: none;
     padding: 0.65rem 1rem;
@@ -2177,13 +2177,13 @@ html[dir='rtl'] .writing-audio-feature__copy strong {
     transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
 }
 
-.filter-bar button.is-active {
+.filter-bar :is(a, button).is-active {
     border-color: var(--color-violet-700);
     background: var(--color-violet-700);
     color: var(--color-violet-50);
 }
 
-.filter-bar button:not(.is-active):active,
+.filter-bar :is(a, button):not(.is-active):active,
 .publication-topics button:not(.is-active):active,
 .service-index__item:not(.is-active):active,
 .menu-toggle:active {
@@ -5998,7 +5998,7 @@ html[dir='rtl'].motion-capable .manifesto-section__copy::before {
 }
 
 @media (hover: hover) and (pointer: fine) {
-    .filter-bar button:not(.is-active):hover,
+    .filter-bar :is(a, button):not(.is-active):hover,
     .publication-topics button:not(.is-active):hover,
     .service-index__item:not(.is-active):hover {
         border-color: color-mix(in oklab, var(--color-violet-700) 60%, transparent);

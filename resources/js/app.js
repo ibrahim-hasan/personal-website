@@ -1296,6 +1296,10 @@ const initializeBackToTop = (signal) => {
     }, { once: true });
 };
 
+const hasWireNavigateDirective = (link) => [...link.attributes].some(({ name }) => (
+    name === 'wire:navigate' || name.startsWith('wire:navigate.')
+));
+
 const enableInternalNavigation = () => {
     document.querySelectorAll('a[href]').forEach((link) => {
         if (link.hasAttribute('download') || link.target === '_blank') {
@@ -1327,7 +1331,7 @@ const enableInternalNavigation = () => {
         if (
             url.origin === window.location.origin
             && ! isHashOnly
-            && ! link.hasAttribute('wire:navigate')
+            && ! hasWireNavigateDirective(link)
             && link.dataset.noNavigate === undefined
         ) {
             link.setAttribute('wire:navigate', '');
