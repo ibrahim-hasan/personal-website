@@ -172,11 +172,33 @@ class LegalPagesTest extends TestCase
         config()->set('services.google_analytics.measurement_id', null);
         $this->get('/en')
             ->assertOk()
-            ->assertSee('data-cookie-consent-auto-open="false"', false)
+            ->assertSee('data-cookie-consent-auto-open="true"', false)
             ->assertDontSee('google-analytics-id', false);
     }
 
-    public function test_analytics_is_allowlisted_and_only_prompts_when_production_has_an_explicit_measurement_id(): void
+    public function test_cookie_prompt_is_visible_in_preview_without_enabling_analytics(): void
+    {
+        $originalEnvironment = $this->app->environment();
+
+        try {
+            config()->set('services.google_analytics.measurement_id', null);
+            $this->app->detectEnvironment(fn (): string => 'local');
+
+            $this->get('/en')
+                ->assertOk()
+                ->assertSee('data-cookie-consent-auto-open="true"', false)
+                ->assertDontSee('google-analytics-id', false)
+                ->assertDontSee('analytics-context', false);
+
+            $this->get('/en/privacy')
+                ->assertOk()
+                ->assertSee('data-cookie-consent-auto-open="false"', false);
+        } finally {
+            $this->app->detectEnvironment(fn (): string => $originalEnvironment);
+        }
+    }
+
+    public function test_production_analytics_is_allowlisted_and_uses_an_explicit_measurement_id(): void
     {
         config()->set('services.google_analytics.measurement_id', 'G-TEST123');
         $originalEnvironment = $this->app->environment();

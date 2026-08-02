@@ -46,6 +46,8 @@
     $hasAnalyticsConfiguration = $allowsAnalytics
         && app()->isProduction()
         && filled(config('services.google_analytics.measurement_id'));
+    $shouldAutoOpenCookieConsent = $allowsAnalytics
+        && (! app()->isProduction() || $hasAnalyticsConfiguration);
     $analyticsPageType = match ($baseRouteName) {
         'services.show' => 'service',
         'work.show' => 'project',
@@ -174,7 +176,7 @@
 
     <x-partials.footer :suppressTerminalCta="$suppressTerminalCta" />
 
-    <x-partials.cookie-consent :autoOpen="$hasAnalyticsConfiguration" />
+    <x-partials.cookie-consent :autoOpen="$shouldAutoOpenCookieConsent" />
 
     <x-partials.article-audio-player />
 
