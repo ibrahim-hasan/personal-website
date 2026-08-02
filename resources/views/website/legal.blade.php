@@ -3,7 +3,7 @@
     :description="$content['description']"
     schemaType="WebPage"
     activeMenu="true">
-    <section class="border-b border-ink/10 bg-canvas py-16 sm:py-24">
+    <section class="page-intro border-b border-ink/10 bg-canvas">
         <div class="site-container">
             <div class="max-w-4xl">
                 <p class="signal-label">{{ $content['eyebrow'] }}</p>

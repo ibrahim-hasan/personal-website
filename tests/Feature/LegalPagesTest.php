@@ -149,6 +149,7 @@ class LegalPagesTest extends TestCase
         $this->assertStringNotContainsString('@keydown.tab=', $consentView);
         $this->assertStringNotContainsString('@keydown.escape.window=', $consentView);
         $this->assertStringContainsString('<dl class="mt-5 border-y border-ink/15">', $legalView);
+        $this->assertStringContainsString('<section class="page-intro border-b border-ink/10 bg-canvas">', $legalView);
         $this->assertStringContainsString('<span class="mt-3 block text-start">', $legalView);
         $this->assertStringContainsString('<span dir="ltr" class="inline-flex max-w-full flex-wrap gap-x-3 gap-y-2">', $legalView);
         $this->assertStringContainsString('<bdi dir="ltr" lang="en"', $legalView);

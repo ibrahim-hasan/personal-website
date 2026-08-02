@@ -842,10 +842,6 @@ html[dir='rtl'] .brand-mark__name {
     color: var(--color-ink);
 }
 
-body:has(.site-nav__noscript) .menu-toggle {
-    display: none;
-}
-
 .site-nav__noscript-inner {
     display: grid;
     gap: 1rem;

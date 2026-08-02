@@ -431,7 +431,11 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringNotContainsString('@click=', $fallback);
         $this->assertStringNotContainsString('x-data', $fallback);
         $this->assertMatchesRegularExpression('/\.site-nav__noscript\s*\{[^}]*padding-block-start:\s*5rem;/s', $css);
-        $this->assertMatchesRegularExpression('/body:has\(\.site-nav__noscript\) \.menu-toggle\s*\{[^}]*display:\s*none;/s', $css);
+        $this->assertDoesNotMatchRegularExpression(
+            '/body:has\(\.site-nav__noscript\) \.menu-toggle/',
+            $css,
+            'The noscript fallback may be materialized by internal navigation while JavaScript is active; it must not hide the working mobile menu toggle.',
+        );
         $this->assertMatchesRegularExpression('/@media \(min-width: 90rem\).*?\.site-nav__noscript\s*\{[^}]*display:\s*none;/s', $css);
     }
 
