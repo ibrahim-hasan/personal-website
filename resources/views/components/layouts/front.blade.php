@@ -46,8 +46,7 @@
     $hasAnalyticsConfiguration = $allowsAnalytics
         && app()->isProduction()
         && filled(config('services.google_analytics.measurement_id'));
-    $shouldAutoOpenCookieConsent = $allowsAnalytics
-        && (! app()->isProduction() || $hasAnalyticsConfiguration);
+    $shouldAutoOpenCookieConsent = $allowsAnalytics;
     $analyticsPageType = match ($baseRouteName) {
         'services.show' => 'service',
         'work.show' => 'project',

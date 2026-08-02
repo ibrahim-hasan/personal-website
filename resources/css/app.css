@@ -269,6 +269,8 @@ html[dir='rtl'] .display-hero,
 html[dir='rtl'] .display-page,
 html[dir='rtl'] .display-section {
     line-height: 1.18;
+    padding-block: 0.04em 0.18em;
+    overflow: visible;
     letter-spacing: 0;
     font-feature-settings: 'ss01' 1, 'ss02' 1, 'kern' 1;
 }

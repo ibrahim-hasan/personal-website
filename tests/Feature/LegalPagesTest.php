@@ -234,6 +234,24 @@ class LegalPagesTest extends TestCase
         }
     }
 
+    public function test_cookie_prompt_is_visible_in_production_without_enabling_unconfigured_analytics(): void
+    {
+        config()->set('services.google_analytics.measurement_id', null);
+        $originalEnvironment = $this->app->environment();
+
+        try {
+            $this->app->detectEnvironment(fn (): string => 'production');
+
+            $this->get('/en')
+                ->assertOk()
+                ->assertSee('data-cookie-consent-auto-open="true"', false)
+                ->assertDontSee('google-analytics-id', false)
+                ->assertDontSee('analytics-context', false);
+        } finally {
+            $this->app->detectEnvironment(fn (): string => $originalEnvironment);
+        }
+    }
+
     public function test_collection_points_link_to_the_applicable_legal_information(): void
     {
         $this->get('/en/reader/register')

@@ -37,6 +37,18 @@ class TypographyOverflowTest extends TestCase
         }
     }
 
+    public function test_rtl_display_type_reserves_space_for_arabic_glyphs(): void
+    {
+        $css = file_get_contents(dirname(__DIR__, 3).'/resources/css/app.css');
+
+        $this->assertNotFalse($css);
+        $this->assertMatchesRegularExpression(
+            "/html\\[dir='rtl'\\] \\.display-hero,\\s*html\\[dir='rtl'\\] \\.display-page,\\s*html\\[dir='rtl'\\] \\.display-section\\s*\\{[^}]*padding-block:\\s*0\\.04em 0\\.18em;[^}]*overflow:\\s*visible;/s",
+            $css,
+            'RTL display headings must reserve vertical space for Arabic dots and descenders.',
+        );
+    }
+
     public function test_admin_wordmark_viewbox_contains_full_thmanyah_descenders(): void
     {
         $wordmark = file_get_contents(dirname(__DIR__, 3).'/public/images/brand/ibrahim-admin-wordmark.svg');
