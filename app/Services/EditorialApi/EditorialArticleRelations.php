@@ -32,7 +32,7 @@ final class EditorialArticleRelations
     {
         $errors = [];
 
-        $this->validateServices($attributes, $errors, $sourceArticle);
+        $this->validateServices($attributes, $errors);
         $this->validateProjects($attributes, $errors, $sourceArticle);
 
         if ($errors !== []) {
@@ -101,7 +101,7 @@ final class EditorialArticleRelations
      * @param  array<string, mixed>  $attributes
      * @param  array<string, list<string>>  $errors
      */
-    private function validateServices(array $attributes, array &$errors, ?Article $sourceArticle): void
+    private function validateServices(array $attributes, array &$errors): void
     {
         if (! array_key_exists('service_keys', $attributes)) {
             return;
@@ -133,7 +133,7 @@ final class EditorialArticleRelations
                 continue;
             }
 
-            if (! $this->servicePublicationValidator->isEligibleForArticleRelation($service, $sourceArticle)) {
+            if (! $this->servicePublicationValidator->isPublishable($service)) {
                 $errors["service_keys.{$index}"][] = 'The selected service is not publicly available.';
             }
         }

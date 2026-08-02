@@ -6,7 +6,7 @@ return [
             'name' => 'Arabic',
             'script' => 'Arab',
             'native' => 'العربية',
-            'regional' => 'ar_AE',
+            'regional' => 'ar_SA',
         ],
         'en' => [
             'name' => 'English',

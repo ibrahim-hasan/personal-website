@@ -1,6 +1,7 @@
 <x-layouts.front
     :title="$content['title']"
     :description="$content['description']"
+    robots="noindex, follow, noarchive"
     schemaType="WebPage"
     activeMenu="true">
     <section class="page-intro border-b border-ink/10 bg-canvas">

@@ -34,7 +34,6 @@
     $analyticsAllowedRoutes = [
         'home',
         'services',
-        'services.show',
         'work',
         'work.show',
         'writing',
@@ -48,7 +47,6 @@
         && filled(config('services.google_analytics.measurement_id'));
     $shouldAutoOpenCookieConsent = $allowsAnalytics;
     $analyticsPageType = match ($baseRouteName) {
-        'services.show' => 'service',
         'work.show' => 'project',
         'writing.show' => 'article',
         default => $baseRouteName,
@@ -112,6 +110,7 @@
     <meta property="og:description" content="{{ $seo->description }}">
     <meta property="og:url" content="{{ $seo->canonicalUrl }}">
     <meta property="og:image" content="{{ $seo->imageUrl }}">
+    <meta property="og:image:secure_url" content="{{ $seo->imageSecureUrl }}">
     <meta property="og:image:type" content="{{ $seo->imageType }}">
     @if ($seo->imageWidth && $seo->imageHeight)
         <meta property="og:image:width" content="{{ $seo->imageWidth }}">

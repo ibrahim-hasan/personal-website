@@ -239,7 +239,7 @@ class ProjectCaseStudyPublicationValidatorTest extends TestCase
         $project = $this->eligibleProject();
         $incompleteService = Service::factory()->create([
             'key' => 'incomplete-related-service',
-            'seo_description' => ['ar' => ''],
+            'summary' => ['ar' => '', 'en' => 'An incomplete public service summary.'],
         ]);
         $project->services()->attach($incompleteService, ['sort_order' => 10]);
 

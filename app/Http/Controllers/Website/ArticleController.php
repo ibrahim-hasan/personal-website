@@ -68,7 +68,8 @@ class ArticleController extends Controller
                 'url' => $canonicalUrl,
                 'headline' => $localizedArticle['title'],
                 'description' => $localizedArticle['seo_description'],
-                'image' => asset($localizedArticle['image']),
+                'image' => $localizedArticle['open_graph_image']['src']
+                    ?: SeoMetadata::defaultSocialImageUrl($locale),
                 'datePublished' => $localizedArticle['published_at'],
                 'dateModified' => $localizedArticle['modified_at'],
                 'author' => ['@id' => SeoMetadata::personId()],

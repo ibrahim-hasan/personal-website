@@ -1952,6 +1952,7 @@ html[dir='rtl'] .writing-audio-feature__copy strong {
     padding-block: 1rem;
     border-bottom: 1px solid color-mix(in oklab, var(--color-ink) 24%, transparent);
     text-align: start;
+    text-decoration: none;
     touch-action: manipulation;
     transition: color 240ms ease, background-color 240ms ease;
 }
@@ -1985,38 +1986,51 @@ html[dir='rtl'] .writing-audio-feature__copy strong {
     background: var(--color-violet-500);
 }
 
-.service-detail__facts {
+.service-hub {
+    display: grid;
+    gap: clamp(5rem, 10vw, 9rem);
+}
+
+.service-hub__entry {
+    scroll-margin-top: 8rem;
+}
+
+.service-hub__facts {
     border-top: 1px solid color-mix(in oklab, var(--color-ink) 24%, transparent);
 }
 
-.service-detail__facts > div {
+.service-hub__facts > div {
     display: grid;
     gap: 0.8rem;
     padding-block: 1.5rem;
     border-bottom: 1px solid color-mix(in oklab, var(--color-ink) 24%, transparent);
 }
 
-.service-detail dt,
-.service-deliverables h3 {
+.service-hub__facts dt,
+.service-hub__fit h3,
+.service-deliverables h3,
+.service-hub__note > p {
     font-family: var(--family-ui);
     font-size: 0.78rem;
     font-weight: 700;
     color: var(--color-violet-700);
 }
 
-.service-detail dd {
+.service-hub__facts dd {
     max-width: 62ch;
     font-size: 1rem;
     line-height: 1.72;
     color: var(--color-ink-soft);
 }
 
+.service-hub__fit ul,
 .service-deliverables ul {
     margin-top: 1.25rem;
     display: grid;
     gap: 0.7rem;
 }
 
+.service-hub__fit li,
 .service-deliverables li {
     display: flex;
     align-items: center;
@@ -2025,11 +2039,31 @@ html[dir='rtl'] .writing-audio-feature__copy strong {
     font-size: 1rem;
 }
 
+.service-hub__fit li span,
 .service-deliverables li span {
     width: 0.45rem;
     height: 0.45rem;
     rotate: 45deg;
     background: var(--color-violet-500);
+}
+
+.service-hub__note {
+    display: grid;
+    gap: 0.65rem;
+    max-width: 62ch;
+    padding: 1.35rem;
+    border-inline-start: 3px solid var(--color-violet-500);
+    background: var(--color-violet-100);
+}
+
+.service-hub__note > p {
+    margin: 0;
+}
+
+.service-hub__note > strong {
+    font-size: 1rem;
+    line-height: 1.72;
+    color: var(--color-ink-soft);
 }
 
 .method-band,
@@ -2731,6 +2765,23 @@ html[dir='rtl'] .article-hero__copy h1 {
     padding: 0.38rem 0.65rem;
     border: 1px solid color-mix(in oklab, var(--color-ink) 20%, transparent);
     border-radius: 999px;
+}
+
+.article-hero__byline {
+    display: inline-flex;
+    width: fit-content;
+    gap: 0.35rem;
+    color: var(--color-ink-muted);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--color-violet-700) 40%, transparent);
+    text-underline-offset: 0.24rem;
+    transition: color 180ms ease, text-decoration-color 180ms ease;
+}
+
+.article-hero__byline:hover,
+.article-hero__byline:focus-visible {
+    color: var(--color-violet-700);
+    text-decoration-color: currentColor;
 }
 
 .article-share {
@@ -6235,7 +6286,7 @@ html[dir='rtl'].motion-capable .manifesto-section__copy::before {
         top: 8rem;
     }
 
-    .service-detail__facts > div {
+    .service-hub__facts > div {
         grid-template-columns: 9rem 1fr;
         gap: 2rem;
     }

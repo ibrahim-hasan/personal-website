@@ -280,7 +280,7 @@
                         data-analytics-event="service_cta_click"
                         data-analytics-ui-location="home_services"
                         data-analytics-destination-category="service"
-                        data-analytics-service-slug="{{ $service['key'] ?? $service['id'] }}"
+                        data-analytics-service-key="{{ $service['key'] ?? $service['id'] }}"
                     >
                         <span class="practice-row__number">{{ sprintf('%02d', $loop->iteration) }}</span>
                         <h3>{{ $service['name'] }}</h3>

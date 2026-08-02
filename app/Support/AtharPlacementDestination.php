@@ -4,23 +4,24 @@ namespace App\Support;
 
 use App\Enums\AtharPlacement;
 use App\Models\Project;
-use App\Models\Service;
 use Illuminate\Validation\ValidationException;
 
 final class AtharPlacementDestination
 {
     /**
-     * Normalize a stable destination key while keeping About deliberately
-     * unkeyed. Public destination keys are never translated slugs.
+     * Normalize a stable destination key while keeping overview placements
+     * deliberately unkeyed. Public destination keys are never translated slugs.
      */
     public static function validatedKey(AtharPlacement $placement, mixed $value): ?string
     {
         $key = is_string($value) ? trim($value) : '';
 
-        if ($placement === AtharPlacement::About) {
+        if (in_array($placement, [AtharPlacement::About, AtharPlacement::Services], true)) {
             if ($key !== '') {
                 throw ValidationException::withMessages([
-                    'placement_key' => __('athar.validation.about_destination_key'),
+                    'placement_key' => $placement === AtharPlacement::Services
+                        ? __('athar.validation.services_overview_only')
+                        : __('athar.validation.about_destination_key'),
                 ]);
             }
 
@@ -31,11 +32,8 @@ final class AtharPlacementDestination
             return null;
         }
 
-        $exists = match ($placement) {
-            AtharPlacement::Services => Service::query()->where('key', $key)->exists(),
-            AtharPlacement::Work => Project::query()->where('key', $key)->exists(),
-            AtharPlacement::About => false,
-        };
+        $exists = $placement === AtharPlacement::Work
+            && Project::query()->where('key', $key)->exists();
 
         if (! $exists) {
             throw ValidationException::withMessages([
@@ -56,18 +54,6 @@ final class AtharPlacementDestination
             : AtharPlacement::tryFrom((string) $placement);
 
         return match ($resolvedPlacement) {
-            AtharPlacement::Services => Service::query()
-                ->orderBy('order')
-                ->orderBy('id')
-                ->get(['id', 'key', 'name'])
-                ->filter(fn (Service $service): bool => filled($service->key))
-                ->mapWithKeys(fn (Service $service): array => [
-                    $service->key => self::optionLabel(
-                        (string) $service->getTranslation('name', $locale, false),
-                        $service->key,
-                    ),
-                ])
-                ->all(),
             AtharPlacement::Work => Project::query()
                 ->orderBy('sort_order')
                 ->orderBy('id')
@@ -86,37 +72,23 @@ final class AtharPlacementDestination
 
     public static function label(AtharPlacement $placement, ?string $placementKey, string $locale): string
     {
-        if ($placementKey === null) {
+        if (in_array($placement, [AtharPlacement::About, AtharPlacement::Services], true) || $placementKey === null) {
             return __('athar.destinations.'.$placement->value.'_overview', locale: $locale);
         }
 
-        $name = match ($placement) {
-            AtharPlacement::Services => self::translatedName(
-                Service::query()->where('key', $placementKey)->first(['id', 'name']),
-                'name',
-                $locale,
-            ),
-            AtharPlacement::Work => self::translatedName(
-                Project::query()->where('key', $placementKey)->first(['id', 'title']),
-                'title',
-                $locale,
-            ),
-            AtharPlacement::About => null,
-        };
+        $name = self::translatedName(
+            Project::query()->where('key', $placementKey)->first(['id', 'title']),
+            'title',
+            $locale,
+        );
 
         if (! is_string($name) || trim($name) === '') {
             return __('athar.destinations.'.$placement->value.'_overview', locale: $locale);
         }
 
-        return match ($placement) {
-            AtharPlacement::Services => __('athar.destinations.service_detail', [
-                'name' => $name,
-            ], $locale),
-            AtharPlacement::Work => __('athar.destinations.project_detail', [
-                'name' => $name,
-            ], $locale),
-            AtharPlacement::About => __('athar.destinations.about', locale: $locale),
-        };
+        return __('athar.destinations.project_detail', [
+            'name' => $name,
+        ], $locale);
     }
 
     private static function optionLabel(string $name, string $key): string

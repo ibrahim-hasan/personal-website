@@ -4,36 +4,24 @@ namespace App\Models;
 
 use App\Support\DashboardCache;
 use App\Traits\Posted;
-use App\Traits\SynchronizesTranslatedSlugs;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Mcamara\LaravelLocalization\Interfaces\LocalizedUrlRoutable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Spatie\Sluggable\HasTranslatableSlug;
-use Spatie\Sluggable\SlugOptions;
 use Spatie\Translatable\HasTranslations;
 
-class Service extends Model implements HasMedia, LocalizedUrlRoutable
+class Service extends Model implements HasMedia
 {
     use HasFactory;
-    use HasTranslatableSlug {
-        getLocalizedRouteKey as private getSpatieLocalizedRouteKey;
-        resolveRouteBindingQuery as private resolveTranslatableRouteBindingQuery;
-    }
     use HasTranslations;
     use InteractsWithMedia;
     use Posted;
     use SoftDeletes;
-    use SynchronizesTranslatedSlugs;
 
     protected $fillable = [
         'key',
-        'slug',
         'name',
         'summary',
         'problem',
@@ -42,15 +30,12 @@ class Service extends Model implements HasMedia, LocalizedUrlRoutable
         'result',
         'fit_signals',
         'engagement_note',
-        'seo_title',
-        'seo_description',
         'order',
         'is_draft',
         'is_active',
     ];
 
     protected $translatable = [
-        'slug',
         'name',
         'summary',
         'problem',
@@ -58,14 +43,12 @@ class Service extends Model implements HasMedia, LocalizedUrlRoutable
         'result',
         'fit_signals',
         'engagement_note',
-        'seo_title',
-        'seo_description',
     ];
 
     protected $attributes = [
         'order' => 0,
-        'is_draft' => false,
-        'is_active' => true,
+        'is_draft' => true,
+        'is_active' => false,
     ];
 
     protected function casts(): array
@@ -84,39 +67,6 @@ class Service extends Model implements HasMedia, LocalizedUrlRoutable
         static::deleted(fn () => DashboardCache::bust());
         static::restored(fn () => DashboardCache::bust());
         static::forceDeleted(fn () => DashboardCache::bust());
-    }
-
-    public function getSlugOptions(): SlugOptions
-    {
-        return SlugOptions::create()
-            ->generateSlugsFrom('name')
-            ->saveSlugsTo('slug')
-            ->slugsShouldBeNoLongerThan(180)
-            ->preventOverwrite();
-    }
-
-    public function getRouteKeyName(): string
-    {
-        return 'slug';
-    }
-
-    public function getLocalizedRouteKey($locale): mixed
-    {
-        return $this->getSpatieLocalizedRouteKey((string) $locale);
-    }
-
-    public function resolveRouteBindingQuery($query, $value, $field = null): Builder|Relation
-    {
-        $bindingQuery = $this->resolveTranslatableRouteBindingQuery($query, $value, $field);
-        $bindingField = $field ?? $this->getRouteKeyName();
-
-        if ($bindingField !== 'slug' && ! str_ends_with($bindingField, '.slug')) {
-            return $bindingQuery;
-        }
-
-        return $bindingQuery
-            ->where('is_draft', false)
-            ->where('is_active', true);
     }
 
     /** @return BelongsToMany<Project, $this> */
@@ -140,13 +90,13 @@ class Service extends Model implements HasMedia, LocalizedUrlRoutable
     }
 
     /**
-     * @return array{key: string, id: string, name: string, summary: string, problem: string, approach: string, deliverables: list<string>, result: string, fit_signals: list<string>, engagement_note: string, seo_title: string, seo_description: string}
+     * @return array{key: string, id: string, name: string, summary: string, problem: string, approach: string, deliverables: list<string>, result: string, fit_signals: list<string>, engagement_note: string}
      */
     public function toPublicArray(string $locale): array
     {
         return [
             'key' => $this->key,
-            'id' => $this->getTranslation('slug', $locale),
+            'id' => 'service-'.$this->key,
             'name' => $this->translation('name', $locale),
             'summary' => $this->translation('summary', $locale),
             'problem' => $this->translation('problem', $locale),
@@ -159,8 +109,6 @@ class Service extends Model implements HasMedia, LocalizedUrlRoutable
             'result' => $this->translation('result', $locale),
             'fit_signals' => $this->translationList('fit_signals', $locale),
             'engagement_note' => $this->translation('engagement_note', $locale),
-            'seo_title' => $this->translation('seo_title', $locale),
-            'seo_description' => $this->translation('seo_description', $locale),
         ];
     }
 

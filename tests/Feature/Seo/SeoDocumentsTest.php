@@ -8,7 +8,9 @@ use DOMDocument;
 use DOMElement;
 use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class SeoDocumentsTest extends TestCase
@@ -25,9 +27,6 @@ class SeoDocumentsTest extends TestCase
         'writing',
         'about',
         'contact',
-        'privacy',
-        'cookies',
-        'terms',
     ];
 
     protected function setUp(): void
@@ -127,6 +126,29 @@ class SeoDocumentsTest extends TestCase
             ->assertStatus(304);
     }
 
+    public function test_sitemap_uses_the_article_open_graph_image_when_managed_media_exists(): void
+    {
+        Storage::fake('public');
+
+        $article = Article::factory()->create([
+            'key' => 'sitemap-open-graph-image',
+            'slug' => ['ar' => 'صورة-خريطة-الموقع', 'en' => 'sitemap-open-graph-image'],
+            'image' => null,
+        ]);
+        $article
+            ->addMedia(UploadedFile::fake()->image('sitemap-social.jpg', 1800, 1200))
+            ->toMediaCollection(Article::IMAGE_COLLECTION);
+
+        $response = $this->get('/sitemap.xml')->assertOk();
+        [, $xpath] = $this->parseSitemap((string) $response->getContent());
+        $node = $this->urlNode($xpath, $this->articleUrl($article, 'ar'));
+
+        $this->assertSame(
+            $this->canonicalUrl((string) parse_url($article->fresh()->openGraphImage()['src'], PHP_URL_PATH)),
+            $xpath->query('./image:image/image:loc', $node)->item(0)->textContent,
+        );
+    }
+
     public function test_robots_declares_the_canonical_sitemap_and_excludes_private_surfaces(): void
     {
         $response = $this->get('/robots.txt')->assertOk();
@@ -137,8 +159,8 @@ class SeoDocumentsTest extends TestCase
         $this->assertStringContainsString("User-agent: *\n", $content);
         $this->assertStringContainsString("Allow: /\n", $content);
         $this->assertStringContainsString("Disallow: /admin\n", $content);
-        $this->assertStringContainsString("Disallow: /reader\n", $content);
-        $this->assertStringContainsString("Disallow: /en/reader\n", $content);
+        $this->assertStringNotContainsString("Disallow: /reader\n", $content);
+        $this->assertStringNotContainsString("Disallow: /en/reader\n", $content);
         $this->assertStringContainsString(
             'Sitemap: '.self::CANONICAL_ROOT.'/sitemap.xml',
             $content,

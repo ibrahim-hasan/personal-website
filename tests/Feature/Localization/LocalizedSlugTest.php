@@ -108,7 +108,7 @@ class LocalizedSlugTest extends TestCase
         ]);
     }
 
-    public function test_projects_and_services_keep_stable_keys_separate_from_localized_slugs(): void
+    public function test_projects_keep_localized_slugs_while_services_use_stable_hub_anchors(): void
     {
         $project = Project::factory()->create([
             'key' => 'stable-project',
@@ -119,41 +119,25 @@ class LocalizedSlugTest extends TestCase
         ]);
         $service = Service::factory()->create([
             'key' => 'stable-service',
-            'slug' => [
-                'ar' => 'خدمة-مترجمة',
-                'en' => 'translated-service',
-            ],
         ]);
 
         $this->assertSame('stable-project', $project->toPortfolioArray('ar')['key']);
         $this->assertSame('مشروع-مترجم', $project->toPortfolioArray('ar')['id']);
         $this->assertSame('translated-project', $project->getLocalizedRouteKey('en'));
         $this->assertSame('stable-service', $service->toPublicArray('en')['key']);
-        $this->assertSame('translated-service', $service->toPublicArray('en')['id']);
-        $this->assertSame('خدمة-مترجمة', $service->getLocalizedRouteKey('ar'));
+        $this->assertSame('service-stable-service', $service->toPublicArray('en')['id']);
     }
 
-    public function test_localized_slug_migrations_can_roll_back_and_reapply_cleanly(): void
+    public function test_service_hub_retires_detail_slug_columns_while_projects_keep_localized_slugs(): void
     {
-        $promotionMigration = require database_path('migrations/2026_07_16_110714_promote_localized_slugs_on_public_content_tables.php');
-        $expansionMigration = require database_path('migrations/2026_07_16_110713_add_localized_slug_columns_to_public_content_tables.php');
-
-        $promotionMigration->down();
-        $expansionMigration->down();
-
-        $this->assertTrue(Schema::hasColumn('articles', 'slugs'));
-        $this->assertFalse(Schema::hasColumn('articles', 'slug'));
         $this->assertTrue(Schema::hasColumn('projects', 'slug'));
-        $this->assertFalse(Schema::hasColumn('projects', 'key'));
-        $this->assertTrue(Schema::hasColumn('services', 'slug'));
-        $this->assertFalse(Schema::hasColumn('services', 'key'));
-
-        $expansionMigration->up();
-        $promotionMigration->up();
-
-        $this->assertTrue(Schema::hasColumn('articles', 'slug'));
-        $this->assertFalse(Schema::hasColumn('articles', 'slugs'));
-        $this->assertTrue(Schema::hasColumn('projects', 'key'));
+        $this->assertTrue(Schema::hasColumn('projects', 'slug_ar'));
+        $this->assertTrue(Schema::hasColumn('projects', 'slug_en'));
         $this->assertTrue(Schema::hasColumn('services', 'key'));
+        $this->assertFalse(Schema::hasColumn('services', 'slug'));
+        $this->assertFalse(Schema::hasColumn('services', 'slug_ar'));
+        $this->assertFalse(Schema::hasColumn('services', 'slug_en'));
+        $this->assertFalse(Schema::hasColumn('services', 'seo_title'));
+        $this->assertFalse(Schema::hasColumn('services', 'seo_description'));
     }
 }

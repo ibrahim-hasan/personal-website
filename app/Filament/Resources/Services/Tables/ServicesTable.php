@@ -12,12 +12,9 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Gate;
 
 class ServicesTable
 {
@@ -30,28 +27,11 @@ class ServicesTable
                     ->getStateUsing(fn (Service $record): ?string => localized_model_attribute($record, 'name'))
                     ->description(fn (Service $record): string => $record->key)
                     ->searchable(),
-                TextColumn::make('slug')
-                    ->label(__('admin.fields.slug'))
-                    ->getStateUsing(fn (Service $record): ?string => localized_model_attribute($record, 'slug'))
-                    ->toggleable(isToggledHiddenByDefault: true),
-                ToggleColumn::make('is_draft')
-                    ->label(__('admin.fields.draft'))
-                    ->disabled(fn (Service $record): bool => ! Gate::allows('update', $record))
-                    ->afterStateUpdated(function (bool $state): void {
-                        Notification::make()
-                            ->title($state ? __('admin.messages.status_enabled') : __('admin.messages.status_disabled'))
-                            ->success()
-                            ->send();
-                    }),
-                ToggleColumn::make('is_active')
-                    ->label(__('admin.fields.active'))
-                    ->disabled(fn (Service $record): bool => ! Gate::allows('update', $record))
-                    ->afterStateUpdated(function (bool $state): void {
-                        Notification::make()
-                            ->title($state ? __('admin.messages.status_enabled') : __('admin.messages.status_disabled'))
-                            ->success()
-                            ->send();
-                    }),
+                TextColumn::make('publication_status')
+                    ->label(__('admin.fields.status'))
+                    ->getStateUsing(fn (Service $record): string => self::publicationLabel($record))
+                    ->badge()
+                    ->color(fn (Service $record): string => $record->is_draft ? 'gray' : ($record->is_active ? 'success' : 'warning')),
                 TextColumn::make('created_at')
                     ->label(__('admin.fields.created_at'))
                     ->dateTime()
@@ -89,5 +69,16 @@ class ServicesTable
                     RestoreBulkAction::make(),
                 ]),
             ]);
+    }
+
+    private static function publicationLabel(Service $service): string
+    {
+        if ($service->is_draft) {
+            return __('service_admin.status.draft');
+        }
+
+        return $service->is_active
+            ? __('service_admin.status.published')
+            : __('service_admin.status.unpublished');
     }
 }

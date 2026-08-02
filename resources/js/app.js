@@ -479,28 +479,6 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
-    Alpine.data('serviceTabs', ({ services }) => ({
-        services,
-        active: services[0]?.id ?? null,
-        init() {
-            const requestedService = window.location.hash.slice(1);
-
-            if (this.services.some((service) => service.id === requestedService)) {
-                this.active = requestedService;
-            }
-        },
-        activate(id) {
-            this.active = id;
-            window.history.replaceState(null, '', `#${id}`);
-        },
-        navigate(event) {
-            moveCompositeFocus(event);
-        },
-        current() {
-            return this.services.find((service) => service.id === this.active) ?? this.services[0];
-        },
-    }));
-
     Alpine.data('projectFilter', ({ projects }) => ({
         projects,
         lens: 'all',
@@ -1734,6 +1712,84 @@ const initializeConsultationTurnstile = (signal) => {
     }
 };
 
+const initializeServiceHubNavigation = (signal) => {
+    const hub = document.querySelector('[data-service-hub]');
+
+    if (! hub) {
+        return;
+    }
+
+    const links = [...hub.querySelectorAll('[data-service-hub-link]')]
+        .filter((link) => link instanceof HTMLAnchorElement);
+    const sections = [...hub.querySelectorAll('[data-service-hub-section]')]
+        .filter((section) => section instanceof HTMLElement && section.id !== '');
+
+    if (links.length === 0 || sections.length === 0) {
+        return;
+    }
+
+    const sectionIds = new Set(sections.map((section) => section.id));
+    const setActive = (id) => {
+        if (! sectionIds.has(id)) {
+            return;
+        }
+
+        links.forEach((link) => {
+            const isActive = link.hash === `#${id}`;
+
+            link.classList.toggle('is-active', isActive);
+
+            if (isActive) {
+                link.setAttribute('aria-current', 'location');
+            } else {
+                link.removeAttribute('aria-current');
+            }
+        });
+    };
+    const setActiveFromHash = () => {
+        const requestedId = window.location.hash.slice(1);
+
+        setActive(sectionIds.has(requestedId) ? requestedId : sections[0].id);
+    };
+
+    setActiveFromHash();
+
+    links.forEach((link) => {
+        link.addEventListener('click', () => {
+            setActive(link.hash.slice(1));
+        }, { signal });
+    });
+    window.addEventListener('hashchange', setActiveFromHash, { signal });
+
+    if (! ('IntersectionObserver' in window)) {
+        return;
+    }
+
+    const visibleSections = new Map();
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                visibleSections.set(entry.target.id, entry.intersectionRatio);
+            } else {
+                visibleSections.delete(entry.target.id);
+            }
+        });
+
+        const visibleId = [...visibleSections.entries()]
+            .sort(([, firstRatio], [, secondRatio]) => secondRatio - firstRatio)[0]?.[0];
+
+        if (visibleId) {
+            setActive(visibleId);
+        }
+    }, {
+        rootMargin: '-20% 0px -55% 0px',
+        threshold: [0.1, 0.35, 0.7],
+    });
+
+    sections.forEach((section) => observer.observe(section));
+    signal.addEventListener('abort', () => observer.disconnect(), { once: true });
+};
+
 const analyticsInteractionEvents = new Set([
     'primary_cta_click',
     'service_cta_click',
@@ -1755,7 +1811,7 @@ const controlledConsultationErrorCategories = new Set([
 const analyticsAttributeProperties = [
     ['analyticsUiLocation', 'ui_location'],
     ['analyticsDestinationCategory', 'destination_category'],
-    ['analyticsServiceSlug', 'service_slug'],
+    ['analyticsServiceKey', 'service_key'],
     ['analyticsContentSlug', 'content_slug'],
     ['analyticsContactChannel', 'contact_channel'],
 ];
@@ -1869,6 +1925,7 @@ const initializeFrontEnhancements = ({ skipWorkFilterEntranceMotion = false } = 
     initializeOverflowRails(frontEnhancementController.signal);
     initializeBackToTop(frontEnhancementController.signal);
     initializeConsultationTurnstile(frontEnhancementController.signal);
+    initializeServiceHubNavigation(frontEnhancementController.signal);
     initializeAnalyticsEventTracking(frontEnhancementController.signal);
     void initializeArticleSharing(frontEnhancementController.signal);
 };

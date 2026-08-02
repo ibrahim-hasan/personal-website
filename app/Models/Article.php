@@ -35,6 +35,8 @@ class Article extends Model implements HasMedia, HasRichContent, LocalizedUrlRou
 
     public const string THUMBNAIL_CONVERSION = 'article_card';
 
+    public const string OPEN_GRAPH_CONVERSION = 'article_open_graph';
+
     public const int HERO_WIDTH = 1600;
 
     public const int HERO_HEIGHT = 900;
@@ -42,6 +44,10 @@ class Article extends Model implements HasMedia, HasRichContent, LocalizedUrlRou
     public const int CARD_WIDTH = 720;
 
     public const int CARD_HEIGHT = 480;
+
+    public const int OPEN_GRAPH_WIDTH = 1200;
+
+    public const int OPEN_GRAPH_HEIGHT = 630;
 
     public const string BODY_AR_COLLECTION = 'article_body_ar';
 
@@ -200,6 +206,13 @@ class Article extends Model implements HasMedia, HasRichContent, LocalizedUrlRou
             ->withResponsiveImages()
             ->nonQueued();
 
+        $this->addMediaConversion(self::OPEN_GRAPH_CONVERSION)
+            ->performOnCollections(self::IMAGE_COLLECTION)
+            ->fit(Fit::Crop, self::OPEN_GRAPH_WIDTH, self::OPEN_GRAPH_HEIGHT)
+            ->format('jpg')
+            ->quality(85)
+            ->nonQueued();
+
         $this->addMediaConversion(self::BODY_IMAGE_CONVERSION)
             ->performOnCollections(self::BODY_AR_COLLECTION, self::BODY_EN_COLLECTION)
             ->fit(Fit::Max, 1600, 1600)
@@ -239,6 +252,32 @@ class Article extends Model implements HasMedia, HasRichContent, LocalizedUrlRou
     {
         return (string) ($this->getTranslation('image_alt', $locale, false)
             ?: $this->getTranslation('title', $locale, false));
+    }
+
+    /**
+     * @return array{src: string, width: int|null, height: int|null, type: string|null}
+     */
+    public function openGraphImage(): array
+    {
+        $media = $this->getFirstMedia(self::IMAGE_COLLECTION);
+
+        if ($media instanceof Media && $media->hasGeneratedConversion(self::OPEN_GRAPH_CONVERSION)) {
+            return [
+                'src' => $media->getUrl(self::OPEN_GRAPH_CONVERSION),
+                'width' => self::OPEN_GRAPH_WIDTH,
+                'height' => self::OPEN_GRAPH_HEIGHT,
+                'type' => 'image/jpeg',
+            ];
+        }
+
+        $source = $media instanceof Media ? $media->getUrl() : (string) $this->image;
+
+        return [
+            'src' => PublicImage::fromUrl($source, 0, 0)['src'],
+            'width' => null,
+            'height' => null,
+            'type' => null,
+        ];
     }
 
     public function imageCaption(string $locale): string

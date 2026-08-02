@@ -4,8 +4,11 @@
     :canonicalUrl="$canonicalUrl"
     :alternateUrls="$alternateUrls"
     ogType="article"
-    :ogImage="asset($article['image'])"
+    :ogImage="$article['open_graph_image']['src']"
     :ogImageAlt="$article['image_alt']"
+    :ogImageWidth="$article['open_graph_image']['width']"
+    :ogImageHeight="$article['open_graph_image']['height']"
+    :ogImageType="$article['open_graph_image']['type']"
     :publishedAt="$article['published_at']"
     :modifiedAt="$article['modified_at']"
     :articleAuthorUrl="localized_route('about')"
@@ -49,6 +52,10 @@
                         <time datetime="{{ $article['published_at'] }}">
                             {{ __('articles.reader.published') }} {{ $article['published_label'] }}
                         </time>
+                        <a class="article-hero__byline" href="{{ localized_route('about') }}">
+                            <span>{{ __('articles.reader.by') }}</span>
+                            <strong>{{ __('site.brand.name') }}</strong>
+                        </a>
                         <ul aria-label="{{ __('articles.index.topics') }}">
                             @foreach ($article['topics'] as $topic)
                                 <li>{{ $topic }}</li>

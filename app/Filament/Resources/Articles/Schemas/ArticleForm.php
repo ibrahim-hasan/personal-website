@@ -89,12 +89,12 @@ class ArticleForm
                 TextInput::make("seo_title.{$locale}")
                     ->label(__('editorial_admin.fields.seo_title'))
                     ->required()
-                    ->maxLength(70),
+                    ->maxLength(60),
                 Textarea::make("seo_description.{$locale}")
                     ->label(__('editorial_admin.fields.seo_description'))
                     ->required()
                     ->rows(3)
-                    ->maxLength(170),
+                    ->maxLength(155),
             ];
         }
 

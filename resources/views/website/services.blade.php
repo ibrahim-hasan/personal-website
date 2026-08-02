@@ -13,71 +13,75 @@
         </div>
     </section>
 
-    <section class="section-feature service-explorer" @if ($services !== []) x-data="serviceTabs({ services: @js($services) })" @endif>
+    <section class="section-feature service-explorer" data-service-hub>
         @if ($services !== [])
             <div class="site-container service-explorer__grid">
-                <div class="service-index" role="tablist" aria-label="{{ __('site.services.tabs_label') }}">
+                <nav class="service-index" aria-label="{{ __('site.services.tabs_label') }}">
                     @foreach ($services as $service)
-                        <button
-                            id="service-tab-{{ $service['id'] }}"
-                            type="button"
-                            role="tab"
-                            @click="activate('{{ $service['id'] }}')"
-                            @keydown="navigate($event)"
-                            :aria-selected="active === '{{ $service['id'] }}'"
-                        :tabindex="active === '{{ $service['id'] }}' ? 0 : -1"
-                        aria-controls="service-panel"
-                        class="service-index__item"
-                        :class="active === '{{ $service['id'] }}' ? 'is-active' : ''"
-                        data-analytics-event="service_cta_click"
-                        data-analytics-ui-location="services_index"
-                        data-analytics-destination-category="service"
-                        data-analytics-service-slug="{{ $service['key'] ?? $service['id'] }}"
-                    >
+                        <a
+                            href="#{{ $service['id'] }}"
+                            class="service-index__item @if ($loop->first) is-active @endif"
+                            data-service-hub-link
+                            @if ($loop->first) aria-current="location" @endif
+                            data-analytics-event="service_cta_click"
+                            data-analytics-ui-location="services_hub"
+                            data-analytics-destination-category="service"
+                            data-analytics-service-key="{{ $service['key'] }}"
+                        >
                             <span>{{ sprintf('%02d', $loop->iteration) }}</span>
                             <strong>{{ $service['name'] }}</strong>
                             <i aria-hidden="true"></i>
-                        </button>
+                        </a>
                     @endforeach
-                </div>
+                </nav>
 
-                <div class="min-w-0">
-                    <article
-                        id="service-panel"
-                        class="service-detail"
-                        role="tabpanel"
-                        tabindex="0"
-                        :aria-labelledby="'service-tab-' + active"
-                        aria-live="polite"
-                    >
-                        <p class="signal-label">{{ __('site.services.selected_track') }}</p>
-                        <h2 class="display-section mt-6 max-w-[13ch]" x-text="current().name"></h2>
-                        <p class="copy-lead mt-7 max-w-[58ch]" x-text="current().summary"></p>
+                <div class="service-hub min-w-0">
+                    @foreach ($services as $service)
+                        <article id="{{ $service['id'] }}" class="service-hub__entry" data-service-hub-section>
+                            <p class="signal-label">{{ __('site.services.selected_track') }}</p>
+                            <h2 class="display-section mt-6 max-w-[13ch]">{{ $service['name'] }}</h2>
+                            <p class="copy-lead mt-7 max-w-[58ch]">{{ $service['summary'] }}</p>
 
-                        <dl class="service-detail__facts mt-12">
-                            <div>
-                                <dt>{{ __('site.services.problem_pattern') }}</dt>
-                                <dd x-text="current().problem"></dd>
-                            </div>
-                            <div>
-                                <dt>{{ __('site.services.approach') }}</dt>
-                                <dd x-text="current().approach"></dd>
-                            </div>
-                            <div>
-                                <dt>{{ __('site.services.useful_result') }}</dt>
-                                <dd x-text="current().result"></dd>
-                            </div>
-                        </dl>
+                            <dl class="service-hub__facts mt-12">
+                                <div>
+                                    <dt>{{ __('site.services.problem_pattern') }}</dt>
+                                    <dd>{{ $service['problem'] }}</dd>
+                                </div>
+                                <div>
+                                    <dt>{{ __('site.services.approach') }}</dt>
+                                    <dd>{{ $service['approach'] }}</dd>
+                                </div>
+                                <div>
+                                    <dt>{{ __('site.services.useful_result') }}</dt>
+                                    <dd>{{ $service['result'] }}</dd>
+                                </div>
+                            </dl>
 
-                        <div class="service-deliverables mt-12">
-                            <h3>{{ __('site.services.deliverables') }}</h3>
-                            <ul>
-                                <template x-for="deliverable in current().deliverables" :key="deliverable">
-                                    <li><span aria-hidden="true"></span><strong x-text="deliverable"></strong></li>
-                                </template>
-                            </ul>
-                        </div>
-                    </article>
+                            <section class="service-hub__fit mt-12" aria-labelledby="{{ $service['id'] }}-fit">
+                                <p class="signal-label">{{ __('site.services.good_fit_eyebrow') }}</p>
+                                <h3 id="{{ $service['id'] }}-fit">{{ __('site.services.good_fit_title') }}</h3>
+                                <ul>
+                                    @foreach ($service['fit_signals'] as $signal)
+                                        <li><span aria-hidden="true"></span><strong>{{ $signal }}</strong></li>
+                                    @endforeach
+                                </ul>
+                            </section>
+
+                            <section class="service-deliverables mt-12" aria-labelledby="{{ $service['id'] }}-deliverables">
+                                <h3 id="{{ $service['id'] }}-deliverables">{{ __('site.services.deliverables') }}</h3>
+                                <ul>
+                                    @foreach ($service['deliverables'] as $deliverable)
+                                        <li><span aria-hidden="true"></span><strong>{{ $deliverable }}</strong></li>
+                                    @endforeach
+                                </ul>
+                            </section>
+
+                            <aside class="service-hub__note mt-12">
+                                <p>{{ __('site.services.starting_engagement') }}</p>
+                                <strong>{{ $service['engagement_note'] }}</strong>
+                            </aside>
+                        </article>
+                    @endforeach
                 </div>
             </div>
 

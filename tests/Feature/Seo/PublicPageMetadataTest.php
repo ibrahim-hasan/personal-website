@@ -4,6 +4,7 @@ namespace Tests\Feature\Seo;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Lang;
 use Tests\TestCase;
 
 class PublicPageMetadataTest extends TestCase
@@ -13,6 +14,7 @@ class PublicPageMetadataTest extends TestCase
     public function test_public_metadata_uses_clean_localized_urls_regional_locales_and_full_preview_defaults(): void
     {
         $siteUrl = rtrim((string) config('app.url'), '/');
+        $secureSiteUrl = preg_replace('/^http:/', 'https:', $siteUrl);
         $arabicResponse = $this->get('/?utm_source=metadata-test');
 
         $arabicResponse
@@ -22,11 +24,13 @@ class PublicPageMetadataTest extends TestCase
             ->assertSee('<link rel="alternate" hreflang="en" href="'.$siteUrl.'/en">', false)
             ->assertSee('<link rel="alternate" hreflang="x-default" href="'.$siteUrl.'">', false)
             ->assertSee('<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">', false)
-            ->assertSee('<meta property="og:locale" content="ar_AE">', false)
+            ->assertSee('<meta property="og:locale" content="ar_SA">', false)
             ->assertSee('<meta property="og:locale:alternate" content="en_US">', false)
-            ->assertSee('<meta property="og:image:type" content="image/png">', false)
-            ->assertSee('<meta property="og:image:width" content="1586">', false)
-            ->assertSee('<meta property="og:image:height" content="992">', false)
+            ->assertSee('<meta property="og:image" content="'.$siteUrl.'/images/social/ibrahim-hasan-share-ar-v1.jpg">', false)
+            ->assertSee('<meta property="og:image:secure_url" content="'.$secureSiteUrl.'/images/social/ibrahim-hasan-share-ar-v1.jpg">', false)
+            ->assertSee('<meta property="og:image:type" content="image/jpeg">', false)
+            ->assertSee('<meta property="og:image:width" content="1200">', false)
+            ->assertSee('<meta property="og:image:height" content="630">', false)
             ->assertSee('<meta property="og:image:alt" content="', false)
             ->assertSee('<meta name="twitter:image:alt" content="', false)
             ->assertDontSee('utm_source=metadata-test', false);
@@ -42,7 +46,7 @@ class PublicPageMetadataTest extends TestCase
             ->assertSee('<link rel="canonical" href="'.$siteUrl.'/en">', false)
             ->assertSee('<link rel="alternate" hreflang="ar" href="'.$siteUrl.'">', false)
             ->assertSee('<meta property="og:locale" content="en_US">', false)
-            ->assertSee('<meta property="og:locale:alternate" content="ar_AE">', false)
+            ->assertSee('<meta property="og:locale:alternate" content="ar_SA">', false)
             ->assertDontSee('ref=ignored', false);
     }
 
@@ -53,11 +57,35 @@ class PublicPageMetadataTest extends TestCase
         $schema = $this->structuredData($response->getContent());
         $profilePage = collect($schema['@graph'])->firstWhere('@type', 'ProfilePage');
         $person = collect($schema['@graph'])->firstWhere('@type', 'Person');
+        $organizations = collect($schema['@graph'])
+            ->where('@type', 'Organization')
+            ->keyBy(fn (array $organization): string => $organization['@id']);
 
         $this->assertIsArray($profilePage);
         $this->assertIsArray($person);
         $this->assertSame($person['@id'], $profilePage['mainEntity']['@id']);
         $this->assertSame($siteUrl.'/about', $person['url']);
+        $this->assertSame('مهندس برمجيات وشريك تقني', $person['jobTitle']);
+        $this->assertContains('التحول الرقمي', $person['knowsAbout']);
+        $this->assertContains((string) config('services.social.linkedin'), $person['sameAs']);
+        $this->assertArrayHasKey('https://fromscratch-solutions.com#organization', $organizations->all());
+        $this->assertArrayHasKey('https://codemoments.com#organization', $organizations->all());
+        $this->assertSame(
+            $person['@id'],
+            $organizations['https://fromscratch-solutions.com#organization']['founder']['@id'],
+        );
+        $this->assertSame([
+            ['@id' => 'https://fromscratch-solutions.com#organization'],
+            ['@id' => 'https://codemoments.com#organization'],
+        ], $person['worksFor']);
+
+        $englishSchema = $this->structuredData($this->get('/en/about')->assertOk()->getContent());
+        $englishPerson = collect($englishSchema['@graph'])->firstWhere('@type', 'Person');
+
+        $this->assertIsArray($englishPerson);
+        $this->assertSame($person['@id'], $englishPerson['@id']);
+        $this->assertSame($person['url'], $englishPerson['url']);
+        $this->assertSame('Software Engineer & Technology Partner', $englishPerson['jobTitle']);
     }
 
     public function test_core_pages_expose_a_consistent_site_name_and_localized_breadcrumb_hierarchy(): void
@@ -84,7 +112,7 @@ class PublicPageMetadataTest extends TestCase
             [
                 '@type' => 'ListItem',
                 'position' => 2,
-                'name' => 'الأعمال',
+                'name' => Lang::get('site.work.title', [], 'ar'),
                 'item' => $siteUrl.'/work',
             ],
         ], $arabicBreadcrumb['itemListElement']);
@@ -98,7 +126,7 @@ class PublicPageMetadataTest extends TestCase
         $this->assertContains('Ibrahim Hasan', $englishWebsite['alternateName']);
         $this->assertSame('Home', $englishBreadcrumb['itemListElement'][0]['name']);
         $this->assertSame($siteUrl.'/en', $englishBreadcrumb['itemListElement'][0]['item']);
-        $this->assertSame('About', $englishBreadcrumb['itemListElement'][1]['name']);
+        $this->assertSame(Lang::get('site.about.title', [], 'en'), $englishBreadcrumb['itemListElement'][1]['name']);
         $this->assertSame($siteUrl.'/en/about', $englishBreadcrumb['itemListElement'][1]['item']);
     }
 
@@ -134,6 +162,17 @@ class PublicPageMetadataTest extends TestCase
             ->get('/en/reader/account')
             ->assertOk()
             ->assertSee('<meta name="robots" content="noindex, nofollow, noarchive, noimageindex">', false);
+    }
+
+    public function test_legal_pages_are_available_to_visitors_but_not_indexable(): void
+    {
+        $this->get('/privacy')
+            ->assertOk()
+            ->assertSee('<meta name="robots" content="noindex, follow, noarchive">', false);
+
+        $this->get('/en/cookies')
+            ->assertOk()
+            ->assertSee('<meta name="robots" content="noindex, follow, noarchive">', false);
     }
 
     public function test_google_analytics_is_exposed_only_in_production_when_configured(): void

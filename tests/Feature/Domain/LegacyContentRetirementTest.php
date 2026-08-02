@@ -78,6 +78,16 @@ class LegacyContentRetirementTest extends TestCase
         $migration->down();
     }
 
+    public function test_service_detail_retirement_cannot_silently_restore_removed_content(): void
+    {
+        $migration = require database_path('migrations/2026_08_03_000003_retire_service_detail_columns.php');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Restore a database backup');
+
+        $migration->down();
+    }
+
     public function test_retiring_legacy_media_removes_its_public_files(): void
     {
         Storage::fake('public');
@@ -106,25 +116,21 @@ class LegacyContentRetirementTest extends TestCase
         Storage::disk('public')->assertMissing($path);
     }
 
-    public function test_localized_transition_enforces_stable_service_keys_and_translated_slugs(): void
+    public function test_service_hub_keeps_stable_keys_without_detail_slugs(): void
     {
         $service = Service::factory()->create([
             'key' => 'service-stable-key',
-            'slug' => [
-                'ar' => 'مسار-الخدمة',
-                'en' => 'service-path',
-            ],
         ]);
 
         $this->assertModelExists($service);
         $this->assertSame('service-stable-key', $service->key);
-        $this->assertSame('مسار-الخدمة', $service->getTranslation('slug', 'ar'));
-        $this->assertSame('service-path', $service->getTranslation('slug', 'en'));
+        $this->assertSame('service-service-stable-key', $service->toPublicArray('ar')['id']);
 
         $keyColumn = collect(Schema::getColumns('services'))->firstWhere('name', 'key');
-        $slugColumn = collect(Schema::getColumns('services'))->firstWhere('name', 'slug');
         $this->assertFalse($keyColumn['nullable']);
-        $this->assertFalse($slugColumn['nullable']);
+        $this->assertFalse(Schema::hasColumn('services', 'slug'));
+        $this->assertFalse(Schema::hasColumn('services', 'slug_ar'));
+        $this->assertFalse(Schema::hasColumn('services', 'slug_en'));
     }
 
     public function test_final_transition_blocks_a_partial_batch_rollback(): void

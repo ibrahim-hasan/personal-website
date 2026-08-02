@@ -15,6 +15,7 @@ class AboutController extends Controller
     {
         return view('website.about', [
             'biography' => SiteContent::aboutBiography(),
+            'services' => SiteContent::services(),
             'companies' => PortfolioAtlas::companies(),
             'athar' => AtharPublicProof::forPlacement(AtharPlacement::About, app()->getLocale()),
         ]);

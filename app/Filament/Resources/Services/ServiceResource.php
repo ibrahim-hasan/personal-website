@@ -81,11 +81,19 @@ class ServiceResource extends Resource
                     ->schema([
                         TranslatableInfolistTabs::make([
                             'name' => [],
-                            'slug' => [],
                             'summary' => ['columnSpanFull' => true],
                             'problem' => ['columnSpanFull' => true],
                             'approach' => ['columnSpanFull' => true],
                             'result' => ['columnSpanFull' => true],
+                            'fit_signals' => [
+                                'columnSpanFull' => true,
+                                'label' => __('service_admin.fields.fit_signals'),
+                                'formatStateUsing' => fn (mixed $state): string => is_array($state) ? implode(PHP_EOL, $state) : '',
+                            ],
+                            'engagement_note' => [
+                                'columnSpanFull' => true,
+                                'label' => __('service_admin.fields.engagement_note'),
+                            ],
                         ], columns: 2),
                     ]),
                 Section::make(__('admin.sections.publishing'))

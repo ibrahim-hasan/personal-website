@@ -104,6 +104,8 @@ Sign in → create or edit localized content → upload managed media → review
 ### Portfolio and services
 
 - Localized projects and services with meaningful categorization and narrative fields.
+- One canonical services hub is the only public service destination. Its server-rendered `#service-{key}` sections are stable, linkable entry points; there are no public service-detail pages.
+- Recognized historic service-detail URLs make one permanent redirect to the matching services-hub section. Do not create new service URLs or duplicate per-service metadata without an explicitly approved product change.
 - Consistent project media and logos, not manually entered public paths.
 - Real case-study structure: context, challenge, change, impact, and relevant tags.
 
@@ -135,6 +137,7 @@ Sign in → create or edit localized content → upload managed media → review
 
 - All dynamic images use Spatie Media Library collections and Filament media upload fields.
 - Define named conversions by use case: card/thumbnail, hero, Open Graph, and logo where applicable.
+- The site-level share cards are versioned, bilingual 1200×630 JPEG assets. Article sharing uses its dedicated Open Graph conversion when managed media exists, with a truthful fallback otherwise.
 - Preserve the original; produce modern responsive derivatives; use meaningful alt text per locale.
 - Logos use consistent containers and optical sizing. Do not stretch, crop, or normalize by width alone.
 - Public-path text fields are legacy behavior and must not be reintroduced.
@@ -167,10 +170,12 @@ Sign in → create or edit localized content → upload managed media → review
 ## SEO, discoverability, and performance
 
 - Every indexable page needs a unique localized title, description, canonical URL, and hreflang set.
-- Articles need Open Graph/Twitter metadata, share-ready imagery, `Article` structured data, and useful internal links.
+- Articles need Open Graph/Twitter metadata, share-ready imagery, `Article` structured data, visible author links, and useful internal links.
+- The public profile uses one stable `ProfilePage`/`Person` identity, supported by visible expertise, current-company relationships, and verified social profiles. Do not add education, employment, country, or location claims without approved factual source material.
 - The organization/person/navigation structure should make major sections eligible for search sitelinks, while recognizing that Google decides whether to display them.
 - XML sitemaps must include localized canonical content and exclude private, duplicate, utility, and admin pages.
-- Analytics load only in production and must not block content.
+- Use permanent redirects for public path variants and known retired routes; do not publish country-specific doorway pages to target geographic searches.
+- Analytics load only in production, after consent, with allowlisted event payloads, and must not block content.
 - Images and video must be correctly sized, compressed, lazy-loaded when below the fold, and accompanied by stable dimensions to prevent layout shift.
 - Protect Core Web Vitals: avoid autoplay audio, oversized hero media, render-blocking extras, and motion that causes reflow.
 

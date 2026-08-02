@@ -25,7 +25,7 @@ const allowedAnalyticsProperties = new Set([
     'page_type',
     'route_key',
     'content_slug',
-    'service_slug',
+    'service_key',
     'topic_key',
     'ui_location',
     'destination_category',
@@ -37,7 +37,6 @@ const allowedLocales = new Set(['ar', 'en']);
 const allowedPageTypes = new Set([
     'home',
     'services',
-    'service',
     'work',
     'project',
     'writing',
@@ -48,7 +47,6 @@ const allowedPageTypes = new Set([
 const allowedRouteKeys = new Set([
     'home',
     'services',
-    'services.show',
     'work',
     'work.show',
     'writing',
@@ -64,7 +62,7 @@ const allowedUiLocations = new Set([
     'home_work',
     'home_writing',
     'home_about',
-    'service_detail',
+    'services_hub',
     'project_detail',
     'article_related',
     'article_after',
@@ -139,7 +137,7 @@ const sanitizeAnalyticsValue = (property, value) => {
         return allowedRouteKeys.has(normalized) ? normalized : null;
     }
 
-    if (['content_slug', 'service_slug', 'topic_key'].includes(property)) {
+    if (['content_slug', 'service_key', 'topic_key'].includes(property)) {
         return normalized.length <= 120 && safeSlugPattern.test(normalized) ? normalized : null;
     }
 

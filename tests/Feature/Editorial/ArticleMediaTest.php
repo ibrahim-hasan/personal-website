@@ -33,6 +33,14 @@ class ArticleMediaTest extends TestCase
         $this->assertStringContainsString(Article::IMAGE_CONVERSION, $catalogArticle->image);
         $this->assertFileExists($media->getPath(Article::IMAGE_CONVERSION));
         $this->assertFileExists($media->getPath(Article::THUMBNAIL_CONVERSION));
+        $this->assertFileExists($media->getPath(Article::OPEN_GRAPH_CONVERSION));
+
+        $openGraphImage = $article->fresh()->openGraphImage();
+
+        $this->assertStringContainsString(Article::OPEN_GRAPH_CONVERSION, $openGraphImage['src']);
+        $this->assertSame(Article::OPEN_GRAPH_WIDTH, $openGraphImage['width']);
+        $this->assertSame(Article::OPEN_GRAPH_HEIGHT, $openGraphImage['height']);
+        $this->assertSame('image/jpeg', $openGraphImage['type']);
     }
 
     public function test_article_media_collection_replaces_the_previous_image(): void

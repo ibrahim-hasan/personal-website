@@ -2,6 +2,8 @@
 
 namespace App\Support\Seo;
 
+use App\Support\PortfolioAtlas;
+use App\Support\SiteContent;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Str;
@@ -26,6 +28,7 @@ final readonly class SeoMetadata
         public string $robots,
         public string $ogType,
         public string $imageUrl,
+        public string $imageSecureUrl,
         public string $imageAlt,
         public ?int $imageWidth,
         public ?int $imageHeight,
@@ -63,15 +66,16 @@ final readonly class SeoMetadata
         string $schemaType,
         ?array $structuredData,
     ): self {
+        $title = self::decodeHtmlEntities($title);
+        $description = self::decodeHtmlEntities($description);
+        $ogImageAlt = self::decodeHtmlEntities($ogImageAlt);
+        $locale = current_locale();
         $siteName = (string) __('site.brand.name');
-        $resolvedTitle = $title
-            ? "{$title} | {$siteName}"
-            : $siteName.' | '.(string) __('site.meta.default_title');
+        $resolvedTitle = self::title($title, $siteName);
         $resolvedDescription = $description ?: (string) __('site.meta.default_description');
         $resolvedCanonicalUrl = self::cleanUrl($canonicalUrl ?: url()->current());
         $resolvedAlternateUrls = self::alternateUrls($alternateUrls);
-        $locale = current_locale();
-        $imageUrl = $ogImage ?: asset('images/ibrahim/hero-workspace.png');
+        $imageUrl = filled($ogImage) ? $ogImage : self::defaultSocialImageUrl($locale);
         [$resolvedImageWidth, $resolvedImageHeight] = self::imageDimensions($imageUrl);
         $imageWidth = $ogImageWidth ?? $resolvedImageWidth;
         $imageHeight = $ogImageHeight ?? $resolvedImageHeight;
@@ -138,7 +142,10 @@ final readonly class SeoMetadata
             robots: $robots,
             ogType: $ogType,
             imageUrl: $imageUrl,
-            imageAlt: $ogImageAlt ?: ($title ?: $siteName),
+            imageSecureUrl: self::secureUrl($imageUrl),
+            imageAlt: $ogImageAlt ?: (filled($ogImage)
+                ? ($title ?: $siteName)
+                : self::defaultSocialImageAlt($locale)),
             imageWidth: $imageWidth,
             imageHeight: $imageHeight,
             imageType: $imageType,
@@ -169,6 +176,43 @@ final readonly class SeoMetadata
         return self::cleanUrl($canonicalUrl).'#webpage';
     }
 
+    public static function defaultSocialImageUrl(?string $locale = null): string
+    {
+        $locale ??= current_locale();
+
+        return asset(match ($locale) {
+            'en' => 'images/social/ibrahim-hasan-share-en-v1.jpg',
+            default => 'images/social/ibrahim-hasan-share-ar-v1.jpg',
+        });
+    }
+
+    private static function title(?string $title, string $siteName): string
+    {
+        $title = trim((string) $title);
+
+        if ($title === '') {
+            $title = trim((string) __('site.meta.default_title'));
+        }
+
+        if (Str::contains(Str::lower($title), Str::lower($siteName))) {
+            return $title;
+        }
+
+        return "{$title} | {$siteName}";
+    }
+
+    private static function defaultSocialImageAlt(string $locale): string
+    {
+        return (string) Lang::get('site.meta.social_image_alt', [], $locale);
+    }
+
+    private static function decodeHtmlEntities(?string $value): ?string
+    {
+        return $value === null
+            ? null
+            : htmlspecialchars_decode($value, ENT_QUOTES | ENT_HTML5);
+    }
+
     /**
      * @param  array<string, string>  $alternateUrls
      * @return array<string, string>
@@ -197,6 +241,15 @@ final readonly class SeoMetadata
     private static function siteUrl(): string
     {
         return rtrim((string) config('app.url'), '/');
+    }
+
+    private static function secureUrl(string $url): string
+    {
+        if (str_starts_with($url, 'http://')) {
+            return 'https://'.Str::after($url, 'http://');
+        }
+
+        return str_starts_with($url, '//') ? "https:{$url}" : $url;
     }
 
     private static function regionalLocale(string $locale): string
@@ -255,7 +308,9 @@ final readonly class SeoMetadata
         string $schemaType,
     ): array {
         $personId = self::personId();
+        $personUrl = self::cleanUrl(localized_route('about', locale: default_locale()));
         $siteNames = self::siteNames();
+        $organizationNodes = self::organizationNodes($personId);
         $websiteNode = [
             '@type' => 'WebSite',
             '@id' => self::websiteId(),
@@ -282,17 +337,92 @@ final readonly class SeoMetadata
             $pageNode['mainEntity'] = ['@id' => $personId];
         }
 
+        $personNode = [
+            '@type' => 'Person',
+            '@id' => $personId,
+            'name' => $siteNames[0] ?? (string) __('site.brand.name'),
+            'url' => $personUrl,
+            'image' => asset('images/ibrahim/ibrahim-formal-portrait.webp'),
+            'description' => (string) Lang::get('site.entity.description', [], $locale),
+            'jobTitle' => (string) Lang::get('site.entity.job_title', [], $locale),
+            'knowsAbout' => self::localizedStringList('site.entity.knows_about', $locale),
+        ];
+
+        if (count($siteNames) > 1) {
+            $personNode['alternateName'] = array_slice($siteNames, 1);
+        }
+
+        $sameAs = collect(SiteContent::socialProfiles())
+            ->pluck('href')
+            ->filter(fn (mixed $url): bool => is_string($url) && trim($url) !== '')
+            ->values()
+            ->all();
+
+        if ($sameAs !== []) {
+            $personNode['sameAs'] = $sameAs;
+        }
+
+        if ($organizationNodes !== []) {
+            $personNode['worksFor'] = collect($organizationNodes)
+                ->map(fn (array $organization): array => ['@id' => $organization['@id']])
+                ->all();
+        }
+
         return [
             $websiteNode,
-            [
-                '@type' => 'Person',
-                '@id' => $personId,
-                'name' => (string) __('site.brand.name'),
-                'url' => self::cleanUrl(localized_route('about', locale: $locale)),
-                'image' => asset('images/ibrahim/ibrahim-speaking-hero.webp'),
-            ],
+            $personNode,
+            ...$organizationNodes,
             $pageNode,
         ];
+    }
+
+    /**
+     * @return list<array{'@type': string, '@id': string, name: string, url: string, founder: array{'@id': string}}>
+     */
+    private static function organizationNodes(string $personId): array
+    {
+        return collect(PortfolioAtlas::companies())
+            ->filter(fn (array $company): bool => in_array(
+                $company['id'] ?? null,
+                ['from-scratch', 'code-moments'],
+                true,
+            ))
+            ->map(function (array $company) use ($personId): ?array {
+                $organizationUrl = $company['action']['url'] ?? null;
+
+                if (! is_string($organizationUrl) || ! filter_var($organizationUrl, FILTER_VALIDATE_URL)) {
+                    return null;
+                }
+
+                return [
+                    '@type' => 'Organization',
+                    '@id' => rtrim($organizationUrl, '/').'#organization',
+                    'name' => (string) $company['name'],
+                    'url' => rtrim($organizationUrl, '/'),
+                    'founder' => ['@id' => $personId],
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function localizedStringList(string $key, string $locale): array
+    {
+        $values = Lang::get($key, [], $locale);
+
+        if (! is_array($values)) {
+            return [];
+        }
+
+        return collect($values)
+            ->filter(fn (mixed $value): bool => is_string($value) && trim($value) !== '')
+            ->map(fn (string $value): string => trim($value))
+            ->values()
+            ->all();
     }
 
     /**

@@ -24,9 +24,6 @@ class SeoDocumentService
         'writing',
         'about',
         'contact',
-        'privacy',
-        'cookies',
-        'terms',
     ];
 
     public function __construct(private readonly ArticleCatalog $articles) {}
@@ -45,8 +42,6 @@ class SeoDocumentService
             'User-agent: *',
             'Allow: /',
             'Disallow: /admin',
-            'Disallow: /reader',
-            'Disallow: /en/reader',
             '',
             'Sitemap: '.$this->canonicalUrl('/sitemap.xml'),
             '',
@@ -91,7 +86,7 @@ class SeoDocumentService
             $localized = $article->localized($locale, includeBody: false);
             $tag = $this->localizedTag($localizedUrls, $locale)
                 ->setLastModificationDate(Carbon::parse($article->modifiedAt));
-            $imageUrl = $this->canonicalAssetUrl($article->image);
+            $imageUrl = $this->canonicalAssetUrl($article->openGraphImage()['src']);
 
             if ($imageUrl !== null) {
                 $tag->addImage($imageUrl, (string) $localized['title']);
@@ -130,6 +125,13 @@ class SeoDocumentService
     {
         if ($path === '') {
             return null;
+        }
+
+        $assetPath = parse_url($path, PHP_URL_PATH);
+
+        if (is_string($assetPath)
+            && ($assetPath === '/storage/' || str_starts_with($assetPath, '/storage/') || is_file(public_path(ltrim($assetPath, '/'))))) {
+            return $this->canonicalUrl($assetPath);
         }
 
         if (Str::startsWith($path, ['http://', 'https://'])) {

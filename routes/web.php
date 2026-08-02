@@ -11,6 +11,7 @@ use App\Http\Controllers\Website\AboutController;
 use App\Http\Controllers\Website\ArticleController;
 use App\Http\Controllers\Website\ContactController;
 use App\Http\Controllers\Website\HomeController;
+use App\Http\Controllers\Website\LegacyServiceRedirectController;
 use App\Http\Controllers\Website\LegalController;
 use App\Http\Controllers\Website\MarkHeroVideoViewedController;
 use App\Http\Controllers\Website\PortfolioController;
@@ -62,7 +63,7 @@ Route::get('/login', function (): RedirectResponse {
 $registerLocalizedRoutes = function (?string $routeLocale = null): void {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/services', [ServiceController::class, 'index'])->name('services');
-    Route::get('/services/{service:slug}', [ServiceController::class, 'show'])->name('services.show');
+    Route::get('/services/{legacyService}', LegacyServiceRedirectController::class)->name('services.legacy');
     Route::get('/work', PortfolioController::class)->name('work');
     Route::get('/work/{project:slug}', [PortfolioController::class, 'show'])->name('work.show');
     Route::get('/writing', WritingController::class)->name('writing');

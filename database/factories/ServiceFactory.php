@@ -15,7 +15,6 @@ class ServiceFactory extends Factory
 
         return [
             'key' => $key,
-            'slug' => ['ar' => 'خدمة-'.$key, 'en' => $key],
             'name' => [
                 'ar' => fake()->sentence(3),
                 'en' => fake()->sentence(3),
@@ -47,14 +46,6 @@ class ServiceFactory extends Factory
             'engagement_note' => [
                 'ar' => 'نبدأ بجلسة لفهم التحدّي وتحديد الخطوة العملية التالية.',
                 'en' => 'We begin by understanding the challenge and identifying the next practical step.',
-            ],
-            'seo_title' => [
-                'ar' => 'خدمة تجريبية',
-                'en' => 'Example service',
-            ],
-            'seo_description' => [
-                'ar' => 'وصف تجريبي للخدمة.',
-                'en' => 'An example service description.',
             ],
             'order' => fake()->numberBetween(1, 100),
             'is_draft' => false,

@@ -147,13 +147,7 @@ class EditorialArticleRelationsApiTest extends TestCase
             ])
             ->assertOk();
 
-        $this->assertSame(
-            [],
-            app(ServicePublicationValidator::class)->violationsForArticleRelation(
-                $service->fresh(),
-                $article->fresh(),
-            ),
-        );
+        $this->assertTrue(app(ServicePublicationValidator::class)->isPublishable($service->fresh()));
 
         $this->asClient(['articles:write'])
             ->withHeaders([
@@ -186,7 +180,7 @@ class EditorialArticleRelationsApiTest extends TestCase
             ->assertOk();
     }
 
-    public function test_relation_updates_reject_targets_with_another_draft_article(): void
+    public function test_relation_updates_allow_services_with_another_draft_article_but_keep_project_validation_strict(): void
     {
         $service = Service::factory()->create(['key' => 'service-with-unrelated-draft']);
         $project = $this->eligibleProject('project-with-unrelated-draft');
@@ -203,13 +197,12 @@ class EditorialArticleRelationsApiTest extends TestCase
             ->patchJson('/api/v1/articles/'.$article->getKey(), [
                 'service_keys' => [$service->key],
             ])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['service_keys.0']);
+            ->assertOk();
 
         $this->asClient(['articles:write'])
             ->withHeaders([
                 'Idempotency-Key' => 'article-relations-other-draft-project',
-                'If-Match' => '"1"',
+                'If-Match' => '"2"',
             ])
             ->patchJson('/api/v1/articles/'.$article->getKey(), [
                 'project_keys' => [$project->key],

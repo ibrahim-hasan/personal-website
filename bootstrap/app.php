@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Operations\ReadinessController;
 use App\Http\Middleware\AssignApiRequestId;
+use App\Http\Middleware\CanonicalizePublicUrl;
 use App\Http\Middleware\EnsureArticleScope;
 use App\Http\Middleware\ReplayIdempotentRequest;
 use App\Http\Middleware\SetLocale;
@@ -65,6 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'localeViewPath' => LaravelLocalizationViewPath::class,
         ]);
 
+        $middleware->prepend(CanonicalizePublicUrl::class);
         $middleware->append(SetPrivacyHeaders::class);
 
         $middleware->web(append: [

@@ -2,29 +2,39 @@
 
 namespace App\Actions\Services;
 
-use App\Actions\Editorial\ArticlePublicationValidator;
-use App\Models\Article;
-use App\Models\Project;
 use App\Models\Service;
-use App\Services\Projects\ProjectCaseStudyPublicationValidator;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
 final class ServicePublicationValidator
 {
-    public function __construct(
-        private readonly ServiceIntrinsicPublicationValidator $intrinsicValidator,
-        private readonly ProjectCaseStudyPublicationValidator $projectPublicationValidator,
-        private readonly ArticlePublicationValidator $articlePublicationValidator,
-    ) {}
+    private const array LOCALES = ['ar', 'en'];
 
     /** @return array<string, list<string>> */
     public function violations(Service $service, bool $requirePublicState = true): array
     {
-        $violations = $this->intrinsicValidator->violations($service, $requirePublicState);
+        $violations = [];
 
         if ($requirePublicState) {
-            $this->validateRelatedProjects($service, $violations);
-            $this->validateRelatedArticles($service, $violations);
+            if (! $service->is_active) {
+                $violations['status'][] = 'The service is inactive.';
+            }
+
+            if ($service->is_draft) {
+                $violations['status'][] = 'The service is still a draft.';
+            }
+
+            if ($service->trashed()) {
+                $violations['status'][] = 'The service has been deleted.';
+            }
+        }
+
+        if (trim((string) $service->key) === '') {
+            $violations['key'][] = 'A stable service key is required.';
+        }
+
+        foreach (self::LOCALES as $locale) {
+            $this->validateLocale($service, $locale, $violations);
         }
 
         return $violations;
@@ -35,42 +45,9 @@ final class ServicePublicationValidator
         return $this->violations($service) === [];
     }
 
-    /**
-     * Validate a Service selected from a draft Article without letting that
-     * Article make the Service ineligible for its own relation update.
-     *
-     * All other related Projects and Articles remain subject to the ordinary
-     * public-relation gate.
-     *
-     * @return array<string, list<string>>
-     */
-    public function violationsForArticleRelation(Service $service, ?Article $sourceArticle): array
-    {
-        $violations = $this->intrinsicValidator->violations($service);
-
-        $this->validateRelatedProjects($service, $violations, $sourceArticle);
-        $this->validateRelatedArticles($service, $violations, $sourceArticle);
-
-        return $violations;
-    }
-
-    public function isEligibleForArticleRelation(Service $service, ?Article $sourceArticle): bool
-    {
-        return $this->violationsForArticleRelation($service, $sourceArticle) === [];
-    }
-
-    /**
-     * The non-recursive Service eligibility path used when a Project validates
-     * a directly selected Service relation.
-     */
-    public function isIntrinsicallyPublishable(Service $service): bool
-    {
-        return $this->intrinsicValidator->isPublishable($service);
-    }
-
     public function hasCompleteContent(Service $service): bool
     {
-        return $this->intrinsicValidator->hasCompleteContent($service);
+        return $this->violations($service, requirePublicState: false) === [];
     }
 
     public function assertPublishable(Service $service): void
@@ -85,46 +62,66 @@ final class ServicePublicationValidator
     /**
      * @param  array<string, list<string>>  $violations
      */
-    private function validateRelatedProjects(Service $service, array &$violations, ?Article $sourceArticle = null): void
+    private function validateLocale(Service $service, string $locale, array &$violations): void
     {
-        $projects = $service->relationLoaded('projects')
-            ? $service->getRelation('projects')
-            : $service->projects()
-                ->with(['evidence', 'services', 'articles'])
-                ->get();
+        foreach (['name', 'summary', 'problem', 'approach', 'result', 'engagement_note'] as $attribute) {
+            $value = trim((string) $service->getTranslation($attribute, $locale, false));
 
-        $projects
-            ->filter(fn (mixed $project): bool => $project instanceof Project)
-            ->each(function (Project $project) use (&$violations, $sourceArticle): void {
-                if (! $this->projectPublicationValidator->isEligibleForArticleRelation($project, $sourceArticle)) {
-                    $violations["relation.project.{$project->key}"][] = 'The selected Project is not publicly publishable.';
+            if ($value === '') {
+                $violations["{$attribute}.{$locale}"][] = 'A complete localized value is required.';
 
-                    return;
-                }
+                continue;
+            }
 
-                if ($project->isAnonymizedForPublic()) {
-                    $violations["relation.project.{$project->key}"][] = 'An anonymized Project cannot be exposed through a Service relation.';
-                }
-            });
+            if ($this->containsForbiddenPublicContent($value)) {
+                $violations["{$attribute}.{$locale}"][] = 'The value contains a placeholder or prohibited public sales phrase.';
+            }
+        }
+
+        $fitSignals = $service->getTranslation('fit_signals', $locale, false);
+
+        if (! $this->isCompleteStringList($fitSignals, minimum: 2, maximum: 4)) {
+            $violations["fit_signals.{$locale}"][] = 'Provide between two and four complete fit signals.';
+        } elseif ($this->listContainsForbiddenPublicContent($fitSignals)) {
+            $violations["fit_signals.{$locale}"][] = 'Fit signals contain a placeholder or prohibited public sales phrase.';
+        }
+
+        $deliverables = collect($service->deliverables ?? [])
+            ->map(fn (mixed $deliverable): mixed => is_array($deliverable) ? Arr::get($deliverable, $locale) : null)
+            ->all();
+
+        if (! $this->isCompleteStringList($deliverables, minimum: 1, maximum: 5)) {
+            $violations["deliverables.{$locale}"][] = 'Provide between one and five complete localized deliverables.';
+        } elseif ($this->listContainsForbiddenPublicContent($deliverables)) {
+            $violations["deliverables.{$locale}"][] = 'Deliverables contain a placeholder or prohibited public sales phrase.';
+        }
     }
 
-    /**
-     * @param  array<string, list<string>>  $violations
-     */
-    private function validateRelatedArticles(Service $service, array &$violations, ?Article $sourceArticle = null): void
+    private function isCompleteStringList(mixed $items, int $minimum, int $maximum): bool
     {
-        $articles = $service->relationLoaded('articles')
-            ? $service->getRelation('articles')
-            : $service->articles()->get();
+        if (! is_array($items) || count($items) < $minimum || count($items) > $maximum) {
+            return false;
+        }
 
-        $articles
-            ->filter(fn (mixed $article): bool => $article instanceof Article)
-            ->reject(fn (Article $article): bool => $sourceArticle !== null && $article->is($sourceArticle))
-            ->each(function (Article $article) use (&$violations): void {
-                if (! $this->articlePublicationValidator->isPubliclyEligible($article)) {
-                    $violations["relation.article.{$article->key}"][] = 'The selected Article is not publicly publishable.';
-                }
-            });
+        return collect($items)->every(
+            fn (mixed $item): bool => is_string($item) && trim($item) !== '',
+        );
+    }
+
+    private function listContainsForbiddenPublicContent(mixed $items): bool
+    {
+        return is_array($items)
+            && collect($items)->contains(
+                fn (mixed $item): bool => is_string($item) && $this->containsForbiddenPublicContent($item),
+            );
+    }
+
+    private function containsForbiddenPublicContent(string $value): bool
+    {
+        return str_contains($value, 'جلسة تشخيصية')
+            || preg_match('/\{\{[^}]+}}/u', $value) === 1
+            || preg_match('/(?:^|\s)(?:todo|tbd|lorem ipsum|translation key|editorial note)(?:\s|$)/iu', $value) === 1
+            || preg_match('/(?:^|\s)[A-Za-z0-9_.-]+::[A-Za-z0-9_.-]+(?:\s|$)/u', $value) === 1;
     }
 
     /**
@@ -152,13 +149,9 @@ final class ServicePublicationValidator
         ];
 
         return match (true) {
-            str_starts_with($field, 'relation.project.') => __('service_admin.publication.related_project'),
-            str_starts_with($field, 'relation.article.') => __('service_admin.publication.related_article'),
             $field === 'status' && str_contains($message, 'deleted') => __('service_admin.publication.deleted'),
             $field === 'status' => __('service_admin.publication.status'),
             $field === 'key' => __('service_admin.publication.key'),
-            $attribute === 'slug' && str_contains($message, 'unique') => __('service_admin.publication.slug_unique', $replacements),
-            $attribute === 'slug' => __('service_admin.publication.slug_required', $replacements),
             str_contains($message, 'placeholder or prohibited') => __('service_admin.publication.prohibited_content', $replacements),
             $attribute === 'fit_signals' => __('service_admin.publication.fit_signals', $replacements),
             $attribute === 'deliverables' => __('service_admin.publication.deliverables', $replacements),

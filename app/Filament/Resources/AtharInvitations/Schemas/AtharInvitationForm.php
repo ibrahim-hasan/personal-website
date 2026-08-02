@@ -69,7 +69,7 @@ class AtharInvitationForm
                             ->label(__('admin.fields.placement_key'))
                             ->helperText(__('admin.hints.athar_placement_key'))
                             ->options(fn (Get $get): array => AtharPlacementDestination::options($get('placement'), app()->getLocale()))
-                            ->visible(fn (Get $get): bool => in_array($get('placement'), [AtharPlacement::Services->value, AtharPlacement::Work->value], true))
+                            ->visible(fn (Get $get): bool => $get('placement') === AtharPlacement::Work->value)
                             ->searchable()
                             ->disabledOn('edit'),
                         DateTimePicker::make('expires_at')

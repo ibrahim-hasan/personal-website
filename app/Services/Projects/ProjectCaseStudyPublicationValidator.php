@@ -3,7 +3,7 @@
 namespace App\Services\Projects;
 
 use App\Actions\Editorial\ArticlePublicationValidator;
-use App\Actions\Services\ServiceIntrinsicPublicationValidator;
+use App\Actions\Services\ServicePublicationValidator;
 use App\Enums\ProjectAssetPermissionStatus;
 use App\Enums\ProjectDisclosureLevel;
 use App\Enums\ProjectEvidenceKind;
@@ -19,7 +19,7 @@ use Illuminate\Support\Collection;
 final class ProjectCaseStudyPublicationValidator
 {
     public function __construct(
-        private readonly ServiceIntrinsicPublicationValidator $serviceIntrinsicPublicationValidator,
+        private readonly ServicePublicationValidator $servicePublicationValidator,
         private readonly ArticlePublicationValidator $articlePublicationValidator,
     ) {}
 
@@ -256,7 +256,7 @@ final class ProjectCaseStudyPublicationValidator
         $services
             ->filter(fn (mixed $service): bool => $service instanceof Service)
             ->each(function (Service $service) use (&$violations): void {
-                if (! $this->serviceIntrinsicPublicationValidator->isPublishable($service)) {
+                if (! $this->servicePublicationValidator->isPublishable($service)) {
                     $violations[] = "relation.service.{$service->key}.not_public";
                 }
             });

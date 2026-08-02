@@ -54,6 +54,23 @@ final readonly class Article
     }
 
     /**
+     * @return array{src: string, width: int|null, height: int|null, type: string|null}
+     */
+    public function openGraphImage(): array
+    {
+        if ($this->record !== null) {
+            return $this->record->openGraphImage();
+        }
+
+        return [
+            'src' => $this->imageMedia()['src'],
+            'width' => null,
+            'height' => null,
+            'type' => null,
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function localized(string $locale, bool $includeBody = true): array
@@ -102,6 +119,7 @@ final readonly class Article
             'modified_label' => Carbon::parse($this->modifiedAt)->locale($locale)->translatedFormat('j F Y'),
             'image' => $this->image,
             'image_media' => $this->imageMedia(),
+            'open_graph_image' => $this->openGraphImage(),
             'card_image' => $this->imageMedia(
                 ArticleRecord::THUMBNAIL_CONVERSION,
                 ArticleRecord::CARD_WIDTH,

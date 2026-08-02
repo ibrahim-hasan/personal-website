@@ -154,7 +154,7 @@
                         data-reveal="row"
                         data-analytics-event="service_cta_click"
                         data-analytics-destination-category="service"
-                        data-analytics-service-slug="{{ $service['key'] ?? $service['id'] }}"
+                        data-analytics-service-key="{{ $service['key'] ?? $service['id'] }}"
                     >
                         <span>{{ sprintf('%02d', $loop->iteration) }}</span>
                         <div>

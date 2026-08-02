@@ -194,6 +194,46 @@ class ArticleRichContentTest extends TestCase
         }
     }
 
+    public function test_ai_product_moat_metadata_refinement_updates_only_the_known_english_default(): void
+    {
+        $previous = 'A practical guide to durable AI product advantage through proprietary context, compounding data, workflow integration, trust, distribution, and fast learning.';
+        $refined = 'A practical guide to durable AI product advantage through proprietary context, compounding data, workflow integration, trust, and fast learning.';
+        $article = Article::factory()->create([
+            'key' => 'ai-product-moat',
+            'seo_description' => [
+                'ar' => 'وصف عربي محفوظ.',
+                'en' => $previous,
+            ],
+            'editorial_revision' => 4,
+        ]);
+        $migration = require database_path('migrations/2026_08_03_000001_refine_ai_product_moat_seo_description.php');
+
+        $migration->up();
+        $article->refresh();
+
+        $this->assertSame($refined, $article->getTranslation('seo_description', 'en', false));
+        $this->assertSame('وصف عربي محفوظ.', $article->getTranslation('seo_description', 'ar', false));
+        $this->assertSame(5, $article->editorial_revision);
+
+        $migration->down();
+        $article->refresh();
+
+        $this->assertSame($previous, $article->getTranslation('seo_description', 'en', false));
+        $this->assertSame(6, $article->editorial_revision);
+    }
+
+    public function test_seeded_articles_keep_search_metadata_within_the_published_limits(): void
+    {
+        $this->seed(ArticleSeeder::class);
+
+        foreach (Article::query()->get() as $article) {
+            foreach (['ar', 'en'] as $locale) {
+                $this->assertLessThanOrEqual(60, mb_strlen($article->getTranslation('seo_title', $locale, false)));
+                $this->assertLessThanOrEqual(155, mb_strlen($article->getTranslation('seo_description', $locale, false)));
+            }
+        }
+    }
+
     public function test_the_rewrite_migration_updates_the_live_only_slug_without_changing_its_existing_key(): void
     {
         $article = Article::factory()->create([

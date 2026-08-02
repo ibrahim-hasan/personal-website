@@ -50,7 +50,6 @@ final class SetServicePublication
     private function lockedService(Service $service): Service
     {
         return Service::withTrashed()
-            ->with(['projects.evidence', 'projects.services', 'projects.articles', 'articles'])
             ->lockForUpdate()
             ->findOrFail($service->getKey());
     }

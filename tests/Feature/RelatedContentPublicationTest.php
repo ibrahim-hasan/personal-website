@@ -19,7 +19,7 @@ class RelatedContentPublicationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_service_relation_validation_is_strict_without_recursing_through_a_project_back_to_the_service(): void
+    public function test_service_publication_depends_only_on_its_own_public_state_and_content(): void
     {
         $service = Service::factory()->create(['key' => 'relation-safe-service']);
         $project = $this->eligibleProject('relation-safe-project');
@@ -31,14 +31,8 @@ class RelatedContentPublicationTest extends TestCase
         $service->projects()->attach($project, ['sort_order' => 0]);
         $service->articles()->attach($draftArticle, ['sort_order' => 0]);
 
-        $violations = app(ServicePublicationValidator::class)->violations($service->fresh());
-
-        $this->assertArrayHasKey('relation.article.relation-draft-article', $violations);
-        $this->assertArrayNotHasKey('relation.project.relation-safe-project', $violations);
-
-        $draftArticle->update(['is_published' => true]);
-
         $this->assertTrue(app(ServicePublicationValidator::class)->isPublishable($service->fresh()));
+        $this->assertFalse($draftArticle->is_published);
     }
 
     public function test_project_relation_validation_requires_direct_articles_to_be_publicly_available(): void
@@ -61,7 +55,7 @@ class RelatedContentPublicationTest extends TestCase
         $this->assertTrue($validator->validate($project->fresh())->isEligible());
     }
 
-    public function test_service_details_render_public_related_articles_in_selected_order(): void
+    public function test_service_relationships_preserve_selected_order_without_creating_a_public_detail_page(): void
     {
         $service = Service::factory()->create(['key' => 'service-related-output']);
         $project = $this->eligibleProject('project-related-output');
@@ -73,16 +67,17 @@ class RelatedContentPublicationTest extends TestCase
             $secondArticle->getKey() => ['sort_order' => 0],
             $firstArticle->getKey() => ['sort_order' => 1],
         ]);
-        $articleUrls = [
-            localized_route('writing.show', ['article' => $secondArticle], locale: 'ar'),
-            localized_route('writing.show', ['article' => $firstArticle], locale: 'ar'),
-        ];
+        $service->refresh();
 
-        $this->get(localized_route('services.show', ['service' => $service], locale: 'ar'))
-            ->assertOk()
-            ->assertSee(__('site.services.related_projects'), false)
-            ->assertSee(__('site.services.related_articles'), false)
-            ->assertSeeInOrder($articleUrls, false);
+        $this->assertSame(
+            [$project->key],
+            $service->projects()->pluck('projects.key')->all(),
+        );
+        $this->assertSame(
+            [$secondArticle->key, $firstArticle->key],
+            $service->articles()->pluck('articles.key')->all(),
+        );
+        $this->get('/services/'.$service->key)->assertNotFound();
     }
 
     public function test_article_relationships_preserve_selected_order_and_keep_publication_eligibility_explicit(): void

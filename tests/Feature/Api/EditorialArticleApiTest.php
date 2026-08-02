@@ -69,6 +69,19 @@ class EditorialArticleApiTest extends TestCase
             ->assertJsonValidationErrors(['summary.en']);
     }
 
+    public function test_article_creation_rejects_metadata_that_exceeds_search_snippet_limits(): void
+    {
+        $payload = $this->articlePayload();
+        $payload['seo_title']['en'] = str_repeat('t', 61);
+        $payload['seo_description']['ar'] = str_repeat('و', 156);
+
+        $this->asClient(['articles:write'])
+            ->withHeader('Idempotency-Key', 'invalid-seo-length-001')
+            ->postJson('/api/v1/articles', $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['seo_title.en', 'seo_description.ar']);
+    }
+
     public function test_article_creation_rejects_a_malformed_rich_text_document(): void
     {
         $payload = $this->articlePayload();

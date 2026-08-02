@@ -39,10 +39,10 @@ class WebsitePagesTest extends TestCase
     {
         $pages = [
             '/' => ['إبراهيم حسن', 'إلى أثرٍ يُقاس', 'الخدمات', 'أربعة مجالات للعمل. منهج واحد لا يفصل العمل عن التقنية.'],
-            '/services' => ['الخدمات', 'مساعدة مركزة حيث يلتقي العمل بالتقنية', 'استراتيجية التحول الرقمي'],
+            '/services' => ['الخدمات', 'التحول الرقمي والذكاء الاصطناعي والبيانات، من المشكلة إلى نظام يعمل.', 'استراتيجية التحول الرقمي'],
             '/work' => ['أعمال مختارة', 'ما الذي تغيّر، ولماذا؟', 'حالات مختارة عبر قطاعات مختلفة. في كل حالة: السياق التشغيلي، والتحدي، وما تغيّر، والأثر العملي.', 'الموسوعة الرقمية'],
             '/writing' => ['التقنية بلغة الأعمال', 'من تجربة الذكاء الاصطناعي إلى قيمة يمكن إثباتها'],
-            '/about' => ['أبني أنظمة رقمية يُعتمد عليها.', 'كيف بدأ المسار.', 'بدأتُ في هندسة الميكاترونيكس', 'مشروع تخرجي طائرة رباعية من دون طيار', 'ما أعمل عليه اليوم.', 'كود مومنتس'],
+            '/about' => ['إبراهيم حسن يبني أنظمة رقمية يُعتمد عليها.', 'كيف بدأ المسار.', 'بدأتُ في هندسة الميكاترونيكس', 'مشروع تخرجي طائرة رباعية من دون طيار', 'ما أعمل عليه اليوم.', 'كود مومنتس'],
             '/contact' => ['أخبرني بالمشكلة التي تريد حلّها', 'أرسل طلب الاستشارة'],
         ];
 
@@ -168,7 +168,7 @@ class WebsitePagesTest extends TestCase
             ->assertOk()
             ->assertSee('images/ibrahim/ibrahim-formal-portrait.webp', false)
             ->assertSee('Professional portrait of Ibrahim Hasan', false)
-            ->assertSee('Building dependable digital systems.', false)
+            ->assertSee('Ibrahim Hasan builds dependable digital systems.', false)
             ->assertSee('Where the path began.', false)
             ->assertSee('I began in mechatronics engineering', false)
             ->assertSee('My graduation project was a quadcopter', false)
@@ -188,7 +188,7 @@ class WebsitePagesTest extends TestCase
         $this->get('/about')
             ->assertOk()
             ->assertSee('صورة مهنية لإبراهيم حسن', false)
-            ->assertSee('أبني أنظمة رقمية يُعتمد عليها.', false)
+            ->assertSee('إبراهيم حسن يبني أنظمة رقمية يُعتمد عليها.', false)
             ->assertSee('كيف بدأ المسار.', false)
             ->assertSee('ما أعمل عليه اليوم.', false)
             ->assertSee('فروم سكراتش', false)
@@ -289,10 +289,10 @@ class WebsitePagesTest extends TestCase
     {
         $pages = [
             '/en' => ['Ibrahim Hasan', 'to impact you can measure'],
-            '/en/services' => ['Focused help where business', 'Digital transformation strategy'],
+            '/en/services' => ['Digital transformation, AI, and data—from the problem to a system that works.', 'Digital Transformation Strategy'],
             '/en/work' => ['Selected work', 'What changed—and why.', 'Selected cases across distinct sectors. Each sets out the operating context, challenge, what changed, and practical impact.', 'Digi Pedia'],
             '/en/writing' => ['Technology in the language of business', 'From AI Experiment to Measurable Business Value'],
-            '/en/about' => ['Building dependable digital systems', 'Code Moments'],
+            '/en/about' => ['Ibrahim Hasan builds dependable digital systems.', 'Code Moments'],
             '/en/contact' => ['Tell me the problem you want to solve', 'Send consultation request'],
         ];
 

@@ -56,6 +56,7 @@ return [
         'error' => 'Audio could not be played. Please try again.',
         'contents' => 'In this article',
         'published' => 'Published',
+        'by' => 'By',
         'updated' => 'Updated',
         'related' => 'Related articles',
         'related_services' => 'Related services',

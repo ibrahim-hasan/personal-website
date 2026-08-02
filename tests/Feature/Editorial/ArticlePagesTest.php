@@ -146,7 +146,7 @@ class ArticlePagesTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee('<meta property="og:locale" content="ar_AE">', false)
+            ->assertSee('<meta property="og:locale" content="ar_SA">', false)
             ->assertSee('<meta property="og:locale:alternate" content="en_US">', false)
             ->assertSee('<meta property="og:image:type" content="'.$imageSize['mime'].'">', false)
             ->assertSee('<meta property="og:image:width" content="'.$imageSize[0].'">', false)
