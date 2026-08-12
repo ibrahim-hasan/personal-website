@@ -150,7 +150,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          for variable in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH DEPLOY_HEALTH_URL DEPLOY_SSH_PRIVATE_KEY DEPLOY_KNOWN_HOSTS; do
+          for variable in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH DEPLOY_HEALTH_URL DEPLOY_SSH_PRIVATE_KEY DEPLOY_KNOWN_HOSTS WEBSITE_METRICS_API_CLIENT_ID; do
             if [[ -z "${!variable:-}" ]]; then
               echo "$variable must be configured as a production environment secret or variable." >&2
               exit 1
@@ -169,43 +169,5 @@ jobs:
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/deploy_key
           export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes"
-
-          if [[ -n "${WEBSITE_METRICS_API_CLIENT_ID:-}" ]]; then
-            if [[ ! "$WEBSITE_METRICS_API_CLIENT_ID" =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]]; then
-              echo "WEBSITE_METRICS_API_CLIENT_ID must be a UUID when configured." >&2
-              exit 1
-            fi
-
-            ssh \
-              -o BatchMode=yes \
-              -i "$HOME/.ssh/deploy_key" \
-              -o IdentitiesOnly=yes \
-              -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
-              -o StrictHostKeyChecking=yes \
-              -p "${DEPLOY_PORT:-22}" \
-              "$DEPLOY_USER@$DEPLOY_HOST" \
-              bash -s -- "$DEPLOY_PATH" "$WEBSITE_METRICS_API_CLIENT_ID" <<'REMOTE'
-          set -euo pipefail
-
-          deploy_path="$1"
-          client_id="$2"
-          environment_file="$deploy_path/shared/.env"
-
-          if [[ ! -f "$environment_file" ]]; then
-            echo "The shared production environment file is missing." >&2
-            exit 1
-          fi
-
-          temporary_file="$(mktemp "${environment_file}.tmp.XXXXXX")"
-          trap 'rm -f "$temporary_file"' EXIT
-
-          grep -v '^WEBSITE_METRICS_API_CLIENT_ID=' "$environment_file" > "$temporary_file" || true
-          printf '\n' >> "$temporary_file"
-          printf 'WEBSITE_METRICS_API_CLIENT_ID=%s\n' "$client_id" >> "$temporary_file"
-          chmod 600 "$temporary_file"
-          mv "$temporary_file" "$environment_file"
-          trap - EXIT
-          REMOTE
-          fi
 
           vendor/bin/dep deploy production --revision "$RELEASE_REVISION" --no-interaction

@@ -33,7 +33,7 @@ host('production')
     ->setDeployPath((string) getenv('DEPLOY_PATH'));
 
 task('deploy:validate-runtime-configuration', function (): void {
-    foreach (['DEPLOY_HOST', 'DEPLOY_USER', 'DEPLOY_PATH', 'DEPLOY_HEALTH_URL'] as $variable) {
+    foreach (['DEPLOY_HOST', 'DEPLOY_USER', 'DEPLOY_PATH', 'DEPLOY_HEALTH_URL', 'WEBSITE_METRICS_API_CLIENT_ID'] as $variable) {
         if (trim((string) getenv($variable)) === '') {
             throw new RuntimeException("$variable must be configured before deployment.");
         }
@@ -54,6 +54,35 @@ task('deploy:upload-build', function (): void {
     }
 
     upload('public/build/', '{{release_path}}/public/build/');
+});
+
+task('deploy:configure-website-metrics-client', function (): void {
+    $clientId = trim((string) getenv('WEBSITE_METRICS_API_CLIENT_ID'));
+
+    if (! preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i', $clientId)) {
+        throw new RuntimeException('WEBSITE_METRICS_API_CLIENT_ID must be a UUID.');
+    }
+
+    $environmentFile = '{{deploy_path}}/shared/.env';
+
+    run(sprintf(<<<'BASH'
+set -eu
+environment_file=%s
+
+if [ ! -f "$environment_file" ]; then
+  printf '%s\n' 'The shared production environment file is missing.' >&2
+  exit 1
+fi
+
+temporary_file="$(mktemp "${environment_file}.website-metrics-client.XXXXXX")"
+trap 'rm -f "$temporary_file"' EXIT
+
+sed '/^WEBSITE_METRICS_API_CLIENT_ID=/d' "$environment_file" > "$temporary_file"
+printf '\nWEBSITE_METRICS_API_CLIENT_ID=%%s\n' %s >> "$temporary_file"
+chmod 600 "$temporary_file"
+mv "$temporary_file" "$environment_file"
+trap - EXIT
+BASH, escapeshellarg($environmentFile), escapeshellarg($clientId)));
 });
 
 task('artisan:filament-optimize', artisan('filament:optimize'));
@@ -100,6 +129,7 @@ after('deploy:failed', 'deploy:unlock');
 
 before('deploy:prepare', 'deploy:validate-runtime-configuration');
 before('deploy:prepare', 'deploy:assert-explicit-revision');
+after('deploy:shared', 'deploy:configure-website-metrics-client');
 before('artisan:migrate', 'artisan:assert-passport-keys');
 before('deploy:symlink', 'deploy:prepare-application');
 
