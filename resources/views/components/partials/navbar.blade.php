@@ -44,7 +44,15 @@
         </nav>
 
         <div class="site-nav__actions">
-            <a href="{{ localized_route('contact') }}#consultation" wire:navigate class="site-nav__consultation button-primary" data-magnetic>
+            <a
+                href="{{ localized_route('contact') }}#consultation"
+                wire:navigate
+                class="site-nav__consultation button-primary"
+                data-magnetic
+                data-analytics-event="primary_cta_click"
+                data-analytics-ui-location="navigation"
+                data-analytics-destination-category="consultation"
+            >
                 <span>{{ __('site.actions.free_consultation') }}</span>
                 <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
             </a>
@@ -53,7 +61,15 @@
                 <div class="language-switch" aria-label="{{ __('site.nav.languages') }}">
                     @foreach (config('app.supported_locales', []) as $locale => $language)
                         @continue(current_locale() === $locale)
-                        <a href="{{ $alternateUrls[$locale] ?? localized_current_url($locale) }}" data-no-navigate class="language-switch__action" hreflang="{{ $locale }}" lang="{{ $locale }}">
+                        <a
+                            href="{{ $alternateUrls[$locale] ?? localized_current_url($locale) }}"
+                            data-no-navigate
+                            class="language-switch__action"
+                            hreflang="{{ $locale }}"
+                            lang="{{ $locale }}"
+                            data-analytics-event="language_switch"
+                            data-analytics-ui-location="navigation"
+                        >
                             <span>{{ $language['native'] }}</span>
                         </a>
                     @endforeach
@@ -211,14 +227,30 @@
                     </section>
                 @endguest
 
-                <a href="{{ localized_route('contact') }}#consultation" wire:navigate @click="close(false)" class="button-light w-full justify-between">
+                <a
+                    href="{{ localized_route('contact') }}#consultation"
+                    wire:navigate
+                    @click="close(false)"
+                    class="button-light w-full justify-between"
+                    data-analytics-event="primary_cta_click"
+                    data-analytics-ui-location="mobile_menu"
+                    data-analytics-destination-category="consultation"
+                >
                     <span>{{ __('site.actions.free_consultation') }}</span>
                     <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
                 </a>
                 <div class="mobile-menu__language" aria-label="{{ __('site.nav.languages') }}">
                     @foreach (config('app.supported_locales', []) as $locale => $language)
                         @continue(current_locale() === $locale)
-                        <a href="{{ $alternateUrls[$locale] ?? localized_current_url($locale) }}" data-no-navigate class="mobile-menu__locale" hreflang="{{ $locale }}" lang="{{ $locale }}">
+                        <a
+                            href="{{ $alternateUrls[$locale] ?? localized_current_url($locale) }}"
+                            data-no-navigate
+                            class="mobile-menu__locale"
+                            hreflang="{{ $locale }}"
+                            lang="{{ $locale }}"
+                            data-analytics-event="language_switch"
+                            data-analytics-ui-location="mobile_menu"
+                        >
                             <span>{{ $language['native'] }}</span>
                         </a>
                     @endforeach

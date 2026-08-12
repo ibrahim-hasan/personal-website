@@ -1,4 +1,4 @@
-import { consentCookieMaxAge, currentConsent } from './cookie-consent';
+import { consentCookieMaxAge, currentConsent } from './cookie-consent.js';
 
 const measurementId = document
     .querySelector('meta[name="google-analytics-id"]')
@@ -18,7 +18,6 @@ const allowedAnalyticsEvents = new Set([
     'language_switch',
     'audio_start',
     'audio_complete',
-    'web_vital',
 ]);
 const allowedAnalyticsProperties = new Set([
     'locale',
@@ -57,19 +56,33 @@ const allowedRouteKeys = new Set([
 const allowedUiLocations = new Set([
     'navigation',
     'mobile_menu',
-    'home_hero',
+    'home_hero_primary',
+    'home_hero_finale',
+    'home_atlas',
     'home_services',
+    'home_services_empty',
     'home_work',
+    'home_work_empty',
+    'work_services',
     'home_writing',
     'home_about',
     'services_hub',
+    'services_hub_cta',
+    'services_hub_empty',
+    'work_empty',
+    'writing_empty',
     'project_detail',
     'article_related',
     'article_after',
     'contact_hero',
     'contact_form',
+    'contact_channels',
     'decision_room',
+    'decision_room_direct',
+    'decision_room_completion',
     'footer',
+    'footer_cta',
+    'footer_contact',
     'audio_player',
 ]);
 const allowedDestinationCategories = new Set([
@@ -81,7 +94,7 @@ const allowedDestinationCategories = new Set([
     'direct_contact',
     'reader',
 ]);
-const allowedContactChannels = new Set(['email', 'linkedin', 'whatsapp']);
+const allowedContactChannels = new Set(['email', 'linkedin', 'phone', 'whatsapp']);
 const allowedErrorCategories = new Set([
     'validation',
     'turnstile',

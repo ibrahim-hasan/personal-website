@@ -34,6 +34,7 @@ class OAuthClientManagementLocalizationTest extends TestCase
             ->assertSee('عملاء OAuth')
             ->assertSee('إنشاء عميل OAuth')
             ->assertSee('قراءة المقالات والمسودات')
+            ->assertSee('قراءة مؤشرات أداء الموقع المجمّعة')
             ->assertSee('أحدث أحداث تدقيق واجهة API التحريرية')
             ->assertDontSee('O Auth Clients');
     }
@@ -42,9 +43,11 @@ class OAuthClientManagementLocalizationTest extends TestCase
     {
         app()->setLocale('en');
         $this->assertSame('Read articles and drafts', ManageOAuthClients::scopeLabels()['articles:read']);
+        $this->assertSame('Read aggregate website performance metrics', ManageOAuthClients::scopeLabels()['analytics:read']);
 
         app()->setLocale('ar');
         $this->assertSame('قراءة المقالات والمسودات', ManageOAuthClients::scopeLabels()['articles:read']);
+        $this->assertSame('قراءة مؤشرات أداء الموقع المجمّعة', ManageOAuthClients::scopeLabels()['analytics:read']);
     }
 
     private function bootAdminPanel(): void

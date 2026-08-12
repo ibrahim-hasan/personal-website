@@ -22,6 +22,7 @@ class AssignApiRequestId
             $requestId = (string) Str::uuid();
         }
 
+        $request->attributes->set('api_request_id', $requestId);
         $request->attributes->set('editorial_api_request_id', $requestId);
 
         $response = $next($request);

@@ -133,6 +133,9 @@
                     :body="$isFiltered ? __('site.work.filtered_empty_body') : __('site.work.empty_body')"
                     :action-url="localized_route('contact').'#consultation'"
                     :action-label="__('site.actions.start_project')"
+                    analytics-event="primary_cta_click"
+                    analytics-ui-location="work_empty"
+                    analytics-destination-category="consultation"
                 />
             @endif
         </div>
@@ -153,6 +156,7 @@
                         style="--reveal-index: {{ $loop->index }}"
                         data-reveal="row"
                         data-analytics-event="service_cta_click"
+                        data-analytics-ui-location="work_services"
                         data-analytics-destination-category="service"
                         data-analytics-service-key="{{ $service['key'] ?? $service['id'] }}"
                     >

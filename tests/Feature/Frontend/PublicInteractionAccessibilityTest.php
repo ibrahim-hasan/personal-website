@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Frontend;
 
+use App\Models\Setting;
 use Database\Seeders\ArticleSeeder;
 use Database\Seeders\ProjectSeeder;
 use Database\Seeders\ServiceSeeder;
@@ -122,6 +123,60 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertStringContainsString('class="about-current-work__list"', $about);
         $this->assertStringContainsString('@foreach ($companies as $company)', $about);
         $this->assertStringNotContainsString("@switch(\$lens['id'])", $about);
+    }
+
+    public function test_public_analytics_instruments_consultation_language_and_direct_contact_paths_without_contact_values(): void
+    {
+        Setting::setValue('contact_phone', '+90 555 123 45 67', 'contact');
+        Setting::setValue('whatsapp_number', '+90 555 765 43 21', 'contact');
+
+        $this->get('/en')
+            ->assertOk()
+            ->assertSee('data-analytics-ui-location="home_hero_primary"', false)
+            ->assertSee('data-analytics-ui-location="home_hero_finale"', false)
+            ->assertSee('data-analytics-ui-location="navigation"', false)
+            ->assertSee('data-analytics-ui-location="mobile_menu"', false)
+            ->assertSee('data-analytics-ui-location="footer_cta"', false)
+            ->assertSee('data-analytics-ui-location="footer_contact"', false)
+            ->assertSee('data-analytics-ui-location="decision_room_direct"', false)
+            ->assertSee('data-analytics-event="language_switch"', false);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('lang="ar"', false)
+            ->assertSee('dir="rtl"', false)
+            ->assertSee('data-analytics-ui-location="navigation"', false)
+            ->assertSee('data-analytics-ui-location="mobile_menu"', false)
+            ->assertSee('data-analytics-event="language_switch"', false);
+
+        $this->get('/en/contact')
+            ->assertOk()
+            ->assertSee('data-analytics-event="direct_contact_click"', false)
+            ->assertSee('data-analytics-ui-location="contact_channels"', false)
+            ->assertSee('data-analytics-destination-category="direct_contact"', false)
+            ->assertSee('data-analytics-contact-channel="email"', false)
+            ->assertSee('data-analytics-contact-channel="linkedin"', false)
+            ->assertSee('data-analytics-contact-channel="phone"', false)
+            ->assertSee('data-analytics-contact-channel="whatsapp"', false)
+            ->assertDontSee('data-analytics-contact-url', false);
+
+        $analytics = $this->readProjectFile('resources/js/google-analytics.js');
+        $emptyState = $this->readProjectFile('resources/views/components/partials/content-empty.blade.php');
+        $article = $this->readProjectFile('resources/views/website/article.blade.php');
+        $decisionRoom = $this->readProjectFile('resources/views/livewire/website/decision-room.blade.php');
+        $work = $this->readProjectFile('resources/views/website/work.blade.php');
+
+        $this->assertStringContainsString("'home_hero_primary'", $analytics);
+        $this->assertStringContainsString("'home_hero_finale'", $analytics);
+        $this->assertStringContainsString("'phone'", $analytics);
+        $this->assertStringContainsString('data-analytics-event="{{ $analyticsEvent }}"', $emptyState);
+        $this->assertStringContainsString('data-analytics-ui-location="{{ $analyticsUiLocation }}"', $emptyState);
+        $this->assertStringContainsString('data-analytics-event="article_related_click"', $article);
+        $this->assertStringContainsString('data-analytics-ui-location="decision_room_completion"', $decisionRoom);
+        $this->assertStringContainsString('data-analytics-ui-location="work_services"', $work);
+        $this->assertStringContainsString("'work_services'", $analytics);
+        $this->assertStringNotContainsString('data-analytics-contact-url', $analytics);
+        $this->assertStringNotContainsString('data-analytics-contact-value', $analytics);
     }
 
     public function test_motion_preserves_content_and_responsive_controls_remain_contained(): void

@@ -40,7 +40,7 @@
                             class="button-primary"
                             data-magnetic
                             data-analytics-event="primary_cta_click"
-                            data-analytics-ui-location="home_hero"
+                            data-analytics-ui-location="home_hero_primary"
                             data-analytics-destination-category="consultation"
                         >
                             <span>{{ __('site.actions.free_consultation') }}</span>
@@ -103,7 +103,7 @@
                                     href="{{ localized_route('contact') }}#consultation"
                                     class="precision-stage__finale-cta"
                                     data-analytics-event="primary_cta_click"
-                                    data-analytics-ui-location="home_hero"
+                                    data-analytics-ui-location="home_hero_finale"
                                     data-analytics-destination-category="consultation"
                                 >
                                     <span>{{ __('site.home.video_finale_cta') }}</span>
@@ -217,6 +217,11 @@
                                 ])
                                 @if ($company['action']['external']) target="_blank" rel="noopener noreferrer" @endif
                                 data-magnetic
+                                @if (! $company['action']['external'])
+                                    data-analytics-event="primary_cta_click"
+                                    data-analytics-ui-location="home_atlas"
+                                    data-analytics-destination-category="consultation"
+                                @endif
                             >
                                 {{ $company['action']['label'] }}
                                 <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />
@@ -297,6 +302,9 @@
                     :body="__('site.services.empty_body')"
                     :action-url="localized_route('contact').'#consultation'"
                     :action-label="__('site.actions.start_project')"
+                    analytics-event="primary_cta_click"
+                    analytics-ui-location="home_services_empty"
+                    analytics-destination-category="consultation"
                 />
             @endif
         </div>
@@ -389,6 +397,9 @@
                     :body="__('site.work.empty_body')"
                     :action-url="localized_route('contact').'#consultation'"
                     :action-label="__('site.actions.start_project')"
+                    analytics-event="primary_cta_click"
+                    analytics-ui-location="home_work_empty"
+                    analytics-destination-category="consultation"
                 />
             @endif
         </div>

@@ -14,7 +14,13 @@
                 <p class="mt-5 max-w-[34rem] font-body text-base leading-7 text-canvas/70">
                     {{ $copy['intro'] }}
                 </p>
-                <a class="mt-6 inline-flex font-sans text-sm font-bold text-violet-200 underline decoration-violet-400 underline-offset-4 hover:text-canvas" href="{{ $directConsultationUrl }}">
+                <a
+                    class="mt-6 inline-flex font-sans text-sm font-bold text-violet-200 underline decoration-violet-400 underline-offset-4 hover:text-canvas"
+                    href="{{ $directConsultationUrl }}"
+                    data-analytics-event="primary_cta_click"
+                    data-analytics-ui-location="decision_room_direct"
+                    data-analytics-destination-category="consultation"
+                >
                     {{ $copy['direct'] }}
                 </a>
             </div>
@@ -272,6 +278,9 @@
                                     wire:click="startConsultation"
                                     wire:loading.attr="disabled"
                                     wire:target="startConsultation"
+                                    data-analytics-event="primary_cta_click"
+                                    data-analytics-ui-location="decision_room_completion"
+                                    data-analytics-destination-category="consultation"
                                 >
                                     <span>{{ $copy['consultation'] }}</span>
                                     <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />

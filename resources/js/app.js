@@ -1,6 +1,7 @@
 import './cookie-consent';
 import './google-analytics';
 import './article-reader';
+import { trackConsultationStateOnce } from './analytics-consultation-state.js';
 
 const moveCompositeFocus = (event) => {
     const supportedKeys = ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'End', 'Home'];
@@ -1857,9 +1858,7 @@ const initializeAnalyticsEventTracking = (signal) => {
                 error_category: consultationErrorCategory(element.dataset.analyticsConsultationError),
             };
 
-        if (trackAnalyticsInteraction(eventName, payload)) {
-            analyticsStateNodes.add(element);
-        }
+        trackConsultationStateOnce(analyticsStateNodes, element, () => trackAnalyticsInteraction(eventName, payload));
     };
     const trackConsultationStates = () => {
         document.querySelectorAll('[data-analytics-consultation-success], [data-analytics-consultation-error]')
@@ -1880,13 +1879,8 @@ const initializeAnalyticsEventTracking = (signal) => {
             ui_location: 'contact_form',
         });
     };
-    const trackConsultationError = (event) => {
-        const detail = event instanceof CustomEvent ? event.detail : null;
-
-        trackAnalyticsInteraction('consultation_submit_error', {
-            ui_location: 'contact_form',
-            error_category: consultationErrorCategory(detail?.category),
-        });
+    const trackConsultationStatesAfterLivewireUpdate = () => {
+        window.setTimeout(trackConsultationStates, 0);
     };
 
     document.addEventListener('click', (event) => {
@@ -1903,10 +1897,8 @@ const initializeAnalyticsEventTracking = (signal) => {
     document.addEventListener('focusin', trackConsultationStart, { signal });
     document.addEventListener('input', trackConsultationStart, { signal });
     document.addEventListener('change', trackConsultationStart, { signal });
-    window.addEventListener('consultation-submitted', () => {
-        trackAnalyticsInteraction('consultation_submit_success', { ui_location: 'contact_form' });
-    }, { signal });
-    window.addEventListener('consultation-submit-error', trackConsultationError, { signal });
+    window.addEventListener('consultation-submitted', trackConsultationStatesAfterLivewireUpdate, { signal });
+    window.addEventListener('consultation-submit-error', trackConsultationStatesAfterLivewireUpdate, { signal });
     window.addEventListener('analytics-consent-updated', trackConsultationStates, { signal });
 
     trackConsultationStates();

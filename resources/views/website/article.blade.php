@@ -199,7 +199,14 @@
 
             <div class="related-writing__list">
                 @foreach ($relatedArticles as $relatedArticle)
-                    <a href="{{ $relatedArticle['url'] }}" wire:navigate data-reveal>
+                    <a
+                        href="{{ $relatedArticle['url'] }}"
+                        wire:navigate
+                        data-reveal
+                        data-analytics-event="article_related_click"
+                        data-analytics-ui-location="article_related"
+                        data-analytics-destination-category="article"
+                    >
                         <span>{{ $relatedArticle['type'] }} · {{ $relatedArticle['read_time'] }}</span>
                         <h3>{{ $relatedArticle['title'] }}</h3>
                         <x-phosphor-arrow-up-right class="h-5 w-5 rtl:-rotate-90" />

@@ -103,6 +103,7 @@ class LegalPagesTest extends TestCase
         $this->assertStringContainsString('sanitizeAnalyticsPayload', $analytics);
         $this->assertStringContainsString('window.IbrahimAnalytics', $analytics);
         $this->assertStringContainsString('pendingAnalyticsEvents = []', $analytics);
+        $this->assertStringContainsString("'phone'", $analytics);
         foreach ([
             'primary_cta_click',
             'service_cta_click',
@@ -114,7 +115,6 @@ class LegalPagesTest extends TestCase
             'language_switch',
             'audio_start',
             'audio_complete',
-            'web_vital',
         ] as $eventName) {
             $this->assertStringContainsString("'{$eventName}'", $analytics);
         }
@@ -122,6 +122,7 @@ class LegalPagesTest extends TestCase
         $this->assertStringNotContainsString('page_referrer', $analytics);
         $this->assertStringNotContainsString('document.referrer', $analytics);
         $this->assertStringNotContainsString('window.location.href', $analytics);
+        $this->assertStringNotContainsString('web_vital', $analytics);
         $this->assertStringContainsString('validConsentValues', $consent);
         $this->assertStringContainsString('${value}.${consentVersion}.${Date.now()}', $consent);
         $this->assertStringContainsString('parts.length !== 3', $consent);

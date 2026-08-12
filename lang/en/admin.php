@@ -207,6 +207,7 @@ return [
             'articles_publish' => 'Publish and unpublish articles',
             'articles_archive' => 'Archive and restore articles',
             'media_write' => 'Upload and remove article media',
+            'analytics_read' => 'Read aggregate website performance metrics',
         ],
         'table' => [
             'client' => 'Client',

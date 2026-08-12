@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test:js": "node --test tests/js/google-analytics.test.js tests/js/analytics-consultation-state.test.js"
     },
     "dependencies": {
         "alpinejs": "^3.15.11",

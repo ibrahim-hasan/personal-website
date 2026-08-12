@@ -25,17 +25,23 @@ class SetPrivacyHeaders
         $this->setSecurityHeaders($response);
 
         $routeName = (string) $request->route()?->getName();
+        $isWebsiteMetricsRoute = $routeName === 'api.v1.metrics.website';
         $isSensitiveRoute = str_contains($routeName, 'reader.')
             || str_contains($routeName, 'verification.')
             || str_contains($routeName, 'athar.')
-            || $routeName === 'security.csp-reports';
+            || $routeName === 'security.csp-reports'
+            || $isWebsiteMetricsRoute;
 
         $response->headers->set(
             'Referrer-Policy',
             $isSensitiveRoute ? 'no-referrer' : 'strict-origin',
         );
 
-        if ($isSensitiveRoute) {
+        if ($isWebsiteMetricsRoute) {
+            $response->headers->set('Cache-Control', 'private, no-store');
+            $response->headers->set('Pragma', 'no-cache');
+            $response->headers->set('X-Robots-Tag', 'noindex, noarchive');
+        } elseif ($isSensitiveRoute) {
             $response->headers->set('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate');
             $response->headers->set('Pragma', 'no-cache');
         }

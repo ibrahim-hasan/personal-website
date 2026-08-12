@@ -47,6 +47,9 @@
                     :body="__('site.writing.empty_body')"
                     :action-url="localized_route('contact').'#consultation'"
                     :action-label="__('site.actions.start_project')"
+                    analytics-event="primary_cta_click"
+                    analytics-ui-location="writing_empty"
+                    analytics-destination-category="consultation"
                 />
             @endif
         </div>

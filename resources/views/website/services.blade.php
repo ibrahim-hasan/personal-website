@@ -91,6 +91,7 @@
                     class="button-primary mt-12"
                     data-magnetic
                     data-analytics-event="primary_cta_click"
+                    data-analytics-ui-location="services_hub_cta"
                     data-analytics-destination-category="consultation"
                 >
                     <span>{{ __('site.actions.free_consultation') }}</span>
@@ -105,6 +106,9 @@
                     :body="__('site.services.empty_body')"
                     :action-url="localized_route('contact').'#consultation'"
                     :action-label="__('site.actions.start_project')"
+                    analytics-event="primary_cta_click"
+                    analytics-ui-location="services_hub_empty"
+                    analytics-destination-category="consultation"
                 />
             </div>
         @endif

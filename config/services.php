@@ -57,6 +57,26 @@ return [
         'measurement_id' => env('GOOGLE_ANALYTICS_MEASUREMENT_ID'),
     ],
 
+    'website_performance' => [
+        'timezone' => env('WEBSITE_PERFORMANCE_TIMEZONE', 'Asia/Riyadh'),
+        'website_url' => env('WEBSITE_PERFORMANCE_WEBSITE_URL', 'https://ibrahimhasan.net'),
+        'ga4_property_id' => env('GOOGLE_ANALYTICS_PROPERTY_ID', '545826061'),
+        'search_console_property' => env('GOOGLE_SEARCH_CONSOLE_PROPERTY', 'sc-domain:ibrahimhasan.net'),
+        'service_account_credentials_path' => env('GOOGLE_REPORTING_CREDENTIALS_PATH')
+            ?: storage_path('app/private/google/reporting-service-account.json'),
+        'metrics_url' => env('WEBSITE_METRICS_API_URL'),
+        'metrics_token_url' => env('WEBSITE_METRICS_TOKEN_URL'),
+        'metrics_client_id' => env('WEBSITE_METRICS_CLIENT_ID'),
+        'metrics_client_secret' => env('WEBSITE_METRICS_CLIENT_SECRET'),
+        'metrics_api_client_id' => env('WEBSITE_METRICS_API_CLIENT_ID'),
+        'snapshot_disk' => env('WEBSITE_PERFORMANCE_SNAPSHOT_DISK', 'local'),
+        'snapshot_directory' => env('WEBSITE_PERFORMANCE_SNAPSHOT_DIRECTORY', 'website-performance'),
+        'connect_timeout' => (int) env('WEBSITE_PERFORMANCE_CONNECT_TIMEOUT', 5),
+        'timeout' => (int) env('WEBSITE_PERFORMANCE_TIMEOUT', 30),
+        'url_inspection_limit' => (int) env('WEBSITE_PERFORMANCE_URL_INSPECTION_LIMIT', 50),
+        'url_inspection_concurrency' => (int) env('WEBSITE_PERFORMANCE_URL_INSPECTION_CONCURRENCY', 5),
+    ],
+
     'openai' => [
         'narration_model' => env('OPENAI_NARRATION_MODEL', 'gpt-5.6'),
         'narration_max_output_tokens' => (int) env('OPENAI_NARRATION_MAX_OUTPUT_TOKENS', 20000),

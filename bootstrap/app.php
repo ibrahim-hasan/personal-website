@@ -3,10 +3,14 @@
 use App\Http\Controllers\Operations\ReadinessController;
 use App\Http\Middleware\AssignApiRequestId;
 use App\Http\Middleware\CanonicalizePublicUrl;
+use App\Http\Middleware\EnsureApiScope;
 use App\Http\Middleware\EnsureArticleScope;
+use App\Http\Middleware\EnsureWebsiteMetricsClient;
+use App\Http\Middleware\LogWebsiteMetricsAccess;
 use App\Http\Middleware\ReplayIdempotentRequest;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetPrivacyHeaders;
+use App\Http\Middleware\ThrottleWebsiteMetrics;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
@@ -57,13 +61,17 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            'api-scope' => EnsureApiScope::class,
             'article-scope' => EnsureArticleScope::class,
+            'website-metrics-client' => EnsureWebsiteMetricsClient::class,
             'idempotency' => ReplayIdempotentRequest::class,
             'localize' => LaravelLocalizationRoutes::class,
             'localizationRedirect' => LaravelLocalizationRedirectFilter::class,
             'localeSessionRedirect' => LocaleSessionRedirect::class,
             'localeCookieRedirect' => LocaleCookieRedirect::class,
             'localeViewPath' => LaravelLocalizationViewPath::class,
+            'website-metrics-throttle' => ThrottleWebsiteMetrics::class,
+            'website-metrics-audit' => LogWebsiteMetricsAccess::class,
         ]);
 
         $middleware->prepend(CanonicalizePublicUrl::class);
@@ -100,6 +108,15 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->respond(function (Response $response): Response {
+            if (request()->route()?->getName() === 'api.v1.metrics.website') {
+                $response->headers->set('Cache-Control', 'private, no-store');
+                $response->headers->set('Pragma', 'no-cache');
+                $response->headers->set('Referrer-Policy', 'no-referrer');
+                $response->headers->set('X-Robots-Tag', 'noindex, noarchive');
+
+                return $response;
+            }
+
             if (in_array($response->getStatusCode(), [404, 419, 429, 500, 503], true)) {
                 $response->headers->set('X-Robots-Tag', 'noindex, noarchive');
                 $response->headers->set('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate');

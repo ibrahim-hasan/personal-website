@@ -18,6 +18,7 @@ class ManageOAuthClients extends Page
         'articles:publish' => 'admin.oauth_clients.scopes.articles_publish',
         'articles:archive' => 'admin.oauth_clients.scopes.articles_archive',
         'media:write' => 'admin.oauth_clients.scopes.media_write',
+        'analytics:read' => 'admin.oauth_clients.scopes.analytics_read',
     ];
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-key';

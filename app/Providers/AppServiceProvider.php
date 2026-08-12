@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\ArticleAudio\NarrationEditor;
+use App\Contracts\WebsitePerformance\GoogleAccessTokenProvider;
 use App\Models\Article;
 use App\Models\AtharContribution;
 use App\Models\AtharInvitation;
@@ -27,6 +28,7 @@ use App\Policies\ServicePolicy;
 use App\Policies\SettingPolicy;
 use App\Policies\UserPolicy;
 use App\Services\OpenAI\OpenAiNarrationEditor;
+use App\Services\WebsitePerformance\GoogleServiceAccountTokenProvider;
 use Carbon\CarbonImmutable;
 use Filament\Auth\Notifications\ResetPassword as FilamentResetPasswordNotification;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -58,6 +60,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(NarrationEditor::class, OpenAiNarrationEditor::class);
         $this->app->bind(FilamentResetPasswordNotification::class, AdminResetPasswordNotification::class);
+        $this->app->singleton(GoogleAccessTokenProvider::class, GoogleServiceAccountTokenProvider::class);
     }
 
     /**
@@ -139,6 +142,7 @@ class AppServiceProvider extends ServiceProvider
             'articles:publish' => 'Publish or unpublish editorial articles.',
             'articles:archive' => 'Archive or restore editorial articles.',
             'media:write' => 'Upload or remove editorial media.',
+            'analytics:read' => 'Read aggregate website performance metrics.',
         ]);
         Passport::tokensExpireIn(now()->addMinutes(15));
         Passport::clientCredentialsTokensExpireIn(now()->addMinutes(15));
@@ -150,7 +154,9 @@ class AppServiceProvider extends ServiceProvider
 
     protected function rateLimitKey(Request $request): string
     {
-        $clientId = (string) optional($request->attributes->get('editorial_api_client'))->getKey();
+        $client = $request->attributes->get('api_client')
+            ?? $request->attributes->get('editorial_api_client');
+        $clientId = (string) optional($client)->getKey();
 
         return hash('sha256', $clientId.'|'.$request->ip());
     }

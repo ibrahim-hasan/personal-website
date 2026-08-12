@@ -47,7 +47,23 @@
             <div class="channel-list">
                 @foreach ($contact['channels'] as $channel)
                     @if ($channel['href'] !== null)
-                        <a href="{{ $channel['href'] }}" class="channel-row" data-reveal>
+                        @php
+                            $contactChannel = match (true) {
+                                str_starts_with($channel['href'], 'mailto:') => 'email',
+                                str_starts_with($channel['href'], 'tel:') => 'phone',
+                                str_starts_with($channel['href'], 'https://wa.me/') => 'whatsapp',
+                                default => 'linkedin',
+                            };
+                        @endphp
+                        <a
+                            href="{{ $channel['href'] }}"
+                            class="channel-row"
+                            data-reveal
+                            data-analytics-event="direct_contact_click"
+                            data-analytics-ui-location="contact_channels"
+                            data-analytics-destination-category="direct_contact"
+                            data-analytics-contact-channel="{{ $contactChannel }}"
+                        >
                             <div>
                                 <span>{{ $channel['label'] }}</span>
                                 <strong>
