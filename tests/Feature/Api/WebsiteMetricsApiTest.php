@@ -43,7 +43,7 @@ class WebsiteMetricsApiTest extends TestCase
             'email' => 'private-inquiry@example.test',
             'company' => 'Private Company',
             'challenge' => 'Private consultation challenge',
-            'public_reference' => 'IH-PRIVATE-REFERENCE',
+            'public_reference' => 'IH-PRIVATE-REF',
             'submission_hash' => str_repeat('a', 64),
             'notes' => 'Private operational note',
             'locale' => 'ar',
