@@ -65,9 +65,9 @@ task('deploy:configure-website-metrics-client', function (): void {
 
     $environmentFile = '{{deploy_path}}/shared/.env';
 
-    run(sprintf(<<<'BASH'
+    $script = <<<'BASH'
 set -eu
-environment_file=%s
+environment_file=__ENVIRONMENT_FILE__
 
 if [ ! -f "$environment_file" ]; then
   printf '%s\n' 'The shared production environment file is missing.' >&2
@@ -78,11 +78,17 @@ temporary_file="$(mktemp "${environment_file}.website-metrics-client.XXXXXX")"
 trap 'rm -f "$temporary_file"' EXIT
 
 sed '/^WEBSITE_METRICS_API_CLIENT_ID=/d' "$environment_file" > "$temporary_file"
-printf '\nWEBSITE_METRICS_API_CLIENT_ID=%%s\n' %s >> "$temporary_file"
+printf '\nWEBSITE_METRICS_API_CLIENT_ID=%s\n' __CLIENT_ID__ >> "$temporary_file"
 chmod 600 "$temporary_file"
 mv "$temporary_file" "$environment_file"
 trap - EXIT
-BASH, escapeshellarg($environmentFile), escapeshellarg($clientId)));
+BASH;
+
+    run(str_replace(
+        ['__ENVIRONMENT_FILE__', '__CLIENT_ID__'],
+        [escapeshellarg($environmentFile), escapeshellarg($clientId)],
+        $script,
+    ));
 });
 
 task('artisan:filament-optimize', artisan('filament:optimize'));
