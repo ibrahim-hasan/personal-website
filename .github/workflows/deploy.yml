@@ -108,16 +108,6 @@ jobs:
     concurrency:
       group: ibrahim-website-production
       cancel-in-progress: false
-    env:
-      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
-      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
-      DEPLOY_HEALTH_URL: ${{ vars.DEPLOY_HEALTH_URL }}
-      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
-      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-      WEBSITE_METRICS_API_CLIENT_ID: ${{ vars.WEBSITE_METRICS_API_CLIENT_ID }}
-      RELEASE_REVISION: ${{ github.sha }}
     steps:
       - name: Check out the pushed commit
         uses: actions/checkout@v4
@@ -147,10 +137,23 @@ jobs:
 
       - name: Configure deployment SSH
         shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          DEPLOY_HEALTH_URL: ${{ vars.DEPLOY_HEALTH_URL }}
+          DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          GOOGLE_REPORTING_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_REPORTING_SERVICE_ACCOUNT_JSON }}
+          WEBSITE_METRICS_API_CLIENT_ID: ${{ vars.WEBSITE_METRICS_API_CLIENT_ID }}
+          WEBSITE_METRICS_CLIENT_SECRET: ${{ secrets.WEBSITE_METRICS_CLIENT_SECRET }}
+          WEBSITE_PERFORMANCE_WEBSITE_URL: ${{ vars.WEBSITE_PERFORMANCE_WEBSITE_URL }}
+          RELEASE_REVISION: ${{ github.sha }}
         run: |
           set -euo pipefail
 
-          for variable in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH DEPLOY_HEALTH_URL DEPLOY_SSH_PRIVATE_KEY DEPLOY_KNOWN_HOSTS WEBSITE_METRICS_API_CLIENT_ID; do
+          for variable in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH DEPLOY_HEALTH_URL DEPLOY_SSH_PRIVATE_KEY DEPLOY_KNOWN_HOSTS GOOGLE_REPORTING_SERVICE_ACCOUNT_JSON WEBSITE_METRICS_API_CLIENT_ID WEBSITE_METRICS_CLIENT_SECRET WEBSITE_PERFORMANCE_WEBSITE_URL; do
             if [[ -z "${!variable:-}" ]]; then
               echo "$variable must be configured as a production environment secret or variable." >&2
               exit 1

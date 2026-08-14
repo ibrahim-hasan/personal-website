@@ -41,11 +41,15 @@ Secrets:
 - `DEPLOY_SSH_PRIVATE_KEY`
 - `DEPLOY_KNOWN_HOSTS`
 - `DEPLOY_PORT` only when SSH does not use port 22
+- `GOOGLE_REPORTING_SERVICE_ACCOUNT_JSON` — the read-only Google reporting service-account JSON
+- `WEBSITE_METRICS_CLIENT_SECRET` — the dedicated Website Performance Reporter Passport client secret
 
 Variables:
 
 - `DEPLOY_PATH`
 - `DEPLOY_HEALTH_URL`
+- `WEBSITE_METRICS_API_CLIENT_ID` — the dedicated Website Performance Reporter Passport client ID
+- `WEBSITE_PERFORMANCE_WEBSITE_URL` — the canonical public HTTPS origin used for reporting
 
 Do not put secret values in this repository, Action logs, tickets, or screenshots.
 
@@ -55,10 +59,19 @@ The production server needs only:
 
 - the existing shared `.env` file;
 - the existing shared Passport key pair at `storage/oauth-private.key` and `storage/oauth-public.key`; Deployer secures both to mode `0600` before use;
-- the configured public health endpoint; and
-- the existing Horizon and scheduler processes.
+- the configured public health endpoint;
+- the existing Horizon process; and
+- an active cron service and `crontab` command available to the deployment user.
 
-Deployer keeps the latest five releases, applies the pushed revision, reloads Horizon, and checks the public health endpoint. The private readiness endpoint remains available for manual operational diagnosis, but is not a deployment prerequisite.
+Deployer maintains one marked `ibrahim-website-scheduler` entry in the deployment user's crontab. It runs every minute from the `current` release symlink with the deployment server's resolved PHP binary:
+
+```text
+* * * * * cd <current release> && <php> artisan schedule:run --no-interaction
+```
+
+The marked section is updated idempotently, preserves unrelated crontab entries, follows releases and rollbacks through `current`, and is verified before the public health check. Do not add a second manual scheduler cron entry or `schedule:work` process for this application.
+
+Deployer keeps the latest five releases, applies the pushed revision, reloads Horizon, installs and verifies the scheduler runner, and checks the public health endpoint. The private readiness endpoint remains available for manual operational diagnosis, but is not a deployment prerequisite.
 
 ## If a release is bad
 

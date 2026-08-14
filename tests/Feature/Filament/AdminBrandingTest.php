@@ -4,6 +4,7 @@ namespace Tests\Feature\Filament;
 
 use App\Filament\Pages\ManageArticleAudio;
 use App\Filament\Pages\ManageSiteSettings;
+use App\Filament\Pages\WebsitePerformance;
 use App\Filament\Resources\Articles\ArticleResource;
 use App\Filament\Resources\Comments\CommentResource;
 use App\Filament\Resources\ContactInquiries\ContactInquiryResource;
@@ -118,6 +119,7 @@ class AdminBrandingTest extends TestCase
             ManageSiteSettings::class => ['Administration', 10],
             UserResource::class => ['Administration', 20],
             RoleResource::class => ['Administration', 30],
+            WebsitePerformance::class => ['Administration', 50],
         ];
 
         foreach ($navigationItems as $navigationItem => [$group, $sort]) {

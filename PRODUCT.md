@@ -43,7 +43,8 @@ Administrators should be able to:
 2. Publish localized content with stable, locale-aware URLs and metadata.
 3. Moderate comments and reports without exposing unnecessary personal data.
 4. Review consultation requests and reader activity in a focused, branded Filament workspace.
-5. Trust that uploads, conversions, validations, permissions, and database migrations follow one consistent architecture.
+5. Review private, aggregate-only website performance reports with clear source freshness and data-quality state, without visitor-level data or credentials.
+6. Trust that uploads, conversions, validations, permissions, and database migrations follow one consistent architecture.
 
 ## Product pillars
 
@@ -123,6 +124,7 @@ Sign in → create or edit localized content → upload managed media → review
 - Translatable, stable slugs with `spatie/laravel-sluggable` and locale-aware route resolution.
 - Dynamic media through Spatie Media Library and its Filament integration.
 - Sitemap generation, canonical URLs, hreflang, metadata, structured data, and production-only analytics.
+- Production-only scheduled performance collection that stores private, PII-free report snapshots and never changes public content automatically.
 
 ## Content and data contract
 

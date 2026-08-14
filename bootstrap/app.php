@@ -39,6 +39,14 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('horizon:snapshot')->everyFiveMinutes();
+        $schedule->command('website:performance-report')
+            ->weeklyOn(1, '09:00')
+            ->timezone('Asia/Riyadh')
+            ->environments(['production'])
+            ->name('website-performance-weekly-report')
+            ->withoutOverlapping(120)
+            ->onOneServer()
+            ->runInBackground();
         $schedule->command('passport:purge --expired --revoked')
             ->dailyAt('03:20')
             ->environments(['production'])
