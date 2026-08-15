@@ -7,14 +7,14 @@ use Illuminate\Validation\ValidationException;
 
 final class AssertEditorialArticleIsDraft
 {
-    public function handle(Article $article): void
+    public function handle(Article $article, string $feedbackLocale = 'en'): void
     {
         if (! $article->is_published) {
             return;
         }
 
         throw ValidationException::withMessages([
-            'article' => ['Unpublish this article before editing its content or media, then publish it again after review.'],
+            'article' => [__('editorial_admin.feedback.published_locked', [], $feedbackLocale)],
         ]);
     }
 }

@@ -24,7 +24,7 @@ class CreateEditorialArticle
                 ...$this->articleBody->normalizeInput($this->relations->withoutRelationKeys($attributes)),
                 'published_at' => today(),
                 'modified_at' => today(),
-                'featured' => false,
+                'featured' => (bool) ($attributes['featured'] ?? false),
                 'is_published' => false,
                 'editorial_revision' => 1,
             ]);

@@ -2,17 +2,20 @@
 
 namespace App\Filament\Resources\Articles\Schemas;
 
+use App\Actions\Editorial\ArticlePublicationValidator;
 use App\Filament\Components\AiSeoAction;
 use App\Filament\Components\TranslatableTabs;
 use App\Models\Article;
+use App\Support\Editorial\ArticleBody;
 use App\Support\LocaleSlugger;
-use Filament\Forms\Components\DatePicker;
+use Closure;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -61,6 +64,15 @@ class ArticleForm
                     ->label(__('editorial_admin.fields.body'))
                     ->required()
                     ->json()
+                    ->rule(static fn (): Closure => static function (string $attribute, mixed $value, Closure $fail): void {
+                        if (! app(ArticleBody::class)->isValidDocument($value)) {
+                            $fail(__('editorial_admin.validation.valid_rich_document'));
+                        }
+                    })
+                    ->extraInputAttributes([
+                        'dir' => $locale === 'ar' ? 'rtl' : 'ltr',
+                        'lang' => $locale,
+                    ])
                     ->toolbarButtons([
                         ['bold', 'italic', 'link'],
                         ['h2', 'h3'],
@@ -114,6 +126,9 @@ class ArticleForm
                 ])->columnSpan(2),
                 Group::make([
                     Section::make(__('editorial_admin.sections.publishing'))
+                        ->description(fn (?Article $record): string => $record?->is_published
+                            ? __('editorial_admin.hints.published_managed')
+                            : __('editorial_admin.hints.published_on_confirmation'))
                         ->schema([
                             TextInput::make('key')
                                 ->label(__('editorial_admin.fields.key'))
@@ -122,25 +137,38 @@ class ArticleForm
                                 ->maxLength(80)
                                 ->disabledOn('edit')
                                 ->unique(ignoreRecord: true),
-                            DatePicker::make('published_at')
-                                ->label(__('editorial_admin.fields.published_at'))
-                                ->required()
-                                ->default(today())
-                                ->native(false),
-                            DatePicker::make('modified_at')
+                            TextInput::make('modified_at')
                                 ->label(__('editorial_admin.fields.modified_at'))
-                                ->required()
-                                ->default(today())
-                                ->native(false),
-                            Toggle::make('is_published')
-                                ->label(__('editorial_admin.fields.published'))
-                                ->default(false)
                                 ->disabled()
                                 ->dehydrated(false)
-                                ->helperText(__('editorial_admin.hints.published')),
+                                ->visibleOn('edit'),
                             Toggle::make('featured')
                                 ->label(__('editorial_admin.fields.featured'))
-                                ->default(false),
+                                ->default(false)
+                                ->visibleOn('create'),
+                        ]),
+                    Section::make(__('editorial_admin.sections.readiness'))
+                        ->description(__('editorial_admin.readiness.description'))
+                        ->visible(fn (?Article $record): bool => $record !== null && ! $record->is_published)
+                        ->schema([
+                            TextEntry::make('publication_readiness')
+                                ->hiddenLabel()
+                                ->state(function (Article $record, ArticlePublicationValidator $validator): array {
+                                    $violations = $validator->publishReadinessViolations($record);
+
+                                    if ($violations === []) {
+                                        return [__('editorial_admin.readiness.ready')];
+                                    }
+
+                                    return array_map(
+                                        $validator->publishReadinessMessage(...),
+                                        $violations,
+                                    );
+                                })
+                                ->bulleted()
+                                ->color(function (Article $record, ArticlePublicationValidator $validator): string {
+                                    return $validator->isReadyToPublish($record) ? 'success' : 'warning';
+                                }),
                         ]),
                     Section::make(__('editorial_admin.sections.discovery'))
                         ->schema([

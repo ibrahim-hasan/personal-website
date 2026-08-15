@@ -6,6 +6,7 @@ use App\Models\Article;
 use App\Services\EditorialApi\EditorialArticleRelations;
 use App\Support\Editorial\ArticleBody;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class UpdateEditorialArticle
 {
@@ -16,16 +17,26 @@ class UpdateEditorialArticle
     ) {}
 
     /** @param array<string, mixed> $attributes */
-    public function handle(Article $article, array $attributes): Article
-    {
-        $this->assertEditorialArticleIsDraft->handle($article);
-        $this->relations->validate($attributes, $article);
-        $updatesBody = isset($attributes['body'])
-            || isset($attributes['lead'])
-            || isset($attributes['sections'])
-            || isset($attributes['closing']);
+    public function handle(
+        Article $article,
+        array $attributes,
+        ?int $expectedRevision = null,
+        string $feedbackLocale = 'en',
+    ): Article {
+        $updatesBody = array_key_exists('body', $attributes)
+            || array_key_exists('body_ar', $attributes)
+            || array_key_exists('body_en', $attributes)
+            || array_key_exists('lead', $attributes)
+            || array_key_exists('sections', $attributes)
+            || array_key_exists('closing', $attributes);
 
-        return DB::transaction(function () use ($article, $attributes, $updatesBody): Article {
+        return DB::transaction(function () use ($article, $attributes, $expectedRevision, $feedbackLocale, $updatesBody): Article {
+            $article = $this->lockedArticle($article);
+
+            $this->assertExpectedRevision($article, $expectedRevision, $feedbackLocale);
+            $this->assertEditorialArticleIsDraft->handle($article, $feedbackLocale);
+            $this->relations->validate($attributes, $article);
+
             $article->update([
                 ...$this->articleBody->normalizeInput($this->relations->withoutRelationKeys($attributes)),
                 'modified_at' => today(),
@@ -42,5 +53,23 @@ class UpdateEditorialArticle
 
             return $article->load(['services:id,key', 'projects:id,key']);
         });
+    }
+
+    private function lockedArticle(Article $article): Article
+    {
+        return Article::withTrashed()
+            ->lockForUpdate()
+            ->findOrFail($article->getKey());
+    }
+
+    private function assertExpectedRevision(Article $article, ?int $expectedRevision, string $feedbackLocale): void
+    {
+        if ($expectedRevision === null || $article->editorial_revision === $expectedRevision) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'article' => [__('editorial_admin.feedback.stale_edit', [], $feedbackLocale)],
+        ]);
     }
 }
