@@ -81,6 +81,23 @@ final class ArticleBody
     }
 
     /**
+     * Return the document that should be loaded into an article editor.
+     *
+     * Older articles may still store their content in the legacy lead,
+     * sections, and closing fields while their rich body is empty.
+     */
+    public function editorDocumentForArticle(Article $article, string $locale): array
+    {
+        $content = $article->getAttribute(Article::bodyAttribute($locale));
+
+        if (filled($content)) {
+            return $this->toDocument($content);
+        }
+
+        return $this->toDocument($this->legacyHtml($article, $locale));
+    }
+
+    /**
      * @return array{html: string, headings: list<array{id: string, label: string}>}
      */
     public function presentForArticle(Article $article, string $locale): array

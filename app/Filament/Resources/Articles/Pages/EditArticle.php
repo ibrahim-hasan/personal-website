@@ -8,6 +8,7 @@ use App\Actions\Editorial\SetEditorialArticlePublication;
 use App\Actions\Editorial\UpdateEditorialArticle;
 use App\Filament\Resources\Articles\ArticleResource;
 use App\Models\Article;
+use App\Support\Editorial\ArticleBody;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -58,9 +59,11 @@ class EditArticle extends EditRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $article = $this->getRecord();
+        $articleBody = app(ArticleBody::class);
 
-        $data['body_ar'] = $article->getAttribute('body_ar');
-        $data['body_en'] = $article->getAttribute('body_en');
+        foreach (['ar', 'en'] as $locale) {
+            $data[Article::bodyAttribute($locale)] = $articleBody->editorDocumentForArticle($article, $locale);
+        }
 
         return $data;
     }

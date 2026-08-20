@@ -103,6 +103,65 @@ class ArticleAdminWorkflowTest extends TestCase
         $this->assertSame('article.updated', $snapshot->action);
     }
 
+    public function test_legacy_article_body_is_loaded_into_the_rich_editor_and_saved_as_rich_content(): void
+    {
+        $admin = $this->administrator();
+        $article = Article::factory()->create([
+            'is_published' => false,
+            'body' => null,
+            'lead' => [
+                'ar' => 'مقدمة عربية محفوظة في البنية القديمة.',
+                'en' => 'An English lead stored in the legacy structure.',
+            ],
+            'sections' => [
+                'ar' => [[
+                    'heading' => 'قسم عربي قديم',
+                    'paragraphs' => ['تفصيل عربي محفوظ يحتاج إلى الظهور في المحرر.'],
+                    'points' => ['نقطة عربية'],
+                    'note' => 'ملاحظة عربية',
+                ]],
+                'en' => [[
+                    'heading' => 'A legacy English section',
+                    'paragraphs' => ['English detail that must appear in the editor.'],
+                    'points' => ['An English point'],
+                    'note' => 'An English note',
+                ]],
+            ],
+            'closing' => [
+                'ar' => 'خلاصة عربية قديمة.',
+                'en' => 'A legacy English closing.',
+            ],
+        ]);
+        $articleBody = app(ArticleBody::class);
+
+        Livewire::actingAs($admin)
+            ->test(EditArticle::class, ['record' => $article->getKey()])
+            ->assertSet(
+                'data.body_ar',
+                fn (mixed $state): bool => str_contains($articleBody->text($state), 'قسم عربي قديم'),
+            )
+            ->assertSet(
+                'data.body_en',
+                fn (mixed $state): bool => str_contains($articleBody->text($state), 'A legacy English section'),
+            )
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $article->refresh();
+
+        $this->assertNotNull($article->getTranslation('body', 'ar', false));
+        $this->assertNotNull($article->getTranslation('body', 'en', false));
+        $this->assertStringContainsString(
+            'قسم عربي قديم',
+            $articleBody->text($article->getTranslation('body', 'ar', false)),
+        );
+        $this->assertStringContainsString(
+            'A legacy English section',
+            $articleBody->text($article->getTranslation('body', 'en', false)),
+        );
+        $this->assertSame(2, $article->editorial_revision);
+    }
+
     public function test_a_stale_edit_is_rejected_without_overwriting_the_latest_draft(): void
     {
         $admin = $this->administrator();
