@@ -239,7 +239,7 @@ task('deploy:sync-scheduler-cron', function (): void {
     $crontabBinary = (string) get('bin/crontab');
 
     foreach ([$currentPath, $phpBinary, $crontabBinary] as $binaryOrPath) {
-        if (! preg_match('/\A\/[A-Za-z0-9_@%+=:,./-]+\z/', $binaryOrPath)) {
+        if (! preg_match('~\A/[A-Za-z0-9_@%+=:,.\/-]+\z~', $binaryOrPath)) {
             throw new RuntimeException('The scheduler runner requires absolute paths containing only supported characters.');
         }
     }

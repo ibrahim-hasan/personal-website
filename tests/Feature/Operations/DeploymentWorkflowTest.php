@@ -134,6 +134,10 @@ class DeploymentWorkflowTest extends TestCase
         $this->assertStringContainsString("task('deploy:sync-scheduler-cron'", $recipe);
         $this->assertStringContainsString("\$currentPath = parse('{{current_path}}');", $recipe);
         $this->assertStringContainsString("\$phpBinary = (string) get('bin/php');", $recipe);
+        $this->assertStringContainsString(
+            'if (! preg_match(\'~\A/[A-Za-z0-9_@%+=:,.\/-]+\z~\', $binaryOrPath)) {',
+            $recipe,
+        );
         $this->assertStringContainsString("'website_scheduler_crontab_binary' => escapeshellarg(\$crontabBinary)", $recipe);
         $this->assertStringContainsString('current_path=%website_scheduler_current_path%', $recipe);
         $this->assertStringContainsString('php_binary=%website_scheduler_php_binary%', $recipe);
