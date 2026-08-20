@@ -39,6 +39,9 @@ class ArticleCatalogDatabaseTest extends TestCase
                 'product-strategy',
                 'saas',
                 'competitive-advantage',
+                'ai-products',
+                'knowledge-management',
+                'rag',
             ],
         ]);
 
@@ -46,11 +49,27 @@ class ArticleCatalogDatabaseTest extends TestCase
 
         $this->assertNotNull($article);
         $this->assertSame(
-            ['الذكاء الاصطناعي', 'استراتيجية المنتج', 'البرمجيات كخدمة', 'الميزة التنافسية'],
+            [
+                'الذكاء الاصطناعي',
+                'استراتيجية المنتج',
+                'البرمجيات كخدمة',
+                'الميزة التنافسية',
+                'منتجات الذكاء الاصطناعي',
+                'إدارة المعرفة',
+                'RAG',
+            ],
             $article->localized('ar')['topics'],
         );
         $this->assertSame(
-            ['Artificial intelligence', 'Product strategy', 'SaaS', 'Competitive advantage'],
+            [
+                'Artificial intelligence',
+                'Product strategy',
+                'SaaS',
+                'Competitive advantage',
+                'AI products',
+                'Knowledge management',
+                'RAG',
+            ],
             $article->localized('en')['topics'],
         );
     }

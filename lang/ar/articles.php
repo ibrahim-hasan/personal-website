@@ -91,6 +91,9 @@ return [
         'product-strategy' => 'استراتيجية المنتج',
         'saas' => 'البرمجيات كخدمة',
         'competitive-advantage' => 'الميزة التنافسية',
+        'ai-products' => 'منتجات الذكاء الاصطناعي',
+        'knowledge-management' => 'إدارة المعرفة',
+        'rag' => 'RAG',
     ],
     'articles' => [
         'ai-value' => [

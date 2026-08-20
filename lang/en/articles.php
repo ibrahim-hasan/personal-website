@@ -91,6 +91,9 @@ return [
         'product-strategy' => 'Product strategy',
         'saas' => 'SaaS',
         'competitive-advantage' => 'Competitive advantage',
+        'ai-products' => 'AI products',
+        'knowledge-management' => 'Knowledge management',
+        'rag' => 'RAG',
     ],
     'articles' => [
         'ai-value' => [
