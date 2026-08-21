@@ -104,6 +104,8 @@ class DeploymentWorkflowTest extends TestCase
         $this->assertStringContainsString('WEBSITE_METRICS_CLIENT_SECRET', $recipe);
         $this->assertStringContainsString('GOOGLE_REPORTING_CREDENTIALS_PATH', $recipe);
         $this->assertStringContainsString('WEBSITE_PERFORMANCE_WEBSITE_URL', $recipe);
+        $this->assertStringContainsString('/^APP_URL=/d; /^GOOGLE_REPORTING_CREDENTIALS_PATH=/d', $recipe);
+        $this->assertStringContainsString('printf \'\\nAPP_URL=%s\\n\' __WEBSITE_ORIGIN__ >> "$temporary_file"', $recipe);
         $this->assertStringContainsString('WEBSITE_METRICS_API_URL', $recipe);
         $this->assertStringContainsString('WEBSITE_METRICS_TOKEN_URL', $recipe);
         $this->assertStringContainsString('/api/v1/metrics/website', $recipe);

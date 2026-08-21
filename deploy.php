@@ -173,7 +173,8 @@ fi
 temporary_file="$(mktemp "${environment_file}.website-metrics-client.XXXXXX")"
 trap 'rm -f "$temporary_file"' EXIT
 
-sed '/^GOOGLE_REPORTING_CREDENTIALS_PATH=/d; /^WEBSITE_PERFORMANCE_WEBSITE_URL=/d; /^WEBSITE_METRICS_API_URL=/d; /^WEBSITE_METRICS_TOKEN_URL=/d; /^WEBSITE_METRICS_API_CLIENT_ID=/d; /^WEBSITE_METRICS_CLIENT_ID=/d; /^WEBSITE_METRICS_CLIENT_SECRET=/d' "$environment_file" > "$temporary_file"
+sed '/^APP_URL=/d; /^GOOGLE_REPORTING_CREDENTIALS_PATH=/d; /^WEBSITE_PERFORMANCE_WEBSITE_URL=/d; /^WEBSITE_METRICS_API_URL=/d; /^WEBSITE_METRICS_TOKEN_URL=/d; /^WEBSITE_METRICS_API_CLIENT_ID=/d; /^WEBSITE_METRICS_CLIENT_ID=/d; /^WEBSITE_METRICS_CLIENT_SECRET=/d' "$environment_file" > "$temporary_file"
+printf '\nAPP_URL=%s\n' __WEBSITE_ORIGIN__ >> "$temporary_file"
 printf '\nGOOGLE_REPORTING_CREDENTIALS_PATH=%s\n' __CREDENTIALS_PATH__ >> "$temporary_file"
 printf 'WEBSITE_PERFORMANCE_WEBSITE_URL=%s\n' __WEBSITE_ORIGIN__ >> "$temporary_file"
 printf 'WEBSITE_METRICS_API_URL=%s\n' __METRICS_URL__ >> "$temporary_file"
