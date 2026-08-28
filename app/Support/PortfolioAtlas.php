@@ -532,50 +532,50 @@ final class PortfolioAtlas
         return [
             [
                 'id' => 'ai-adoption',
-                'label' => ['ar' => 'تبنّي الذكاء الاصطناعي', 'en' => 'AI Adoption'],
+                'label' => ['ar' => 'المعرفة والذكاء الاصطناعي', 'en' => 'Knowledge & AI'],
                 'description' => [
-                    'ar' => 'أين يحسّن الذكاء الاصطناعي قراراً أو سير عمل حقيقياً، وما الشروط اللازمة للثقة به.',
-                    'en' => 'Where AI can improve a real decision or workflow, and what must be true for people to trust it.',
+                    'ar' => 'منصات تجعل المعرفة والأدوات والقدرات الجديدة أوضح وأسهل في الاستخدام العملي.',
+                    'en' => 'Platforms that make knowledge, tools, and new capabilities clearer and easier to use in practice.',
                 ],
                 'question' => [
-                    'ar' => 'ما الذي ينبغي أن يدعمه الذكاء الاصطناعي، وأين يجب أن يبقى الإنسان مسيطراً؟',
-                    'en' => 'What should AI support, and where should people stay in control?',
+                    'ar' => 'كيف تتحول المعرفة أو التقنية الجديدة إلى قيمة عملية يستطيع الناس استخدامها؟',
+                    'en' => 'How can knowledge or a new technology become practical value that people can use?',
                 ],
             ],
             [
                 'id' => 'transformation',
-                'label' => ['ar' => 'التحول الرقمي', 'en' => 'Digital Transformation'],
+                'label' => ['ar' => 'المنصات والمنظومات', 'en' => 'Platforms & Ecosystems'],
                 'description' => [
-                    'ar' => 'كيف يتحول العمل المتفرق إلى نموذج تشغيل رقمي مترابط، بمسؤوليات وقرارات أوضح.',
-                    'en' => 'How disconnected work becomes a coherent digital operating model with clear ownership.',
+                    'ar' => 'منظومات رقمية تربط الجهات والخدمات والموارد ضمن تجربة واحدة مترابطة.',
+                    'en' => 'Digital ecosystems that connect organizations, services, and resources in one coherent experience.',
                 ],
                 'question' => [
-                    'ar' => 'ما الذي يجب تغييره رقمياً أولاً حتى يتحسن العمل كله؟',
-                    'en' => 'What should change first so the whole operation improves?',
+                    'ar' => 'كيف تتصل الأطراف والمسارات المختلفة في منصة واحدة مفيدة؟',
+                    'en' => 'How can distinct participants and journeys connect in one useful platform?',
                 ],
             ],
             [
                 'id' => 'product',
-                'label' => ['ar' => 'المنتجات الرقمية', 'en' => 'Digital Products'],
+                'label' => ['ar' => 'المنتجات وتجارب العملاء', 'en' => 'Products & Customer Experiences'],
                 'description' => [
-                    'ar' => 'كيف يتحول احتياج واضح إلى منتج رقمي يقدم تجربة مفيدة لكل طرف يشارك فيها.',
-                    'en' => 'How a clear need becomes a digital product with a useful experience for every participant.',
+                    'ar' => 'منتجات رقمية تبني الثقة وتبسّط رحلة واضحة للمستخدم من أول تفاعل إلى إتمام المهمة.',
+                    'en' => 'Digital products that build trust and simplify a clear user journey from first interaction to task completion.',
                 ],
                 'question' => [
-                    'ar' => 'ما المنتج أو الرحلة التي تجعل القيمة مفهومة وسهلة الاستخدام؟',
-                    'en' => 'What product or journey makes the value understandable and easy to use?',
+                    'ar' => 'كيف تصبح القيمة واضحة وسهلة للمستخدم في كل خطوة من الرحلة؟',
+                    'en' => 'How can the value stay clear and easy for people at every step of the journey?',
                 ],
             ],
             [
                 'id' => 'operations',
-                'label' => ['ar' => 'التشغيل والأتمتة', 'en' => 'Operations & Automation'],
+                'label' => ['ar' => 'أنظمة الأعمال والتشغيل', 'en' => 'Business Systems & Operations'],
                 'description' => [
-                    'ar' => 'كيف ينتظم العمل من الطلب إلى التنفيذ، وما الذي يمكن أتمتته لتقليل الاحتكاك وتوضيح الملكية.',
-                    'en' => 'How work moves from request to fulfilment, and what can be automated to reduce friction and clarify ownership.',
+                    'ar' => 'أنظمة تربط الطلبات والخدمات والعمليات اليومية لتجعل التنفيذ أكثر وضوحاً وانضباطاً.',
+                    'en' => 'Systems that connect requests, services, and daily operations to make delivery clearer and more dependable.',
                 ],
                 'question' => [
-                    'ar' => 'أين يتعطل التدفق، وما الذي يستحق الأتمتة أولاً؟',
-                    'en' => 'Where does the flow break, and what is worth automating first?',
+                    'ar' => 'كيف تنتظم الأعمال من الطلب إلى التنفيذ والمتابعة؟',
+                    'en' => 'How can work move reliably from request through delivery and follow-up?',
                 ],
             ],
         ];

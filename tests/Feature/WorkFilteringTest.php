@@ -25,7 +25,7 @@ class WorkFilteringTest extends TestCase
             ->assertOk()
             ->assertSee('Operations project', false)
             ->assertDontSee('AI project', false)
-            ->assertSee('Operations & Automation')
+            ->assertSee('Business Systems & Operations')
             ->assertSee('data-uses-livewire="true"', false)
             ->assertSee('wire:navigate.preserve-scroll', false)
             ->assertSee('aria-current="page"', false)
@@ -78,13 +78,13 @@ class WorkFilteringTest extends TestCase
         $this->get($arabicTransformationUrl)
             ->assertOk()
             ->assertSee('تصنيفات المشاريع', false)
-            ->assertSee('التحول الرقمي', false)
+            ->assertSee('المنصات والمنظومات', false)
             ->assertSee($arabicTransformationUrl, false);
 
         $this->get($englishTransformationUrl)
             ->assertOk()
             ->assertSee('Project categories', false)
-            ->assertSee('Digital Transformation', false)
+            ->assertSee('Platforms & Ecosystems')
             ->assertSee($englishTransformationUrl, false);
     }
 

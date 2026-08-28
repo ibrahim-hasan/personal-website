@@ -209,7 +209,8 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->assertMatchesRegularExpression('/\.filter-bar\s*\{[^}]*overflow-x:\s*auto;/s', $css);
         $this->assertStringContainsString('window.scrollTo({', $javascript);
         $this->assertStringContainsString("control.classList.toggle('is-visible', shouldShow)", $javascript);
-        $this->assertMatchesRegularExpression('/\.filter-bar-shell\s*\{[^}]*grid-template-columns:\s*2\.75rem minmax\(0, 1fr\) 2\.75rem;/s', $css);
+        $this->assertMatchesRegularExpression('/\.filter-bar-shell\s*\{[^}]*width:\s*100%;[^}]*display:\s*flex;/s', $css);
+        $this->assertMatchesRegularExpression('/\.filter-bar-shell > \.filter-bar\s*\{[^}]*flex:\s*1 1 auto;[^}]*min-width:\s*0;/s', $css);
         $this->assertMatchesRegularExpression('/\.filter-bar__arrow\s*\{[^}]*width:\s*2\.75rem;[^}]*height:\s*2\.75rem;/s', $css);
         $this->assertMatchesRegularExpression('/\.work-archive__toolbar\s*\{[^}]*align-items:\s*center;[^}]*gap:\s*0\.5rem;[^}]*padding-block:\s*0\.5rem;[^}]*background:\s*var\(--color-canvas-bright\);/s', $css);
         $this->assertDoesNotMatchRegularExpression('/\.work-archive__toolbar\s*\{[^}]*backdrop-filter:/s', $css);

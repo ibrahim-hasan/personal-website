@@ -63,16 +63,16 @@ class PortfolioAtlasTest extends TestCase
     {
         $expectedLabels = [
             'ar' => [
-                'ai-adoption' => 'تبنّي الذكاء الاصطناعي',
-                'transformation' => 'التحول الرقمي',
-                'product' => 'المنتجات الرقمية',
-                'operations' => 'التشغيل والأتمتة',
+                'ai-adoption' => 'المعرفة والذكاء الاصطناعي',
+                'transformation' => 'المنصات والمنظومات',
+                'product' => 'المنتجات وتجارب العملاء',
+                'operations' => 'أنظمة الأعمال والتشغيل',
             ],
             'en' => [
-                'ai-adoption' => 'AI Adoption',
-                'transformation' => 'Digital Transformation',
-                'product' => 'Digital Products',
-                'operations' => 'Operations & Automation',
+                'ai-adoption' => 'Knowledge & AI',
+                'transformation' => 'Platforms & Ecosystems',
+                'product' => 'Products & Customer Experiences',
+                'operations' => 'Business Systems & Operations',
             ],
         ];
 
