@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Actions\Projects\ApproveProjectMediaForPublic;
 use App\Contracts\ArticleAudio\NarrationEditor;
 use App\Contracts\WebsitePerformance\GoogleAccessTokenProvider;
 use App\Models\Article;
@@ -37,6 +38,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
@@ -46,6 +48,7 @@ use Illuminate\Validation\Rules\Password;
 use Laravel\Passport\Passport;
 use Livewire\Livewire;
 use Mcamara\LaravelLocalization\Traits\LoadsTranslatedCachedRoutes;
+use Spatie\MediaLibrary\MediaCollections\Events\MediaHasBeenAddedEvent;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -75,6 +78,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configurePassport();
         $this->configureLivewireUpdateRoute();
+        $this->registerProjectMediaApproval();
         $this->registerSuperAdminAccess();
         $this->registerPolicies();
         $this->registerReaderVerificationUrls();
@@ -88,6 +92,17 @@ class AppServiceProvider extends ServiceProvider
         Livewire::setUpdateRoute(
             fn ($handle) => Route::post('/livewire/update', $handle),
         );
+    }
+
+    /**
+     * Project media uploaded through the managed Media Library is public by
+     * default, unless the project itself is explicitly restricted.
+     */
+    protected function registerProjectMediaApproval(): void
+    {
+        Event::listen(MediaHasBeenAddedEvent::class, function (MediaHasBeenAddedEvent $event): void {
+            app(ApproveProjectMediaForPublic::class)->handle($event->media);
+        });
     }
 
     /**

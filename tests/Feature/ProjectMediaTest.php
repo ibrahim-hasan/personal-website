@@ -3,11 +3,15 @@
 namespace Tests\Feature;
 
 use App\Enums\ProjectAssetPermissionStatus;
+use App\Enums\ProjectDisclosureLevel;
+use App\Enums\ProjectPermissionStatus;
 use App\Models\Project;
 use Database\Seeders\ProjectSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\MediaCollections\Events\MediaHasBeenAddedEvent;
 use Tests\TestCase;
 
 class ProjectMediaTest extends TestCase
@@ -62,6 +66,62 @@ class ProjectMediaTest extends TestCase
         $this->assertFileExists($logo->getPath(Project::LOGO_CONVERSION));
     }
 
+    public function test_newly_uploaded_project_media_is_immediately_approved_for_public_display(): void
+    {
+        Storage::fake('public');
+
+        $project = Project::factory()->create([
+            'image' => null,
+            'logo' => null,
+        ]);
+
+        $project
+            ->addMedia(UploadedFile::fake()->image('project.jpg', 1680, 1080))
+            ->toMediaCollection(Project::IMAGE_COLLECTION);
+        $project
+            ->addMedia(UploadedFile::fake()->image('logo.png', 800, 400))
+            ->toMediaCollection(Project::LOGO_COLLECTION);
+
+        $project->refresh();
+        $portfolioProject = $project->toPortfolioArray('en');
+
+        $this->assertSame(ProjectAssetPermissionStatus::Approved, $project->image_permission_status);
+        $this->assertNotEmpty($project->image_permission_reference);
+        $this->assertSame(ProjectAssetPermissionStatus::Approved, $project->logo_permission_status);
+        $this->assertNotEmpty($project->logo_permission_reference);
+        $this->assertTrue($project->mayRenderImage());
+        $this->assertTrue($project->mayRenderLogo());
+        $this->assertStringContainsString(Project::IMAGE_CONVERSION, $portfolioProject['image']);
+        $this->assertStringContainsString(Project::LOGO_CONVERSION, $portfolioProject['logo']);
+    }
+
+    public function test_uploaded_media_stays_withheld_for_anonymized_or_restricted_projects(): void
+    {
+        Storage::fake('public');
+
+        $anonymizedProject = Project::factory()->create([
+            'image' => null,
+            'disclosure_level' => ProjectDisclosureLevel::Anonymized,
+        ]);
+        $restrictedProject = Project::factory()->create([
+            'image' => 'images/projects/atlas/restricted.webp',
+            'permission_status' => ProjectPermissionStatus::InternalOnly,
+            'image_permission_status' => ProjectAssetPermissionStatus::Approved,
+            'image_permission_reference' => 'Restricted project media must stay private.',
+        ]);
+
+        $anonymizedProject
+            ->addMedia(UploadedFile::fake()->image('anonymized.jpg', 1680, 1080))
+            ->toMediaCollection(Project::IMAGE_COLLECTION);
+        $anonymizedProject->refresh();
+        $restrictedProject->refresh();
+
+        $this->assertSame(ProjectAssetPermissionStatus::Unreviewed, $anonymizedProject->image_permission_status);
+        $this->assertSame(ProjectAssetPermissionStatus::Approved, $restrictedProject->image_permission_status);
+        $this->assertFalse($anonymizedProject->mayRenderImage());
+        $this->assertFalse($restrictedProject->mayRenderImage());
+    }
+
     public function test_project_media_collections_only_keep_one_file(): void
     {
         Storage::fake('public');
@@ -82,6 +142,8 @@ class ProjectMediaTest extends TestCase
             'replacement.jpg',
             $project->getFirstMedia(Project::IMAGE_COLLECTION)?->file_name,
         );
+        $this->assertSame(ProjectAssetPermissionStatus::Approved, $project->image_permission_status);
+        $this->assertTrue($project->mayRenderImage());
     }
 
     public function test_media_is_not_exposed_without_an_approved_permission_and_private_reference(): void
@@ -131,6 +193,76 @@ class ProjectMediaTest extends TestCase
 
         $this->assertSame('Owner-approved existing public portfolio image.', $curatedProject->image_permission_reference);
         $this->assertSame('Owner-approved existing public portfolio logo.', $curatedProject->logo_permission_reference);
+    }
+
+    public function test_automatic_media_approval_repair_publishes_only_eligible_unreviewed_assets(): void
+    {
+        Storage::fake('public');
+        Event::fake([MediaHasBeenAddedEvent::class]);
+
+        $managedMediaProject = Project::factory()->create([
+            'image' => null,
+            'logo' => null,
+        ]);
+        $managedMediaProject
+            ->addMedia(UploadedFile::fake()->image('managed-project.jpg', 1680, 1080))
+            ->toMediaCollection(Project::IMAGE_COLLECTION);
+        $managedMediaProject
+            ->addMedia(UploadedFile::fake()->image('managed-logo.png', 800, 400))
+            ->toMediaCollection(Project::LOGO_COLLECTION);
+
+        $legacyPathProject = Project::factory()->create([
+            'image' => 'images/projects/atlas/newly-public.webp',
+            'logo' => null,
+        ]);
+        $anonymizedProject = Project::factory()->create([
+            'image' => 'images/projects/atlas/anonymized.webp',
+            'disclosure_level' => ProjectDisclosureLevel::Anonymized,
+        ]);
+        $restrictedProject = Project::factory()->create([
+            'image' => 'images/projects/atlas/restricted.webp',
+            'permission_status' => ProjectPermissionStatus::InternalOnly,
+        ]);
+        $revokedAssetProject = Project::factory()->create([
+            'image' => 'images/projects/atlas/revoked.webp',
+            'image_permission_status' => ProjectAssetPermissionStatus::Revoked,
+            'image_permission_reference' => 'Revoked by the project owner.',
+        ]);
+        $assetlessProject = Project::factory()->create([
+            'image' => null,
+            'logo' => null,
+        ]);
+        $migration = require database_path('migrations/2026_08_28_130918_auto_approve_existing_project_media.php');
+
+        $migration->up();
+
+        $managedMediaProject->refresh();
+        $legacyPathProject->refresh();
+        $anonymizedProject->refresh();
+        $restrictedProject->refresh();
+        $revokedAssetProject->refresh();
+        $assetlessProject->refresh();
+
+        $this->assertSame(ProjectAssetPermissionStatus::Approved, $managedMediaProject->image_permission_status);
+        $this->assertSame(ProjectAssetPermissionStatus::Approved, $managedMediaProject->logo_permission_status);
+        $this->assertTrue($managedMediaProject->mayRenderImage());
+        $this->assertTrue($managedMediaProject->mayRenderLogo());
+        $this->assertSame(ProjectAssetPermissionStatus::Approved, $legacyPathProject->image_permission_status);
+        $this->assertTrue($legacyPathProject->mayRenderImage());
+        $this->assertSame(ProjectAssetPermissionStatus::Unreviewed, $anonymizedProject->image_permission_status);
+        $this->assertSame(ProjectAssetPermissionStatus::Unreviewed, $restrictedProject->image_permission_status);
+        $this->assertSame(ProjectAssetPermissionStatus::Revoked, $revokedAssetProject->image_permission_status);
+        $this->assertSame(ProjectAssetPermissionStatus::Unreviewed, $assetlessProject->image_permission_status);
+
+        $imageReference = $managedMediaProject->image_permission_reference;
+        $logoReference = $managedMediaProject->logo_permission_reference;
+
+        $migration->up();
+
+        $managedMediaProject->refresh();
+
+        $this->assertSame($imageReference, $managedMediaProject->image_permission_reference);
+        $this->assertSame($logoReference, $managedMediaProject->logo_permission_reference);
     }
 
     public function test_project_seeder_approves_the_curated_legacy_media_for_fresh_installations(): void

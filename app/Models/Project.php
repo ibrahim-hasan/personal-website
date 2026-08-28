@@ -350,9 +350,19 @@ class Project extends Model implements HasMedia, LocalizedUrlRoutable
         return $this->disclosure_level === ProjectDisclosureLevel::Anonymized;
     }
 
+    public function isMediaWithheldForPublic(): bool
+    {
+        return $this->isAnonymizedForPublic()
+            || in_array($this->permission_status, [
+                ProjectPermissionStatus::InternalOnly,
+                ProjectPermissionStatus::ApprovedAnonymized,
+                ProjectPermissionStatus::Revoked,
+            ], true);
+    }
+
     private function hasApprovedAssetPermission(string $asset): bool
     {
-        if ($this->isAnonymizedForPublic()) {
+        if ($this->isMediaWithheldForPublic()) {
             return false;
         }
 

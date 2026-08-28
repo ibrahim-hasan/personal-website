@@ -517,8 +517,8 @@ return [
         'role_code_name' => 'Internal identifier used in code and policies, for example content_manager.',
         'role_assignment' => 'Role changes are restricted by your access level. You cannot change your own roles.',
         'public_asset_path' => 'Path inside public/, for example images/projects/atlas/example.webp.',
-        'project_image_upload' => 'Upload a JPG, PNG, WebP, or AVIF image (maximum 8 MB). A responsive 1400 × 900 WebP version is generated automatically.',
-        'project_logo_upload' => 'Upload a JPG, PNG, WebP, or AVIF logo (maximum 4 MB). The logo is resized without cropping.',
+        'project_image_upload' => 'Upload a JPG, PNG, WebP, or AVIF image (maximum 8 MB). A responsive 1400 × 900 WebP version is generated automatically and published to the project portfolio when the project is saved, unless the project is restricted.',
+        'project_logo_upload' => 'Upload a JPG, PNG, WebP, or AVIF logo (maximum 4 MB). The logo is resized without cropping and published to the project portfolio when the project is saved, unless the project is restricted.',
     ],
     'settings' => [
         'social_media' => 'Social Media',
