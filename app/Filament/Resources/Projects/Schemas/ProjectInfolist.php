@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Projects\Schemas;
 
 use App\Filament\Components\TranslatableInfolistTabs;
 use App\Models\Project;
+use App\Support\PortfolioAtlas;
 use Filament\Infolists\Components\SpatieMediaLibraryImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -33,7 +34,10 @@ class ProjectInfolist
                     ->columns(4)
                     ->schema([
                         TextEntry::make('key')->label(__('admin.fields.key')),
-                        TextEntry::make('lens')->label(__('admin.fields.lens'))->badge(),
+                        TextEntry::make('lens')
+                            ->label(__('admin.fields.lens'))
+                            ->formatStateUsing(fn (?string $state): string => PortfolioAtlas::lensLabel($state))
+                            ->badge(),
                         TextEntry::make('featured')
                             ->label(__('admin.fields.featured'))
                             ->formatStateUsing(fn (bool $state): string => admin_yes_no_label($state))

@@ -41,9 +41,51 @@ class PortfolioAtlasTest extends TestCase
         $allowedLenses = ['ai-adoption', 'transformation', 'product', 'operations'];
 
         $this->assertSame($allowedLenses, array_column(PortfolioAtlas::lenses(), 'id'));
+        $this->assertSame([
+            'digi-pedia' => 'ai-adoption',
+            'wafaa' => 'transformation',
+            'rannan' => 'product',
+            'maazim' => 'operations',
+            'rafid-360' => 'transformation',
+            'taifk' => 'operations',
+            'bosalty' => 'product',
+            '2060-investments' => 'operations',
+        ], collect(PortfolioAtlas::projects())
+            ->mapWithKeys(fn (array $project): array => [$project['key'] => $project['lens']])
+            ->all());
 
         foreach (PortfolioAtlas::projects() as $project) {
             $this->assertContains($project['lens'], $allowedLenses);
+        }
+    }
+
+    public function test_project_lenses_use_the_refined_bilingual_taxonomy(): void
+    {
+        $expectedLabels = [
+            'ar' => [
+                'ai-adoption' => 'تبنّي الذكاء الاصطناعي',
+                'transformation' => 'التحول الرقمي',
+                'product' => 'المنتجات الرقمية',
+                'operations' => 'التشغيل والأتمتة',
+            ],
+            'en' => [
+                'ai-adoption' => 'AI Adoption',
+                'transformation' => 'Digital Transformation',
+                'product' => 'Digital Products',
+                'operations' => 'Operations & Automation',
+            ],
+        ];
+
+        foreach ($expectedLabels as $locale => $labels) {
+            app()->setLocale($locale);
+
+            $this->assertSame($labels, collect(PortfolioAtlas::lenses())
+                ->mapWithKeys(fn (array $lens): array => [$lens['id'] => $lens['label']])
+                ->all());
+
+            foreach ($labels as $lens => $label) {
+                $this->assertSame($label, PortfolioAtlas::lensLabel($lens));
+            }
         }
     }
 

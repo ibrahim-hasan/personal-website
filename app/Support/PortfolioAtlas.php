@@ -101,6 +101,13 @@ final class PortfolioAtlas
         return self::localize(self::lensesPayload());
     }
 
+    public static function lensLabel(?string $lens): string
+    {
+        $definition = collect(self::lenses())->firstWhere('id', $lens);
+
+        return is_array($definition) ? (string) $definition['label'] : (string) $lens;
+    }
+
     /**
      * @return list<array<string, mixed>>
      */
@@ -525,7 +532,7 @@ final class PortfolioAtlas
         return [
             [
                 'id' => 'ai-adoption',
-                'label' => ['ar' => 'تبنّي الذكاء الاصطناعي', 'en' => 'AI adoption'],
+                'label' => ['ar' => 'تبنّي الذكاء الاصطناعي', 'en' => 'AI Adoption'],
                 'description' => [
                     'ar' => 'أين يحسّن الذكاء الاصطناعي قراراً أو سير عمل حقيقياً، وما الشروط اللازمة للثقة به.',
                     'en' => 'Where AI can improve a real decision or workflow, and what must be true for people to trust it.',
@@ -537,38 +544,38 @@ final class PortfolioAtlas
             ],
             [
                 'id' => 'transformation',
-                'label' => ['ar' => 'التحول', 'en' => 'Transformation'],
+                'label' => ['ar' => 'التحول الرقمي', 'en' => 'Digital Transformation'],
                 'description' => [
-                    'ar' => 'كيف يتحول العمل المتفرق إلى نموذج تشغيل رقمي مترابط وواضح المسؤوليات.',
+                    'ar' => 'كيف يتحول العمل المتفرق إلى نموذج تشغيل رقمي مترابط، بمسؤوليات وقرارات أوضح.',
                     'en' => 'How disconnected work becomes a coherent digital operating model with clear ownership.',
                 ],
                 'question' => [
-                    'ar' => 'ما الذي يجب تغييره أولاً حتى يتحسن العمل كله؟',
+                    'ar' => 'ما الذي يجب تغييره رقمياً أولاً حتى يتحسن العمل كله؟',
                     'en' => 'What should change first so the whole operation improves?',
                 ],
             ],
             [
                 'id' => 'product',
-                'label' => ['ar' => 'المنتج', 'en' => 'Product'],
+                'label' => ['ar' => 'المنتجات الرقمية', 'en' => 'Digital Products'],
                 'description' => [
-                    'ar' => 'كيف تتحول الخدمة إلى تجربة واضحة ومفيدة لكل طرف يشارك فيها.',
-                    'en' => 'How a service becomes a clear, useful experience for every participant.',
+                    'ar' => 'كيف يتحول احتياج واضح إلى منتج رقمي يقدم تجربة مفيدة لكل طرف يشارك فيها.',
+                    'en' => 'How a clear need becomes a digital product with a useful experience for every participant.',
                 ],
                 'question' => [
-                    'ar' => 'ما الرحلة التي تجعل القيمة مفهومة وسهلة الاستخدام؟',
-                    'en' => 'What journey makes the value understandable and easy to use?',
+                    'ar' => 'ما المنتج أو الرحلة التي تجعل القيمة مفهومة وسهلة الاستخدام؟',
+                    'en' => 'What product or journey makes the value understandable and easy to use?',
                 ],
             ],
             [
                 'id' => 'operations',
-                'label' => ['ar' => 'التشغيل', 'en' => 'Operations'],
+                'label' => ['ar' => 'التشغيل والأتمتة', 'en' => 'Operations & Automation'],
                 'description' => [
-                    'ar' => 'كيف ينتقل العمل من الطلب إلى التنفيذ باحتكاك أقل وملكية أوضح.',
-                    'en' => 'How work moves from request to fulfilment with less friction and clearer ownership.',
+                    'ar' => 'كيف ينتظم العمل من الطلب إلى التنفيذ، وما الذي يمكن أتمتته لتقليل الاحتكاك وتوضيح الملكية.',
+                    'en' => 'How work moves from request to fulfilment, and what can be automated to reduce friction and clarify ownership.',
                 ],
                 'question' => [
-                    'ar' => 'أين يتعطل التدفق، وما الذي يجعل التنفيذ أكثر انتظاماً؟',
-                    'en' => 'Where does the flow break, and what makes delivery more orderly?',
+                    'ar' => 'أين يتعطل التدفق، وما الذي يستحق الأتمتة أولاً؟',
+                    'en' => 'Where does the flow break, and what is worth automating first?',
                 ],
             ],
         ];

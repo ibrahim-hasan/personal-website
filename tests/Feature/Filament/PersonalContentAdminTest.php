@@ -5,6 +5,7 @@ namespace Tests\Feature\Filament;
 use App\Models\Project;
 use App\Models\Service;
 use App\Models\User;
+use App\Support\PortfolioAtlas;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\ProjectSeeder;
 use Database\Seeders\RoleSeeder;
@@ -44,12 +45,14 @@ class PersonalContentAdminTest extends TestCase
             ->get('/admin/projects')
             ->assertOk()
             ->assertSee($project->getTranslation('title', 'ar'))
+            ->assertSee(PortfolioAtlas::lensLabel($project->lens))
             ->assertSee('/admin/projects/'.$project->getKey().'/edit', false)
             ->assertDontSee('/admin/projects/'.$project->getTranslation('slug', 'ar').'/edit', false);
 
         $this->actingAs($admin)
             ->get('/admin/projects/'.$project->getKey())
-            ->assertOk();
+            ->assertOk()
+            ->assertSee(PortfolioAtlas::lensLabel($project->lens));
 
         $this->actingAs($admin)
             ->get('/admin/projects/'.$project->getKey().'/edit')

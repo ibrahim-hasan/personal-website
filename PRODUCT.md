@@ -105,6 +105,7 @@ Sign in → create or edit localized content → upload managed media → review
 ### Portfolio and services
 
 - Localized projects and services with meaningful categorization and narrative fields.
+- Public project filters use four stable, audience-facing categories: AI Adoption, Digital Transformation, Digital Products, and Operations & Automation. Their internal values and existing filter URLs remain stable.
 - One canonical services hub is the only public service destination. Its server-rendered `#service-{key}` sections are stable, linkable entry points; there are no public service-detail pages.
 - Recognized historic service-detail URLs make one permanent redirect to the matching services-hub section. Do not create new service URLs or duplicate per-service metadata without an explicitly approved product change.
 - Consistent project media and logos, not manually entered public paths.

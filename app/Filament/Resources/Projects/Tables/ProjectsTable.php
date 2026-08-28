@@ -50,6 +50,7 @@ class ProjectsTable
                     ->toggleable(),
                 TextColumn::make('lens')
                     ->label(__('admin.fields.lens'))
+                    ->formatStateUsing(fn (?string $state): string => PortfolioAtlas::lensLabel($state))
                     ->badge(),
                 IconColumn::make('featured')
                     ->label(__('admin.fields.featured'))

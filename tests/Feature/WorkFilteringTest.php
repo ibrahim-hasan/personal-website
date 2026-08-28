@@ -25,6 +25,7 @@ class WorkFilteringTest extends TestCase
             ->assertOk()
             ->assertSee('Operations project', false)
             ->assertDontSee('AI project', false)
+            ->assertSee('Operations & Automation')
             ->assertSee('data-uses-livewire="true"', false)
             ->assertSee('wire:navigate.preserve-scroll', false)
             ->assertSee('aria-current="page"', false)
@@ -60,6 +61,18 @@ class WorkFilteringTest extends TestCase
         $this->assertStringContainsString('.filter-bar-shell > .filter-bar', $css);
         $this->assertStringContainsString('grid-column: 2;', $css);
         $this->assertStringContainsString("html[data-work-filter-navigation='true'].motion-capable .work-archive [data-reveal]", $css);
+
+        $this->get('/ar/work?lens=transformation')
+            ->assertOk()
+            ->assertSee('تصنيفات المشاريع', false)
+            ->assertSee('التحول الرقمي', false)
+            ->assertSee('/ar/work?lens=transformation', false);
+
+        $this->get('/en/work?lens=transformation')
+            ->assertOk()
+            ->assertSee('Project categories', false)
+            ->assertSee('Digital Transformation', false)
+            ->assertSee('/en/work?lens=transformation', false);
     }
 
     public function test_invalid_lens_returns_a_404_and_an_empty_lens_redirects_to_the_canonical_work_page(): void
