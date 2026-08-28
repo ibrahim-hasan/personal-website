@@ -62,17 +62,30 @@ class WorkFilteringTest extends TestCase
         $this->assertStringContainsString('grid-column: 2;', $css);
         $this->assertStringContainsString("html[data-work-filter-navigation='true'].motion-capable .work-archive [data-reveal]", $css);
 
-        $this->get('/ar/work?lens=transformation')
+        $arabicTransformationUrl = localized_route(
+            'work',
+            ['lens' => 'transformation'],
+            absolute: false,
+            locale: 'ar',
+        );
+        $englishTransformationUrl = localized_route(
+            'work',
+            ['lens' => 'transformation'],
+            absolute: false,
+            locale: 'en',
+        );
+
+        $this->get($arabicTransformationUrl)
             ->assertOk()
             ->assertSee('تصنيفات المشاريع', false)
             ->assertSee('التحول الرقمي', false)
-            ->assertSee('/ar/work?lens=transformation', false);
+            ->assertSee($arabicTransformationUrl, false);
 
-        $this->get('/en/work?lens=transformation')
+        $this->get($englishTransformationUrl)
             ->assertOk()
             ->assertSee('Project categories', false)
             ->assertSee('Digital Transformation', false)
-            ->assertSee('/en/work?lens=transformation', false);
+            ->assertSee($englishTransformationUrl, false);
     }
 
     public function test_invalid_lens_returns_a_404_and_an_empty_lens_redirects_to_the_canonical_work_page(): void
