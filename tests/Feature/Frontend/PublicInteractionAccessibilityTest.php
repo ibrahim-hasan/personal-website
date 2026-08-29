@@ -507,6 +507,18 @@ class PublicInteractionAccessibilityTest extends TestCase
         );
     }
 
+    public function test_desktop_consultation_cta_remains_visually_primary(): void
+    {
+        $navbar = $this->readProjectFile('resources/views/components/partials/navbar.blade.php');
+        $css = $this->readProjectFile('resources/css/app.css');
+
+        $this->assertStringContainsString('class="site-nav__consultation button-primary"', $navbar);
+        $this->assertMatchesRegularExpression(
+            '/\.button-primary\s*\{[^}]*background:\s*var\(--color-violet-600\);[^}]*color:\s*var\(--color-violet-50\);/s',
+            $css,
+        );
+    }
+
     public function test_narrow_navigation_has_an_ordinary_noscript_fallback(): void
     {
         $navbar = $this->readProjectFile('resources/views/components/partials/navbar.blade.php');
