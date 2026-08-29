@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Article;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /** @extends Factory<Article> */
 class ArticleFactory extends Factory
@@ -19,8 +20,8 @@ class ArticleFactory extends Factory
             'slug' => ['ar' => 'مقال-'.$key, 'en' => 'article-'.$key],
             'title' => ['ar' => 'عنوان عربي', 'en' => fake()->sentence(5)],
             'summary' => ['ar' => 'ملخص عربي', 'en' => fake()->sentence(12)],
-            'seo_title' => ['ar' => 'عنوان عربي', 'en' => fake()->sentence(5)],
-            'seo_description' => ['ar' => 'وصف عربي', 'en' => fake()->sentence(12)],
+            'seo_title' => ['ar' => 'عنوان عربي', 'en' => Str::limit(fake()->sentence(5), 60, '')],
+            'seo_description' => ['ar' => 'وصف عربي', 'en' => Str::limit(fake()->sentence(12), 155, '')],
             'type' => ['ar' => 'مقال', 'en' => 'Article'],
             'lead' => ['ar' => 'مقدمة عربية', 'en' => fake()->paragraph()],
             'sections' => [

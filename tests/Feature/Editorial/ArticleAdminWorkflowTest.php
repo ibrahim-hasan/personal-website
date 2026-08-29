@@ -103,6 +103,18 @@ class ArticleAdminWorkflowTest extends TestCase
         $this->assertSame('article.updated', $snapshot->action);
     }
 
+    public function test_article_factory_generates_seo_metadata_that_is_valid_for_the_editorial_form(): void
+    {
+        $articles = Article::factory()->count(25)->make();
+
+        foreach ($articles as $article) {
+            foreach (['ar', 'en'] as $locale) {
+                $this->assertLessThanOrEqual(60, mb_strlen($article->getTranslation('seo_title', $locale, false)));
+                $this->assertLessThanOrEqual(155, mb_strlen($article->getTranslation('seo_description', $locale, false)));
+            }
+        }
+    }
+
     public function test_legacy_article_body_is_loaded_into_the_rich_editor_and_saved_as_rich_content(): void
     {
         $admin = $this->administrator();
