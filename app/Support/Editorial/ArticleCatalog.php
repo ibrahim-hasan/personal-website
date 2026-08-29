@@ -12,6 +12,8 @@ final class ArticleCatalog
     /** @var list<Article>|null */
     private ?array $articles = null;
 
+    private ?string $articlesLoadedForDate = null;
+
     public function __construct(private readonly ArticlePublicationValidator $publicationValidator) {}
 
     /**
@@ -201,7 +203,9 @@ final class ArticleCatalog
      */
     public function all(): array
     {
-        if ($this->articles !== null) {
+        $currentDate = ArticleRecord::publicationToday()->toDateString();
+
+        if ($this->articles !== null && $this->articlesLoadedForDate === $currentDate) {
             return $this->articles;
         }
 
@@ -215,6 +219,8 @@ final class ArticleCatalog
             $articles,
             fn (Article $first, Article $second): int => $second->publishedAt <=> $first->publishedAt,
         );
+
+        $this->articlesLoadedForDate = $currentDate;
 
         return $this->articles = $articles;
     }
@@ -371,10 +377,17 @@ final class ArticleCatalog
             $this->all(),
             fn (Article $article): bool => $article->key !== $current->key,
         ));
+        $currentTopicClusters = ArticleTopicClusters::forTopicKeys($current->topicKeys);
 
-        usort($candidates, function (Article $first, Article $second) use ($current): int {
-            $firstScore = count(array_intersect($current->topicKeys, $first->topicKeys));
-            $secondScore = count(array_intersect($current->topicKeys, $second->topicKeys));
+        usort($candidates, function (Article $first, Article $second) use ($currentTopicClusters): int {
+            $firstScore = count(array_intersect(
+                $currentTopicClusters,
+                ArticleTopicClusters::forTopicKeys($first->topicKeys),
+            ));
+            $secondScore = count(array_intersect(
+                $currentTopicClusters,
+                ArticleTopicClusters::forTopicKeys($second->topicKeys),
+            ));
 
             return [$secondScore, $second->publishedAt] <=> [$firstScore, $first->publishedAt];
         });

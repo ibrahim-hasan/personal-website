@@ -68,6 +68,85 @@ class GoogleAnalyticsDataClientTest extends TestCase
         }
     }
 
+    public function test_it_tracks_organic_search_consultation_submissions_as_a_separate_aggregate(): void
+    {
+        $organicReports = [];
+
+        Http::preventStrayRequests();
+        Http::fake(function (Request $request) use (&$organicReports) {
+            $payload = $request->data();
+            $dimensions = array_column($payload['dimensions'] ?? [], 'name');
+
+            if ($dimensions === ['eventName', 'sessionDefaultChannelGroup']) {
+                $organicReports[] = $payload;
+            }
+
+            return Http::response(['rows' => [$this->rowFor($payload)]], 200);
+        });
+
+        $report = $this->client()->collect($this->periods());
+
+        $this->assertSame(['available' => true, 'total' => 7], $report['current']['organic_consultation_submissions']);
+        $this->assertSame(['available' => true, 'total' => 7], $report['previous']['organic_consultation_submissions']);
+        $this->assertSame(['available' => true, 'total' => 7], $report['context_90d']['organic_consultation_submissions']);
+        $this->assertCount(3, $organicReports);
+
+        foreach ($organicReports as $payload) {
+            $this->assertSame('consultation_submit_success', $payload['dimensionFilter']['filter']['stringFilter']['value']);
+            $this->assertTrue($payload['dimensionFilter']['filter']['stringFilter']['caseSensitive']);
+        }
+    }
+
+    public function test_it_treats_successful_empty_organic_consultation_reports_as_available_zero(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake(function (Request $request) {
+            $payload = $request->data();
+            $dimensions = array_column($payload['dimensions'] ?? [], 'name');
+
+            if ($dimensions !== ['eventName', 'sessionDefaultChannelGroup']) {
+                return Http::response(['rows' => [$this->rowFor($payload)]], 200);
+            }
+
+            return match ($payload['dateRanges'][0]['startDate'] ?? null) {
+                '2026-07-13' => Http::response(['rowCount' => 0], 200),
+                '2026-06-15' => Http::response(['rows' => [], 'rowCount' => 0], 200),
+                default => Http::response(['rows' => []], 200),
+            };
+        });
+
+        $report = $this->client()->collect($this->periods());
+
+        $this->assertSame('ok', $report['status']);
+        $this->assertSame(['available' => true, 'total' => 0], $report['current']['organic_consultation_submissions']);
+        $this->assertSame(['available' => true, 'total' => 0], $report['previous']['organic_consultation_submissions']);
+        $this->assertSame(['available' => true, 'total' => 0], $report['context_90d']['organic_consultation_submissions']);
+        $this->assertSame([], $report['warnings']);
+    }
+
+    public function test_context_only_organic_consultation_data_keeps_the_source_available_and_fresh(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake(function (Request $request) {
+            $payload = $request->data();
+            $dimensions = array_column($payload['dimensions'] ?? [], 'name');
+            $isContextOrganicConsultations = $dimensions === ['eventName', 'sessionDefaultChannelGroup']
+                && ($payload['dateRanges'][0]['startDate'] ?? null) === '2026-05-12';
+
+            return $isContextOrganicConsultations
+                ? Http::response(['rowCount' => 0], 200)
+                : Http::response([], 200);
+        });
+
+        $report = $this->client()->collect($this->periods());
+
+        $this->assertSame('partial', $report['status']);
+        $this->assertSame('2026-08-09', $report['fresh_through']);
+        $this->assertSame(['available' => true, 'total' => 0], $report['context_90d']['organic_consultation_submissions']);
+        $this->assertFalse($report['current']['organic_consultation_submissions']['available']);
+        $this->assertFalse($report['previous']['organic_consultation_submissions']['available']);
+    }
+
     public function test_it_marks_missing_metric_values_as_partial_instead_of_zero(): void
     {
         Http::preventStrayRequests();

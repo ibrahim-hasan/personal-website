@@ -154,8 +154,9 @@ Sign in → create or edit localized content → upload managed media → review
 
 ## Conversion and proof
 
-- Primary CTA: request a free consultation.
-- Secondary CTA: explore the method, selected work, or relevant writing.
+- Primary CTA: explore selected work.
+- Secondary CTA: request a consultation.
+- The method and relevant writing remain contextual pathways rather than competing hero actions.
 - Consultation CTAs should not be duplicated in adjacent sections without a distinct purpose.
 - Decision-room output must carry its selected context into the consultation flow.
 - Proof should come from project narratives, operating detail, and thoughtful content. Public client logos, testimonials, and metrics require explicit, truthful source material.
@@ -175,6 +176,7 @@ Sign in → create or edit localized content → upload managed media → review
 - Every indexable page needs a unique localized title, description, canonical URL, and hreflang set.
 - Articles need Open Graph/Twitter metadata, share-ready imagery, `Article` structured data, visible author links, and useful internal links.
 - The public profile uses one stable `ProfilePage`/`Person` identity, supported by visible expertise, current-company relationships, and verified social profiles. Do not add education, employment, country, or location claims without approved factual source material.
+- The approved public identity is “Ibrahim Hasan | Technology Executive in Saudi Arabia” / “إبراهيم حسن | قائد تقني في السعودية”, with a visible Saudi Arabia location. Current work presents Code Moments first with Ibrahim as CEO, then From Scratch with Ibrahim as Co-founder & CEO. Structured data identifies Ibrahim as founder only of From Scratch while retaining both organizations in `worksFor`.
 - The organization/person/navigation structure should make major sections eligible for search sitelinks, while recognizing that Google decides whether to display them.
 - XML sitemaps must include localized canonical content and exclude private, duplicate, utility, and admin pages.
 - Use permanent redirects for public path variants and known retired routes; do not publish country-specific doorway pages to target geographic searches.

@@ -30,6 +30,10 @@ return [
         'consultation_prompt' => 'لديك سؤال يشبه ما قرأت؟ أحضره كما هو، ولنبدأ من القرار الذي يحتاجه العمل.',
     ],
     'reader' => [
+        'application_eyebrow' => 'حوّل الفكرة إلى عمل',
+        'application_title' => 'تطبيق مرتبط ودليل من الأعمال',
+        'related_service' => 'الخدمة المرتبطة',
+        'related_work' => 'عمل ذو صلة',
         'reader_mode' => 'وضع القراءة',
         'tools' => 'أدوات القراءة',
         'enter_reader' => 'فتح وضع القراءة',
@@ -80,6 +84,10 @@ return [
         'email_short' => 'البريد',
     ],
     'topics' => [
+        'ai-adoption-governance' => 'تبنّي الذكاء الاصطناعي وحوكمته',
+        'data-knowledge-systems' => 'البيانات وأنظمة المعرفة',
+        'digital-transformation-operations' => 'التحول الرقمي والعمليات',
+        'product-strategy-measurement' => 'استراتيجية المنتج والقياس',
         'ai_strategy' => 'استراتيجية الذكاء الاصطناعي',
         'transformation' => 'التحول الرقمي',
         'data' => 'البيانات',

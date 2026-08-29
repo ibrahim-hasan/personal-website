@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Rules\AvailableArticleSlug;
 use App\Support\Editorial\ArticleBody;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -36,8 +37,8 @@ class StoreEditorialArticleRequest extends FormRequest
             'title.ar' => ['required', 'string', 'max:180'],
             'title.en' => ['required', 'string', 'max:180'],
             'slug' => ['required', 'array:ar,en'],
-            'slug.ar' => ['required', 'string', 'max:180', 'regex:/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u', Rule::unique('articles', 'slug->ar')],
-            'slug.en' => ['required', 'string', 'max:180', 'regex:/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u', Rule::unique('articles', 'slug->en')],
+            'slug.ar' => ['required', 'string', 'max:180', 'regex:/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u', Rule::unique('articles', 'slug->ar'), new AvailableArticleSlug('ar')],
+            'slug.en' => ['required', 'string', 'max:180', 'regex:/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u', Rule::unique('articles', 'slug->en'), new AvailableArticleSlug('en')],
             'type' => ['required', 'array:ar,en'],
             'type.ar' => ['required', 'string', 'max:80'],
             'type.en' => ['required', 'string', 'max:80'],

@@ -30,6 +30,10 @@ return [
         'consultation_prompt' => 'Have a question like the one you just read? Bring it as it is, and let us begin with the decision the work needs.',
     ],
     'reader' => [
+        'application_eyebrow' => 'Put the idea to work',
+        'application_title' => 'Related application and evidence',
+        'related_service' => 'Related service',
+        'related_work' => 'Relevant work',
         'reader_mode' => 'Reader mode',
         'tools' => 'Reading tools',
         'enter_reader' => 'Enter reader mode',
@@ -80,6 +84,10 @@ return [
         'email_short' => 'Email',
     ],
     'topics' => [
+        'ai-adoption-governance' => 'AI adoption & governance',
+        'data-knowledge-systems' => 'Data & knowledge systems',
+        'digital-transformation-operations' => 'Digital transformation & operations',
+        'product-strategy-measurement' => 'Product strategy & measurement',
         'ai_strategy' => 'AI strategy',
         'transformation' => 'Digital transformation',
         'data' => 'Data',

@@ -8,6 +8,7 @@ use App\Models\Article as ArticleRecord;
 use App\Models\ArticleAudio;
 use App\Services\ArticleAudio\ArticleAudioScript;
 use App\Support\Editorial\ArticleCatalog;
+use App\Support\Editorial\ArticleContextContent;
 use App\Support\Seo\SeoMetadata;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -16,6 +17,7 @@ class ArticleController extends Controller
 {
     public function __construct(
         private readonly ArticleCatalog $articles,
+        private readonly ArticleContextContent $contextContent,
         private readonly ArticleAudioScript $scripts,
     ) {}
 
@@ -121,6 +123,7 @@ class ArticleController extends Controller
             'canonicalUrl' => $canonicalUrl,
             'alternateUrls' => $this->articles->alternateUrls($resolvedArticle),
             'relatedArticles' => $this->articles->related($resolvedArticle, locale: $locale, includeBody: false),
+            'articleContext' => $this->contextContent->for($article),
             'articleAudio' => $articleAudio,
             'structuredData' => $structuredData,
         ]);

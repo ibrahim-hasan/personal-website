@@ -6,6 +6,7 @@ use App\Actions\Editorial\ArticlePublicationValidator;
 use App\Filament\Components\AiSeoAction;
 use App\Filament\Components\TranslatableTabs;
 use App\Models\Article;
+use App\Rules\AvailableArticleSlug;
 use App\Support\Editorial\ArticleBody;
 use App\Support\LocaleSlugger;
 use Closure;
@@ -43,6 +44,10 @@ class ArticleForm
                     ->label(__('editorial_admin.fields.slug'))
                     ->required()
                     ->unique(Article::class, "slug_{$locale}", ignoreRecord: true)
+                    ->rule(fn (?Article $record): AvailableArticleSlug => new AvailableArticleSlug(
+                        $locale,
+                        $record?->getKey(),
+                    ))
                     ->regex('/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u')
                     ->maxLength(180),
                 TextInput::make("type.{$locale}")

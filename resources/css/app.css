@@ -1115,6 +1115,43 @@ html[dir='rtl'] .brand-mark__name {
     opacity: 0;
 }
 
+.precision-stage__playback {
+    position: absolute;
+    z-index: 4;
+    inset-block-end: clamp(0.8rem, 2vw, 1rem);
+    inset-inline-end: clamp(0.8rem, 2vw, 1rem);
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-inline: 0.9rem;
+    border: 1px solid color-mix(in oklab, var(--color-canvas-bright) 42%, transparent);
+    border-radius: var(--control-radius);
+    background: color-mix(in oklab, var(--color-ink) 82%, transparent);
+    color: var(--color-canvas-bright);
+    font-family: var(--family-ui);
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+    transition: background-color 180ms ease, border-color 180ms ease, translate 180ms var(--ease-out-quint);
+}
+
+.precision-stage__playback:hover {
+    border-color: color-mix(in oklab, var(--color-canvas-bright) 72%, transparent);
+    background: color-mix(in oklab, var(--color-ink) 94%, transparent);
+    translate: 0 -0.1rem;
+}
+
+.precision-stage__playback:focus-visible {
+    outline: 2px solid var(--color-canvas-bright);
+    outline-offset: 3px;
+}
+
+.precision-stage__playback[hidden] {
+    display: none;
+}
+
 .precision-stage__finale {
     position: absolute;
     z-index: 4;
@@ -1277,7 +1314,8 @@ html[dir='rtl'] .precision-stage__finale strong {
 
 @media (prefers-reduced-motion: reduce) {
     .precision-stage__video,
-    .precision-stage__poster {
+    .precision-stage__poster,
+    .precision-stage__playback {
         transition: none;
     }
 
@@ -2064,6 +2102,68 @@ html[dir='rtl'] .writing-audio-feature__copy strong {
     font-size: 1rem;
     line-height: 1.72;
     color: var(--color-ink-soft);
+}
+
+.service-hub__resources {
+    display: grid;
+    gap: 2.5rem;
+    padding-block-start: 2rem;
+    border-top: 1px solid color-mix(in oklab, var(--color-ink) 24%, transparent);
+}
+
+.service-hub__resource-group h3 {
+    font-family: var(--family-ui);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-violet-700);
+}
+
+.service-hub__resource-group ol {
+    display: grid;
+    margin-top: 1rem;
+    border-top: 1px solid color-mix(in oklab, var(--color-ink) 16%, transparent);
+}
+
+.service-hub__resource-group li {
+    border-bottom: 1px solid color-mix(in oklab, var(--color-ink) 16%, transparent);
+}
+
+.service-hub__resource-group a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1.25rem;
+    gap: 0.4rem 1rem;
+    align-items: center;
+    min-height: 5.25rem;
+    padding-block: 1rem;
+    color: inherit;
+    text-decoration: none;
+}
+
+.service-hub__resource-group a > span {
+    grid-column: 1;
+    font-family: var(--family-ui);
+    font-size: 0.72rem;
+    color: var(--color-ink-soft);
+}
+
+.service-hub__resource-group a > strong {
+    grid-column: 1;
+    font-family: var(--family-display);
+    font-size: clamp(1.05rem, 2vw, 1.3rem);
+    line-height: 1.28;
+}
+
+.service-hub__resource-group a > svg {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--color-violet-700);
+    transition: translate 180ms ease;
+}
+
+.service-hub__cta {
+    width: fit-content;
 }
 
 .method-band,
@@ -3820,6 +3920,63 @@ html.has-site-audio-player body {
     text-decoration: underline;
 }
 
+.article-application {
+    margin-block-start: clamp(3rem, 7vw, 5rem);
+    padding: clamp(1.35rem, 4vw, 2rem);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 18%, transparent);
+    border-radius: var(--panel-radius);
+    background: color-mix(in oklab, var(--color-violet-50) 72%, var(--color-canvas));
+}
+
+.article-application > h2 {
+    margin-block-start: 0.65rem;
+    font-family: var(--family-display);
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 900;
+    line-height: 1.15;
+}
+
+.article-application__links {
+    display: grid;
+    gap: 0.75rem;
+    margin-block-start: 1.5rem;
+}
+
+.article-application__links > a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1.25rem;
+    gap: 0.35rem 1rem;
+    align-items: center;
+    min-height: 4.75rem;
+    padding-block: 0.9rem;
+    border-block-start: 1px solid color-mix(in oklab, var(--color-ink) 16%, transparent);
+    color: inherit;
+    text-decoration: none;
+}
+
+.article-application__links > a > span {
+    color: var(--color-ink-soft);
+    font-family: var(--family-ui);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.article-application__links > a > strong {
+    grid-column: 1;
+    font-family: var(--family-display);
+    font-size: 1.05rem;
+    line-height: 1.3;
+}
+
+.article-application__links > a > svg {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: 1rem;
+    height: 1rem;
+    color: var(--color-violet-700);
+    transition: translate 180ms ease;
+}
+
 .related-writing {
     padding-block: clamp(5rem, 9vw, 8rem);
     background: var(--color-canvas);
@@ -4117,7 +4274,8 @@ html[data-reader-mode] .article-prose {
     .reader-panel,
     .article-share,
     [data-reader-secondary],
-    .article-source {
+    .article-source,
+    .article-application {
         display: none !important;
     }
 
@@ -6294,6 +6452,11 @@ html[dir='rtl'].motion-capable .manifesto-section__copy::before {
         gap: 2rem;
     }
 
+    .service-hub__resources {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 3rem;
+    }
+
     .method-band__steps {
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
@@ -6317,6 +6480,16 @@ html[dir='rtl'].motion-capable .manifesto-section__copy::before {
 }
 
 @media (hover: hover) and (pointer: fine) {
+    .service-hub__resource-group a:hover > svg,
+    .article-application__links > a:hover > svg {
+        translate: 0.2rem -0.2rem;
+    }
+
+    html[dir='rtl'] .service-hub__resource-group a:hover > svg,
+    html[dir='rtl'] .article-application__links > a:hover > svg {
+        translate: -0.2rem -0.2rem;
+    }
+
     .filter-bar :is(a, button):not(.is-active):hover,
     .service-index__item:not(.is-active):hover {
         border-color: color-mix(in oklab, var(--color-violet-700) 60%, transparent);

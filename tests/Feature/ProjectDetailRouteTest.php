@@ -15,23 +15,45 @@ class ProjectDetailRouteTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_legacy_project_detail_urls_redirect_to_the_matching_localized_work_card(): void
+    public function test_legacy_project_detail_urls_permanently_redirect_to_the_exact_localized_work_anchor_and_preserve_the_query(): void
     {
         $project = $this->eligibleProject();
 
-        $this->get(localized_route('work.show', ['project' => $project], locale: 'ar'))
-            ->assertRedirect(localized_route('work', locale: 'ar').'#project-'.$project->key);
+        foreach (['ar', 'en'] as $locale) {
+            $target = localized_route('work', locale: $locale)
+                .'?utm_source=google&utm_campaign=case-study'
+                .'#project-'.$project->key;
 
-        $this->get(localized_route('work.show', ['project' => $project], locale: 'en'))
-            ->assertRedirect(localized_route('work', locale: 'en').'#project-'.$project->key);
+            $this->get(
+                localized_route('work.show', ['project' => $project], locale: $locale)
+                .'?utm_source=google&utm_campaign=case-study',
+            )
+                ->assertStatus(301)
+                ->assertHeader('Location', $target);
+        }
     }
 
-    public function test_inactive_projects_do_not_resolve_through_the_retired_detail_url(): void
+    public function test_unknown_inactive_and_wrong_locale_projects_do_not_resolve_through_the_retired_detail_url(): void
     {
         $project = $this->eligibleProject(['is_active' => false]);
 
-        $this->get(localized_route('work.show', ['project' => $project], locale: 'ar'))
-            ->assertNotFound();
+        foreach (['ar', 'en'] as $locale) {
+            $this->get(localized_route('work.show', ['project' => $project], locale: $locale))
+                ->assertNotFound();
+
+            $this->get(localized_route('work.show', ['project' => 'unknown-project'], locale: $locale))
+                ->assertNotFound();
+        }
+
+        $activeProject = $this->eligibleProject();
+
+        $this->get(localized_route('work.show', [
+            'project' => $activeProject->getTranslation('slug', 'en', false),
+        ], locale: 'ar'))->assertNotFound();
+
+        $this->get(localized_route('work.show', [
+            'project' => $activeProject->getTranslation('slug', 'ar', false),
+        ], locale: 'en'))->assertNotFound();
     }
 
     public function test_work_overview_keeps_links_only_for_projects_that_pass_the_existing_case_study_gate(): void

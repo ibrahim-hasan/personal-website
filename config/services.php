@@ -51,6 +51,13 @@ return [
         'facebook' => env('SOCIAL_FACEBOOK_URL'),
         'twitter' => env('SOCIAL_X_URL'),
         'instagram' => env('SOCIAL_INSTAGRAM_URL'),
+        'identity_profiles' => [
+            'linkedin' => [
+                'linkedin.com/in/i-hasan' => 'https://sa.linkedin.com/in/i-hasan',
+                'www.linkedin.com/in/i-hasan' => 'https://sa.linkedin.com/in/i-hasan',
+                'sa.linkedin.com/in/i-hasan' => 'https://sa.linkedin.com/in/i-hasan',
+            ],
+        ],
     ],
 
     'google_analytics' => [

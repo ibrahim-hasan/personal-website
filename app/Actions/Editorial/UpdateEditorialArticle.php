@@ -13,6 +13,7 @@ class UpdateEditorialArticle
     public function __construct(
         private readonly AssertEditorialArticleIsDraft $assertEditorialArticleIsDraft,
         private readonly ArticleBody $articleBody,
+        private readonly ArticleSlugHistory $slugHistory,
         private readonly EditorialArticleRelations $relations,
     ) {}
 
@@ -36,9 +37,17 @@ class UpdateEditorialArticle
             $this->assertExpectedRevision($article, $expectedRevision, $feedbackLocale);
             $this->assertEditorialArticleIsDraft->handle($article, $feedbackLocale);
             $this->relations->validate($attributes, $article);
+            $normalizedAttributes = $this->articleBody->normalizeInput(
+                $this->relations->withoutRelationKeys($attributes),
+            );
+            $slugs = $normalizedAttributes['slug'] ?? [];
+
+            if (is_array($slugs)) {
+                $this->slugHistory->preserve($article, $slugs, $feedbackLocale);
+            }
 
             $article->update([
-                ...$this->articleBody->normalizeInput($this->relations->withoutRelationKeys($attributes)),
+                ...$normalizedAttributes,
                 'modified_at' => today(),
                 'editorial_revision' => $article->editorial_revision + 1,
             ]);

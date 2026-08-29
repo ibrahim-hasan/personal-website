@@ -11,6 +11,7 @@ class CreateEditorialArticle
 {
     public function __construct(
         private readonly ArticleBody $articleBody,
+        private readonly ArticleSlugHistory $slugHistory,
         private readonly EditorialArticleRelations $relations,
     ) {}
 
@@ -20,8 +21,17 @@ class CreateEditorialArticle
         $this->relations->validate($attributes);
 
         return DB::transaction(function () use ($attributes): Article {
+            $normalizedAttributes = $this->articleBody->normalizeInput(
+                $this->relations->withoutRelationKeys($attributes),
+            );
+            $slugs = $normalizedAttributes['slug'] ?? [];
+
+            if (is_array($slugs)) {
+                $this->slugHistory->assertAvailable($slugs);
+            }
+
             $article = Article::query()->create([
-                ...$this->articleBody->normalizeInput($this->relations->withoutRelationKeys($attributes)),
+                ...$normalizedAttributes,
                 'published_at' => today(),
                 'modified_at' => today(),
                 'featured' => (bool) ($attributes['featured'] ?? false),

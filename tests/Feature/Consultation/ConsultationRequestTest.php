@@ -51,15 +51,32 @@ class ConsultationRequestTest extends TestCase
         $this->assertNull(session('consultation.decision_room'));
     }
 
-    public function test_query_parameters_do_not_prefill_the_consultation_form(): void
+    public function test_a_valid_service_query_parameter_prefills_only_the_consultation_service(): void
     {
         Livewire::withQueryParams([
-            'source' => 'decision-room',
             'service' => 'systems',
             'context' => 'This should not be carried into the form.',
         ])->test(ConsultationRequest::class)
-            ->assertSet('form.service', '')
-            ->assertSet('form.challenge', '');
+            ->assertSet('serviceQuery', 'systems')
+            ->assertSet('form.service', 'systems')
+            ->assertSet('form.challenge', '')
+            ->set('form.service', 'ai-adoption')
+            ->assertSet('form.service', 'ai-adoption');
+    }
+
+    public function test_an_unrecognized_service_query_parameter_is_ignored(): void
+    {
+        Livewire::withQueryParams([
+            'service' => 'unrecognized-service',
+        ])->test(ConsultationRequest::class)
+            ->assertSet('serviceQuery', '')
+            ->assertSet('form.service', '');
+
+        Livewire::withQueryParams([
+            'service' => ['systems'],
+        ])->test(ConsultationRequest::class)
+            ->assertSet('serviceQuery', '')
+            ->assertSet('form.service', '');
     }
 
     public function test_a_consultation_request_is_validated_and_queued(): void

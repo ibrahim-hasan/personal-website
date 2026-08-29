@@ -94,7 +94,11 @@ class SiteContent
 
         $biography = trim(strip_tags(is_string($stored) ? $stored : ''));
 
-        return $biography !== '' ? $biography : $fallback;
+        if ($biography === '' || CodeMomentsFounderClaim::isDirect($biography)) {
+            return $fallback;
+        }
+
+        return $biography;
     }
 
     public static function work(): array

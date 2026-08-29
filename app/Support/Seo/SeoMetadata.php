@@ -345,6 +345,10 @@ final readonly class SeoMetadata
             'image' => asset('images/ibrahim/ibrahim-formal-portrait.webp'),
             'description' => (string) Lang::get('site.entity.description', [], $locale),
             'jobTitle' => (string) Lang::get('site.entity.job_title', [], $locale),
+            'homeLocation' => [
+                '@type' => 'Country',
+                'name' => (string) Lang::get('site.entity.home_country', [], $locale),
+            ],
             'knowsAbout' => self::localizedStringList('site.entity.knows_about', $locale),
         ];
 
@@ -353,8 +357,9 @@ final readonly class SeoMetadata
         }
 
         $sameAs = collect(SiteContent::socialProfiles())
-            ->pluck('href')
-            ->filter(fn (mixed $url): bool => is_string($url) && trim($url) !== '')
+            ->map(fn (array $profile): ?string => self::verifiedIdentityProfileUrl($profile))
+            ->filter()
+            ->unique()
             ->values()
             ->all();
 
@@ -377,7 +382,7 @@ final readonly class SeoMetadata
     }
 
     /**
-     * @return list<array{'@type': string, '@id': string, name: string, url: string, founder: array{'@id': string}}>
+     * @return list<array<string, mixed>>
      */
     private static function organizationNodes(string $personId): array
     {
@@ -394,17 +399,53 @@ final readonly class SeoMetadata
                     return null;
                 }
 
-                return [
+                $organizationNode = [
                     '@type' => 'Organization',
                     '@id' => rtrim($organizationUrl, '/').'#organization',
                     'name' => (string) $company['name'],
                     'url' => rtrim($organizationUrl, '/'),
-                    'founder' => ['@id' => $personId],
                 ];
+
+                if (($company['id'] ?? null) === 'from-scratch') {
+                    $organizationNode['founder'] = ['@id' => $personId];
+                }
+
+                return $organizationNode;
             })
             ->filter()
             ->values()
             ->all();
+    }
+
+    /** @param array{platform?: mixed, href?: mixed} $profile */
+    private static function verifiedIdentityProfileUrl(array $profile): ?string
+    {
+        $platform = $profile['platform'] ?? null;
+        $url = $profile['href'] ?? null;
+
+        if (! is_string($platform) || ! is_string($url)) {
+            return null;
+        }
+
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $path = strtolower(rtrim('/'.ltrim((string) parse_url($url, PHP_URL_PATH), '/'), '/'));
+
+        if ($scheme !== 'https' || $host === '' || $path === '/') {
+            return null;
+        }
+
+        $verifiedProfiles = config("services.social.identity_profiles.{$platform}", []);
+
+        if (! is_array($verifiedProfiles)) {
+            return null;
+        }
+
+        $canonicalUrl = $verifiedProfiles[$host.$path] ?? null;
+
+        return is_string($canonicalUrl) && filter_var($canonicalUrl, FILTER_VALIDATE_URL)
+            ? $canonicalUrl
+            : null;
     }
 
     /**

@@ -45,35 +45,44 @@ class WebsitePerformanceReport extends Command
         $exitCode = $reporter->exitCode($report);
 
         if ($this->option('no-snapshot')) {
-            $report['snapshot'] = ['status' => 'skipped'];
+            $snapshot = ['status' => 'skipped'];
         } else {
             try {
-                $report['snapshot'] = [
+                $snapshot = [
                     'status' => 'written',
                     'path' => $snapshots->persist($report),
                 ];
             } catch (WebsitePerformanceSourceException $exception) {
-                $report['snapshot'] = [
+                $snapshot = [
                     'status' => 'unavailable',
                     'warning' => $exception->reason,
                 ];
                 if ($exitCode !== self::FAILURE) {
-                    $report['status'] = 'partial';
                     $exitCode = self::INVALID;
                 }
             } catch (Throwable) {
-                $report['snapshot'] = [
+                $snapshot = [
                     'status' => 'unavailable',
                     'warning' => 'snapshot_unavailable',
                 ];
                 if ($exitCode !== self::FAILURE) {
-                    $report['status'] = 'partial';
                     $exitCode = self::INVALID;
                 }
             }
         }
 
-        $this->writeJson($report);
+        try {
+            $output = $snapshots->aggregateProjection($report);
+            $output['snapshot'] = $snapshot;
+
+            if (($snapshot['status'] ?? null) === 'unavailable' && $output['status'] !== 'unavailable') {
+                $output['status'] = 'partial';
+            }
+        } catch (Throwable) {
+            return $this->outputUnavailable('report_projection_unavailable', $timezone, $endDate->toDateString());
+        }
+
+        $this->writeJson($output);
 
         return $exitCode;
     }

@@ -34,21 +34,33 @@
                         {{ __('site.home.hero_body') }}
                     </p>
 
+                    <p class="hero-enter mt-5 font-sans text-sm font-bold text-violet-700" style="--enter-delay: 460ms">
+                        {{ __('site.entity.location_label') }}
+                    </p>
+
                     <div class="hero-enter mt-9 flex flex-col gap-3 sm:flex-row" style="--enter-delay: 500ms">
                         <a
-                            href="{{ localized_route('contact') }}#consultation"
+                            href="{{ localized_route('work') }}"
                             class="button-primary"
+                            wire:navigate
                             data-magnetic
                             data-analytics-event="primary_cta_click"
                             data-analytics-ui-location="home_hero_primary"
+                            data-analytics-destination-category="project"
+                        >
+                            <span>{{ __('site.actions.see_work') }}</span>
+                            <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
+                        </a>
+                        <a
+                            href="{{ localized_route('contact') }}#consultation"
+                            class="button-quiet"
+                            wire:navigate
+                            data-analytics-event="primary_cta_click"
+                            data-analytics-ui-location="home_hero_secondary"
                             data-analytics-destination-category="consultation"
                         >
                             <span>{{ __('site.actions.free_consultation') }}</span>
                             <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" />
-                        </a>
-                        <a href="#method" class="button-quiet">
-                            <span>{{ __('site.actions.explore_method') }}</span>
-                            <x-phosphor-arrow-down class="h-4 w-4" />
                         </a>
                     </div>
 
@@ -75,6 +87,7 @@
                             aria-hidden="true"
                         >
                         <video
+                            id="homepage-hero-video"
                             class="precision-stage__video"
                             data-hero-video
                             data-viewed="{{ auth()->user()?->hero_video_seen_at !== null ? 'true' : 'false' }}"
@@ -93,6 +106,22 @@
                             poster="{{ asset('images/ibrahim/ibrahim-speaking-editorial.webp') }}"
                             aria-hidden="true"
                         ></video>
+
+                        <button
+                            type="button"
+                            class="precision-stage__playback"
+                            data-hero-video-toggle
+                            data-label-play="{{ __('site.home.video_play') }}"
+                            data-label-pause="{{ __('site.home.video_pause') }}"
+                            aria-controls="homepage-hero-video"
+                            aria-label="{{ __('site.home.video_play') }}"
+                            aria-pressed="false"
+                            hidden
+                        >
+                            <x-phosphor-play class="h-4 w-4" data-hero-video-play-icon aria-hidden="true" />
+                            <x-phosphor-pause class="h-4 w-4" data-hero-video-pause-icon aria-hidden="true" hidden />
+                            <span data-hero-video-toggle-label>{{ __('site.home.video_play') }}</span>
+                        </button>
 
                         <div class="precision-stage__finale" data-hero-video-finale aria-hidden="true" inert>
                             <span class="precision-stage__finale-mark" aria-hidden="true"></span>

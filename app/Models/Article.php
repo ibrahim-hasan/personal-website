@@ -6,6 +6,7 @@ use App\Filament\ArticleBodyMediaProvider;
 use App\Support\Editorial\ArticleBody;
 use App\Support\Media\PublicImage;
 use App\Traits\SynchronizesTranslatedSlugs;
+use Carbon\CarbonInterface;
 use Database\Factories\ArticleFactory;
 use Filament\Forms\Components\RichEditor\Models\Concerns\InteractsWithRichContent;
 use Filament\Forms\Components\RichEditor\Models\Contracts\HasRichContent;
@@ -137,7 +138,12 @@ class Article extends Model implements HasMedia, HasRichContent, LocalizedUrlRou
     {
         $query
             ->where('is_published', true)
-            ->whereDate('published_at', '<=', today());
+            ->whereDate('published_at', '<=', self::publicationToday()->toDateString());
+    }
+
+    public static function publicationToday(): CarbonInterface
+    {
+        return today((string) config('app.publication_timezone', 'Asia/Riyadh'));
     }
 
     public function getSlugOptions(): SlugOptions
@@ -170,7 +176,7 @@ class Article extends Model implements HasMedia, HasRichContent, LocalizedUrlRou
 
         return $bindingQuery
             ->where('is_published', true)
-            ->whereDate('published_at', '<=', today());
+            ->whereDate('published_at', '<=', self::publicationToday()->toDateString());
     }
 
     public function registerMediaCollections(): void
@@ -356,6 +362,12 @@ class Article extends Model implements HasMedia, HasRichContent, LocalizedUrlRou
     {
         return $this->hasMany(EditorialArticleRevisionSnapshot::class)
             ->orderByDesc('revision');
+    }
+
+    /** @return HasMany<ArticleSlugRedirect, $this> */
+    public function slugRedirects(): HasMany
+    {
+        return $this->hasMany(ArticleSlugRedirect::class);
     }
 
     /** @return list<string> */

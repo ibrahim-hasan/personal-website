@@ -48,7 +48,7 @@ class SeoDocumentsTest extends TestCase
         $future = Article::factory()->create([
             'key' => 'future-article',
             'slug' => ['ar' => 'مقال-مستقبلي', 'en' => 'future-article'],
-            'published_at' => today()->addDay(),
+            'published_at' => Article::publicationToday()->addDay(),
         ]);
         $deleted = Article::factory()->create([
             'key' => 'deleted-article',

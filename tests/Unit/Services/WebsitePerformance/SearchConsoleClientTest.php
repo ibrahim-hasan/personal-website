@@ -4,6 +4,7 @@ namespace Tests\Unit\Services\WebsitePerformance;
 
 use App\Contracts\WebsitePerformance\GoogleAccessTokenProvider;
 use App\Services\WebsitePerformance\SearchConsoleClient;
+use App\Services\WebsitePerformance\SeoTargetPageResolver;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
@@ -366,6 +367,126 @@ class SearchConsoleClientTest extends TestCase
         $this->assertSame('2026-07-12', $report['fresh_through']);
     }
 
+    public function test_it_builds_the_approved_six_non_brand_seo_target_signals_and_infers_locale_from_canonical_urls(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake(function (Request $request) {
+            if ($request->url() === $this->sitemapUrl()) {
+                return Http::response($this->sitemapXml(0), 200, ['Content-Type' => 'application/xml']);
+            }
+
+            $payload = $request->data();
+            $dimensions = $payload['dimensions'] ?? [];
+            $rangeStart = $payload['startDate'] ?? null;
+
+            if ($dimensions === ['query', 'page', 'country'] && $rangeStart === '2026-05-12') {
+                return Http::response(['rows' => [
+                    $this->searchRow(
+                        ['ai adoption roadmap for saudi companies', 'https://ibrahimhasan.net/en/writing/ai-adoption-roadmap-saudi-companies-2026', 'sau'],
+                        8,
+                        120,
+                        6.5,
+                    ),
+                    $this->searchRow(
+                        ['workflow audit what should be automated', 'https://ibrahimhasan.net/en/writing/workflow-audit-what-should-be-automated', 'usa'],
+                        5,
+                        80,
+                        14.0,
+                    ),
+                    $this->searchRow(
+                        ['ibrahim hasan ai adoption roadmap', 'https://ibrahimhasan.net/en/writing/ai-adoption-roadmap-saudi-companies-2026', 'sau'],
+                        20,
+                        200,
+                        1.0,
+                    ),
+                    $this->searchRow(
+                        ['ai adoption roadmap saudi', 'https://ibrahimhasan.net/en/about', 'sau'],
+                        2,
+                        40,
+                        18.0,
+                    ),
+                    $this->searchRow(
+                        ['how to build an ai system from scratch', 'https://ibrahimhasan.net/en/services', 'sau'],
+                        3,
+                        30,
+                        11.0,
+                    ),
+                    $this->searchRow(
+                        ['digital transformation consultant saudi', 'https://ibrahimhasan.net/en/services', 'sau'],
+                        3,
+                        50,
+                        6.0,
+                    ),
+                    $this->searchRow(
+                        ['codemoments ai adoption roadmap', 'https://ibrahimhasan.net/en/writing/ai-adoption-roadmap-saudi-companies-2026', 'sau'],
+                        5,
+                        50,
+                        2.0,
+                    ),
+                    $this->searchRow(
+                        ['ibrahimhasan.net ai adoption roadmap', 'https://ibrahimhasan.net/en/writing/ai-adoption-roadmap-saudi-companies-2026', 'sau'],
+                        6,
+                        60,
+                        2.5,
+                    ),
+                    $this->searchRow(
+                        ['fromscratch solutions ai adoption roadmap', 'https://ibrahimhasan.net/en/writing/ai-adoption-roadmap-saudi-companies-2026', 'sau'],
+                        7,
+                        70,
+                        3.0,
+                    ),
+                    $this->searchRow(
+                        [
+                            'حوكمة الذكاء الاصطناعي في السعودية',
+                            'https://ibrahimhasan.net/writing/'.rawurlencode('نموذج-تشغيلي-لحوكمة-الذكاء-الاصطناعي'),
+                            'sau',
+                        ],
+                        4,
+                        40,
+                        9.0,
+                    ),
+                ]], 200);
+            }
+
+            if ($dimensions === ['page'] && $rangeStart === '2026-05-12') {
+                return Http::response(['rows' => [
+                    $this->searchRow(['https://ibrahimhasan.net/services'], 9, 90, 7.0),
+                    $this->searchRow(['https://ibrahimhasan.net/en/services'], 12, 110, 5.0),
+                ]], 200);
+            }
+
+            return Http::response(['rows' => [$this->searchRowFor($payload)]], 200);
+        });
+
+        $report = $this->client()->collect($this->periods());
+        $groups = collect($report['context_90d']['seo_targets']['query_groups'])->keyBy('key');
+        $pages = collect($report['context_90d']['seo_targets']['target_pages'])->keyBy('key');
+
+        $this->assertTrue($report['context_90d']['seo_targets']['sample_limited']);
+        $this->assertSame('search_console_top_rows', $report['context_90d']['seo_targets']['measurement_basis']);
+        $this->assertSame(SeoTargetPageResolver::queryGroupKeys(), array_keys($groups->all()));
+        $this->assertCount(6, $groups);
+        $this->assertSame(50, $groups['saudi_ai_digital_transformation_advisory']['impressions']);
+        $this->assertSame(120, $groups['ai_adoption_roadmap']['impressions']);
+        $this->assertSame(40, $groups['ai_adoption_roadmap']['wrong_page_impressions']);
+        $this->assertSame(['ai_adoption_roadmap'], $groups['ai_adoption_roadmap']['assigned_page_keys']);
+        $this->assertSame(80, $groups['digital_transformation_workflow_automation']['impressions']);
+        $this->assertSame(40, $groups['ai_governance']['impressions']);
+        $this->assertSame(8, $pages['ai_adoption_roadmap']['clicks']);
+        $this->assertSame(120, $pages['ai_adoption_roadmap']['impressions']);
+        $this->assertSame(80, $pages['services']['impressions']);
+        $this->assertSame(280, $report['context_90d']['seo_targets']['saudi_gcc_non_brand']['impressions']);
+        $this->assertCount(4, $report['context_90d']['seo_targets']['target_pages']);
+        $this->assertSame([
+            ['locale' => 'ar', 'clicks' => 9, 'impressions' => 90, 'ctr' => 0.1, 'position' => 7.0],
+            ['locale' => 'en', 'clicks' => 12, 'impressions' => 110, 'ctr' => 0.109091, 'position' => 5.0],
+        ], $report['context_90d']['locale_performance']['rows']);
+        $this->assertStringNotContainsString(
+            'ibrahim hasan ai adoption roadmap',
+            json_encode($report['context_90d']['seo_targets'], JSON_THROW_ON_ERROR),
+        );
+    }
+
     private function client(): SearchConsoleClient
     {
         return new SearchConsoleClient(
@@ -378,6 +499,7 @@ class SearchConsoleClientTest extends TestCase
                     return 'google-access-token';
                 }
             },
+            app(SeoTargetPageResolver::class),
         );
     }
 
@@ -399,22 +521,28 @@ class SearchConsoleClientTest extends TestCase
      */
     private function searchRowFor(array $payload): array
     {
-        $dimension = $payload['dimensions'][0] ?? null;
+        $keys = array_map(
+            fn (string $dimension): string => match ($dimension) {
+                'query' => 'consultation strategy saudi',
+                'page' => 'https://ibrahimhasan.net/contact?campaign=private',
+                'country' => 'sau',
+                'device' => 'MOBILE',
+            },
+            $payload['dimensions'] ?? [],
+        );
 
-        $value = match ($dimension) {
-            'query' => 'consultation strategy saudi',
-            'page' => 'https://ibrahimhasan.net/contact?campaign=private',
-            'country' => 'sa',
-            'device' => 'MOBILE',
-            default => null,
-        };
+        return $this->searchRow($keys, 12, 80, 3.4);
+    }
 
+    /** @param  list<string>  $keys */
+    private function searchRow(array $keys, int $clicks, int $impressions, float $position): array
+    {
         return array_filter([
-            'keys' => $value === null ? null : [$value],
-            'clicks' => 12,
-            'impressions' => 80,
-            'ctr' => 0.15,
-            'position' => 3.4,
+            'keys' => $keys === [] ? null : $keys,
+            'clicks' => $clicks,
+            'impressions' => $impressions,
+            'ctr' => $impressions === 0 ? 0.0 : $clicks / $impressions,
+            'position' => $position,
         ], fn (mixed $item): bool => $item !== null);
     }
 

@@ -82,6 +82,7 @@ class WebsitePerformanceSnapshotStore
         'landing_pages',
         'events',
         'cta_funnel',
+        'organic_consultations',
         'locale',
         'page_type',
         'ui_location',
@@ -111,8 +112,7 @@ class WebsitePerformanceSnapshotStore
      */
     public function persist(array $report): string
     {
-        $this->assertAggregateOnly($report);
-        $snapshot = $this->sanitizeReport($report);
+        $snapshot = $this->aggregateProjection($report);
         $generatedAt = CarbonImmutable::parse($snapshot['generated_at']);
         $directory = $this->directory();
 
@@ -129,6 +129,19 @@ class WebsitePerformanceSnapshotStore
         $this->prune($directory, $generatedAt);
 
         return $path;
+    }
+
+    /**
+     * Return the same strict aggregate-only projection used for private snapshots.
+     *
+     * @param  array<string, mixed>  $report
+     * @return array<string, mixed>
+     */
+    public function aggregateProjection(array $report): array
+    {
+        $this->assertAggregateOnly($report);
+
+        return $this->sanitizeReport($report);
     }
 
     /**
@@ -318,6 +331,7 @@ class WebsitePerformanceSnapshotStore
                 'ga4' => $this->unavailableSourceSummary('ga4'),
                 'search_console' => $this->unavailableSourceSummary('search_console'),
             ],
+            'targets' => $this->unavailableTargetSummary(),
             'quality' => [
                 'flags' => $this->unavailableInspectionQualityFlags(),
             ],
@@ -384,6 +398,7 @@ class WebsitePerformanceSnapshotStore
             'status' => $report['status'],
             'periods' => $report['periods'],
             'sources' => $report['sources'],
+            'targets' => $report['targets'] ?? $this->unavailableTargetSummary(),
             'quality' => $report['quality'],
         ];
     }
@@ -423,6 +438,7 @@ class WebsitePerformanceSnapshotStore
                 'context_90d' => $this->periodSummary($periods['context_90d'] ?? null),
             ],
             'sources' => $sourceSummaries,
+            'targets' => $this->targetSummary($report['targets'] ?? null),
             'quality' => [
                 'flags' => [
                     ...$this->lowVolumeQualityFlags($quality['flags'] ?? null),
@@ -472,7 +488,7 @@ class WebsitePerformanceSnapshotStore
             'search_console' => $this->normalizeSanitizedSource($sources['search_console'] ?? null, 'search_console'),
         ];
 
-        return [
+        $snapshot = [
             'snapshot_schema_version' => self::SnapshotSchemaVersion,
             'schema_version' => $this->schemaVersion($report['schema_version'] ?? null),
             'generated_at' => $generatedAt,
@@ -485,6 +501,14 @@ class WebsitePerformanceSnapshotStore
                 'context_90d' => $this->periodSummary($periods['context_90d'] ?? null),
             ],
             'sources' => $sourceSummaries,
+        ];
+
+        if (array_key_exists('targets', $report)) {
+            $snapshot['targets'] = $this->targetSummary($report['targets']);
+        }
+
+        return [
+            ...$snapshot,
             'quality' => [
                 'flags' => [
                     ...$this->normalizeStoredLowVolumeQualityFlags($quality['flags'] ?? null),
@@ -534,6 +558,7 @@ class WebsitePerformanceSnapshotStore
                 'cta_clicks' => $this->countValue($window['cta_clicks'] ?? null),
                 'form_starts' => $this->countValue($window['form_starts'] ?? null),
                 'successful_submissions' => $this->countValue($window['successful_submissions'] ?? null),
+                'organic_consultation_submissions' => $this->countValue($window['organic_consultation_submissions'] ?? null),
             ],
             'search_console' => [
                 'clicks' => $this->countValue($window['clicks'] ?? null),
@@ -631,7 +656,7 @@ class WebsitePerformanceSnapshotStore
 
     /**
      * @param  array<string, mixed>  $window
-     * @return array{sessions: int|null, engaged_sessions: int|null, event_count: int|null, cta_clicks: int|null, form_starts: int|null, successful_submissions: int|null}
+     * @return array{sessions: int|null, engaged_sessions: int|null, event_count: int|null, cta_clicks: int|null, form_starts: int|null, successful_submissions: int|null, organic_consultation_submissions: int|null}
      */
     private function ga4WindowSummary(array $window): array
     {
@@ -643,7 +668,20 @@ class WebsitePerformanceSnapshotStore
             'engaged_sessions' => $this->countValue($totals['engagedSessions'] ?? null),
             'event_count' => $this->countValue($totals['eventCount'] ?? null),
             ...$events,
+            'organic_consultation_submissions' => $this->organicConsultationSubmissions($window),
         ];
+    }
+
+    /** @param  array<string, mixed>  $window */
+    private function organicConsultationSubmissions(array $window): ?int
+    {
+        $organic = is_array($window['organic_consultation_submissions'] ?? null)
+            ? $window['organic_consultation_submissions']
+            : [];
+
+        return ($organic['available'] ?? null) === true
+            ? $this->countValue($organic['total'] ?? null)
+            : null;
     }
 
     /**
@@ -703,6 +741,454 @@ class WebsitePerformanceSnapshotStore
         }
 
         return $metrics;
+    }
+
+    /** @return array<string, mixed> */
+    private function unavailableTargetSummary(): array
+    {
+        return [
+            'status' => 'unavailable',
+            'query_groups' => [
+                'available' => false,
+                'status' => 'unavailable',
+                'observed_status' => 'unavailable',
+                'sample_limited' => true,
+                'measurement_basis' => 'search_console_top_rows',
+                'eligible_count' => null,
+                'top_10_count' => null,
+                'top_10_goal' => SeoTargetScorecard::TopTenGoal,
+                'additional_top_20_count' => null,
+                'additional_top_20_goal' => SeoTargetScorecard::AdditionalTopTwentyGoal,
+                'minimum_impressions' => SeoTargetScorecard::MeaningfulQueryImpressions,
+                'wrong_page_clicks' => null,
+                'wrong_page_impressions' => null,
+                'groups' => [],
+            ],
+            'target_page_ctr' => [
+                'available' => false,
+                'status' => 'unavailable',
+                'observed_status' => 'unavailable',
+                'sample_limited' => true,
+                'measurement_basis' => 'search_console_top_rows',
+                'eligible_count' => null,
+                'meeting_count' => null,
+                'below_target_count' => null,
+                'minimum_impressions' => SeoTargetScorecard::TargetPageCtrImpressions,
+                'target_ctr' => SeoTargetScorecard::TargetPageCtr,
+                'pages' => [],
+            ],
+            'saudi_gcc_non_brand' => $this->unavailableTargetComparison(),
+            'international_english' => $this->unavailableTargetComparison(),
+            'organic_consultations' => $this->unavailableOrganicConsultations(),
+            'locale_breakdown' => $this->unavailableLocaleBreakdown(),
+            'measurement' => $this->targetMeasurement(),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function targetSummary(mixed $target): array
+    {
+        if (! is_array($target)) {
+            return $this->unavailableTargetSummary();
+        }
+
+        $queryGroups = $this->targetQueryGroupSummary($target['query_groups'] ?? null);
+        $targetPageCtr = $this->targetPageCtrSummary($target['target_page_ctr'] ?? null);
+        $saudiGcc = $this->targetComparisonSummary(
+            $target['saudi_gcc_non_brand'] ?? null,
+            'clicks',
+            'growth',
+            'not_met',
+        );
+        $internationalEnglish = $this->targetComparisonSummary(
+            $target['international_english'] ?? null,
+            'clicks',
+            'maintained',
+            'declined',
+        );
+        $organicConsultations = $this->organicConsultationSummary($target['organic_consultations'] ?? null);
+        $localeBreakdown = $this->localeBreakdownSummary($target['locale_breakdown'] ?? null);
+        $statuses = [
+            $queryGroups['status'],
+            $targetPageCtr['status'],
+            $saudiGcc['status'],
+            $internationalEnglish['status'],
+        ];
+
+        return [
+            'status' => $this->targetOverallStatus($statuses),
+            'query_groups' => $queryGroups,
+            'target_page_ctr' => $targetPageCtr,
+            'saudi_gcc_non_brand' => $saudiGcc,
+            'international_english' => $internationalEnglish,
+            'organic_consultations' => $organicConsultations,
+            'locale_breakdown' => $localeBreakdown,
+            'measurement' => $this->targetMeasurement(),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function targetQueryGroupSummary(mixed $summary): array
+    {
+        if (! is_array($summary) || ($summary['available'] ?? null) !== true) {
+            return $this->unavailableTargetSummary()['query_groups'];
+        }
+
+        $eligible = $this->countValue($summary['eligible_count'] ?? null);
+        $topTen = $this->countValue($summary['top_10_count'] ?? null);
+        $additionalTopTwenty = $this->countValue($summary['additional_top_20_count'] ?? null);
+        $wrongPageClicks = $this->countValue($summary['wrong_page_clicks'] ?? null);
+        $wrongPageImpressions = $this->countValue($summary['wrong_page_impressions'] ?? null);
+        $groups = $this->targetQueryGroupRows($summary['groups'] ?? null);
+
+        if ($eligible === null
+            || $topTen === null
+            || $additionalTopTwenty === null
+            || $wrongPageClicks === null
+            || $wrongPageImpressions === null
+            || $wrongPageClicks > $wrongPageImpressions
+            || $groups === null
+            || $topTen > $eligible
+            || $additionalTopTwenty > $eligible - min($topTen, SeoTargetScorecard::TopTenGoal)) {
+            return $this->unavailableTargetSummary()['query_groups'];
+        }
+
+        return [
+            'available' => true,
+            'status' => $eligible === 0 && $wrongPageImpressions === 0 ? 'insufficient_sample' : 'directional',
+            'observed_status' => $eligible === 0
+                ? 'insufficient_sample'
+                : ($topTen >= SeoTargetScorecard::TopTenGoal
+                    && $additionalTopTwenty >= SeoTargetScorecard::AdditionalTopTwentyGoal
+                    ? 'met'
+                    : 'not_met'),
+            'sample_limited' => true,
+            'measurement_basis' => 'search_console_top_rows',
+            'eligible_count' => $eligible,
+            'top_10_count' => $topTen,
+            'top_10_goal' => SeoTargetScorecard::TopTenGoal,
+            'additional_top_20_count' => $additionalTopTwenty,
+            'additional_top_20_goal' => SeoTargetScorecard::AdditionalTopTwentyGoal,
+            'minimum_impressions' => SeoTargetScorecard::MeaningfulQueryImpressions,
+            'wrong_page_clicks' => $wrongPageClicks,
+            'wrong_page_impressions' => $wrongPageImpressions,
+            'groups' => $groups,
+        ];
+    }
+
+    /** @return list<array<string, mixed>>|null */
+    private function targetQueryGroupRows(mixed $rows): ?array
+    {
+        if (! is_array($rows)) {
+            return null;
+        }
+
+        $normalized = [];
+        $seen = [];
+        $assignments = SeoTargetPageResolver::assignments();
+
+        foreach ($rows as $row) {
+            if (! is_array($row)
+                || ! is_string($row['key'] ?? null)
+                || ! isset($assignments[$row['key']])
+                || isset($seen[$row['key']])) {
+                return null;
+            }
+
+            $metrics = $this->targetSearchMetricSummary($row);
+            $wrongPageClicks = $this->countValue($row['wrong_page_clicks'] ?? null);
+            $wrongPageImpressions = $this->countValue($row['wrong_page_impressions'] ?? null);
+            $assignedPageKeys = $row['assigned_page_keys'] ?? null;
+            $status = $row['status'] ?? null;
+
+            if ($metrics === null
+                || $wrongPageClicks === null
+                || $wrongPageImpressions === null
+                || $wrongPageClicks > $wrongPageImpressions
+                || ! is_array($assignedPageKeys)
+                || array_values($assignedPageKeys) !== $assignments[$row['key']]
+                || ! is_string($status)
+                || ! in_array($status, ['insufficient_sample', 'top_10', 'top_20', 'outside_top_20'], true)) {
+                return null;
+            }
+
+            $seen[$row['key']] = true;
+            $normalized[] = [
+                'key' => $row['key'],
+                'status' => $status,
+                'assigned_page_keys' => $assignedPageKeys,
+                ...$metrics,
+                'wrong_page_clicks' => $wrongPageClicks,
+                'wrong_page_impressions' => $wrongPageImpressions,
+            ];
+        }
+
+        return $normalized;
+    }
+
+    /** @return array<string, mixed> */
+    private function targetPageCtrSummary(mixed $summary): array
+    {
+        if (! is_array($summary) || ($summary['available'] ?? null) !== true) {
+            return $this->unavailableTargetSummary()['target_page_ctr'];
+        }
+
+        $eligible = $this->countValue($summary['eligible_count'] ?? null);
+        $meeting = $this->countValue($summary['meeting_count'] ?? null);
+        $pages = $this->targetPageRows($summary['pages'] ?? null);
+
+        if ($eligible === null || $meeting === null || $meeting > $eligible || $pages === null) {
+            return $this->unavailableTargetSummary()['target_page_ctr'];
+        }
+
+        return [
+            'available' => true,
+            'status' => $eligible === 0 ? 'insufficient_sample' : 'directional',
+            'observed_status' => $eligible === 0 ? 'insufficient_sample' : ($meeting === $eligible ? 'met' : 'not_met'),
+            'sample_limited' => true,
+            'measurement_basis' => 'search_console_top_rows',
+            'eligible_count' => $eligible,
+            'meeting_count' => $meeting,
+            'below_target_count' => $eligible - $meeting,
+            'minimum_impressions' => SeoTargetScorecard::TargetPageCtrImpressions,
+            'target_ctr' => SeoTargetScorecard::TargetPageCtr,
+            'pages' => $pages,
+        ];
+    }
+
+    /** @return list<array<string, mixed>>|null */
+    private function targetPageRows(mixed $rows): ?array
+    {
+        if (! is_array($rows)) {
+            return null;
+        }
+
+        $normalized = [];
+        $seen = [];
+
+        foreach ($rows as $row) {
+            if (! is_array($row)
+                || ! is_string($row['key'] ?? null)
+                || ! in_array($row['key'], SeoTargetPageResolver::pageKeys(), true)
+                || isset($seen[$row['key']])) {
+                return null;
+            }
+
+            $metrics = $this->targetSearchMetricSummary($row);
+            $status = $row['status'] ?? null;
+
+            if ($metrics === null
+                || ! is_string($status)
+                || ! in_array($status, ['insufficient_sample', 'met', 'not_met'], true)) {
+                return null;
+            }
+
+            $seen[$row['key']] = true;
+            $normalized[] = [
+                'key' => $row['key'],
+                'status' => $status,
+                ...$metrics,
+            ];
+        }
+
+        return $normalized;
+    }
+
+    /** @return array<string, mixed> */
+    private function unavailableTargetComparison(): array
+    {
+        return [
+            'available' => false,
+            'status' => 'unavailable',
+            'observed_status' => 'unavailable',
+            'sample_limited' => true,
+            'measurement_basis' => 'search_console_top_rows',
+            'current' => null,
+            'previous' => null,
+            'absolute_change' => null,
+            'relative_change' => null,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function targetComparisonSummary(
+        mixed $summary,
+        string $metric,
+        string $positiveStatus,
+        string $negativeStatus,
+    ): array {
+        if (! is_array($summary) || ($summary['available'] ?? null) !== true) {
+            return $this->unavailableTargetComparison();
+        }
+
+        $current = $this->targetMetricSummary($summary['current'] ?? null);
+        $previous = $this->targetMetricSummary($summary['previous'] ?? null);
+
+        if ($current === null || $previous === null) {
+            return $this->unavailableTargetComparison();
+        }
+
+        $currentValue = $current[$metric];
+        $previousValue = $previous[$metric];
+        $absolute = $currentValue - $previousValue;
+        $direction = $previousValue === 0
+            ? 'no_baseline'
+            : ($currentValue >= $previousValue && ($positiveStatus !== 'growth' || $currentValue > $previousValue)
+                ? $positiveStatus
+                : $negativeStatus);
+
+        return [
+            'available' => true,
+            'status' => $previousValue === 0 ? 'no_baseline' : 'directional',
+            'observed_status' => $direction,
+            'sample_limited' => true,
+            'measurement_basis' => 'search_console_top_rows',
+            'current' => $current,
+            'previous' => $previous,
+            'absolute_change' => $absolute,
+            'relative_change' => $previousValue === 0 ? null : round($absolute / $previousValue, 4),
+        ];
+    }
+
+    /** @return array{clicks: int, impressions: int}|null */
+    private function targetMetricSummary(mixed $metrics): ?array
+    {
+        if (! is_array($metrics)) {
+            return null;
+        }
+
+        $clicks = $this->countValue($metrics['clicks'] ?? null);
+        $impressions = $this->countValue($metrics['impressions'] ?? null);
+
+        return $clicks === null || $impressions === null ? null : compact('clicks', 'impressions');
+    }
+
+    /** @return array{clicks: int, impressions: int, ctr: float, position: float}|null */
+    private function targetSearchMetricSummary(mixed $metrics): ?array
+    {
+        if (! is_array($metrics)) {
+            return null;
+        }
+
+        $clicks = $this->countValue($metrics['clicks'] ?? null);
+        $impressions = $this->countValue($metrics['impressions'] ?? null);
+        $ctr = $this->rateValue($metrics['ctr'] ?? null);
+        $position = $this->nonNegativeFloatValue($metrics['position'] ?? null);
+
+        if ($clicks === null || $impressions === null || $clicks > $impressions || $ctr === null || $position === null) {
+            return null;
+        }
+
+        return compact('clicks', 'impressions', 'ctr', 'position');
+    }
+
+    /** @return array<string, mixed> */
+    private function unavailableOrganicConsultations(): array
+    {
+        return [
+            'available' => false,
+            'status' => 'unavailable',
+            'current' => ['available' => false, 'total' => null],
+            'previous' => ['available' => false, 'total' => null],
+            'context_90d' => ['available' => false, 'total' => null],
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function organicConsultationSummary(mixed $summary): array
+    {
+        if (! is_array($summary)) {
+            return $this->unavailableOrganicConsultations();
+        }
+
+        $periods = [];
+        $hasAvailablePeriod = false;
+
+        foreach (['current', 'previous', 'context_90d'] as $period) {
+            $source = is_array($summary[$period] ?? null) ? $summary[$period] : [];
+            $total = $this->countValue($source['total'] ?? null);
+            $available = ($source['available'] ?? null) === true && $total !== null;
+            $hasAvailablePeriod = $hasAvailablePeriod || $available;
+            $periods[$period] = ['available' => $available, 'total' => $available ? $total : null];
+        }
+
+        return [
+            'available' => $hasAvailablePeriod,
+            'status' => $hasAvailablePeriod ? 'tracking' : 'unavailable',
+            ...$periods,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function unavailableLocaleBreakdown(): array
+    {
+        $period = ['available' => false, 'ar' => null, 'en' => null];
+
+        return [
+            'available' => false,
+            'method' => 'canonical_url',
+            'current' => $period,
+            'previous' => $period,
+            'context_90d' => $period,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function localeBreakdownSummary(mixed $summary): array
+    {
+        if (! is_array($summary) || ($summary['method'] ?? null) !== 'canonical_url') {
+            return $this->unavailableLocaleBreakdown();
+        }
+
+        $periods = [];
+        $hasAvailablePeriod = false;
+
+        foreach (['current', 'previous', 'context_90d'] as $period) {
+            $source = is_array($summary[$period] ?? null) ? $summary[$period] : [];
+            $arabic = $this->targetMetricSummary($source['ar'] ?? null);
+            $english = $this->targetMetricSummary($source['en'] ?? null);
+            $available = ($source['available'] ?? null) === true && $arabic !== null && $english !== null;
+            $hasAvailablePeriod = $hasAvailablePeriod || $available;
+            $periods[$period] = [
+                'available' => $available,
+                'ar' => $available ? $arabic : null,
+                'en' => $available ? $english : null,
+            ];
+        }
+
+        return [
+            'available' => $hasAvailablePeriod,
+            'method' => 'canonical_url',
+            ...$periods,
+        ];
+    }
+
+    /** @return array<string, int|float|string> */
+    private function targetMeasurement(): array
+    {
+        return [
+            'query_group_minimum_impressions' => SeoTargetScorecard::MeaningfulQueryImpressions,
+            'target_page_minimum_impressions' => SeoTargetScorecard::TargetPageCtrImpressions,
+            'target_page_ctr' => SeoTargetScorecard::TargetPageCtr,
+            'language_method' => 'canonical_url',
+            'organic_consultations_scope' => 'consented_ga4_organic_search',
+            'search_console_data_basis' => 'top_rows',
+            'search_console_sample_limited' => true,
+        ];
+    }
+
+    /** @param  list<string>  $statuses */
+    private function targetOverallStatus(array $statuses): string
+    {
+        if (count(array_filter($statuses, fn (string $status): bool => $status !== 'unavailable')) === 0) {
+            return 'unavailable';
+        }
+
+        if (in_array('not_met', $statuses, true) || in_array('declined', $statuses, true)) {
+            return 'needs_attention';
+        }
+
+        return $statuses === ['met', 'met', 'growth', 'maintained'] ? 'on_track' : 'partial';
     }
 
     /**
@@ -984,6 +1470,7 @@ class WebsitePerformanceSnapshotStore
                 'search_console_device_invalid',
                 'search_console_request_unavailable',
                 'search_console_rows_unavailable',
+                'search_console_seo_targets_invalid',
                 'url_inspection_sitemap_unavailable',
                 'url_inspection_request_unavailable',
                 'url_inspection_response_unavailable',
@@ -1075,6 +1562,17 @@ class WebsitePerformanceSnapshotStore
         $rate = (float) $value;
 
         return $rate >= 0 && $rate <= 1 ? $rate : null;
+    }
+
+    private function nonNegativeFloatValue(mixed $value): ?float
+    {
+        if ((! is_int($value) && ! is_float($value)) || ! is_finite((float) $value)) {
+            return null;
+        }
+
+        $number = (float) $value;
+
+        return $number >= 0 ? $number : null;
     }
 
     private function prune(string $directory, CarbonImmutable $generatedAt): void

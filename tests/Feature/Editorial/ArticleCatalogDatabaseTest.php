@@ -7,6 +7,7 @@ use App\Support\Editorial\ArticleCatalog;
 use Database\Seeders\ArticleSeeder;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class ArticleCatalogDatabaseTest extends TestCase
@@ -50,27 +51,50 @@ class ArticleCatalogDatabaseTest extends TestCase
         $this->assertNotNull($article);
         $this->assertSame(
             [
-                'الذكاء الاصطناعي',
-                'استراتيجية المنتج',
-                'البرمجيات كخدمة',
-                'الميزة التنافسية',
-                'منتجات الذكاء الاصطناعي',
-                'إدارة المعرفة',
-                'RAG',
+                'تبنّي الذكاء الاصطناعي وحوكمته',
+                'استراتيجية المنتج والقياس',
+                'البيانات وأنظمة المعرفة',
             ],
             $article->localized('ar')['topics'],
         );
         $this->assertSame(
             [
-                'Artificial intelligence',
-                'Product strategy',
-                'SaaS',
-                'Competitive advantage',
-                'AI products',
-                'Knowledge management',
-                'RAG',
+                'AI adoption & governance',
+                'Product strategy & measurement',
+                'Data & knowledge systems',
             ],
             $article->localized('en')['topics'],
+        );
+    }
+
+    public function test_related_articles_rank_shared_normalized_topic_clusters_before_newer_unrelated_articles(): void
+    {
+        $current = Article::factory()->create([
+            'key' => 'related-current-cluster',
+            'slug' => ['ar' => 'المقال-الحالي', 'en' => 'current-cluster-article'],
+            'topic_keys' => ['ai_strategy'],
+            'published_at' => Article::publicationToday()->subDays(2),
+        ]);
+        $sharedCluster = Article::factory()->create([
+            'key' => 'related-shared-cluster',
+            'slug' => ['ar' => 'مقال-الحوكمة', 'en' => 'shared-cluster-article'],
+            'topic_keys' => ['governance'],
+            'published_at' => Article::publicationToday()->subDays(4),
+        ]);
+        Article::factory()->create([
+            'key' => 'related-newer-unrelated',
+            'slug' => ['ar' => 'مقال-بيانات', 'en' => 'newer-unrelated-article'],
+            'topic_keys' => ['data'],
+            'published_at' => Article::publicationToday(),
+        ]);
+
+        $catalog = app(ArticleCatalog::class);
+        $resolvedCurrent = $catalog->findByKey($current->key);
+
+        $this->assertNotNull($resolvedCurrent);
+        $this->assertSame(
+            $sharedCluster->key,
+            $catalog->related($resolvedCurrent, limit: 2, locale: 'en', includeBody: false)[0]['key'],
         );
     }
 
@@ -79,6 +103,24 @@ class ArticleCatalogDatabaseTest extends TestCase
         Article::factory()->create(['is_published' => false]);
 
         $this->assertSame([], app(ArticleCatalog::class)->all());
+    }
+
+    public function test_scheduled_articles_follow_the_saudi_publication_date_across_a_cached_catalog(): void
+    {
+        $this->travelTo(Carbon::parse('2026-08-28 20:59:00', 'UTC'));
+        $article = Article::factory()->create([
+            'slug' => ['ar' => 'إصدار-مجدول', 'en' => 'scheduled-release'],
+            'published_at' => '2026-08-29',
+            'is_published' => true,
+        ]);
+
+        $this->get('/en/writing/'.$article->getTranslation('slug', 'en', false))
+            ->assertNotFound();
+
+        $this->travelTo(Carbon::parse('2026-08-28 21:01:00', 'UTC'));
+
+        $this->get('/en/writing/'.$article->getTranslation('slug', 'en', false))
+            ->assertOk();
     }
 
     public function test_the_idempotent_import_preserves_all_stable_catalog_keys(): void

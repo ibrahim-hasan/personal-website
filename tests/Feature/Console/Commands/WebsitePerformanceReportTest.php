@@ -6,6 +6,7 @@ use App\Services\WebsitePerformance\WebsitePerformanceReporter;
 use App\Services\WebsitePerformance\WebsitePerformanceSnapshotStore;
 use App\Services\WebsitePerformance\WebsitePerformanceSourceException;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Storage;
 use Mockery;
 use Tests\TestCase;
 
@@ -28,6 +29,7 @@ class WebsitePerformanceReportTest extends TestCase
         $reporter->shouldReceive('exitCode')->once()->with($report)->andReturn(2);
         $snapshots = Mockery::mock(WebsitePerformanceSnapshotStore::class);
         $snapshots->shouldNotReceive('persist');
+        $snapshots->shouldReceive('aggregateProjection')->once()->with($report)->andReturn($report);
         $this->app->instance(WebsitePerformanceReporter::class, $reporter);
         $this->app->instance(WebsitePerformanceSnapshotStore::class, $snapshots);
 
@@ -47,6 +49,7 @@ class WebsitePerformanceReportTest extends TestCase
             ->once()
             ->with($report)
             ->andReturn('website-performance/2026/08/09/report.json');
+        $snapshots->shouldReceive('aggregateProjection')->once()->with($report)->andReturn($report);
         $this->app->instance(WebsitePerformanceReporter::class, $reporter);
         $this->app->instance(WebsitePerformanceSnapshotStore::class, $snapshots);
 
@@ -67,6 +70,7 @@ class WebsitePerformanceReportTest extends TestCase
         $snapshots->shouldReceive('persist')
             ->once()
             ->andThrow(new WebsitePerformanceSourceException('snapshot_privacy_unavailable'));
+        $snapshots->shouldReceive('aggregateProjection')->once()->with($report)->andReturn($report);
         $this->app->instance(WebsitePerformanceReporter::class, $reporter);
         $this->app->instance(WebsitePerformanceSnapshotStore::class, $snapshots);
 
@@ -88,6 +92,7 @@ class WebsitePerformanceReportTest extends TestCase
             ->once()
             ->with($report)
             ->andReturn('website-performance/2026/08/09/unavailable.json');
+        $snapshots->shouldReceive('aggregateProjection')->once()->with($report)->andReturn($report);
         $this->app->instance(WebsitePerformanceReporter::class, $reporter);
         $this->app->instance(WebsitePerformanceSnapshotStore::class, $snapshots);
 
@@ -104,12 +109,50 @@ class WebsitePerformanceReportTest extends TestCase
         $reporter->shouldNotReceive('report');
         $snapshots = Mockery::mock(WebsitePerformanceSnapshotStore::class);
         $snapshots->shouldNotReceive('persist');
+        $snapshots->shouldNotReceive('aggregateProjection');
         $this->app->instance(WebsitePerformanceReporter::class, $reporter);
         $this->app->instance(WebsitePerformanceSnapshotStore::class, $snapshots);
 
         $this->artisan('website:performance-report', ['--days' => '0', '--no-snapshot' => true])
             ->expectsOutputToContain('"warnings":["invalid_days"]')
             ->assertFailed();
+    }
+
+    public function test_it_prints_the_aggregate_projection_without_raw_search_dimensions(): void
+    {
+        Storage::fake('local');
+        config()->set('services.website_performance.snapshot_disk', 'local');
+        config()->set('services.website_performance.snapshot_directory', 'website-performance');
+        config()->set('filesystems.disks.local.root', storage_path('app/private'));
+        $reporter = Mockery::mock(WebsitePerformanceReporter::class);
+        $report = $this->report('partial');
+        $report['sources']['search_console'] = [
+            'status' => 'ok',
+            'fresh_through' => '2026-08-09',
+            'warnings' => [],
+            'current' => [
+                'totals' => ['clicks' => 12, 'impressions' => 120],
+                'queries' => [
+                    'available' => true,
+                    'rows' => [['query' => 'private long-tail query', 'clicks' => 2, 'impressions' => 20]],
+                ],
+                'pages' => [
+                    'available' => true,
+                    'rows' => [['page' => 'https://ibrahimhasan.net/private-page', 'clicks' => 2, 'impressions' => 20]],
+                ],
+            ],
+            'previous' => ['totals' => ['clicks' => 8, 'impressions' => 100]],
+            'context_90d' => ['totals' => ['clicks' => 30, 'impressions' => 320]],
+        ];
+        $reporter->shouldReceive('report')->once()->andReturn($report);
+        $reporter->shouldReceive('exitCode')->once()->with($report)->andReturn(2);
+        $this->app->instance(WebsitePerformanceReporter::class, $reporter);
+
+        $this->artisan('website:performance-report', ['--no-snapshot' => true])
+            ->expectsOutputToContain('"meta":{"privacy":"aggregate_only"}')
+            ->doesntExpectOutputToContain('private long-tail query')
+            ->doesntExpectOutputToContain('https://ibrahimhasan.net/private-page')
+            ->assertExitCode(2);
     }
 
     /**

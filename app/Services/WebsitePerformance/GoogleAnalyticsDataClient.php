@@ -14,6 +14,8 @@ class GoogleAnalyticsDataClient extends WebsitePerformanceHttpClient
 {
     private const REPORT_PAGE_SIZE = 1000;
 
+    private const ORGANIC_SEARCH_CHANNEL = 'Organic Search';
+
     /** @var list<string> */
     private const TOTAL_METRICS = [
         'sessions',
@@ -89,11 +91,17 @@ class GoogleAnalyticsDataClient extends WebsitePerformanceHttpClient
         $previous = $this->window($responses, 'previous', $warnings);
         $context = [
             'totals' => $this->totals($responses, 'context_90d_totals', $warnings),
+            'organic_consultation_submissions' => $this->organicConsultationSubmissions(
+                $responses,
+                'context_90d_organic_consultations',
+                $warnings,
+            ),
         ];
 
         $hasData = $this->windowHasData($current)
             || $this->windowHasData($previous)
-            || $context['totals'] !== null;
+            || $context['totals'] !== null
+            || $context['organic_consultation_submissions']['available'];
         $warnings = array_values(array_unique($warnings));
         sort($warnings);
 
@@ -294,6 +302,21 @@ class GoogleAnalyticsDataClient extends WebsitePerformanceHttpClient
                     ],
                 ],
             );
+            $reports["{$period}_organic_consultations"] = $this->report(
+                $range,
+                ['eventName', 'sessionDefaultChannelGroup'],
+                ['eventCount'],
+                [
+                    'filter' => [
+                        'fieldName' => 'eventName',
+                        'stringFilter' => [
+                            'matchType' => 'EXACT',
+                            'value' => 'consultation_submit_success',
+                            'caseSensitive' => true,
+                        ],
+                    ],
+                ],
+            );
 
             foreach (['locale', 'page_type', 'ui_location'] as $dimension) {
                 $reports["{$period}_{$dimension}"] = $this->report(
@@ -305,6 +328,21 @@ class GoogleAnalyticsDataClient extends WebsitePerformanceHttpClient
         }
 
         $reports['context_90d_totals'] = $this->report($periods['context_90d'], [], self::TOTAL_METRICS);
+        $reports['context_90d_organic_consultations'] = $this->report(
+            $periods['context_90d'],
+            ['eventName', 'sessionDefaultChannelGroup'],
+            ['eventCount'],
+            [
+                'filter' => [
+                    'fieldName' => 'eventName',
+                    'stringFilter' => [
+                        'matchType' => 'EXACT',
+                        'value' => 'consultation_submit_success',
+                        'caseSensitive' => true,
+                    ],
+                ],
+            ],
+        );
 
         return $reports;
     }
@@ -369,6 +407,11 @@ class GoogleAnalyticsDataClient extends WebsitePerformanceHttpClient
                 allowedValues: self::EVENT_NAMES,
             ),
             'cta_funnel' => $this->ctaFunnel($responses, "{$period}_cta_funnel", $warnings),
+            'organic_consultation_submissions' => $this->organicConsultationSubmissions(
+                $responses,
+                "{$period}_organic_consultations",
+                $warnings,
+            ),
             'segments' => [
                 'locale' => $this->breakdown(
                     $responses,
@@ -399,7 +442,7 @@ class GoogleAnalyticsDataClient extends WebsitePerformanceHttpClient
     }
 
     /**
-     * @param  array{totals: array<string, int|float>|null, acquisition_channels: array{available: bool}, landing_pages: array{available: bool}, events: array{available: bool}, cta_funnel: array{available: bool}, segments: array<string, array{available: bool}>}  $window
+     * @param  array{totals: array<string, int|float>|null, acquisition_channels: array{available: bool}, landing_pages: array{available: bool}, events: array{available: bool}, cta_funnel: array{available: bool}, organic_consultation_submissions: array{available: bool}, segments: array<string, array{available: bool}>}  $window
      */
     private function windowHasData(array $window): bool
     {
@@ -408,15 +451,16 @@ class GoogleAnalyticsDataClient extends WebsitePerformanceHttpClient
             || $window['landing_pages']['available']
             || $window['events']['available']
             || $window['cta_funnel']['available']
+            || $window['organic_consultation_submissions']['available']
             || collect($window['segments'])->contains(
                 fn (array $segment): bool => $segment['available'],
             );
     }
 
     /**
-     * @param  array{totals: array<string, int|float>|null, acquisition_channels: array{available: bool}, landing_pages: array{available: bool}, events: array{available: bool}, cta_funnel: array{available: bool}, segments: array<string, array{available: bool}>}  $current
-     * @param  array{totals: array<string, int|float>|null, acquisition_channels: array{available: bool}, landing_pages: array{available: bool}, events: array{available: bool}, cta_funnel: array{available: bool}, segments: array<string, array{available: bool}>}  $previous
-     * @param  array{totals: array<string, int|float>|null}  $context
+     * @param  array{totals: array<string, int|float>|null, acquisition_channels: array{available: bool}, landing_pages: array{available: bool}, events: array{available: bool}, cta_funnel: array{available: bool}, organic_consultation_submissions: array{available: bool}, segments: array<string, array{available: bool}>}  $current
+     * @param  array{totals: array<string, int|float>|null, acquisition_channels: array{available: bool}, landing_pages: array{available: bool}, events: array{available: bool}, cta_funnel: array{available: bool}, organic_consultation_submissions: array{available: bool}, segments: array<string, array{available: bool}>}  $previous
+     * @param  array{totals: array<string, int|float>|null, organic_consultation_submissions: array{available: bool}}  $context
      * @param  array{current: array{start: string, end: string}, previous: array{start: string, end: string}, context_90d: array{start: string, end: string}}  $periods
      */
     private function freshThrough(array $current, array $previous, array $context, array $periods): ?string
@@ -425,7 +469,7 @@ class GoogleAnalyticsDataClient extends WebsitePerformanceHttpClient
             return $periods['current']['end'];
         }
 
-        if ($context['totals'] !== null) {
+        if ($context['totals'] !== null || $context['organic_consultation_submissions']['available']) {
             return $periods['context_90d']['end'];
         }
 
@@ -483,6 +527,83 @@ class GoogleAnalyticsDataClient extends WebsitePerformanceHttpClient
         }
 
         return ['available' => true, 'rows' => $mapped];
+    }
+
+    /**
+     * @param  array<string, Response|Throwable|array<string, mixed>>  $responses
+     * @param  list<string>  $warnings
+     * @return array{available: bool, total: int|null}
+     */
+    private function organicConsultationSubmissions(array $responses, string $key, array &$warnings): array
+    {
+        if ($this->isSuccessfulEmptyReport($responses, $key)) {
+            return ['available' => true, 'total' => 0];
+        }
+
+        $rows = $this->rows($responses, $key, $warnings);
+
+        if ($rows === null) {
+            return ['available' => false, 'total' => null];
+        }
+
+        $total = 0;
+
+        foreach ($rows as $row) {
+            $eventName = $this->label($row['dimensionValues'][0]['value'] ?? null);
+            $channel = $this->label($row['dimensionValues'][1]['value'] ?? null);
+
+            if ($eventName !== 'consultation_submit_success' || $channel !== self::ORGANIC_SEARCH_CHANNEL) {
+                continue;
+            }
+
+            $metrics = $this->metrics($row, ['eventCount']);
+
+            if ($metrics === null) {
+                $warnings[] = "ga4_{$key}_invalid";
+
+                return ['available' => false, 'total' => null];
+            }
+
+            $total += (int) $metrics['eventCount'];
+        }
+
+        return ['available' => true, 'total' => $total];
+    }
+
+    /**
+     * @param  array<string, Response|Throwable|array<string, mixed>>  $responses
+     */
+    private function isSuccessfulEmptyReport(array $responses, string $key): bool
+    {
+        $response = $responses[$key] ?? null;
+
+        if ($response instanceof Response) {
+            if (! $response->successful()) {
+                return false;
+            }
+
+            $payload = $response->json();
+        } elseif (is_array($response)) {
+            $payload = $response;
+        } else {
+            return false;
+        }
+
+        if (! is_array($payload)) {
+            return false;
+        }
+
+        $hasRows = array_key_exists('rows', $payload);
+
+        if ($hasRows && $payload['rows'] !== []) {
+            return false;
+        }
+
+        if (array_key_exists('rowCount', $payload)) {
+            return $this->rowCount($payload) === 0;
+        }
+
+        return $hasRows;
     }
 
     /**

@@ -123,8 +123,9 @@ class SanitizeWebsitePerformanceSnapshotsTest extends TestCase
             $this->assertStringNotContainsString($unsafeValue, $sanitizedContents);
         }
 
-        $this->assertStringNotContainsString('"queries"', $sanitizedContents);
-        $this->assertStringNotContainsString('"pages"', $sanitizedContents);
+        $this->assertArrayNotHasKey('queries', $sanitized['sources']['search_console']['current']);
+        $this->assertArrayNotHasKey('pages', $sanitized['sources']['search_console']['current']);
+        $this->assertSame([], $sanitized['targets']['target_page_ctr']['pages']);
         $this->assertStringNotContainsString('"url_inspection"', $sanitizedContents);
         $this->assertSame($credentialContents, Storage::disk('local')->get($credentialPath));
         $this->assertSame($safeContents, Storage::disk('local')->get($safePath));

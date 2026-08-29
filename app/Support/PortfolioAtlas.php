@@ -115,46 +115,12 @@ final class PortfolioAtlas
     {
         $companies = [
             [
-                'id' => 'from-scratch',
-                'role' => ['ar' => 'تأسيس', 'en' => 'Founding'],
-                'name' => ['ar' => 'فروم سكراتش', 'en' => 'From Scratch'],
-                'relationship' => [
-                    'ar' => 'الشريك المؤسس والرئيس التنفيذي',
-                    'en' => 'Co-founder & Chief Executive Officer',
-                ],
-                'tagline' => [
-                    'ar' => 'أبني الشركة، لا المنتج فقط.',
-                    'en' => 'I build the company, not just the product.',
-                ],
-                'summary' => [
-                    'ar' => 'بصفتي شريكاً مؤسساً، أقود نمو فروم سكراتش وتسليم منتجات رقمية عبر قطاعات متعددة. دوري يتجاوز إدارة المشاريع إلى بناء الفريق ونظام التشغيل ومعايير الجودة التي تحوّل الخبرة المتراكمة إلى قدرة يمكن الاعتماد عليها وتوسيعها.',
-                    'en' => 'As co-founder, I lead From Scratch’s growth and the delivery of digital products across multiple sectors. My role goes beyond running projects to building the team, the operating model, and the quality standards that turn accumulated experience into a dependable, scalable capability.',
-                ],
-                'logo_on_light' => 'images/brands/companies/from-scratch-on-light.svg',
-                'logo_on_dark' => 'images/brands/companies/from-scratch-on-dark.svg',
-                'logo_alt' => ['ar' => 'شعار فروم سكراتش', 'en' => 'From Scratch logo'],
-                'logo_on_light_width' => 259,
-                'logo_on_light_height' => 140,
-                'logo_on_dark_width' => 136,
-                'logo_on_dark_height' => 74,
-                'focus' => [
-                    ['ar' => 'بناء نموذج تشغيل يدعم النمو', 'en' => 'An operating model built to support growth'],
-                    ['ar' => 'تسليم منتجات عبر قطاعات متعددة', 'en' => 'Products delivered across multiple sectors'],
-                    ['ar' => 'تحويل الخبرة إلى أنظمة قابلة للتوسّع', 'en' => 'Experience turned into scalable systems'],
-                ],
-                'action' => [
-                    'label' => ['ar' => 'تعرّف على فروم سكراتش', 'en' => 'Discover From Scratch'],
-                    'url' => 'https://fromscratch-solutions.com',
-                    'external' => true,
-                ],
-            ],
-            [
                 'id' => 'code-moments',
                 'role' => ['ar' => 'قيادة', 'en' => 'Leadership'],
                 'name' => ['ar' => 'كود مومنتس', 'en' => 'Code Moments'],
                 'relationship' => [
-                    'ar' => 'المؤسس والرئيس التنفيذي',
-                    'en' => 'Founder & Chief Executive Officer',
+                    'ar' => 'الرئيس التنفيذي',
+                    'en' => 'CEO',
                 ],
                 'tagline' => [
                     'ar' => 'أحوّل الاستراتيجية إلى منتج يعمل.',
@@ -179,6 +145,40 @@ final class PortfolioAtlas
                 'action' => [
                     'label' => ['ar' => 'تعرّف على كود مومنتس', 'en' => 'Discover Code Moments'],
                     'url' => 'https://codemoments.com',
+                    'external' => true,
+                ],
+            ],
+            [
+                'id' => 'from-scratch',
+                'role' => ['ar' => 'تأسيس', 'en' => 'Founding'],
+                'name' => ['ar' => 'فروم سكراتش', 'en' => 'From Scratch'],
+                'relationship' => [
+                    'ar' => 'الشريك المؤسس والرئيس التنفيذي',
+                    'en' => 'Co-founder & CEO',
+                ],
+                'tagline' => [
+                    'ar' => 'أبني الشركة، لا المنتج فقط.',
+                    'en' => 'I build the company, not just the product.',
+                ],
+                'summary' => [
+                    'ar' => 'بصفتي شريكاً مؤسساً، أقود نمو فروم سكراتش وتسليم منتجات رقمية عبر قطاعات متعددة. دوري يتجاوز إدارة المشاريع إلى بناء الفريق ونظام التشغيل ومعايير الجودة التي تحوّل الخبرة المتراكمة إلى قدرة يمكن الاعتماد عليها وتوسيعها.',
+                    'en' => 'As co-founder, I lead From Scratch’s growth and the delivery of digital products across multiple sectors. My role goes beyond running projects to building the team, the operating model, and the quality standards that turn accumulated experience into a dependable, scalable capability.',
+                ],
+                'logo_on_light' => 'images/brands/companies/from-scratch-on-light.svg',
+                'logo_on_dark' => 'images/brands/companies/from-scratch-on-dark.svg',
+                'logo_alt' => ['ar' => 'شعار فروم سكراتش', 'en' => 'From Scratch logo'],
+                'logo_on_light_width' => 259,
+                'logo_on_light_height' => 140,
+                'logo_on_dark_width' => 136,
+                'logo_on_dark_height' => 74,
+                'focus' => [
+                    ['ar' => 'بناء نموذج تشغيل يدعم النمو', 'en' => 'An operating model built to support growth'],
+                    ['ar' => 'تسليم منتجات عبر قطاعات متعددة', 'en' => 'Products delivered across multiple sectors'],
+                    ['ar' => 'تحويل الخبرة إلى أنظمة قابلة للتوسّع', 'en' => 'Experience turned into scalable systems'],
+                ],
+                'action' => [
+                    'label' => ['ar' => 'تعرّف على فروم سكراتش', 'en' => 'Discover From Scratch'],
+                    'url' => 'https://fromscratch-solutions.com',
                     'external' => true,
                 ],
             ],

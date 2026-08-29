@@ -9,6 +9,7 @@
             <div>
                 <p class="signal-label">{{ __('site.about.eyebrow') }}</p>
                 <h1 class="display-page mt-7 max-w-[13ch]">{{ __('site.about.heading') }}</h1>
+                <p class="mt-5 font-sans text-sm font-bold text-violet-700">{{ __('site.entity.location_label') }}</p>
                 <p class="copy-lead mt-8 max-w-[64ch]">{{ $biography }}</p>
             </div>
             <figure class="about-intro__portrait" data-reveal="media" data-depth="media">

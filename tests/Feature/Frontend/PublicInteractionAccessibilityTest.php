@@ -29,6 +29,9 @@ class PublicInteractionAccessibilityTest extends TestCase
             ->assertSee('class="precision-stage hero-enter"', false)
             ->assertDontSee('precision-stage__note', false)
             ->assertSee('data-hero-video', false)
+            ->assertSee('data-hero-video-toggle', false)
+            ->assertSee('aria-controls="homepage-hero-video"', false)
+            ->assertSee('Play video', false)
             ->assertSee('data-hero-video-finale', false)
             ->assertSee('data-hero-video-replay', false)
             ->assertSee('class="precision-stage__poster"', false)
@@ -113,6 +116,7 @@ class PublicInteractionAccessibilityTest extends TestCase
         $home = $this->readProjectFile('resources/views/website/home.blade.php');
         $library = $this->readProjectFile('resources/views/website/reader-library.blade.php');
 
+        $this->assertDoesNotMatchRegularExpression('/<video\b(?:(?!>).)*\ssrc\s*=/s', $home);
         $this->assertStringContainsString('href="{{ $audioArticle[\'url\'] }}" wire:navigate', $home);
         $this->assertStringContainsString('href="{{ $article[\'url\'] }}" wire:navigate class="writing-row', $home);
         $this->assertStringContainsString('href="{{ $article[\'url\'] }}" wire:navigate class="grid', $library);
@@ -133,6 +137,7 @@ class PublicInteractionAccessibilityTest extends TestCase
         $this->get('/en')
             ->assertOk()
             ->assertSee('data-analytics-ui-location="home_hero_primary"', false)
+            ->assertSee('data-analytics-ui-location="home_hero_secondary"', false)
             ->assertSee('data-analytics-ui-location="home_hero_finale"', false)
             ->assertSee('data-analytics-ui-location="navigation"', false)
             ->assertSee('data-analytics-ui-location="mobile_menu"', false)
@@ -183,6 +188,7 @@ class PublicInteractionAccessibilityTest extends TestCase
     {
         $css = $this->readProjectFile('resources/css/app.css');
         $javascript = $this->readProjectFile('resources/js/app.js');
+        $heroVideo = $this->readProjectFile('resources/js/hero-video.js');
 
         $this->assertMatchesRegularExpression('/\.writing-section\s*\{[^}]*background:\s*#ded3ea;/s', $css);
         $this->assertMatchesRegularExpression(
@@ -335,6 +341,10 @@ class PublicInteractionAccessibilityTest extends TestCase
             $css,
         );
         $this->assertMatchesRegularExpression(
+            '/\.precision-stage__playback\s*\{[^}]*min-height:\s*2\.75rem;[^}]*display:\s*inline-flex;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
             '/@media \(min-width: 64rem\)\s*\{.*?\.precision-stage\s*\{[^}]*width:\s*min\(100%, 24rem\);/s',
             $css,
         );
@@ -347,33 +357,33 @@ class PublicInteractionAccessibilityTest extends TestCase
             $css,
         );
         $this->assertStringNotContainsString('precision-stage__orbit', $css);
-        $this->assertStringContainsString('connection?.saveData === true', $javascript);
-        $this->assertStringContainsString("['slow-2g', '2g', '3g']", $javascript);
-        $this->assertStringContainsString('shouldUseHighQualityVideo', $javascript);
-        $this->assertStringContainsString('video.dataset.webmSrcHigh', $javascript);
-        $this->assertStringContainsString('video.dataset.webmSrcCompact', $javascript);
+        $this->assertStringContainsString('connection?.saveData === true', $heroVideo);
+        $this->assertStringContainsString("['slow-2g', '2g', '3g']", $heroVideo);
+        $this->assertStringContainsString('shouldUseHighQualityVideo', $heroVideo);
+        $this->assertStringContainsString('video.dataset.webmSrcHigh', $heroVideo);
+        $this->assertStringContainsString('video.dataset.webmSrcCompact', $heroVideo);
         $this->assertStringContainsString("document.documentElement.classList.contains('cookie-consent-visible')", $javascript);
         $this->assertStringContainsString("window.addEventListener('cookie-consent-visibility-changed'", $javascript);
-        $this->assertStringContainsString("document.querySelectorAll('[data-hero-video]')", $javascript);
-        $this->assertStringContainsString("window.sessionStorage.setItem(guestSeenKey, 'true')", $javascript);
-        $this->assertStringContainsString("stage?.classList.add('is-playing')", $javascript);
-        $this->assertStringContainsString("stage.classList.remove('is-playing')", $javascript);
-        $this->assertStringContainsString('video.dataset.viewedUrl', $javascript);
-        $this->assertStringContainsString("method: 'POST'", $javascript);
-        $this->assertStringContainsString('playVideo().catch(() => {})', $javascript);
-        $this->assertStringContainsString('video.canPlayType', $javascript);
-        $this->assertStringContainsString('video.load()', $javascript);
+        $this->assertStringContainsString("documentObject.querySelectorAll('[data-hero-video]')", $heroVideo);
+        $this->assertStringContainsString("windowObject.sessionStorage.setItem(guestSeenKey, 'true')", $heroVideo);
+        $this->assertStringContainsString("stage?.classList.add('is-playing')", $heroVideo);
+        $this->assertStringContainsString("stage.classList.remove('is-playing')", $heroVideo);
+        $this->assertStringContainsString('video.dataset.viewedUrl', $heroVideo);
+        $this->assertStringContainsString("method: 'POST'", $heroVideo);
+        $this->assertStringContainsString('await playVideo()', $heroVideo);
+        $this->assertStringContainsString('video.canPlayType', $heroVideo);
+        $this->assertStringContainsString('video.load()', $heroVideo);
         $this->assertStringContainsString("await import('alpinejs')", $javascript);
         $this->assertStringContainsString("document.documentElement.dataset.usesLivewire === 'true'", $javascript);
-        $this->assertStringContainsString('autoplayDelay = window.setTimeout', $javascript);
-        $this->assertStringContainsString('window.requestIdleCallback(allowAutoplay', $javascript);
-        $this->assertStringContainsString("video.addEventListener('ended', () =>", $javascript);
-        $this->assertStringContainsString("stage?.classList.add('is-complete')", $javascript);
-        $this->assertStringContainsString("finale?.removeAttribute('inert')", $javascript);
-        $this->assertStringContainsString('video.loop = false', $javascript);
-        $this->assertStringNotContainsString('data-hero-video-toggle', $javascript);
-        $this->assertStringNotContainsString('let userPaused = false', $javascript);
-        $this->assertStringContainsString('visibilityObserver.disconnect()', $javascript);
+        $this->assertStringNotContainsString('autoplayDelay', $heroVideo);
+        $this->assertStringNotContainsString('requestIdleCallback', $heroVideo);
+        $this->assertStringNotContainsString('IntersectionObserver', $heroVideo);
+        $this->assertStringContainsString("video.addEventListener('ended', () =>", $heroVideo);
+        $this->assertStringContainsString("stage?.classList.add('is-complete')", $heroVideo);
+        $this->assertStringContainsString("finale?.removeAttribute('inert')", $heroVideo);
+        $this->assertStringContainsString('video.loop = false', $heroVideo);
+        $this->assertStringContainsString("playback?.addEventListener('click'", $heroVideo);
+        $this->assertStringNotContainsString('let userPaused = false', $heroVideo);
         $this->assertStringContainsString("document.querySelector('[data-site-audio-player]')", $javascript);
         $this->assertStringContainsString('let isPlayerOpen = false', $this->readProjectFile('resources/js/article-reader.js'));
         $this->assertStringContainsString('setPlayerVisibility(isPlayerOpen)', $this->readProjectFile('resources/js/article-reader.js'));
@@ -467,6 +477,34 @@ class PublicInteractionAccessibilityTest extends TestCase
 
         $this->assertSame(2, substr_count($navbar, 'data-no-navigate'));
         $this->assertDoesNotMatchRegularExpression('/localized_current_url\([^)]*\)[^>]*wire:navigate/', $navbar);
+    }
+
+    public function test_service_and_article_relationship_arrows_remain_directional_in_rtl(): void
+    {
+        $services = $this->readProjectFile('resources/views/website/services.blade.php');
+        $article = $this->readProjectFile('resources/views/website/article.blade.php');
+        $css = $this->readProjectFile('resources/css/app.css');
+
+        $this->assertSame(
+            2,
+            substr_count($services, '<x-phosphor-arrow-up-right class="rtl:-rotate-90" aria-hidden="true" />'),
+        );
+        $this->assertSame(
+            2,
+            substr_count($article, '<x-phosphor-arrow-up-right class="rtl:-rotate-90" aria-hidden="true" />'),
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.article-application__links > a > svg\s*\{[^}]*transition:\s*translate 180ms ease;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.service-hub__resource-group a:hover > svg,\s*\.article-application__links > a:hover > svg\s*\{[^}]*translate:\s*0\.2rem -0\.2rem;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            "/html\\[dir='rtl'\\] \\.service-hub__resource-group a:hover > svg,\\s*html\\[dir='rtl'\\] \\.article-application__links > a:hover > svg\\s*\\{[^}]*translate:\\s*-0\\.2rem -0\\.2rem;/s",
+            $css,
+        );
     }
 
     public function test_narrow_navigation_has_an_ordinary_noscript_fallback(): void

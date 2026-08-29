@@ -5,10 +5,15 @@ namespace Tests\Feature\Editorial;
 use App\Models\Article as ArticleRecord;
 use App\Models\ArticleAudio;
 use App\Models\ArticleNarration;
+use App\Models\Project;
+use App\Models\Service;
 use App\Services\ArticleAudio\ArticleAudioScript;
 use App\Services\ArticleAudio\ArticleNarrationScript;
 use App\Support\Editorial\ArticleCatalog;
 use Database\Seeders\ArticleSeeder;
+use Database\Seeders\ProjectSeeder;
+use Database\Seeders\SeoServiceRelationshipSeeder;
+use Database\Seeders\ServiceSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -73,6 +78,38 @@ class ArticlePagesTest extends TestCase
             ->assertSee($article->localized('en')['title'], false)
             ->assertSee('hreflang="ar" href="'.$arabicUrl.'"', false)
             ->assertSee('data-article-lang="en"', false);
+    }
+
+    public function test_article_pages_render_public_service_and_project_context_as_crawlable_links(): void
+    {
+        $this->seed([
+            ServiceSeeder::class,
+            ProjectSeeder::class,
+            SeoServiceRelationshipSeeder::class,
+        ]);
+        $catalog = app(ArticleCatalog::class);
+        $article = $catalog->findByKey('first-ai-use-case');
+
+        $this->assertNotNull($article);
+
+        $response = $this->get(parse_url($catalog->url($article, 'en'), PHP_URL_PATH));
+
+        $response
+            ->assertOk()
+            ->assertSee('class="article-application"', false)
+            ->assertSee(localized_route('services', locale: 'en').'#service-ai-adoption', false)
+            ->assertSee(localized_route('work', locale: 'en').'#project-digi-pedia', false)
+            ->assertSee(localized_route('work', locale: 'en').'#project-maazim', false)
+            ->assertSee('Related application and evidence', false);
+
+        Service::query()->where('key', 'ai-adoption')->update(['is_draft' => true]);
+        Project::query()->where('key', 'digi-pedia')->update(['is_active' => false]);
+
+        $this->get(parse_url($catalog->url($article, 'en'), PHP_URL_PATH))
+            ->assertOk()
+            ->assertDontSee('#service-ai-adoption', false)
+            ->assertDontSee('#project-digi-pedia', false)
+            ->assertSee('#project-maazim', false);
     }
 
     public function test_article_sharing_uses_the_localized_canonical_url_and_safe_intents(): void

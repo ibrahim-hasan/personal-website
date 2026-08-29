@@ -38,11 +38,11 @@ class WebsitePagesTest extends TestCase
     public function test_public_pages_render_the_ibrahim_site(): void
     {
         $pages = [
-            '/' => ['إبراهيم حسن', 'إلى أثرٍ يُقاس', 'الخدمات', 'أربعة مجالات للعمل. منهج واحد لا يفصل العمل عن التقنية.'],
+            '/' => ['إبراهيم حسن', 'قائد تقني في السعودية', 'مقيم في المملكة العربية السعودية', 'إلى أثرٍ يُقاس', 'الخدمات', 'أربعة مجالات للعمل. منهج واحد لا يفصل العمل عن التقنية.'],
             '/services' => ['الخدمات', 'التحول الرقمي والذكاء الاصطناعي والبيانات، من المشكلة إلى نظام يعمل.', 'استراتيجية التحول الرقمي'],
             '/work' => ['أعمال مختارة', 'ما الذي تغيّر، ولماذا؟', 'حالات مختارة عبر قطاعات مختلفة. في كل حالة: السياق التشغيلي، والتحدي، وما تغيّر، والأثر العملي.', 'الموسوعة الرقمية'],
             '/writing' => ['التقنية بلغة الأعمال', 'من تجربة الذكاء الاصطناعي إلى قيمة يمكن إثباتها'],
-            '/about' => ['إبراهيم حسن يبني أنظمة رقمية يُعتمد عليها.', 'كيف بدأ المسار.', 'بدأتُ في هندسة الميكاترونيكس', 'مشروع تخرجي طائرة رباعية من دون طيار', 'ما أعمل عليه اليوم.', 'كود مومنتس'],
+            '/about' => ['إبراهيم حسن يبني أنظمة رقمية يُعتمد عليها.', 'مقيم في المملكة العربية السعودية', 'كيف بدأ المسار.', 'بدأتُ في هندسة الميكاترونيكس', 'مشروع تخرجي طائرة رباعية من دون طيار', 'ما أعمل عليه اليوم.', 'كود مومنتس'],
             '/contact' => ['أخبرني بالمشكلة التي تريد حلّها', 'أرسل طلب الاستشارة'],
         ];
 
@@ -130,8 +130,9 @@ class WebsitePagesTest extends TestCase
             ->assertSee('preload="none"', false)
             ->assertSee('data-hero-video-finale', false)
             ->assertSee('data-hero-video-replay', false)
-            ->assertDontSee('data-hero-video-toggle', false)
-            ->assertDontSee('شغّل الفيديو', false)
+            ->assertSee('data-hero-video-toggle', false)
+            ->assertSee('aria-controls="homepage-hero-video"', false)
+            ->assertSee('شغّل الفيديو', false)
             ->assertSee('ابدأ من المشكلة', false)
             ->assertDontSee('precision-stage__note', false)
             ->assertDontSee('heroStage(', false)
@@ -142,6 +143,9 @@ class WebsitePagesTest extends TestCase
             ->assertDontSee('مواقف تتكرر في العمل', false)
             ->assertSee('كود مومنتس', false)
             ->assertSee('فروم سكراتش', false)
+            ->assertSeeInOrder(['كود مومنتس', 'فروم سكراتش'], false)
+            ->assertSee('<p>الرئيس التنفيذي</p>', false)
+            ->assertDontSee('<p>المؤسس والرئيس التنفيذي</p>', false)
             ->assertSee('atlas-constellation', false)
             ->assertSee('atlas-chapter__brand--code-moments', false)
             ->assertSee('images/brands/companies/code-moments-on-light.svg', false)
@@ -175,6 +179,9 @@ class WebsitePagesTest extends TestCase
             ->assertSee('Where I work today.', false)
             ->assertSee('Code Moments', false)
             ->assertSee('From Scratch', false)
+            ->assertSeeInOrder(['Code Moments', 'From Scratch'], false)
+            ->assertSee('CEO', false)
+            ->assertDontSee('Founder & Chief Executive Officer', false)
             ->assertSee('Independent strategic practice', false)
             ->assertDontSee('The method shows up in the real work.', false)
             ->assertDontSee('Four lenses for one integrated decision.', false)
@@ -288,11 +295,11 @@ class WebsitePagesTest extends TestCase
     public function test_english_pages_render_under_english_locale_prefix(): void
     {
         $pages = [
-            '/en' => ['Ibrahim Hasan', 'to impact you can measure'],
+            '/en' => ['Ibrahim Hasan', 'Technology Executive in Saudi Arabia', 'Based in Saudi Arabia', 'to impact you can measure'],
             '/en/services' => ['Digital transformation, AI, and data—from the problem to a system that works.', 'Digital Transformation Strategy'],
             '/en/work' => ['Selected work', 'What changed—and why.', 'Selected cases across distinct sectors. Each sets out the operating context, challenge, what changed, and practical impact.', 'Digi Pedia'],
             '/en/writing' => ['Technology in the language of business', 'From AI Experiment to Measurable Business Value'],
-            '/en/about' => ['Ibrahim Hasan builds dependable digital systems.', 'Code Moments'],
+            '/en/about' => ['Ibrahim Hasan builds dependable digital systems.', 'Based in Saudi Arabia', 'Code Moments'],
             '/en/contact' => ['Tell me the problem you want to solve', 'Send consultation request'],
         ];
 

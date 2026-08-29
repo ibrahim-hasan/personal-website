@@ -178,6 +178,29 @@
                         </a>
                     </p>
                 @endif
+
+                @if ($articleContext['services'] !== [] || $articleContext['projects'] !== [])
+                    <aside class="article-application" aria-labelledby="article-application-title">
+                        <p class="signal-label">{{ __('articles.reader.application_eyebrow') }}</p>
+                        <h2 id="article-application-title">{{ __('articles.reader.application_title') }}</h2>
+                        <div class="article-application__links">
+                            @foreach ($articleContext['services'] as $service)
+                                <a href="{{ $service['url'] }}">
+                                    <span>{{ __('articles.reader.related_service') }}</span>
+                                    <strong>{{ $service['name'] }}</strong>
+                                    <x-phosphor-arrow-up-right class="rtl:-rotate-90" aria-hidden="true" />
+                                </a>
+                            @endforeach
+                            @foreach ($articleContext['projects'] as $project)
+                                <a href="{{ $project['url'] }}">
+                                    <span>{{ __('articles.reader.related_work') }}</span>
+                                    <strong>{{ $project['title'] }}</strong>
+                                    <x-phosphor-arrow-up-right class="rtl:-rotate-90" aria-hidden="true" />
+                                </a>
+                            @endforeach
+                        </div>
+                    </aside>
+                @endif
             </div>
         </div>
     </article>

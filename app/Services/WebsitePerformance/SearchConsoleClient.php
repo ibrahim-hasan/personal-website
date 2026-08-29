@@ -19,10 +19,14 @@ class SearchConsoleClient extends WebsitePerformanceHttpClient
 
     private const URL_INSPECTION_URL = 'https://searchconsole.googleapis.com/v1/urlInspection/index:inspect';
 
+    /** @var list<string> */
+    private const GCC_COUNTRIES = ['SAU', 'ARE', 'BHR', 'KWT', 'OMN', 'QAT'];
+
     public function __construct(
         Factory $http,
         Repository $config,
         private readonly GoogleAccessTokenProvider $tokens,
+        private readonly SeoTargetPageResolver $targetPages,
     ) {
         parent::__construct($http, $config);
     }
@@ -43,14 +47,19 @@ class SearchConsoleClient extends WebsitePerformanceHttpClient
         $warnings = [];
         $current = $this->window($accessToken, $property, $periods['current'], $warnings);
         $previous = $this->window($accessToken, $property, $periods['previous'], $warnings);
+        $contextPages = $this->breakdown($accessToken, $property, $periods['context_90d'], 'page', $warnings);
         $context = [
             'totals' => $this->totals($accessToken, $property, $periods['context_90d'], $warnings),
+            'locale_performance' => $this->localePerformance($contextPages),
+            'seo_targets' => $this->seoTargetSignals($accessToken, $property, $periods['context_90d'], $warnings),
         ];
         $inspection = $this->inspectSitemapUrls($accessToken, $property, $warnings);
 
         $hasData = $this->windowHasData($current)
             || $this->windowHasData($previous)
             || $context['totals'] !== null
+            || $context['locale_performance']['available']
+            || $context['seo_targets']['available']
             || $inspection['available'];
         $warnings = array_values(array_unique($warnings));
         sort($warnings);
@@ -74,12 +83,16 @@ class SearchConsoleClient extends WebsitePerformanceHttpClient
      */
     private function window(string $accessToken, string $property, array $range, array &$warnings): array
     {
+        $pages = $this->breakdown($accessToken, $property, $range, 'page', $warnings);
+
         return [
             'totals' => $this->totals($accessToken, $property, $range, $warnings),
             'queries' => $this->breakdown($accessToken, $property, $range, 'query', $warnings),
-            'pages' => $this->breakdown($accessToken, $property, $range, 'page', $warnings),
+            'pages' => $pages,
             'countries' => $this->breakdown($accessToken, $property, $range, 'country', $warnings),
             'devices' => $this->breakdown($accessToken, $property, $range, 'device', $warnings),
+            'locale_performance' => $this->localePerformance($pages),
+            'seo_targets' => $this->seoTargetSignals($accessToken, $property, $range, $warnings),
         ];
     }
 
@@ -92,13 +105,15 @@ class SearchConsoleClient extends WebsitePerformanceHttpClient
             || $window['queries']['available']
             || $window['pages']['available']
             || $window['countries']['available']
-            || $window['devices']['available'];
+            || $window['devices']['available']
+            || ($window['locale_performance']['available'] ?? false)
+            || ($window['seo_targets']['available'] ?? false);
     }
 
     /**
      * @param  array{totals: array{clicks: int, impressions: int, ctr: float, position: float}|null, queries: array{available: bool}, pages: array{available: bool}, countries: array{available: bool}, devices: array{available: bool}}  $current
      * @param  array{totals: array{clicks: int, impressions: int, ctr: float, position: float}|null, queries: array{available: bool}, pages: array{available: bool}, countries: array{available: bool}, devices: array{available: bool}}  $previous
-     * @param  array{totals: array{clicks: int, impressions: int, ctr: float, position: float}|null}  $context
+     * @param  array{totals: array{clicks: int, impressions: int, ctr: float, position: float}|null, locale_performance?: array{available: bool}, seo_targets?: array{available: bool}}  $context
      * @param  array{current: array{start: string, end: string}, previous: array{start: string, end: string}, context_90d: array{start: string, end: string}}  $periods
      */
     private function freshThrough(array $current, array $previous, array $context, array $periods): ?string
@@ -107,7 +122,9 @@ class SearchConsoleClient extends WebsitePerformanceHttpClient
             return $periods['current']['end'];
         }
 
-        if ($context['totals'] !== null) {
+        if ($context['totals'] !== null
+            || ($context['locale_performance']['available'] ?? false)
+            || ($context['seo_targets']['available'] ?? false)) {
             return $periods['context_90d']['end'];
         }
 
@@ -186,6 +203,179 @@ class SearchConsoleClient extends WebsitePerformanceHttpClient
         }
 
         return ['available' => true, 'rows' => $mapped];
+    }
+
+    /**
+     * Search Console does not expose a language dimension. This breakdown infers
+     * locale from the canonical URL convention: Arabic has no prefix and English
+     * uses the /en prefix.
+     *
+     * @param  array{available: bool, rows: list<array{page?: string, clicks: int, impressions: int, ctr: float, position: float}>}  $pages
+     * @return array{available: bool, method: string, rows: list<array{locale: string, clicks: int, impressions: int, ctr: float, position: float}>}
+     */
+    private function localePerformance(array $pages): array
+    {
+        if (! $pages['available']) {
+            return ['available' => false, 'method' => 'canonical_url', 'rows' => []];
+        }
+
+        $metrics = [];
+
+        foreach ($pages['rows'] as $row) {
+            $page = $row['page'] ?? null;
+
+            if (! is_string($page)) {
+                continue;
+            }
+
+            $locale = $this->canonicalLocale($page);
+
+            if ($locale === null) {
+                continue;
+            }
+
+            $metrics[$locale] ??= $this->emptyMetricAccumulator();
+            $this->addMetrics($metrics[$locale], $row);
+        }
+
+        ksort($metrics);
+
+        return [
+            'available' => true,
+            'method' => 'canonical_url',
+            'rows' => array_map(
+                fn (string $locale, array $values): array => ['locale' => $locale, ...$this->finishMetrics($values)],
+                array_keys($metrics),
+                array_values($metrics),
+            ),
+        ];
+    }
+
+    /**
+     * Raw query, page, and country combinations remain in process only. The
+     * returned signal contains controlled query-group keys and anonymous totals.
+     *
+     * @param  array{start: string, end: string}  $range
+     * @param  list<string>  $warnings
+     * @return array{
+     *     available: bool,
+     *     sample_limited: true,
+     *     measurement_basis: 'search_console_top_rows',
+     *     query_groups: list<array{key: string, assigned_page_keys: list<string>, clicks: int, impressions: int, ctr: float, position: float, wrong_page_clicks: int, wrong_page_impressions: int}>,
+     *     target_pages: list<array{key: string, clicks: int, impressions: int, ctr: float, position: float}>,
+     *     saudi_gcc_non_brand: array{clicks: int, impressions: int, ctr: float, position: float}|null,
+     *     international_english: array{clicks: int, impressions: int, ctr: float, position: float}|null
+     * }
+     */
+    private function seoTargetSignals(string $accessToken, string $property, array $range, array &$warnings): array
+    {
+        $rows = $this->searchRows($accessToken, $property, $range, ['query', 'page', 'country'], $warnings);
+
+        if ($rows === null) {
+            return $this->unavailableSeoTargetSignals();
+        }
+
+        $queryGroupKeys = SeoTargetPageResolver::queryGroupKeys();
+        $queryGroups = array_fill_keys($queryGroupKeys, null);
+        $wrongPageMetrics = array_fill_keys($queryGroupKeys, null);
+        $targetPages = [];
+        $saudiGccNonBrand = $this->emptyMetricAccumulator();
+        $internationalEnglish = $this->emptyMetricAccumulator();
+
+        foreach ($rows as $row) {
+            $query = $this->query($row['keys'][0] ?? null);
+            $page = $this->canonicalPage($row['keys'][1] ?? null);
+            $country = $this->country($row['keys'][2] ?? null);
+            $metrics = $this->metrics($row);
+
+            if ($metrics === null) {
+                $warnings[] = 'search_console_seo_targets_invalid';
+
+                return $this->unavailableSeoTargetSignals();
+            }
+
+            if ($query === null || $page === null || $country === null) {
+                continue;
+            }
+
+            $isBrand = $this->isBrandQuery($query);
+            $locale = $this->canonicalLocale($page);
+            $pageKey = $this->targetPages->pageKey($page);
+
+            if (! $isBrand && in_array($country, self::GCC_COUNTRIES, true)) {
+                $this->addMetrics($saudiGccNonBrand, $metrics);
+            }
+
+            if ($locale === 'en' && ! in_array($country, self::GCC_COUNTRIES, true)) {
+                $this->addMetrics($internationalEnglish, $metrics);
+            }
+
+            if ($isBrand) {
+                continue;
+            }
+
+            if ($pageKey !== null) {
+                $targetPages[$pageKey] ??= $this->emptyMetricAccumulator();
+                $this->addMetrics($targetPages[$pageKey], $metrics);
+            }
+
+            $group = $this->targetQueryGroup($query);
+
+            if ($group === null) {
+                continue;
+            }
+
+            $assignedPageKeys = SeoTargetPageResolver::assignments()[$group];
+
+            if ($pageKey === null || ! in_array($pageKey, $assignedPageKeys, true)) {
+                $wrongPageMetrics[$group] ??= $this->emptyMetricAccumulator();
+                $this->addMetrics($wrongPageMetrics[$group], $metrics);
+
+                continue;
+            }
+
+            $queryGroups[$group] ??= $this->emptyMetricAccumulator();
+            $this->addMetrics($queryGroups[$group], $metrics);
+        }
+
+        return [
+            'available' => true,
+            'sample_limited' => true,
+            'measurement_basis' => 'search_console_top_rows',
+            'query_groups' => array_map(
+                fn (string $key): array => [
+                    'key' => $key,
+                    'assigned_page_keys' => SeoTargetPageResolver::assignments()[$key],
+                    ...$this->finishMetrics($queryGroups[$key] ?? $this->emptyMetricAccumulator()),
+                    'wrong_page_clicks' => ($wrongPageMetrics[$key] ?? $this->emptyMetricAccumulator())['clicks'],
+                    'wrong_page_impressions' => ($wrongPageMetrics[$key] ?? $this->emptyMetricAccumulator())['impressions'],
+                ],
+                $queryGroupKeys,
+            ),
+            'target_pages' => array_map(
+                fn (string $key, array $metrics): array => ['key' => $key, ...$this->finishMetrics($metrics)],
+                array_keys($targetPages),
+                array_values($targetPages),
+            ),
+            'saudi_gcc_non_brand' => $this->finishMetrics($saudiGccNonBrand),
+            'international_english' => $this->finishMetrics($internationalEnglish),
+        ];
+    }
+
+    /**
+     * @return array{available: false, query_groups: array<never, never>, target_pages: array<never, never>, saudi_gcc_non_brand: null, international_english: null}
+     */
+    private function unavailableSeoTargetSignals(): array
+    {
+        return [
+            'available' => false,
+            'sample_limited' => true,
+            'measurement_basis' => 'search_console_top_rows',
+            'query_groups' => [],
+            'target_pages' => [],
+            'saudi_gcc_non_brand' => null,
+            'international_english' => null,
+        ];
     }
 
     /**
@@ -556,6 +746,197 @@ class SearchConsoleClient extends WebsitePerformanceHttpClient
         return $query;
     }
 
+    private function isBrandQuery(string $query): bool
+    {
+        $normalized = $this->normalizedQuery($query);
+
+        if ($this->containsNormalizedPhrase($normalized, 'ibrahim hasan')
+            || $this->containsNormalizedPhrase($normalized, 'ibrahimhasan')
+            || $this->containsNormalizedPhrase($normalized, 'ابراهيم حسن')
+            || $this->containsNormalizedPhrase($normalized, 'code moments')
+            || $this->containsNormalizedPhrase($normalized, 'codemoments')
+            || $this->containsNormalizedPhrase($normalized, 'كود مومنتس')) {
+            return true;
+        }
+
+        if ($this->containsNormalizedPhrase($normalized, 'fromscratch')
+            || preg_match('/\Afrom scratch (?:solutions|tech|technology|company)(?: |\z)/u', $normalized) === 1
+            || preg_match('/\Aفروم ?سكراتش (?:للحلول|تقنيه|شركه)(?: |\z)/u', $normalized) === 1) {
+            return true;
+        }
+
+        return in_array($normalized, [
+            'from scratch',
+            'from scratch ceo',
+            'from scratch saudi',
+            'from scratch ibrahim hasan',
+            'from scratch website',
+            'from scratch linkedin',
+            'from scratch contact',
+            'فروم سكراتش',
+            'فرومسكراتش',
+            'فروم سكراتش ابراهيم حسن',
+            'فروم سكراتش موقع',
+            'فروم سكراتش لينكد ان',
+            'فروم سكراتش تواصل',
+        ], true);
+    }
+
+    private function containsNormalizedPhrase(string $query, string $phrase): bool
+    {
+        return preg_match('/(?:\A| )'.preg_quote($phrase, '/').'(?= |\z)/u', $query) === 1;
+    }
+
+    private function targetQueryGroup(string $query): ?string
+    {
+        $query = $this->normalizedQuery($query);
+
+        $hasAi = $this->containsAny($query, [' ai ', 'artificial intelligence', 'ذكاء اصطناعي', 'ذكاء صناعي']);
+        $hasDigitalTransformation = $this->containsAny($query, ['digital transformation', 'التحول الرقمي']);
+        $hasAdvisory = $this->containsAny($query, [
+            'advisor',
+            'adviser',
+            'advisory',
+            'consultant',
+            'consulting',
+            'مستشار',
+            'مستشاره',
+            'استشارات',
+            'استشاري',
+        ]);
+
+        if ($hasAdvisory && ($hasAi || $hasDigitalTransformation)) {
+            return 'saudi_ai_digital_transformation_advisory';
+        }
+
+        if ($this->containsAny($query, [
+            'ai governance',
+            'artificial intelligence governance',
+            'حوكمه الذكاء الاصطناعي',
+            'حوكمه الذكاء الصناعي',
+        ])) {
+            return 'ai_governance';
+        }
+
+        if ($this->containsAny($query, [
+            'first ai use case',
+            'first artificial intelligence use case',
+            'choose ai use case',
+            'choosing ai use case',
+        ]) || (str_contains($query, 'حاله استخدام')
+            && str_contains($query, 'ذكاء')
+            && $this->containsAny($query, ['اول', 'اختيار', 'تختار']))) {
+            return 'first_ai_use_case';
+        }
+
+        if ($this->containsAny($query, [
+            'ai adoption roadmap',
+            'artificial intelligence adoption roadmap',
+            'ai adoption plan',
+            'خارطه طريق تبني الذكاء الاصطناعي',
+            'خطه تبني الذكاء الاصطناعي',
+            'مسار تبني الذكاء الاصطناعي',
+        ])) {
+            return 'ai_adoption_roadmap';
+        }
+
+        if ($hasDigitalTransformation || $this->containsAny($query, [
+            'workflow audit',
+            'workflow automation',
+            'process automation',
+            'what should be automated',
+            'تدقيق سير العمل',
+            'اتمته سير العمل',
+            'اتمته العمليات',
+            'ما الذي يجب اتمتته',
+        ])) {
+            return 'digital_transformation_workflow_automation';
+        }
+
+        if ($this->containsAny($query, [
+            'data governance',
+            'data readiness',
+            'knowledge base',
+            'knowledge system',
+            'retrieval augmented generation',
+            ' rag ',
+            'حوكمه البيانات',
+            'جاهزيه البيانات',
+            'قاعده المعرفه',
+            'قواعد المعرفه',
+            'نظام المعرفه',
+            'الاسترجاع المعزز',
+        ])) {
+            return 'data_knowledge_systems';
+        }
+
+        return null;
+    }
+
+    /** @param  list<string>  $needles */
+    private function containsAny(string $value, array $needles): bool
+    {
+        return Str::contains(" {$value} ", $needles);
+    }
+
+    private function normalizedQuery(string $query): string
+    {
+        $query = Str::lower($query);
+        $query = preg_replace('/[\x{064B}-\x{065F}\x{0670}]/u', '', $query) ?? $query;
+        $query = str_replace(['إ', 'أ', 'آ', 'ٱ', 'ى', 'ة'], ['ا', 'ا', 'ا', 'ا', 'ي', 'ه'], $query);
+        $query = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $query) ?? $query;
+
+        return trim(preg_replace('/\s+/u', ' ', $query) ?? $query);
+    }
+
+    private function canonicalLocale(string $page): ?string
+    {
+        $path = parse_url($page, PHP_URL_PATH);
+
+        if (! is_string($path)) {
+            return null;
+        }
+
+        $firstSegment = explode('/', trim($path, '/'))[0] ?? '';
+
+        return $firstSegment === 'en' ? 'en' : 'ar';
+    }
+
+    /**
+     * @return array{clicks: int, impressions: int, weighted_position: float}
+     */
+    private function emptyMetricAccumulator(): array
+    {
+        return ['clicks' => 0, 'impressions' => 0, 'weighted_position' => 0.0];
+    }
+
+    /**
+     * @param  array{clicks: int, impressions: int, weighted_position: float}  $accumulator
+     * @param  array{clicks: int, impressions: int, position: float}  $metrics
+     */
+    private function addMetrics(array &$accumulator, array $metrics): void
+    {
+        $accumulator['clicks'] += $metrics['clicks'];
+        $accumulator['impressions'] += $metrics['impressions'];
+        $accumulator['weighted_position'] += $metrics['position'] * $metrics['impressions'];
+    }
+
+    /**
+     * @param  array{clicks: int, impressions: int, weighted_position: float}  $accumulator
+     * @return array{clicks: int, impressions: int, ctr: float, position: float}
+     */
+    private function finishMetrics(array $accumulator): array
+    {
+        $impressions = $accumulator['impressions'];
+
+        return [
+            'clicks' => $accumulator['clicks'],
+            'impressions' => $impressions,
+            'ctr' => $impressions === 0 ? 0.0 : round($accumulator['clicks'] / $impressions, 6),
+            'position' => $impressions === 0 ? 0.0 : round($accumulator['weighted_position'] / $impressions, 2),
+        ];
+    }
+
     private function canonicalPage(mixed $value): ?string
     {
         if (! is_string($value) || ! $this->isSecureUrl($value)) {
@@ -582,9 +963,9 @@ class SearchConsoleClient extends WebsitePerformanceHttpClient
 
     private function country(mixed $value): ?string
     {
-        $value = $this->text($value, 2);
+        $value = $this->text($value, 3);
 
-        return $value !== null && preg_match('/\A[A-Za-z]{2}\z/', $value) === 1
+        return $value !== null && preg_match('/\A[A-Za-z]{3}\z/', $value) === 1
             ? strtoupper($value)
             : null;
     }

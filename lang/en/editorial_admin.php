@@ -46,6 +46,7 @@ return [
         'publish_image_not_owned' => 'Every inline image must belong to this article and language before publishing.',
         'publish_image_alt_missing' => 'Every inline image needs meaningful alt text before publishing.',
         'publish_topics_missing' => 'At least one topic is required before publishing.',
+        'publish_topics_unrecognized' => 'Use only topics assigned to the four public editorial clusters.',
         'publish_image_missing' => 'An article image is required before publishing.',
     ],
     'readiness' => [
@@ -57,6 +58,7 @@ return [
             'image_not_owned' => 'Use only inline images uploaded to this article’s :locale body.',
             'image_alt_missing' => 'Add meaningful alt text to every inline image in :locale.',
             'topics_missing' => 'Add at least one topic.',
+            'topics_unrecognized' => 'Replace unrecognized topics with topics assigned to the four public clusters.',
             'image_missing' => 'Upload a managed hero image. A legacy image path is not enough.',
             'unknown' => 'Review the article requirements before publishing.',
         ],
@@ -64,6 +66,7 @@ return [
     'feedback' => [
         'stale_edit' => 'This draft has changed elsewhere. Reload the page before saving so you do not overwrite the latest revision.',
         'published_locked' => 'Unpublish this article before editing its content or media, then publish it again after review.',
+        'invalid_publication_transition' => 'This article is already in the requested publication state. Reload the page before trying again.',
     ],
     'statuses' => ['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected'],
     'filters' => ['pending_reports' => 'Has pending reports'],

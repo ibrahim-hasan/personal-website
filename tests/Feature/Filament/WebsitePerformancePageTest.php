@@ -45,6 +45,12 @@ class WebsitePerformancePageTest extends TestCase
             ->assertSee('Valid inquiries')
             ->assertSee('Organic clicks')
             ->assertSee('Consented high-intent activity')
+            ->assertSee('90-day SEO target scorecard')
+            ->assertSee('Non-brand query groups')
+            ->assertSee('Checks that English-page clicks outside the GCC do not fall while regional visibility grows.')
+            ->assertSee('Organic consultation submissions')
+            ->assertSee('Canonical page locale')
+            ->assertSee('Search Console has no language dimension.')
             ->assertSee('Data quality and indexing health')
             ->assertSee('Some GA4 report data was unavailable.')
             ->assertSee('Canonical and indexing checks')
@@ -105,6 +111,10 @@ class WebsitePerformancePageTest extends TestCase
             ->assertSee('أداء الموقع')
             ->assertSee('تقارير مجمّعة وخاصة')
             ->assertSee('طلبات الاستشارة')
+            ->assertSee('لوحة أهداف SEO لمدة 90 يوماً')
+            ->assertSee('يتأكد من عدم انخفاض نقرات الصفحات الإنجليزية خارج دول الخليج أثناء نمو الظهور الإقليمي.')
+            ->assertSee('طلبات الاستشارة من البحث العضوي')
+            ->assertSee('لغة الصفحة الأساسية')
             ->assertSee('جودة البيانات وصحة الفهرسة')
             ->assertSee('سجل التقارير المحفوظة')
             ->assertDontSee('Website performance');
@@ -196,6 +206,52 @@ class WebsitePerformancePageTest extends TestCase
                     ],
                     'previous' => ['totals' => ['clicks' => 12, 'impressions' => 90]],
                     'context_90d' => ['totals' => ['clicks' => 55, 'impressions' => 300]],
+                ],
+            ],
+            'targets' => [
+                'query_groups' => [
+                    'available' => true,
+                    'eligible_count' => 6,
+                    'top_10_count' => 2,
+                    'additional_top_20_count' => 3,
+                ],
+                'target_page_ctr' => [
+                    'available' => true,
+                    'eligible_count' => 2,
+                    'meeting_count' => 2,
+                ],
+                'saudi_gcc_non_brand' => [
+                    'available' => true,
+                    'current' => ['clicks' => 12, 'impressions' => 120],
+                    'previous' => ['clicks' => 10, 'impressions' => 100],
+                ],
+                'international_english' => [
+                    'available' => true,
+                    'current' => ['clicks' => 8, 'impressions' => 110],
+                    'previous' => ['clicks' => 7, 'impressions' => 110],
+                ],
+                'organic_consultations' => [
+                    'current' => ['available' => true, 'total' => 2],
+                    'previous' => ['available' => true, 'total' => 1],
+                    'context_90d' => ['available' => true, 'total' => 4],
+                ],
+                'locale_breakdown' => [
+                    'method' => 'canonical_url',
+                    'current' => [
+                        'available' => true,
+                        'ar' => ['clicks' => 9, 'impressions' => 90],
+                        'en' => ['clicks' => 12, 'impressions' => 110],
+                    ],
+                    'previous' => [
+                        'available' => true,
+                        'ar' => ['clicks' => 7, 'impressions' => 80],
+                        'en' => ['clicks' => 10, 'impressions' => 100],
+                    ],
+                    'context_90d' => [
+                        'available' => true,
+                        'ar' => ['clicks' => 24, 'impressions' => 250],
+                        'en' => ['clicks' => 31, 'impressions' => 320],
+                    ],
                 ],
             ],
         ];

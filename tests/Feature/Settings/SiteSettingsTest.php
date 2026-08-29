@@ -5,6 +5,7 @@ namespace Tests\Feature\Settings;
 use App\Filament\Pages\ManageSiteSettings;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\SiteContent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
@@ -79,6 +80,86 @@ class SiteSettingsTest extends TestCase
             ['en' => 'Current profile'],
             json_decode((string) Setting::getValue('about_biography', 'website_content'), true),
         );
+    }
+
+    public function test_stale_code_moments_founder_migration_replaces_only_the_incorrect_localized_claim(): void
+    {
+        $validEnglish = 'Ibrahim is Co-founder & CEO of From Scratch and CEO of Code Moments.';
+        Setting::setValue('about_biography', [
+            'ar' => 'إبراهيم هو المؤسس والرئيس التنفيذي لكود مومنتس.',
+            'en' => $validEnglish,
+        ], 'website_content');
+
+        $migration = require database_path('migrations/2026_08_28_222130_normalize_stale_code_moments_about_biography.php');
+        $migration->up();
+
+        $stored = json_decode((string) Setting::getValue('about_biography', 'website_content'), true);
+
+        $this->assertSame(trans('site.about.body', [], 'ar'), $stored['ar']);
+        $this->assertSame($validEnglish, $stored['en']);
+    }
+
+    public function test_biography_migration_and_runtime_keep_valid_code_moments_ceo_and_from_scratch_founder_roles(): void
+    {
+        $validArabic = 'إبراهيم هو الرئيس التنفيذي لكود مومنتس والشريك المؤسس لفروم سكراتش.';
+        $validEnglish = 'Ibrahim is CEO of Code Moments and Co-founder of From Scratch.';
+        Setting::setValue('about_biography', [
+            'ar' => $validArabic,
+            'en' => $validEnglish,
+        ], 'website_content');
+
+        $migration = require database_path('migrations/2026_08_28_222130_normalize_stale_code_moments_about_biography.php');
+        $migration->up();
+
+        $stored = json_decode((string) Setting::getValue('about_biography', 'website_content'), true);
+
+        $this->assertSame($validArabic, $stored['ar']);
+        $this->assertSame($validEnglish, $stored['en']);
+
+        app()->setLocale('ar');
+        $this->assertSame($validArabic, SiteContent::aboutBiography());
+
+        app()->setLocale('en');
+        $this->assertSame($validEnglish, SiteContent::aboutBiography());
+
+        $commaSeparatedEnglish = 'Ibrahim is CEO of Code Moments, Co-founder & CEO of From Scratch.';
+        Setting::setValue('about_biography', ['en' => $commaSeparatedEnglish], 'website_content');
+
+        $migration->up();
+
+        $this->assertSame(
+            ['en' => $commaSeparatedEnglish],
+            json_decode((string) Setting::getValue('about_biography', 'website_content'), true),
+        );
+        $this->assertSame($commaSeparatedEnglish, SiteContent::aboutBiography());
+    }
+
+    public function test_public_biography_rejects_direct_code_moments_founder_claims_without_rejecting_valid_cross_company_roles(): void
+    {
+        $validArabic = 'إبراهيم هو الشريك المؤسس والرئيس التنفيذي لفروم سكراتش، والرئيس التنفيذي لكود مومنتس.';
+        $validEnglish = 'Ibrahim is Co-founder & CEO of From Scratch and CEO of Code Moments.';
+
+        Setting::setValue('about_biography', [
+            'ar' => $validArabic,
+            'en' => 'Ibrahim is the founder and CEO of Code Moments.',
+        ], 'website_content');
+
+        app()->setLocale('en');
+        $this->assertSame(trans('site.about.body', [], 'en'), SiteContent::aboutBiography());
+
+        app()->setLocale('ar');
+        $this->assertSame($validArabic, SiteContent::aboutBiography());
+
+        Setting::setValue('about_biography', [
+            'ar' => 'إبراهيم هو مؤسس كود مومنتس.',
+            'en' => $validEnglish,
+        ], 'website_content');
+
+        app()->setLocale('ar');
+        $this->assertSame(trans('site.about.body', [], 'ar'), SiteContent::aboutBiography());
+
+        app()->setLocale('en');
+        $this->assertSame($validEnglish, SiteContent::aboutBiography());
     }
 
     public function test_ai_settings_keep_credentials_out_of_livewire_state_and_browser_markup(): void

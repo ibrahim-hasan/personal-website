@@ -42,8 +42,15 @@ class PortfolioController extends Controller
         ]);
     }
 
-    public function show(Project $project): RedirectResponse
+    public function show(Request $request, Project $project): RedirectResponse
     {
-        return redirect()->to(localized_route('work').'#project-'.$project->key);
+        $url = localized_route('work', locale: current_locale());
+        $query = $request->server('QUERY_STRING');
+
+        if (is_string($query) && $query !== '') {
+            $url .= '?'.$query;
+        }
+
+        return redirect()->to($url.'#project-'.$project->key, 301);
     }
 }

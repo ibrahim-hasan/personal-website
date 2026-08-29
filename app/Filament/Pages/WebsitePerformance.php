@@ -117,6 +117,25 @@ class WebsitePerformance extends Page
         };
     }
 
+    public function targetStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'on_track' => __('admin.website_performance.targets.statuses.on_track'),
+            'needs_attention' => __('admin.website_performance.targets.statuses.needs_attention'),
+            'met' => __('admin.website_performance.targets.statuses.met'),
+            'not_met' => __('admin.website_performance.targets.statuses.not_met'),
+            'growth' => __('admin.website_performance.targets.statuses.growth'),
+            'maintained' => __('admin.website_performance.targets.statuses.maintained'),
+            'declined' => __('admin.website_performance.targets.statuses.declined'),
+            'insufficient_sample' => __('admin.website_performance.targets.statuses.insufficient_sample'),
+            'no_baseline' => __('admin.website_performance.targets.statuses.no_baseline'),
+            'tracking' => __('admin.website_performance.targets.statuses.tracking'),
+            'directional' => __('admin.website_performance.targets.statuses.directional'),
+            'partial' => __('admin.website_performance.targets.statuses.partial'),
+            default => __('admin.website_performance.targets.statuses.unavailable'),
+        };
+    }
+
     /**
      * @param  array<string, mixed>  $flag
      */

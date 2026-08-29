@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
             ServiceSeeder::class,
             ProjectSeeder::class,
             ArticleSeeder::class,
+            SeoAuthorityEditorialContentSeeder::class,
+            SeoServiceRelationshipSeeder::class,
         ]);
     }
 }

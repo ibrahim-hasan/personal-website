@@ -47,7 +47,7 @@
             <a
                 href="{{ localized_route('contact') }}#consultation"
                 wire:navigate
-                class="site-nav__consultation button-primary"
+                class="site-nav__consultation button-quiet"
                 data-magnetic
                 data-analytics-event="primary_cta_click"
                 data-analytics-ui-location="navigation"
@@ -231,7 +231,7 @@
                     href="{{ localized_route('contact') }}#consultation"
                     wire:navigate
                     @click="close(false)"
-                    class="button-light w-full justify-between"
+                    class="button-outline-light w-full justify-between"
                     data-analytics-event="primary_cta_click"
                     data-analytics-ui-location="mobile_menu"
                     data-analytics-destination-category="consultation"

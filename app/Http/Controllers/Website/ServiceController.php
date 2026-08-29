@@ -5,15 +5,16 @@ namespace App\Http\Controllers\Website;
 use App\Enums\AtharPlacement;
 use App\Http\Controllers\Controller;
 use App\Support\AtharPublicProof;
+use App\Support\ServiceHubContent;
 use App\Support\SiteContent;
 use Illuminate\View\View;
 
 class ServiceController extends Controller
 {
-    public function index(): View
+    public function index(ServiceHubContent $serviceHub): View
     {
         return view('website.services', [
-            'services' => SiteContent::services(),
+            'services' => $serviceHub->services(),
             'process' => SiteContent::process(),
             'athar' => AtharPublicProof::forPlacement(AtharPlacement::Services, app()->getLocale()),
         ]);

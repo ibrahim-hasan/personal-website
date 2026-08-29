@@ -11,6 +11,7 @@ class WebsitePerformanceReporter
         private readonly GoogleAnalyticsDataClient $ga4,
         private readonly SearchConsoleClient $searchConsole,
         private readonly FirstPartyMetricsClient $firstParty,
+        private readonly SeoTargetScorecard $seoTargets,
     ) {}
 
     /**
@@ -37,6 +38,7 @@ class WebsitePerformanceReporter
                 : (count($usableSources) === count($sources) && ! in_array('partial', $statuses, true) ? 'ok' : 'partial'),
             'periods' => $periods,
             'sources' => $sources,
+            'targets' => $this->seoTargets->build($sources),
             'quality' => [
                 'low_volume_thresholds' => [
                     'search_console_query_or_page_impressions' => 30,
@@ -49,7 +51,7 @@ class WebsitePerformanceReporter
                 'limitations' => [
                     'ga4' => 'consented_traffic_only',
                     'first_party' => 'aggregate_inquiries_not_joined_to_ga4_or_search_console',
-                    'search_console' => 'omitted_rows_are_unavailable_not_zero',
+                    'search_console' => 'top_rows_sample_directional_and_omitted_rows_unavailable_not_zero',
                 ],
                 'source_statuses' => $statuses,
                 'flags' => $this->dataQualityFlags($sources),

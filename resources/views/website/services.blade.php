@@ -80,6 +80,56 @@
                                 <p>{{ __('site.services.starting_engagement') }}</p>
                                 <strong>{{ $service['engagement_note'] }}</strong>
                             </aside>
+
+                            @if ($service['related_articles'] !== [] || $service['related_projects'] !== [])
+                                <section class="service-hub__resources mt-12" aria-label="{{ $service['name'] }}">
+                                    @if ($service['related_articles'] !== [])
+                                        <div class="service-hub__resource-group">
+                                            <h3>{{ __('site.services.related_articles') }}</h3>
+                                            <ol>
+                                                @foreach ($service['related_articles'] as $article)
+                                                    <li>
+                                                        <a href="{{ $article['url'] }}">
+                                                            <span>{{ $article['type'] }}</span>
+                                                            <strong>{{ $article['title'] }}</strong>
+                                                            <x-phosphor-arrow-up-right class="rtl:-rotate-90" aria-hidden="true" />
+                                                        </a>
+                                                    </li>
+                                                @endforeach
+                                            </ol>
+                                        </div>
+                                    @endif
+
+                                    @if ($service['related_projects'] !== [])
+                                        <div class="service-hub__resource-group">
+                                            <h3>{{ __('site.services.related_projects') }}</h3>
+                                            <ol>
+                                                @foreach ($service['related_projects'] as $project)
+                                                    <li>
+                                                        <a href="{{ $project['url'] }}">
+                                                            <span>{{ $project['sector'] }}</span>
+                                                            <strong>{{ $project['title'] }}</strong>
+                                                            <x-phosphor-arrow-up-right class="rtl:-rotate-90" aria-hidden="true" />
+                                                        </a>
+                                                    </li>
+                                                @endforeach
+                                            </ol>
+                                        </div>
+                                    @endif
+                                </section>
+                            @endif
+
+                            <a
+                                href="{{ localized_route('contact') }}?service={{ urlencode($service['key']) }}#consultation"
+                                class="service-hub__cta text-link mt-8"
+                                data-analytics-event="service_cta_click"
+                                data-analytics-ui-location="service_section"
+                                data-analytics-destination-category="consultation"
+                                data-analytics-service-key="{{ $service['key'] }}"
+                            >
+                                {{ __('site.actions.free_consultation') }}
+                                <x-phosphor-arrow-up-right class="h-4 w-4 rtl:-rotate-90" aria-hidden="true" />
+                            </a>
                         </article>
                     @endforeach
                 </div>

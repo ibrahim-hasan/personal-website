@@ -5,6 +5,7 @@ namespace Tests\Unit\Services\WebsitePerformance;
 use App\Services\WebsitePerformance\FirstPartyMetricsClient;
 use App\Services\WebsitePerformance\GoogleAnalyticsDataClient;
 use App\Services\WebsitePerformance\SearchConsoleClient;
+use App\Services\WebsitePerformance\SeoTargetScorecard;
 use App\Services\WebsitePerformance\WebsitePerformanceReporter;
 use Carbon\CarbonImmutable;
 use Mockery;
@@ -21,7 +22,7 @@ class WebsitePerformanceReporterTest extends TestCase
         $searchConsole->shouldReceive('collect')->once()->andReturn($this->searchConsoleSource());
         $firstParty->shouldReceive('collect')->once()->andReturn($this->firstPartySource());
 
-        $report = (new WebsitePerformanceReporter($ga4, $searchConsole, $firstParty))->report(
+        $report = (new WebsitePerformanceReporter($ga4, $searchConsole, $firstParty, new SeoTargetScorecard))->report(
             28,
             CarbonImmutable::parse('2026-08-09', 'Asia/Riyadh'),
             'Asia/Riyadh',
@@ -33,6 +34,7 @@ class WebsitePerformanceReporterTest extends TestCase
             'context_90d' => ['start' => '2026-05-12', 'end' => '2026-08-09'],
         ], $report['periods']);
         $this->assertSame('partial', $report['status']);
+        $this->assertSame('unavailable', $report['targets']['status']);
 
         $flags = $report['quality']['flags'];
         $this->assertSame('unavailable', $this->flag($flags, 'ga4', 'current', 'relevant_events')['status']);
@@ -47,6 +49,7 @@ class WebsitePerformanceReporterTest extends TestCase
             Mockery::mock(GoogleAnalyticsDataClient::class),
             Mockery::mock(SearchConsoleClient::class),
             Mockery::mock(FirstPartyMetricsClient::class),
+            new SeoTargetScorecard,
         );
 
         $this->assertSame(0, $reporter->exitCode(['status' => 'ok']));

@@ -194,7 +194,7 @@ class WebsitePerformanceSnapshotStoreTest extends TestCase
             $this->assertStringNotContainsString($unsafeValue, $contents);
         }
 
-        foreach (['"queries"', '"pages"', '"landing_pages"', '"url_inspection"', '"ui_location"', '"opaque_token"'] as $unsafeKey) {
+        foreach (['"queries"', '"landing_pages"', '"url_inspection"', '"ui_location"', '"opaque_token"'] as $unsafeKey) {
             $this->assertStringNotContainsString($unsafeKey, $contents);
         }
     }
@@ -348,6 +348,102 @@ class WebsitePerformanceSnapshotStoreTest extends TestCase
         $this->assertStringContainsString('"response_rate": 1.0', $contents);
         $this->assertSame(0.0, $summaries['latest']['sources']['first_party']['current']['response_rate']);
         $this->assertSame(1.0, $summaries['latest']['sources']['first_party']['previous']['response_rate']);
+    }
+
+    public function test_it_persists_only_controlled_seo_keys_aggregate_signals_and_canonical_locale_totals(): void
+    {
+        $report = $this->report();
+        $report['targets'] = [
+            'status' => 'on_track',
+            'query_groups' => [
+                'available' => true,
+                'status' => 'directional',
+                'eligible_count' => 5,
+                'top_10_count' => 5,
+                'additional_top_20_count' => 3,
+                'wrong_page_clicks' => 1,
+                'wrong_page_impressions' => 12,
+                'groups' => [[
+                    'key' => 'ai_governance',
+                    'status' => 'top_10',
+                    'assigned_page_keys' => ['ai_governance'],
+                    'clicks' => 8,
+                    'impressions' => 80,
+                    'ctr' => 0.1,
+                    'position' => 7.2,
+                    'wrong_page_clicks' => 1,
+                    'wrong_page_impressions' => 12,
+                ]],
+            ],
+            'target_page_ctr' => [
+                'available' => true,
+                'status' => 'directional',
+                'eligible_count' => 2,
+                'meeting_count' => 2,
+                'pages' => [[
+                    'key' => 'services',
+                    'status' => 'met',
+                    'clicks' => 12,
+                    'impressions' => 120,
+                    'ctr' => 0.1,
+                    'position' => 6.5,
+                ]],
+            ],
+            'saudi_gcc_non_brand' => [
+                'available' => true,
+                'current' => ['clicks' => 14, 'impressions' => 120],
+                'previous' => ['clicks' => 10, 'impressions' => 100],
+            ],
+            'international_english' => [
+                'available' => true,
+                'current' => ['clicks' => 6, 'impressions' => 140],
+                'previous' => ['clicks' => 7, 'impressions' => 110],
+            ],
+            'organic_consultations' => [
+                'current' => ['available' => true, 'total' => 2],
+                'previous' => ['available' => true, 'total' => 1],
+                'context_90d' => ['available' => true, 'total' => 4],
+            ],
+            'locale_breakdown' => [
+                'method' => 'canonical_url',
+                'current' => [
+                    'available' => true,
+                    'ar' => ['clicks' => 9, 'impressions' => 90],
+                    'en' => ['clicks' => 12, 'impressions' => 110],
+                ],
+                'previous' => [
+                    'available' => true,
+                    'ar' => ['clicks' => 7, 'impressions' => 80],
+                    'en' => ['clicks' => 10, 'impressions' => 100],
+                ],
+                'context_90d' => [
+                    'available' => true,
+                    'ar' => ['clicks' => 24, 'impressions' => 250],
+                    'en' => ['clicks' => 31, 'impressions' => 320],
+                ],
+            ],
+        ];
+
+        $path = $this->store()->persist($report);
+        $contents = Storage::disk('local')->get($path);
+        $snapshot = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame('partial', $snapshot['targets']['status']);
+        $this->assertSame('directional', $snapshot['targets']['query_groups']['status']);
+        $this->assertSame(5, $snapshot['targets']['query_groups']['top_10_count']);
+        $this->assertSame(3, $snapshot['targets']['query_groups']['additional_top_20_count']);
+        $this->assertSame('met', $snapshot['targets']['query_groups']['observed_status']);
+        $this->assertSame(12, $snapshot['targets']['query_groups']['wrong_page_impressions']);
+        $this->assertSame('declined', $snapshot['targets']['international_english']['observed_status']);
+        $this->assertSame(-1, $snapshot['targets']['international_english']['absolute_change']);
+        $this->assertSame(4, $snapshot['targets']['organic_consultations']['context_90d']['total']);
+        $this->assertSame(110, $snapshot['targets']['locale_breakdown']['current']['en']['impressions']);
+        $this->assertSame('canonical_url', $snapshot['targets']['measurement']['language_method']);
+        $this->assertSame('ai_governance', $snapshot['targets']['query_groups']['groups'][0]['key']);
+        $this->assertSame('services', $snapshot['targets']['target_page_ctr']['pages'][0]['key']);
+        $this->assertTrue($snapshot['targets']['measurement']['search_console_sample_limited']);
+        $this->assertStringNotContainsString('"queries"', $contents);
+        $this->assertStringNotContainsString('https://', $contents);
     }
 
     public function test_it_derives_the_overall_status_from_sanitized_source_states(): void

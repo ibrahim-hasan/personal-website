@@ -281,6 +281,7 @@ test('the consent-safe GA tracker', async (t) => {
         const { analytics, environment } = await loadAnalytics({ consent: 'accepted' });
         const locations = [
             'home_hero_primary',
+            'home_hero_secondary',
             'home_hero_finale',
             'footer_cta',
             'footer_contact',
@@ -302,5 +303,26 @@ test('the consent-safe GA tracker', async (t) => {
         const [, , genericPayload] = analyticsEvents(environment.calls, 'primary_cta_click').at(-1);
 
         assert.equal('ui_location' in genericPayload, false);
+    });
+
+    await t.test('keeps the service-section location on a service CTA event', async () => {
+        const { analytics, environment } = await loadAnalytics({ consent: 'accepted' });
+
+        assert.equal(analytics.trackAnalyticsEvent('service_cta_click', {
+            destination_category: 'consultation',
+            service_key: 'ai-adoption',
+            ui_location: 'service_section',
+        }), true);
+
+        const [[, , payload]] = analyticsEvents(environment.calls, 'service_cta_click');
+
+        assert.deepEqual(payload, {
+            destination_category: 'consultation',
+            locale: 'en',
+            page_type: 'contact',
+            route_key: 'contact',
+            service_key: 'ai-adoption',
+            ui_location: 'service_section',
+        });
     });
 });

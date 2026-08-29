@@ -4,17 +4,19 @@ return [
     'brand' => [
         'name' => 'Ibrahim Hasan',
         'initials' => 'IH',
-        'tagline' => 'Technology Partner',
+        'tagline' => 'Technology Executive',
         'home_aria' => 'Ibrahim Hasan home',
     ],
     'meta' => [
-        'default_title' => 'Ibrahim Hasan | Software Engineer & Technology Partner',
-        'default_description' => 'I help organizations solve operational challenges through digital transformation, practical AI, data governance, reliable systems, and automation.',
-        'social_image_alt' => 'Ibrahim Hasan, software engineer and technology partner for digital transformation and practical AI.',
+        'default_title' => 'Ibrahim Hasan | Technology Executive in Saudi Arabia',
+        'default_description' => 'Ibrahim Hasan is a technology executive based in Saudi Arabia, CEO of Code Moments and Co-founder & CEO of From Scratch, working across digital transformation, practical AI, data governance, systems, and automation.',
+        'social_image_alt' => 'Ibrahim Hasan, a technology executive based in Saudi Arabia.',
     ],
     'entity' => [
-        'job_title' => 'Software Engineer & Technology Partner',
-        'description' => 'Ibrahim Hasan is a software engineer and technology partner working across digital transformation, practical AI, data governance, systems, and automation.',
+        'job_title' => 'Technology Executive',
+        'description' => 'Ibrahim Hasan is a technology executive based in Saudi Arabia, CEO of Code Moments and Co-founder & CEO of From Scratch, working across digital transformation, practical AI, data governance, systems, and automation.',
+        'location_label' => 'Based in Saudi Arabia',
+        'home_country' => 'Saudi Arabia',
         'knows_about' => [
             'Digital transformation',
             'Software engineering',
@@ -49,7 +51,7 @@ return [
         'current_dark' => 'Current theme: dark',
     ],
     'hero' => [
-        'roles' => ['Technology Partner', 'AI Adoption', 'Digital Transformation', 'Data Governance'],
+        'roles' => ['Technology Executive', 'AI Adoption', 'Digital Transformation', 'Data Governance'],
         'positioning' => 'I help companies turn operational and growth challenges into digital systems and practical AI solutions — built on a clear understanding of processes, data, and risk, not on tools for their own sake.',
         'partnerships' => 'A partnership that starts with the problem and ends in measurable impact',
     ],
@@ -65,8 +67,8 @@ return [
         'view_work' => 'View work',
     ],
     'home' => [
-        'title' => 'Ibrahim Hasan | Software Engineer & Technology Partner',
-        'description' => 'I help organizations solve operational challenges through digital transformation, practical AI, data governance, reliable systems, and automation.',
+        'title' => 'Ibrahim Hasan | Technology Executive in Saudi Arabia',
+        'description' => 'Ibrahim Hasan is a technology executive based in Saudi Arabia, CEO of Code Moments and Co-founder & CEO of From Scratch, working across digital transformation, practical AI, data governance, systems, and automation.',
         'intro_eyebrow' => 'How I work',
         'intro_title' => 'Technology that serves the business, not the other way around.',
         'intro_body' => 'Strong digital systems do not start with code. They start with understanding the process, the data flow, the decision, the risk, and the real need of the business. That is where I begin — and why the work lasts.',
@@ -83,7 +85,7 @@ return [
         'portrait_alt' => 'Ibrahim Hasan reviewing a digital system map',
         'hero_stage_title' => 'Understand the system before building the tool.',
         'hero_stage_meta' => 'From decision to a system that works.',
-        'hero_kicker' => 'Ibrahim Hasan · Software Engineer & Technology Partner',
+        'hero_kicker' => 'Ibrahim Hasan · Technology Executive in Saudi Arabia',
         'hero_line_1' => 'From a hard question,',
         'hero_line_2' => 'to a system that works,',
         'hero_line_3' => 'to impact you can measure.',
@@ -133,8 +135,8 @@ return [
         'project_placeholder' => 'Project image',
     ],
     'services' => [
-        'title' => 'Digital Transformation, AI & Data Services',
-        'description' => 'Digital transformation, AI adoption, data governance, and systems automation services by Ibrahim Hasan, starting with the process, decision, and risk.',
+        'title' => 'Saudi AI & Digital Transformation Advisor',
+        'description' => 'Digital transformation and AI advisory for Saudi organizations, covering adoption, data governance, systems, and measurable operational change.',
         'eyebrow' => 'Services',
         'heading' => 'Digital transformation, AI, and data—from the problem to a system that works.',
         'body' => 'I work best at the intersection of business understanding, solution architecture, and practical AI — where the goal is a maintainable system with measurable impact.',
@@ -158,8 +160,8 @@ return [
         'empty_body' => 'The public services list is temporarily between editions. Share the problem directly and I will route it to the right starting point.',
     ],
     'work' => [
-        'title' => 'Digital Transformation & AI Case Studies',
-        'description' => 'Selected work by Ibrahim Hasan across education, tourism, services, commerce, humanitarian collaboration, and AI.',
+        'title' => 'AI, Product & Digital Transformation Work',
+        'description' => 'Selected work by Ibrahim Hasan showing AI, product, and digital-transformation decisions across education, tourism, services, and operations.',
         'eyebrow' => 'Selected work',
         'heading' => 'What changed—and why.',
         'body' => 'Selected cases across distinct sectors. Each sets out the operating context, challenge, what changed, and practical impact.',
@@ -227,8 +229,8 @@ return [
         ],
     ],
     'writing' => [
-        'title' => 'Digital Transformation, AI & Data Insights',
-        'description' => 'Practical writing by Ibrahim Hasan for decision-makers on digital transformation, AI adoption, data governance, and reliable systems.',
+        'title' => 'AI Adoption, Governance & Product Strategy',
+        'description' => 'Practical writing for decision-makers on AI adoption and governance, data and knowledge systems, digital operations, product strategy, and measurement.',
         'eyebrow' => 'Writing',
         'heading' => 'Technology in the language of business.',
         'body' => 'Short, practical notes for decision-makers — explaining technology in business language, without hype or selling.',
@@ -239,8 +241,8 @@ return [
         'empty_body' => 'There is no public article in this edition yet. Return soon, or start a conversation around a decision you are working through.',
     ],
     'about' => [
-        'title' => 'About Ibrahim Hasan: Engineering, Product Building & Delivery',
-        'description' => 'Meet Ibrahim Hasan, a software engineer and technology partner whose work spans mechatronics engineering, product building, and delivery leadership.',
+        'title' => 'Ibrahim Hasan | CEO of Code Moments in Saudi Arabia',
+        'description' => 'Meet Ibrahim Hasan, a technology executive based in Saudi Arabia, CEO of Code Moments and Co-founder & CEO of From Scratch.',
         'eyebrow' => 'About',
         'heading' => 'Ibrahim Hasan builds dependable digital systems.',
         'body' => 'My path began in engineering and grew through software development, product building, delivery leadership, and company founding. I draw on that connected experience to bring the business decision and the technical work together—and take responsibility for making it real.',
@@ -264,13 +266,13 @@ return [
         'current_work_title' => 'Where I work today.',
         'current_work_body' => 'Today, that experience takes three connected forms: building companies, leading products, and working directly with decision-makers and technical teams.',
         'current_work_items' => [
-            'from-scratch' => [
-                'title' => 'From Scratch',
-                'body' => 'I lead From Scratch’s growth and the delivery of digital products, while building the team, operating model, and quality standards behind it.',
-            ],
             'code-moments' => [
                 'title' => 'Code Moments',
                 'body' => 'I lead the product cycle from understanding the commercial goal and setting priorities through design, engineering, launch, and improvement.',
+            ],
+            'from-scratch' => [
+                'title' => 'From Scratch',
+                'body' => 'I lead From Scratch’s growth and the delivery of digital products, while building the team, operating model, and quality standards behind it.',
             ],
             'independent-strategic-practice' => [
                 'title' => 'Independent strategic practice',

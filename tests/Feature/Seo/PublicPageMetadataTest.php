@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Seo;
 
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Lang;
@@ -19,6 +20,8 @@ class PublicPageMetadataTest extends TestCase
 
         $arabicResponse
             ->assertOk()
+            ->assertSee('<title>إبراهيم حسن | قائد تقني في السعودية</title>', false)
+            ->assertSee('مقيم في المملكة العربية السعودية', false)
             ->assertSee('<link rel="canonical" href="'.$siteUrl.'">', false)
             ->assertSee('<link rel="alternate" hreflang="ar" href="'.$siteUrl.'">', false)
             ->assertSee('<link rel="alternate" hreflang="en" href="'.$siteUrl.'/en">', false)
@@ -43,6 +46,8 @@ class PublicPageMetadataTest extends TestCase
 
         $this->get('/en?ref=ignored')
             ->assertOk()
+            ->assertSee('<title>Ibrahim Hasan | Technology Executive in Saudi Arabia</title>', false)
+            ->assertSee('Based in Saudi Arabia', false)
             ->assertSee('<link rel="canonical" href="'.$siteUrl.'/en">', false)
             ->assertSee('<link rel="alternate" hreflang="ar" href="'.$siteUrl.'">', false)
             ->assertSee('<meta property="og:locale" content="en_US">', false)
@@ -52,6 +57,8 @@ class PublicPageMetadataTest extends TestCase
 
     public function test_about_page_identifies_the_profile_as_its_main_entity(): void
     {
+        Setting::setValue('social_youtube', 'https://www.youtube.com/@unverified-profile', 'social');
+
         $siteUrl = rtrim((string) config('app.url'), '/');
         $response = $this->get('/about')->assertOk();
         $schema = $this->structuredData($response->getContent());
@@ -65,18 +72,30 @@ class PublicPageMetadataTest extends TestCase
         $this->assertIsArray($person);
         $this->assertSame($person['@id'], $profilePage['mainEntity']['@id']);
         $this->assertSame($siteUrl.'/about', $person['url']);
-        $this->assertSame('مهندس برمجيات وشريك تقني', $person['jobTitle']);
+        $this->assertSame('قائد تقني', $person['jobTitle']);
+        $this->assertStringContainsString('الرئيس التنفيذي لكود مومنتس', $person['description']);
+        $this->assertSame([
+            '@type' => 'Country',
+            'name' => 'المملكة العربية السعودية',
+        ], $person['homeLocation']);
         $this->assertContains('التحول الرقمي', $person['knowsAbout']);
         $this->assertContains((string) config('services.social.linkedin'), $person['sameAs']);
+        $this->assertNotContains('https://www.youtube.com/@unverified-profile', $person['sameAs']);
+        $this->assertNotContains('https://codemoments.com', $person['sameAs']);
+        $this->assertNotContains('https://fromscratch-solutions.com', $person['sameAs']);
         $this->assertArrayHasKey('https://fromscratch-solutions.com#organization', $organizations->all());
         $this->assertArrayHasKey('https://codemoments.com#organization', $organizations->all());
         $this->assertSame(
             $person['@id'],
             $organizations['https://fromscratch-solutions.com#organization']['founder']['@id'],
         );
+        $this->assertArrayNotHasKey(
+            'founder',
+            $organizations['https://codemoments.com#organization'],
+        );
         $this->assertSame([
-            ['@id' => 'https://fromscratch-solutions.com#organization'],
             ['@id' => 'https://codemoments.com#organization'],
+            ['@id' => 'https://fromscratch-solutions.com#organization'],
         ], $person['worksFor']);
 
         $englishSchema = $this->structuredData($this->get('/en/about')->assertOk()->getContent());
@@ -85,7 +104,27 @@ class PublicPageMetadataTest extends TestCase
         $this->assertIsArray($englishPerson);
         $this->assertSame($person['@id'], $englishPerson['@id']);
         $this->assertSame($person['url'], $englishPerson['url']);
-        $this->assertSame('Software Engineer & Technology Partner', $englishPerson['jobTitle']);
+        $this->assertSame('Technology Executive', $englishPerson['jobTitle']);
+        $this->assertStringContainsString('CEO of Code Moments', $englishPerson['description']);
+        $this->assertSame([
+            '@type' => 'Country',
+            'name' => 'Saudi Arabia',
+        ], $englishPerson['homeLocation']);
+
+        Setting::setValue('social_linkedin', 'https://www.linkedin.com/company/codemoments1', 'social');
+
+        $unverifiedSchema = $this->structuredData($this->get('/en/about')->assertOk()->getContent());
+        $unverifiedPerson = collect($unverifiedSchema['@graph'])->firstWhere('@type', 'Person');
+
+        $this->assertIsArray($unverifiedPerson);
+        $this->assertNotContains(
+            'https://www.linkedin.com/company/codemoments1',
+            $unverifiedPerson['sameAs'] ?? [],
+        );
+        $this->assertNotContains(
+            'https://sa.linkedin.com/in/i-hasan',
+            $unverifiedPerson['sameAs'] ?? [],
+        );
     }
 
     public function test_core_pages_expose_a_consistent_site_name_and_localized_breadcrumb_hierarchy(): void

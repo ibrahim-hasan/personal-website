@@ -76,6 +76,7 @@ final readonly class Article
     public function localized(string $locale, bool $includeBody = true): array
     {
         $minutes = $this->readMinutes[$locale] ?? $this->readMinutes['ar'];
+        $publicTopicKeys = ArticleTopicClusters::forTopicKeys($this->topicKeys);
         $body = $includeBody ? $this->translatedValue('body', $locale) : null;
         $bodyPresentation = ['html' => '', 'headings' => []];
 
@@ -129,10 +130,10 @@ final readonly class Article
             'image_caption' => $this->translatedString('image_caption', $locale),
             'read_minutes' => $minutes,
             'read_time' => Lang::choice('articles.reader.minutes', $minutes, ['count' => $minutes], $locale),
-            'topic_keys' => $this->topicKeys,
+            'topic_keys' => $publicTopicKeys,
             'topics' => array_map(
                 fn (string $topic): string => (string) Lang::get("articles.topics.{$topic}", [], $locale),
-                $this->topicKeys,
+                $publicTopicKeys,
             ),
             'featured' => $this->featured,
             'source_url' => $this->sourceUrl,

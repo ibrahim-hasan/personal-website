@@ -67,6 +67,8 @@ return [
 
     'timezone' => 'UTC',
 
+    'publication_timezone' => env('PUBLICATION_TIMEZONE', 'Asia/Riyadh'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

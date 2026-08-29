@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Models\Article;
+use App\Rules\AvailableArticleSlug;
 use App\Support\Editorial\ArticleBody;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -24,6 +26,9 @@ class UpdateEditorialArticleRequest extends FormRequest
      */
     public function rules(): array
     {
+        $routeArticle = $this->route('article');
+        $article = $routeArticle instanceof Article ? $routeArticle : null;
+        $ignoredArticleId = $article?->getKey();
         $validRichDocument = function (string $attribute, mixed $value, Closure $fail): void {
             if (! app(ArticleBody::class)->isValidDocument($value)) {
                 $fail("The {$attribute} field must be a valid rich-text document using supported article blocks.");
@@ -35,8 +40,22 @@ class UpdateEditorialArticleRequest extends FormRequest
             'title.ar' => ['required_with:title', 'string', 'max:180'],
             'title.en' => ['required_with:title', 'string', 'max:180'],
             'slug' => ['sometimes', 'array:ar,en'],
-            'slug.ar' => ['required_with:slug', 'string', 'max:180', 'regex:/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u', Rule::unique('articles', 'slug->ar')->ignore($this->route('article'))],
-            'slug.en' => ['required_with:slug', 'string', 'max:180', 'regex:/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u', Rule::unique('articles', 'slug->en')->ignore($this->route('article'))],
+            'slug.ar' => [
+                'required_with:slug',
+                'string',
+                'max:180',
+                'regex:/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u',
+                Rule::unique('articles', 'slug->ar')->ignore($article),
+                ...($ignoredArticleId !== null ? [new AvailableArticleSlug('ar', $ignoredArticleId)] : []),
+            ],
+            'slug.en' => [
+                'required_with:slug',
+                'string',
+                'max:180',
+                'regex:/^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u',
+                Rule::unique('articles', 'slug->en')->ignore($article),
+                ...($ignoredArticleId !== null ? [new AvailableArticleSlug('en', $ignoredArticleId)] : []),
+            ],
             'type' => ['sometimes', 'array:ar,en'],
             'type.ar' => ['required_with:type', 'string', 'max:80'],
             'type.en' => ['required_with:type', 'string', 'max:80'],

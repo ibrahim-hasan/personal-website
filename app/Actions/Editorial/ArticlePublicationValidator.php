@@ -4,6 +4,7 @@ namespace App\Actions\Editorial;
 
 use App\Models\Article;
 use App\Support\Editorial\ArticleBody;
+use App\Support\Editorial\ArticleTopicClusters;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
@@ -51,7 +52,8 @@ final class ArticlePublicationValidator
                 $violations[] = 'article.not_published';
             }
 
-            if ($article->published_at === null || $article->published_at->isFuture()) {
+            if ($article->published_at === null
+                || $article->published_at->toDateString() > Article::publicationToday()->toDateString()) {
                 $violations[] = 'article.not_available';
             }
 
@@ -94,6 +96,11 @@ final class ArticlePublicationValidator
 
         if (! is_array($article->topic_keys) || $article->topic_keys === []) {
             $violations[] = 'article.topics_missing';
+        } elseif (
+            ! ArticleTopicClusters::allRecognized($article->topic_keys)
+            && (! $requirePublicState || ! $article->is_published)
+        ) {
+            $violations[] = 'article.topics_unrecognized';
         }
 
         if (trim($article->imageUrl()) === '') {
@@ -165,6 +172,8 @@ final class ArticlePublicationValidator
 
         if ($article->topic_keys === [] || $article->topic_keys === null) {
             $violations[] = 'article.topics_missing';
+        } elseif (! is_array($article->topic_keys) || ! ArticleTopicClusters::allRecognized($article->topic_keys)) {
+            $violations[] = 'article.topics_unrecognized';
         }
 
         if (! $article->hasMedia(Article::IMAGE_COLLECTION)) {
@@ -209,6 +218,7 @@ final class ArticlePublicationValidator
 
         return match ($violation) {
             'article.topics_missing' => __('editorial_admin.readiness.violations.topics_missing'),
+            'article.topics_unrecognized' => __('editorial_admin.readiness.violations.topics_unrecognized'),
             'article.image_missing' => __('editorial_admin.readiness.violations.image_missing'),
             default => __('editorial_admin.readiness.violations.unknown'),
         };
@@ -227,6 +237,7 @@ final class ArticlePublicationValidator
                 str_ends_with($violation, '.body.image_not_owned') => __('editorial_admin.validation.publish_image_not_owned', [], $feedbackLocale),
                 str_ends_with($violation, '.body.image_alt_missing') => __('editorial_admin.validation.publish_image_alt_missing', [], $feedbackLocale),
                 $violation === 'article.topics_missing' => __('editorial_admin.validation.publish_topics_missing', [], $feedbackLocale),
+                $violation === 'article.topics_unrecognized' => __('editorial_admin.validation.publish_topics_unrecognized', [], $feedbackLocale),
                 $violation === 'article.image_missing' => __('editorial_admin.validation.publish_image_missing', [], $feedbackLocale),
                 default => null,
             };

@@ -181,10 +181,10 @@ class PortfolioAtlasTest extends TestCase
         $this->assertSame('Assessing the viability of AI use cases', $companies['independent-strategic-practice']['focus'][0]);
     }
 
-    public function test_from_scratch_precedes_code_moments_in_the_company_chapters(): void
+    public function test_code_moments_precedes_from_scratch_in_the_company_chapters(): void
     {
         $this->assertSame(
-            ['from-scratch', 'code-moments', 'independent-strategic-practice'],
+            ['code-moments', 'from-scratch', 'independent-strategic-practice'],
             array_column(PortfolioAtlas::companies(), 'id'),
         );
     }
@@ -245,10 +245,17 @@ class PortfolioAtlasTest extends TestCase
 
         $companies = collect(PortfolioAtlas::companies())->keyBy('id');
 
-        $this->assertSame('Founder & Chief Executive Officer', $companies['code-moments']['relationship']);
+        $this->assertSame('CEO', $companies['code-moments']['relationship']);
         $this->assertSame('From Scratch', $companies['from-scratch']['name']);
-        $this->assertSame('Co-founder & Chief Executive Officer', $companies['from-scratch']['relationship']);
+        $this->assertSame('Co-founder & CEO', $companies['from-scratch']['relationship']);
         $this->assertSame('Technical Expertise with Clients', $companies['independent-strategic-practice']['name']);
+
+        app()->setLocale('ar');
+
+        $arabicCompanies = collect(PortfolioAtlas::companies())->keyBy('id');
+
+        $this->assertSame('الرئيس التنفيذي', $arabicCompanies['code-moments']['relationship']);
+        $this->assertSame('الشريك المؤسس والرئيس التنفيذي', $arabicCompanies['from-scratch']['relationship']);
         foreach (['code-moments', 'from-scratch'] as $companyId) {
             foreach (['logo_on_light', 'logo_on_dark'] as $logoVariant) {
                 $logoPath = $companies[$companyId][$logoVariant];

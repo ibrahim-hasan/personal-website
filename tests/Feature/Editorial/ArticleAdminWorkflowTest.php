@@ -296,7 +296,7 @@ class ArticleAdminWorkflowTest extends TestCase
         $readyDraft->refresh();
 
         $this->assertTrue($readyDraft->is_published);
-        $this->assertTrue($readyDraft->published_at->isSameDay(today()));
+        $this->assertTrue($readyDraft->published_at->isSameDay(Article::publicationToday()));
         $this->assertSame(5, $readyDraft->editorial_revision);
         $this->assertSame('article.published', $readyDraft->revisionSnapshots()->sole()->action);
 

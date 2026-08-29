@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Throwable;
 
@@ -32,6 +33,11 @@ class ConsultationRequest extends Component
     public string $publicReference = '';
 
     public string $submissionToken = '';
+
+    #[Url(as: 'service', except: '')]
+    public mixed $serviceQuery = '';
+
+    public bool $serviceQueryHydrated = false;
 
     /**
      * Cloudflare Turnstile token. Populated from the widget's data-callback,
@@ -70,11 +76,7 @@ class ConsultationRequest extends Component
         }
 
         $serviceKey = (string) ($handoff['service'] ?? '');
-        $hasService = collect($this->availableServices())->contains(
-            fn (array $service): bool => $service['key'] === $serviceKey,
-        );
-
-        if ($hasService) {
+        if ($this->isAvailableService($serviceKey)) {
             $this->form->service = $serviceKey;
         }
 
@@ -87,6 +89,16 @@ class ConsultationRequest extends Component
         if ($context !== '') {
             $this->form->challenge = $context;
         }
+    }
+
+    public function booted(): void
+    {
+        if ($this->submitted || $this->serviceQueryHydrated) {
+            return;
+        }
+
+        $this->hydrateServiceFromQueryParameter();
+        $this->serviceQueryHydrated = true;
     }
 
     public function updated(string $property): void
@@ -187,6 +199,35 @@ class ConsultationRequest extends Component
                 $this->form->{$field} = $value;
             }
         }
+    }
+
+    private function hydrateServiceFromQueryParameter(): void
+    {
+        if (! is_string($this->serviceQuery)) {
+            $this->serviceQuery = '';
+
+            return;
+        }
+
+        $serviceKey = trim($this->serviceQuery);
+        $this->serviceQuery = $serviceKey;
+
+        if (! $this->isAvailableService($serviceKey)) {
+            $this->serviceQuery = '';
+
+            return;
+        }
+
+        if ($this->form->service !== '') {
+            return;
+        }
+
+        $this->form->service = $serviceKey;
+    }
+
+    private function isAvailableService(string $serviceKey): bool
+    {
+        return in_array($serviceKey, app(ConsultationRequestRules::class)->serviceKeys(), true);
     }
 
     private function standardAnalyticsErrorCategory(): string

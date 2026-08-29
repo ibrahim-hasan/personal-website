@@ -16,9 +16,26 @@
             'unavailable' => 'border-danger-200 bg-danger-50 text-danger-700 dark:border-danger-800 dark:bg-danger-950 dark:text-danger-300',
         ];
         $diagnosticStatusClass = fn (string $status): string => $diagnosticStatusClasses[$status] ?? $diagnosticStatusClasses['unavailable'];
+        $targetStatusClasses = [
+            'on_track' => $diagnosticStatusClasses['sufficient'],
+            'met' => $diagnosticStatusClasses['sufficient'],
+            'growth' => $diagnosticStatusClasses['sufficient'],
+            'maintained' => $diagnosticStatusClasses['sufficient'],
+            'tracking' => $diagnosticStatusClasses['sufficient'],
+            'partial' => $diagnosticStatusClasses['insufficient_sample'],
+            'insufficient_sample' => $diagnosticStatusClasses['insufficient_sample'],
+            'no_baseline' => $diagnosticStatusClasses['insufficient_sample'],
+            'directional' => $diagnosticStatusClasses['insufficient_sample'],
+            'needs_attention' => $diagnosticStatusClasses['issues_detected'],
+            'not_met' => $diagnosticStatusClasses['issues_detected'],
+            'declined' => $diagnosticStatusClasses['issues_detected'],
+            'unavailable' => 'border-gray-200 bg-gray-50 text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300',
+        ];
+        $targetStatusClass = fn (string $status): string => $targetStatusClasses[$status] ?? $targetStatusClasses['unavailable'];
         $qualityFlags = is_array($latestReport['quality']['flags'] ?? null) ? $latestReport['quality']['flags'] : [];
         $sampleFlags = array_values(array_filter($qualityFlags, fn (array $flag): bool => ! $this->isIndexingDiagnostic($flag)));
         $indexingFlags = array_values(array_filter($qualityFlags, fn (array $flag): bool => $this->isIndexingDiagnostic($flag)));
+        $targets = is_array($latestReport['targets'] ?? null) ? $latestReport['targets'] : [];
     @endphp
 
     <div class="space-y-8">
@@ -149,6 +166,152 @@
                     </dl>
                 </section>
             </div>
+
+            <x-filament::section icon="heroicon-o-chart-bar">
+                <x-slot name="heading">{{ __('admin.website_performance.targets.heading') }}</x-slot>
+                <x-slot name="description">{{ __('admin.website_performance.targets.description') }}</x-slot>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <span class="inline-flex rounded-full border px-3 py-1 text-sm font-medium {{ $targetStatusClass($targets['status'] ?? 'unavailable') }}">
+                        {{ $this->targetStatusLabel($targets['status'] ?? 'unavailable') }}
+                    </span>
+                    <p class="text-sm leading-6 text-gray-600 dark:text-gray-400">
+                        {{ __('admin.website_performance.targets.privacy_note') }}
+                    </p>
+                </div>
+
+                <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <article class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+                        <div class="flex items-start justify-between gap-3">
+                            <h3 class="font-medium text-gray-950 dark:text-white">{{ __('admin.website_performance.targets.query_groups.heading') }}</h3>
+                            <span class="inline-flex shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium {{ $targetStatusClass($targets['query_groups']['status'] ?? 'unavailable') }}">
+                                {{ $this->targetStatusLabel($targets['query_groups']['status'] ?? 'unavailable') }}
+                            </span>
+                        </div>
+                        <dl class="mt-4 space-y-3 text-sm">
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.query_groups.top_10') }}</dt>
+                                <dd class="font-semibold text-gray-950 dark:text-white">{{ $formatCount($targets['query_groups']['top_10_count'] ?? null) }} / {{ $formatCount($targets['query_groups']['top_10_goal'] ?? null) }}</dd>
+                            </div>
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.query_groups.additional_top_20') }}</dt>
+                                <dd class="font-semibold text-gray-950 dark:text-white">{{ $formatCount($targets['query_groups']['additional_top_20_count'] ?? null) }} / {{ $formatCount($targets['query_groups']['additional_top_20_goal'] ?? null) }}</dd>
+                            </div>
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.query_groups.wrong_page_impressions') }}</dt>
+                                <dd class="font-semibold text-gray-950 dark:text-white">{{ $formatCount($targets['query_groups']['wrong_page_impressions'] ?? null) }}</dd>
+                            </div>
+                        </dl>
+                        <p class="mt-4 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                            {{ __('admin.website_performance.targets.query_groups.threshold', ['value' => $formatCount($targets['query_groups']['minimum_impressions'] ?? null)]) }}
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+                        <div class="flex items-start justify-between gap-3">
+                            <h3 class="font-medium text-gray-950 dark:text-white">{{ __('admin.website_performance.targets.page_ctr.heading') }}</h3>
+                            <span class="inline-flex shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium {{ $targetStatusClass($targets['target_page_ctr']['status'] ?? 'unavailable') }}">
+                                {{ $this->targetStatusLabel($targets['target_page_ctr']['status'] ?? 'unavailable') }}
+                            </span>
+                        </div>
+                        <dl class="mt-4 space-y-3 text-sm">
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.page_ctr.meeting') }}</dt>
+                                <dd class="font-semibold text-gray-950 dark:text-white">{{ $formatCount($targets['target_page_ctr']['meeting_count'] ?? null) }} / {{ $formatCount($targets['target_page_ctr']['eligible_count'] ?? null) }}</dd>
+                            </div>
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.page_ctr.target') }}</dt>
+                                <dd class="font-semibold text-gray-950 dark:text-white">{{ $formatRate($targets['target_page_ctr']['target_ctr'] ?? null) }}</dd>
+                            </div>
+                        </dl>
+                        <p class="mt-4 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                            {{ __('admin.website_performance.targets.page_ctr.threshold', ['value' => $formatCount($targets['target_page_ctr']['minimum_impressions'] ?? null)]) }}
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+                        <div class="flex items-start justify-between gap-3">
+                            <h3 class="font-medium text-gray-950 dark:text-white">{{ __('admin.website_performance.targets.gcc_growth.heading') }}</h3>
+                            <span class="inline-flex shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium {{ $targetStatusClass($targets['saudi_gcc_non_brand']['status'] ?? 'unavailable') }}">
+                                {{ $this->targetStatusLabel($targets['saudi_gcc_non_brand']['status'] ?? 'unavailable') }}
+                            </span>
+                        </div>
+                        <dl class="mt-4 space-y-3 text-sm">
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.current_clicks') }}</dt>
+                                <dd class="font-semibold text-gray-950 dark:text-white">{{ $formatCount($targets['saudi_gcc_non_brand']['current']['clicks'] ?? null) }}</dd>
+                            </div>
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.previous_clicks') }}</dt>
+                                <dd class="font-semibold text-gray-950 dark:text-white">{{ $formatCount($targets['saudi_gcc_non_brand']['previous']['clicks'] ?? null) }}</dd>
+                            </div>
+                        </dl>
+                        <p class="mt-4 text-xs leading-5 text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.gcc_growth.description') }}</p>
+                    </article>
+
+                    <article class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+                        <div class="flex items-start justify-between gap-3">
+                            <h3 class="font-medium text-gray-950 dark:text-white">{{ __('admin.website_performance.targets.international_english.heading') }}</h3>
+                            <span class="inline-flex shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium {{ $targetStatusClass($targets['international_english']['status'] ?? 'unavailable') }}">
+                                {{ $this->targetStatusLabel($targets['international_english']['status'] ?? 'unavailable') }}
+                            </span>
+                        </div>
+                        <dl class="mt-4 space-y-3 text-sm">
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.current_clicks') }}</dt>
+                                <dd class="font-semibold text-gray-950 dark:text-white">{{ $formatCount($targets['international_english']['current']['clicks'] ?? null) }}</dd>
+                            </div>
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.previous_clicks') }}</dt>
+                                <dd class="font-semibold text-gray-950 dark:text-white">{{ $formatCount($targets['international_english']['previous']['clicks'] ?? null) }}</dd>
+                            </div>
+                        </dl>
+                        <p class="mt-4 text-xs leading-5 text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.international_english.description') }}</p>
+                    </article>
+                </div>
+
+                <div class="mt-4 grid gap-4 lg:grid-cols-2">
+                    <article class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h3 class="font-medium text-gray-950 dark:text-white">{{ __('admin.website_performance.targets.organic_consultations.heading') }}</h3>
+                                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ __('admin.website_performance.targets.organic_consultations.description') }}</p>
+                            </div>
+                            <span class="inline-flex shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium {{ $targetStatusClass($targets['organic_consultations']['status'] ?? 'unavailable') }}">
+                                {{ $this->targetStatusLabel($targets['organic_consultations']['status'] ?? 'unavailable') }}
+                            </span>
+                        </div>
+                        <dl class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.current_period') }}</dt>
+                                <dd class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">{{ $formatCount($targets['organic_consultations']['current']['total'] ?? null) }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.context_90d') }}</dt>
+                                <dd class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">{{ $formatCount($targets['organic_consultations']['context_90d']['total'] ?? null) }}</dd>
+                            </div>
+                        </dl>
+                    </article>
+
+                    <article class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+                        <h3 class="font-medium text-gray-950 dark:text-white">{{ __('admin.website_performance.targets.locale.heading') }}</h3>
+                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ __('admin.website_performance.targets.locale.description') }}</p>
+                        <dl class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                            @foreach (['ar', 'en'] as $locale)
+                                <div>
+                                    <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.website_performance.targets.locale.'.$locale) }}</dt>
+                                    <dd class="mt-1 font-semibold text-gray-950 dark:text-white">
+                                        {{ __('admin.website_performance.targets.locale.values', [
+                                            'clicks' => $formatCount($targets['locale_breakdown']['context_90d'][$locale]['clicks'] ?? null),
+                                            'impressions' => $formatCount($targets['locale_breakdown']['context_90d'][$locale]['impressions'] ?? null),
+                                        ]) }}
+                                    </dd>
+                                </div>
+                            @endforeach
+                        </dl>
+                    </article>
+                </div>
+            </x-filament::section>
 
             <x-filament::section icon="heroicon-o-circle-stack">
                 <x-slot name="heading">{{ __('admin.website_performance.sources.heading') }}</x-slot>

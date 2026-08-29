@@ -10,6 +10,7 @@ use Illuminate\Validation\ValidationException;
 class PublishEditorialArticle
 {
     public function __construct(
+        private readonly ArticlePublicationDate $publicationDate,
         private readonly ArticlePublicationValidator $publicationValidator,
         private readonly EditorialArticleRelations $relations,
     ) {}
@@ -23,12 +24,13 @@ class PublishEditorialArticle
             $article = $this->lockedArticle($article);
 
             $this->assertExpectedRevision($article, $expectedRevision, $feedbackLocale);
+            $this->assertDraft($article, $feedbackLocale);
             $this->publicationValidator->assertReadyToPublish($article, $feedbackLocale);
 
             $article->update([
                 'is_published' => true,
-                'published_at' => today(),
-                'modified_at' => today(),
+                'published_at' => $this->publicationDate->forPublication($article),
+                'modified_at' => Article::publicationToday(),
                 'editorial_revision' => $article->editorial_revision + 1,
             ]);
 
@@ -54,6 +56,17 @@ class PublishEditorialArticle
 
         throw ValidationException::withMessages([
             'article' => [__('editorial_admin.feedback.stale_edit', [], $feedbackLocale)],
+        ]);
+    }
+
+    private function assertDraft(Article $article, string $feedbackLocale): void
+    {
+        if (! $article->is_published) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'article' => [__('editorial_admin.feedback.invalid_publication_transition', [], $feedbackLocale)],
         ]);
     }
 }
