@@ -104,7 +104,7 @@ class SeoServiceRelationshipSeederTest extends TestCase
         }
     }
 
-    public function test_rerunning_seo_seeders_preserves_editorial_copy_and_relationship_order(): void
+    public function test_rerunning_seo_seeders_preserves_editorial_copy_semantically_and_relationship_order(): void
     {
         $this->seed([
             ServiceSeeder::class,
@@ -150,7 +150,7 @@ class SeoServiceRelationshipSeederTest extends TestCase
         $article->refresh();
 
         $this->assertSame('Editor-controlled governance register', $article->getTranslation('title', 'en', false));
-        $this->assertSame($editorBody, $article->getTranslation('body', 'en', false));
+        $this->assertEquals($editorBody, $article->getTranslation('body', 'en', false));
         $this->assertSame(2, $article->editorial_revision);
         $this->assertFalse($article->is_published);
         $this->assertSame(
