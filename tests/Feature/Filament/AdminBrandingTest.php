@@ -160,12 +160,15 @@ class AdminBrandingTest extends TestCase
         $this->assertStringContainsString('.admin-brand-lockup__wordmark--on-dark', $theme);
         $this->assertStringContainsString('.fi-ta-empty-state-content', $theme);
         $this->assertStringContainsString('.fi-ta-empty-state-description', $theme);
+        $this->assertStringContainsString('.fi-panel-admin .fi-ta-empty-state-icon-bg > .fi-icon', $theme);
+        $this->assertStringContainsString('color: var(--admin-violet-700);', $theme);
     }
 
     public function test_every_admin_resource_table_uses_a_contextual_empty_state(): void
     {
         $tables = [
             'articles' => 'app/Filament/Resources/Articles/Tables/ArticlesTable.php',
+            'athar_invitations' => 'app/Filament/Resources/AtharInvitations/Tables/AtharInvitationsTable.php',
             'comments' => 'app/Filament/Resources/Comments/Tables/CommentsTable.php',
             'contact_inquiries' => 'app/Filament/Resources/ContactInquiries/Tables/ContactInquiriesTable.php',
             'projects' => 'app/Filament/Resources/Projects/Tables/ProjectsTable.php',
