@@ -284,7 +284,7 @@ class PublicInteractionAccessibilityTest extends TestCase
             $css,
         );
         $this->assertMatchesRegularExpression(
-            '/\.about-teaser__portrait::before\s*\{[^}]*inset:\s*0;[^}]*opacity:\s*0\.34;[^}]*ibrahim-geometric-pattern\.svg[^}]*background-position:\s*center;/s',
+            '/\.about-teaser__portrait::before\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*0;[^}]*pointer-events:\s*none;[^}]*opacity:\s*0\.08;[^}]*background-image:\s*var\(--brand-pattern-white-image\)(?:,\s*var\(--brand-pattern-white-image\))+;[^}]*background-repeat:\s*no-repeat;/s',
             $css,
         );
         $this->assertStringNotContainsString('--portrait-rail', $css);
@@ -447,10 +447,11 @@ class PublicInteractionAccessibilityTest extends TestCase
             $css,
         );
         $this->assertStringNotContainsString('%3Ccircle', $css);
-        $this->assertGreaterThanOrEqual(
-            2,
-            substr_count($css, "url('../../public/images/brand/ibrahim-geometric-pattern.svg')"),
-        );
+        $this->assertStringContainsString("url('../../public/images/brand/ibrahim-pattern-ink-violet.svg')", $css);
+        $this->assertStringContainsString("url('../../public/images/brand/ibrahim-pattern-ink.svg')", $css);
+        $this->assertStringContainsString("url('../../public/images/brand/ibrahim-pattern-white.svg')", $css);
+        $this->assertStringNotContainsString('ibrahim-geometric-pattern.svg', $css);
+        $this->assertStringNotContainsString('ibrahim-mono-pattern.svg', $css);
         $this->assertStringNotContainsString("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640'", $css);
 
         $this->assertStringContainsString('frontEnhancementController?.abort()', $javascript);
@@ -477,6 +478,20 @@ class PublicInteractionAccessibilityTest extends TestCase
 
         $this->assertSame(2, substr_count($navbar, 'data-no-navigate'));
         $this->assertDoesNotMatchRegularExpression('/localized_current_url\([^)]*\)[^>]*wire:navigate/', $navbar);
+        $this->assertStringContainsString('ibrahim-wordmark-horizontal-on-light.svg', $navbar);
+        $this->assertStringContainsString('ibrahim-wordmark-horizontal-on-dark.svg', $navbar);
+        $this->assertStringContainsString('brand-mark__logo-image--on-light', $navbar);
+        $this->assertStringContainsString('brand-mark__logo-image--on-dark', $navbar);
+
+        foreach ([
+            'resources/views/components/partials/footer.blade.php',
+            'resources/views/components/layouts/athar.blade.php',
+        ] as $path) {
+            $brandSurface = $this->readProjectFile($path);
+
+            $this->assertStringContainsString('ibrahim-wordmark-horizontal-on-dark.svg', $brandSurface);
+            $this->assertStringContainsString('aria-label="{{ __(\'site.brand.home_aria\') }}"', $brandSurface);
+        }
     }
 
     public function test_service_and_article_relationship_arrows_remain_directional_in_rtl(): void

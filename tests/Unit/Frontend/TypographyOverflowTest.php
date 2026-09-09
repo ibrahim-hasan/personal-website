@@ -49,23 +49,125 @@ class TypographyOverflowTest extends TestCase
         );
     }
 
-    public function test_admin_wordmark_viewbox_contains_full_thmanyah_descenders(): void
+    public function test_supplied_brand_assets_preserve_their_surface_specific_geometry(): void
     {
-        $wordmark = file_get_contents(dirname(__DIR__, 3).'/public/images/brand/ibrahim-admin-wordmark.svg');
+        $brandRoot = dirname(__DIR__, 3).'/public/images/brand/';
 
-        $this->assertNotFalse($wordmark);
-        $this->assertStringContainsString('viewBox="0 0 5433 1380"', $wordmark);
-        $this->assertStringContainsString('preserveAspectRatio="xMidYMid meet"', $wordmark);
+        foreach ([
+            'ibrahim-wordmark-horizontal-on-dark.svg' => 'viewBox="0 0 474.44 151.68"',
+            'ibrahim-wordmark-horizontal-on-light.svg' => 'viewBox="0 0 474.44 151.68"',
+            'ibrahim-wordmark-stacked-on-dark.svg' => 'viewBox="0 0 222.9398 259.0214"',
+            'ibrahim-wordmark-stacked-on-light.svg' => 'viewBox="0 0 222.75 258.61"',
+            'ibrahim-pattern-ink-violet.svg' => 'viewBox="0 0 732.4688 780.8245"',
+            'ibrahim-pattern-ink.svg' => 'viewBox="0 0 732.4688 780.8245"',
+            'ibrahim-pattern-white.svg' => 'viewBox="0 0 732.4688 780.8245"',
+        ] as $asset => $viewBox) {
+            $contents = file_get_contents($brandRoot.$asset);
+
+            $this->assertNotFalse($contents);
+            $this->assertStringContainsString($viewBox, $contents);
+        }
+
+        $this->assertStringContainsString('#745aa5', (string) file_get_contents($brandRoot.'ibrahim-pattern-ink-violet.svg'));
+        $this->assertStringContainsString('#14151d', (string) file_get_contents($brandRoot.'ibrahim-pattern-ink.svg'));
+        $this->assertStringContainsString('#fff', (string) file_get_contents($brandRoot.'ibrahim-pattern-white.svg'));
     }
 
-    public function test_brand_pattern_preserves_the_source_vector_geometry(): void
+    public function test_navigation_wordmark_has_a_confident_responsive_scale(): void
     {
-        $pattern = file_get_contents(dirname(__DIR__, 3).'/public/images/brand/ibrahim-geometric-pattern.svg');
+        $css = file_get_contents(dirname(__DIR__, 3).'/resources/css/app.css');
 
-        $this->assertNotFalse($pattern);
-        $this->assertStringContainsString('viewBox="0 0 9228.16 4323.66"', $pattern);
-        $this->assertStringContainsString('preserveAspectRatio="xMidYMid slice"', $pattern);
-        $this->assertSame(768, substr_count($pattern, '<path '));
+        $this->assertNotFalse($css);
+        $this->assertSame(1, preg_match(
+            '/\.site-nav \.brand-mark__logo-image\s*\{[^}]*inline-size:\s*clamp\(([\d.]+)rem,\s*[\d.]+vw,\s*([\d.]+)rem\);[^}]*block-size:\s*auto;/s',
+            $css,
+            $wordmarkScale,
+        ));
+        $previousMaximumInlineSize = 3.1 * 474.44 / 151.68;
+
+        $this->assertGreaterThan($previousMaximumInlineSize, (float) $wordmarkScale[1], 'The complete wordmark must be larger than its previous size.');
+        $this->assertGreaterThanOrEqual((float) $wordmarkScale[1], (float) $wordmarkScale[2]);
+    }
+
+    public function test_brand_patterns_are_controlled_and_low_contrast(): void
+    {
+        $publicCss = file_get_contents(dirname(__DIR__, 3).'/resources/css/app.css');
+        $adminCss = file_get_contents(dirname(__DIR__, 3).'/resources/css/filament/admin/ibrahim.css');
+
+        $this->assertNotFalse($publicCss);
+        $this->assertNotFalse($adminCss);
+        $this->assertStringContainsString("url('../../public/images/brand/ibrahim-pattern-ink-violet.svg')", $publicCss);
+        $this->assertStringContainsString("url('../../public/images/brand/ibrahim-pattern-ink.svg')", $publicCss);
+        $this->assertStringContainsString("url('../../public/images/brand/ibrahim-pattern-white.svg')", $publicCss);
+        $this->assertStringContainsString("url('../../../../public/images/brand/ibrahim-pattern-white.svg')", $adminCss);
+        $this->assertStringNotContainsString('ibrahim-geometric-pattern.svg', $publicCss);
+        $this->assertStringNotContainsString('ibrahim-geometric-pattern.svg', $adminCss);
+        $this->assertStringNotContainsString('ibrahim-mono-pattern.svg', $publicCss);
+        $this->assertStringNotContainsString('ibrahim-mono-pattern.svg', $adminCss);
+        $this->assertStringNotContainsString('background-repeat: repeat-y;', $publicCss);
+        $this->assertStringNotContainsString('background-repeat: repeat-y;', $adminCss);
+
+        preg_match_all('/--brand-pattern-opacity:\s*([\d.]+);/', $publicCss, $patternOpacities);
+        $this->assertNotEmpty($patternOpacities[1]);
+
+        foreach ($patternOpacities[1] as $opacity) {
+            $this->assertGreaterThanOrEqual(0.05, (float) $opacity);
+            $this->assertLessThanOrEqual(0.1, (float) $opacity);
+        }
+
+        foreach (['.precision-hero::before', '.decision-room__rail::before', '.athar-shell::after', '.about-teaser__portrait::before', '.about-journey::before', '.site-footer__cta::before', '.atlas-section::before'] as $selector) {
+            $this->assertPatternOpacityInRange($selector, $publicCss);
+        }
+
+        $this->assertPatternOpacityInRange('.fi-auth-shell__context::before', $adminCss);
+        $this->assertSame(1, preg_match(
+            '/\.precision-hero::before,\s*[^{}]+\{([^}]+)\}/s',
+            $publicCss,
+            $sharedPattern,
+        ));
+        $this->assertSparsePatternLayers($sharedPattern[1]);
+        $this->assertMatchesRegularExpression('/background-repeat:\s*no-repeat(?:\s*,\s*no-repeat)*;/', $sharedPattern[1]);
+        $this->assertSame(1, preg_match(
+            '/@media \(max-width:\s*[\d.]+rem\)\s*\{\s*\.precision-hero::before,\s*[^{}]+\{([^}]+)\}/s',
+            $publicCss,
+            $mobilePattern,
+        ));
+        $this->assertSparsePatternLayers($mobilePattern[1]);
+        $this->assertSame(1, preg_match(
+            '/\.decision-room__rail::before\s*\{([^}]+)\}/s',
+            $publicCss,
+            $decisionPattern,
+        ));
+        $this->assertSparsePatternLayers($decisionPattern[1]);
+        $this->assertMatchesRegularExpression('/background-repeat:\s*no-repeat(?:\s*,\s*no-repeat)*;/', $decisionPattern[1]);
+        $this->assertMatchesRegularExpression(
+            '/\.decision-room__rail\s*\{[^}]*min-width:\s*0;/s',
+            $publicCss,
+        );
+        $this->assertStringNotContainsString('.experience-trajectory)::after', $publicCss);
+        $this->assertStringNotContainsString('.experience-trajectory) > .site-container', $publicCss);
+    }
+
+    private function assertPatternOpacityInRange(string $selector, string $css): void
+    {
+        $this->assertSame(1, preg_match(
+            '/'.preg_quote($selector, '/').'\s*\{[^}]*opacity:\s*([\d.]+);/s',
+            $css,
+            $patternOpacity,
+        ), "{$selector} must have a visible, low-contrast pattern.");
+        $this->assertGreaterThanOrEqual(0.05, (float) $patternOpacity[1]);
+        $this->assertLessThanOrEqual(0.1, (float) $patternOpacity[1]);
+    }
+
+    private function assertSparsePatternLayers(string $rule): void
+    {
+        $this->assertSame(1, preg_match('/background-image:\s*([^;]+);/s', $rule, $backgroundImages));
+        $layerCount = preg_match_all('/var\(--brand-pattern-[\w-]+(?:,\s*var\(--brand-pattern-[\w-]+\))?\)/', $backgroundImages[1]);
+
+        $this->assertGreaterThanOrEqual(2, $layerCount, 'A pattern composition must contain multiple deliberate motifs.');
+        $this->assertLessThanOrEqual(5, $layerCount, 'A pattern composition must retain generous space between motifs.');
+        $this->assertDoesNotMatchRegularExpression('/background-repeat:\s*repeat(?:-x|-y)?\b/', $rule);
+        $this->assertDoesNotMatchRegularExpression('/(?:display|content|background-image):\s*none;/', $rule);
     }
 
     public function test_writing_sidebar_scales_display_type_to_its_column(): void

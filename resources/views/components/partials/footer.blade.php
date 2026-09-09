@@ -33,9 +33,25 @@
 
     <div class="site-container grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-[1.1fr_0.65fr_1fr]">
         <div>
-            <a href="{{ localized_route('home') }}" wire:navigate class="brand-mark brand-mark--footer">
-                <span class="brand-mark__name">{{ __('site.brand.name') }}</span>
-                <span class="brand-mark__signal" aria-hidden="true"></span>
+            <a href="{{ localized_route('home') }}" wire:navigate class="brand-mark brand-mark--footer" aria-label="{{ __('site.brand.home_aria') }}">
+                <span class="brand-mark__logo" aria-hidden="true">
+                    <img
+                        class="brand-mark__logo-image brand-mark__logo-image--on-light"
+                        src="{{ asset('images/brand/ibrahim-wordmark-horizontal-on-light.svg') }}"
+                        width="474"
+                        height="152"
+                        alt=""
+                        decoding="async"
+                    >
+                    <img
+                        class="brand-mark__logo-image brand-mark__logo-image--on-dark"
+                        src="{{ asset('images/brand/ibrahim-wordmark-horizontal-on-dark.svg') }}"
+                        width="474"
+                        height="152"
+                        alt=""
+                        decoding="async"
+                    >
+                </span>
             </a>
             <p class="mt-6 max-w-md text-base leading-7 text-canvas/70">
                 {{ __('site.footer.body') }}

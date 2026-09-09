@@ -21,8 +21,24 @@
 >
     <div class="site-container flex h-20 items-center justify-between gap-6">
         <a href="{{ localized_route('home') }}" wire:navigate class="brand-mark" aria-label="{{ __('site.brand.home_aria') }}">
-            <span class="brand-mark__name">{{ __('site.brand.name') }}</span>
-            <span class="brand-mark__signal" aria-hidden="true"></span>
+            <span class="brand-mark__logo" aria-hidden="true">
+                <img
+                    class="brand-mark__logo-image brand-mark__logo-image--on-light"
+                    src="{{ asset('images/brand/ibrahim-wordmark-horizontal-on-light.svg') }}"
+                    width="474"
+                    height="152"
+                    alt=""
+                    decoding="async"
+                >
+                <img
+                    class="brand-mark__logo-image brand-mark__logo-image--on-dark"
+                    src="{{ asset('images/brand/ibrahim-wordmark-horizontal-on-dark.svg') }}"
+                    width="474"
+                    height="152"
+                    alt=""
+                    decoding="async"
+                >
+            </span>
         </a>
 
         <nav class="site-nav__desktop-links" aria-label="{{ __('site.nav.main') }}">

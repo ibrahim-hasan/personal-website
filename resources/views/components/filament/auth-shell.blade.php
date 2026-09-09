@@ -6,7 +6,7 @@
 <div {{ $attributes->class(['fi-auth-shell']) }}>
     <section class="fi-auth-shell__context" aria-labelledby="admin-auth-context-title">
         <div class="fi-auth-shell__context-content">
-            @include('filament.partials.auth-brand-logo')
+            @include('filament.partials.auth-brand-logo', ['variant' => 'stacked-on-dark'])
 
             <h1 id="admin-auth-context-title" class="fi-auth-shell__title">{{ __('admin.brand.title') }}</h1>
             <p class="fi-auth-shell__subtitle">{{ __('admin.brand.subtitle') }}</p>

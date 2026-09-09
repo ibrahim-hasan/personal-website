@@ -16,8 +16,24 @@
     <main class="athar-frame">
         <div class="athar-topline">
             <a class="brand-mark athar-mark" href="{{ localized_route('home') }}" aria-label="{{ __('site.brand.home_aria') }}">
-                <span class="brand-mark__name">{{ __('site.brand.name') }}</span>
-                <span class="brand-mark__signal" aria-hidden="true"></span>
+                <span class="brand-mark__logo" aria-hidden="true">
+                    <img
+                        class="brand-mark__logo-image brand-mark__logo-image--on-light"
+                        src="{{ asset('images/brand/ibrahim-wordmark-horizontal-on-light.svg') }}"
+                        width="474"
+                        height="152"
+                        alt=""
+                        decoding="async"
+                    >
+                    <img
+                        class="brand-mark__logo-image brand-mark__logo-image--on-dark"
+                        src="{{ asset('images/brand/ibrahim-wordmark-horizontal-on-dark.svg') }}"
+                        width="474"
+                        height="152"
+                        alt=""
+                        decoding="async"
+                    >
+                </span>
             </a>
             @if (request()->route('token'))
                 @php

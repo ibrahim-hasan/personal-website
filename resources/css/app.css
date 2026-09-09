@@ -120,6 +120,10 @@
     --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
     --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --brand-pattern-ink-violet-image: url('../../public/images/brand/ibrahim-pattern-ink-violet.svg');
+    --brand-pattern-ink-image: url('../../public/images/brand/ibrahim-pattern-ink.svg');
+    --brand-pattern-white-image: url('../../public/images/brand/ibrahim-pattern-white.svg');
+    --brand-pattern-size: clamp(7.75rem, 20vw, 13rem);
     font-family: var(--family-body);
     font-synthesis: none;
     font-kerning: normal;
@@ -619,31 +623,49 @@ html[dir='rtl'] .signal-label__line {
 .brand-mark {
     display: inline-flex;
     align-items: center;
-    gap: 0.7rem;
-    color: currentColor;
+    line-height: 0;
+    text-decoration: none;
 }
 
-.brand-mark__name {
-    font-family: var(--family-display);
-    font-size: 1.35rem;
-    font-weight: 900;
-    line-height: 1;
+.brand-mark:focus-visible {
+    outline: 2px solid var(--color-violet-600);
+    outline-offset: 0.4rem;
 }
 
-html[dir='rtl'] .brand-mark__name {
-    font-size: 1.65rem;
+.brand-mark__logo {
+    display: grid;
+    flex: none;
 }
 
-.brand-mark__signal {
-    width: 0.46rem;
-    height: 0.46rem;
-    rotate: 45deg;
-    background: var(--color-violet-500);
+.brand-mark__logo-image {
+    grid-area: 1 / 1;
+    display: block;
+    max-inline-size: min(13.5rem, 60vw);
+    block-size: clamp(2.6rem, 3vw, 3rem);
+    inline-size: auto;
+    object-fit: contain;
+    transition: opacity 180ms ease;
 }
 
-.site-nav--open .brand-mark__signal,
-.brand-mark--footer .brand-mark__signal {
-    background: var(--color-violet-200);
+.site-nav .brand-mark__logo-image {
+    inline-size: clamp(11rem, 24.5vw, 12.25rem);
+    block-size: auto;
+}
+
+.brand-mark__logo-image--on-dark {
+    opacity: 0;
+}
+
+.site-nav--open .brand-mark__logo-image--on-light,
+.brand-mark--footer .brand-mark__logo-image--on-light,
+.athar-mark .brand-mark__logo-image--on-light {
+    opacity: 0;
+}
+
+.site-nav--open .brand-mark__logo-image--on-dark,
+.brand-mark--footer .brand-mark__logo-image--on-dark,
+.athar-mark .brand-mark__logo-image--on-dark {
+    opacity: 1;
 }
 
 .nav-link {
@@ -990,6 +1012,18 @@ html[dir='rtl'] .brand-mark__name {
     background: var(--color-canvas);
 }
 
+.precision-hero::before {
+    --brand-pattern-image: var(--brand-pattern-ink-image);
+    --brand-pattern-positions: left -5rem top 10%, right -4rem top 3%, left 16% bottom -4rem;
+    --brand-pattern-mobile-positions: left -3rem top 1rem, right -3rem bottom -2rem;
+    position: absolute;
+    z-index: 0;
+    inset: 6rem 0 0;
+    pointer-events: none;
+    content: '';
+    opacity: 0.05;
+}
+
 .precision-hero__halo {
     position: absolute;
     z-index: -1;
@@ -1329,11 +1363,11 @@ html[dir='rtl'] .precision-stage__finale strong {
 
 /* Athar private correspondence surfaces */
 .athar-shell { --family-ui: 'Thmanyah Sans', 'Noto Sans', Arial, ui-sans-serif, system-ui, sans-serif; --family-body: 'Thmanyah Text', 'Noto Sans', Arial, ui-sans-serif, system-ui, sans-serif; --family-display: 'Thmanyah Display', 'Noto Sans', Arial, ui-sans-serif, system-ui, sans-serif; min-height: 100vh; position: relative; isolation: isolate; background: var(--color-canvas); color: var(--color-ink); font-family: var(--family-body); font-feature-settings: "ss01" 1, "kern" 1; }
-.athar-shell::before { position: fixed; z-index: -1; inset-block-start: 0; inset-inline: 0; height: 17rem; background-color: var(--color-ink); background-image: linear-gradient(color-mix(in oklab, var(--color-ink) 82%, transparent), color-mix(in oklab, var(--color-ink) 82%, transparent)), url('../../public/images/brand/ibrahim-geometric-pattern.svg'); background-position: center; background-size: auto, min(82rem, 100%) auto; content: ''; }
+.athar-shell::before { position: fixed; z-index: -2; inset-block-start: 0; inset-inline: 0; height: 17rem; background: var(--color-ink); content: ''; }
+.athar-shell::after { position: fixed; z-index: -1; inset-block-start: 0; inset-inline: 0; height: 17rem; pointer-events: none; content: ''; opacity: 0.07; background-image: var(--brand-pattern-white-image), var(--brand-pattern-white-image); background-repeat: no-repeat; background-position: left -3rem top -3rem, right -3rem bottom -3rem; background-size: clamp(7rem, 14vw, 11rem) auto; }
 .athar-frame { width: min(100% - 2rem, 86rem); margin-inline: auto; padding-block: 1.25rem 5rem; }
-.athar-mark { color: var(--color-canvas-bright); text-decoration: none; }
-.athar-mark .brand-mark__signal { background: var(--color-violet-500); }
-.athar-mark__wordmark { display: block; width: auto; height: 2.35rem; max-width: min(12rem, 34vw); object-fit: contain; object-position: center; }
+.athar-mark { text-decoration: none; }
+.athar-mark .brand-mark__logo-image { max-inline-size: min(12rem, 34vw); block-size: 2.35rem; }
 .athar-topline { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 3.25rem; }
 .athar-language { display: flex; align-items: center; gap: .9rem; font-family: var(--family-ui); font-size: .78rem; }
 .athar-language a { min-height: 2.75rem; display: inline-flex; align-items: center; color: var(--color-canvas-bright); text-underline-offset: .25em; }
@@ -1467,7 +1501,7 @@ html[dir='rtl'] .precision-stage__finale strong {
 .athar-proof--about .athar-proof__stage { background: var(--color-ink); }
 .athar-proof--about .athar-proof__stage::before { border-radius: 50%; transform: none; inset-block-start: -18%; inset-inline-end: -5%; }
 .athar-proof--about .athar-proof__stage::after { border-radius: 50%; transform: none; inset-block-end: -1.75rem; }
-@media (max-width: 640px) { .athar-shell::before { height: 13rem; } .athar-frame { width: min(100% - 1.5rem, 86rem); } .athar-panel { margin-top: 4rem; padding: 1.5rem; } .athar-panel h1 { max-width: 12ch; font-size: clamp(2.65rem, 13vw, 4rem); } .athar-topline { align-items: flex-start; } .athar-mark { gap: .45rem; } .athar-mark__wordmark { height: 1.9rem; max-width: 9.5rem; } .athar-language { gap: .6rem; } .athar-actions { align-items: stretch; flex-direction: column; } .athar-actions .athar-button, .athar-actions .athar-link-button { width: 100%; } .athar-proof__inner { grid-template-columns: 1fr; gap: 2rem; } .athar-proof__intro .display-section { max-width: 12ch; } .athar-proof__count { margin-top: 2rem; } .athar-proof__stage { min-height: 25rem; padding: 2rem 1.5rem; } .athar-proof__slide-leave { inset: 2rem 1.5rem; } .athar-proof__slide blockquote { font-size: 1.8rem; } .athar-final-preview { min-height: 15rem; padding: 1.5rem; } .athar-final-preview__quote { font-size: 1.35rem; } }
+@media (max-width: 640px) { .athar-shell::before, .athar-shell::after { height: 13rem; } .athar-frame { width: min(100% - 1.5rem, 86rem); } .athar-panel { margin-top: 4rem; padding: 1.5rem; } .athar-panel h1 { max-width: 12ch; font-size: clamp(2.65rem, 13vw, 4rem); } .athar-topline { align-items: flex-start; } .athar-mark .brand-mark__logo-image { block-size: 1.9rem; max-inline-size: 9.5rem; } .athar-language { gap: .6rem; } .athar-actions { align-items: stretch; flex-direction: column; } .athar-actions .athar-button, .athar-actions .athar-link-button { width: 100%; } .athar-proof__inner { grid-template-columns: 1fr; gap: 2rem; } .athar-proof__intro .display-section { max-width: 12ch; } .athar-proof__count { margin-top: 2rem; } .athar-proof__stage { min-height: 25rem; padding: 2rem 1.5rem; } .athar-proof__slide-leave { inset: 2rem 1.5rem; } .athar-proof__slide blockquote { font-size: 1.8rem; } .athar-final-preview { min-height: 15rem; padding: 1.5rem; } .athar-final-preview__quote { font-size: 1.35rem; } }
 
 @media (prefers-reduced-motion: reduce) { .athar-shell *, .athar-shell *::before, .athar-shell *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
 
@@ -1579,41 +1613,23 @@ html[dir='rtl'] .precision-stage__finale strong {
 
 /* Narrative sections */
 .manifesto-section {
-    --brand-pattern-opacity: 0.2;
-    --brand-pattern-width: min(68%, 68rem);
+    --brand-pattern-opacity: 0.08;
     position: relative;
     isolation: isolate;
     overflow: visible;
     background: var(--color-violet-600);
 }
 
-:where(.manifesto-section, .page-intro--violet, .experience-trajectory)::after {
+:where(.manifesto-section, .page-intro--violet)::after {
     position: absolute;
     z-index: 0;
-    inset-block: 0;
-    right: 0;
-    left: auto;
-    width: var(--brand-pattern-width, min(52%, 54rem));
+    inset: 0;
     pointer-events: none;
     content: '';
-    opacity: var(--brand-pattern-opacity, 0.1);
-    background-image: url('../../public/images/brand/ibrahim-geometric-pattern.svg');
-    background-repeat: repeat-y;
-    background-position: right center;
-    background-size: auto 100%;
-    -webkit-mask-image: linear-gradient(-90deg, black 0%, black 58%, transparent 100%);
-    mask-image: linear-gradient(-90deg, black 0%, black 58%, transparent 100%);
+    opacity: var(--brand-pattern-opacity, 0.08);
 }
 
-html[dir='rtl'] :where(.manifesto-section, .page-intro--violet, .experience-trajectory)::after {
-    right: auto;
-    left: 0;
-    background-position: left center;
-    -webkit-mask-image: linear-gradient(90deg, black 0%, black 58%, transparent 100%);
-    mask-image: linear-gradient(90deg, black 0%, black 58%, transparent 100%);
-}
-
-:where(.manifesto-section, .page-intro--violet, .experience-trajectory) > .site-container {
+:where(.manifesto-section, .page-intro--violet) > .site-container {
     position: relative;
     z-index: 1;
 }
@@ -1954,8 +1970,7 @@ html[dir='rtl'] .writing-audio-feature__copy strong {
 }
 
 .page-intro--violet {
-    --brand-pattern-opacity: 0.14;
-    --brand-pattern-width: min(58%, 56rem);
+    --brand-pattern-opacity: 0.07;
     isolation: isolate;
     background: var(--color-violet-700);
 }
@@ -4307,16 +4322,12 @@ html[data-reader-mode] .article-prose {
 }
 
 .atlas-section::before {
+    --brand-pattern-image: var(--brand-pattern-ink-violet-image);
     position: absolute;
     inset: 0;
     pointer-events: none;
     content: '';
-    opacity: 0.32;
-    background-image:
-        linear-gradient(color-mix(in oklab, var(--color-ink) 9%, transparent) 1px, transparent 1px),
-        linear-gradient(90deg, color-mix(in oklab, var(--color-ink) 9%, transparent) 1px, transparent 1px);
-    background-size: 4rem 4rem;
-    mask-image: linear-gradient(to bottom, transparent, black 16%, black 84%, transparent);
+    opacity: 0.065;
 }
 
 .atlas-intro {
@@ -4512,8 +4523,6 @@ html[dir='rtl'] .atlas-chapter h3 {
 }
 
 .experience-trajectory {
-    --brand-pattern-opacity: 0.075;
-    --brand-pattern-width: min(46%, 48rem);
     position: relative;
     isolation: isolate;
     padding-block-start: clamp(6rem, 12vw, 11rem);
@@ -4782,6 +4791,21 @@ html[dir='rtl'] .project-atlas__copy h3 {
 
 .decision-room__rail {
     min-width: 0;
+    position: relative;
+    isolation: isolate;
+}
+
+.decision-room__rail::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    pointer-events: none;
+    content: '';
+    opacity: 0.065;
+    background-image: var(--brand-pattern-white-image), var(--brand-pattern-white-image);
+    background-repeat: no-repeat;
+    background-size: clamp(6.5rem, 15vw, 8rem) auto;
+    background-position: left -3rem top -2rem, right -3rem bottom -2.5rem;
 }
 
 .decision-room__title {
@@ -4828,11 +4852,11 @@ html[lang='en'] .decision-room__title {
     inset: 0;
     pointer-events: none;
     content: '';
-    opacity: 0.34;
-    background-image: url('../../public/images/brand/ibrahim-geometric-pattern.svg');
+    opacity: 0.08;
+    background-image: var(--brand-pattern-white-image), var(--brand-pattern-white-image);
     background-repeat: no-repeat;
-    background-position: center;
-    background-size: auto 116%;
+    background-position: left -3rem top -3rem, right -3rem bottom -3rem;
+    background-size: clamp(8rem, 20vw, 12rem) auto;
 }
 
 .about-teaser__portrait::after {
@@ -4881,10 +4905,7 @@ html[dir='rtl'] .about-intro__portrait {
     inset: 0;
     pointer-events: none;
     content: '';
-    opacity: 0.055;
-    background-image: url('../../public/images/brand/ibrahim-geometric-pattern.svg');
-    background-position: center;
-    background-size: auto 132%;
+    opacity: 0.06;
 }
 
 .about-journey__grid {
@@ -5737,27 +5758,62 @@ html[dir='rtl'] .reader-account-nav__link::after {
 
 .site-footer__cta::before {
     position: absolute;
-    inset-block: 0;
-    right: 0;
-    left: auto;
-    width: min(62%, 64rem);
+    inset: 0;
     pointer-events: none;
     content: '';
-    opacity: 0.17;
-    background-image: url('../../public/images/brand/ibrahim-geometric-pattern.svg');
-    background-repeat: no-repeat;
-    background-position: right center;
-    background-size: auto 118%;
-    -webkit-mask-image: linear-gradient(-90deg, black 0%, black 56%, transparent 100%);
-    mask-image: linear-gradient(-90deg, black 0%, black 56%, transparent 100%);
+    opacity: 0.08;
 }
 
-html[dir='rtl'] .site-footer__cta::before {
-    right: auto;
-    left: 0;
-    background-position: left center;
-    -webkit-mask-image: linear-gradient(90deg, black 0%, black 56%, transparent 100%);
-    mask-image: linear-gradient(90deg, black 0%, black 56%, transparent 100%);
+/* Repeat the supplied unit at a few fixed edges; the reading field stays open. */
+.precision-hero::before,
+.manifesto-section::after,
+.page-intro--violet::after,
+.atlas-section::before,
+.about-journey::before,
+.site-footer__cta::before {
+    background-image:
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image));
+    background-repeat: no-repeat;
+    background-size: var(--brand-pattern-size) auto;
+    background-position: var(--brand-pattern-positions, left -3rem top -3rem, right -3rem top -5rem, left 12% bottom -4rem);
+}
+
+@media (min-width: 30rem) and (max-width: 63.99rem) {
+    .precision-hero::before {
+        --brand-pattern-positions: left -5rem top 10%, right -4rem top -4rem, left 16% bottom -4rem;
+    }
+}
+
+@media (min-width: 64rem) {
+    .manifesto-section::after,
+    .page-intro--violet::after,
+    .atlas-section::before,
+    .about-journey::before,
+    .site-footer__cta::before {
+        background-image:
+            var(--brand-pattern-image, var(--brand-pattern-white-image)),
+            var(--brand-pattern-image, var(--brand-pattern-white-image)),
+            var(--brand-pattern-image, var(--brand-pattern-white-image)),
+            var(--brand-pattern-image, var(--brand-pattern-white-image)),
+            var(--brand-pattern-image, var(--brand-pattern-white-image));
+        background-position: left -4rem top -4rem, 53% -6rem, right -3rem top 24%, left 8% bottom -3rem, right 18% bottom -6rem;
+    }
+}
+
+@media (max-width: 29.99rem) {
+    .precision-hero::before,
+    .manifesto-section::after,
+    .page-intro--violet::after,
+    .atlas-section::before,
+    .about-journey::before,
+    .site-footer__cta::before {
+        background-image:
+            var(--brand-pattern-image, var(--brand-pattern-white-image)),
+            var(--brand-pattern-image, var(--brand-pattern-white-image));
+        background-position: var(--brand-pattern-mobile-positions, left -3rem top -2.5rem, right -3rem bottom -3rem);
+    }
 }
 
 .site-footer__cta > .site-container {

@@ -27,9 +27,17 @@ class AdminBrandingTest extends TestCase
             ->assertSee(__('admin.brand.owner'))
             ->assertSee('لوحة تحكم')
             ->assertDontSee('لوحة تحكم موقع إبراهيم حسن')
-            ->assertSee('ibrahim-admin-wordmark.svg', escape: false)
+            ->assertSee('ibrahim-wordmark-stacked-on-dark.svg', escape: false)
             ->assertDontSee('manage-layers-section-bg.svg', escape: false)
             ->assertDontSee('logo-dark.svg', escape: false);
+
+        $brandPartial = file_get_contents(resource_path('views/filament/partials/auth-brand-logo.blade.php'));
+
+        $this->assertNotFalse($brandPartial);
+        $this->assertStringContainsString('ibrahim-wordmark-horizontal-on-light.svg', $brandPartial);
+        $this->assertStringContainsString('ibrahim-wordmark-horizontal-on-dark.svg', $brandPartial);
+        $this->assertStringContainsString('ibrahim-wordmark-stacked-on-dark.svg', $brandPartial);
+        $this->assertStringNotContainsString('ibrahim-admin-wordmark.svg', $brandPartial);
     }
 
     public function test_password_recovery_uses_the_same_admin_shell(): void
@@ -65,9 +73,15 @@ class AdminBrandingTest extends TestCase
         $this->assertStringContainsString('--font-family: "Agt Rafeeq Sans"', $theme);
         $this->assertStringNotContainsString('GhroobArabic', $theme);
         $this->assertStringNotContainsString('font-size: 14px;', $theme);
-        $this->assertStringContainsString("url('../../../../public/images/brand/ibrahim-geometric-pattern.svg')", $theme);
+        $this->assertStringContainsString("url('../../../../public/images/brand/ibrahim-pattern-white.svg')", $theme);
+        $this->assertStringNotContainsString('ibrahim-geometric-pattern.svg', $theme);
+        $this->assertStringNotContainsString('ibrahim-mono-pattern.svg', $theme);
         $this->assertMatchesRegularExpression(
             '/\.fi-auth-shell__context\s*\{[^}]*background:\s*var\(--admin-nav-bg\);/s',
+            $theme,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.fi-auth-shell__context::before\s*\{[^}]*opacity:\s*0\.08;[^}]*background-repeat:\s*no-repeat;/s',
             $theme,
         );
         $this->assertDoesNotMatchRegularExpression('/\.fi-panel-admin\s+\*\s*\{[^}]*font-family/s', $theme);
@@ -142,6 +156,8 @@ class AdminBrandingTest extends TestCase
         $this->assertStringContainsString('.fi-section:not(.fi-section-not-contained)', $theme);
         $this->assertStringContainsString('.fi-wi-stats-overview .fi-section-not-contained', $theme);
         $this->assertStringContainsString('.fi-topbar .admin-brand-lockup__wordmark', $theme);
+        $this->assertStringContainsString('.admin-brand-lockup__wordmark--on-light', $theme);
+        $this->assertStringContainsString('.admin-brand-lockup__wordmark--on-dark', $theme);
         $this->assertStringContainsString('.fi-ta-empty-state-content', $theme);
         $this->assertStringContainsString('.fi-ta-empty-state-description', $theme);
     }

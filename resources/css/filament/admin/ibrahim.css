@@ -98,6 +98,7 @@
     --admin-nav-text: oklch(0.94 0.008 292);
     --admin-nav-text-muted: oklch(0.72 0.02 292);
     --admin-nav-icon: oklch(0.78 0.045 296);
+    --admin-pattern-white-image: url('../../../../public/images/brand/ibrahim-pattern-white.svg');
 }
 
 .dark {
@@ -441,28 +442,42 @@ html[dir='rtl'] .fi-panel-admin :is(
 
 .admin-brand-lockup {
     min-width: 0;
-    display: inline-flex;
+    display: grid;
+    place-items: center;
     align-items: center;
     line-height: 0;
 }
 
 .admin-brand-lockup__wordmark {
-    width: clamp(9rem, 12vw, 11.5rem);
-    height: auto;
+    grid-area: 1 / 1;
+    max-inline-size: min(12rem, 52vw);
+    block-size: 3rem;
+    inline-size: auto;
     display: block;
+    object-fit: contain;
+    transition: opacity 180ms ease;
 }
 
-.fi-panel-admin .fi-topbar .admin-brand-lockup__wordmark {
-    filter: brightness(0) saturate(100%) invert(10%) sepia(11%) saturate(1331%) hue-rotate(207deg) brightness(93%) contrast(96%);
+.admin-brand-lockup__wordmark--on-light {
+    opacity: 0;
 }
 
-.dark .fi-panel-admin .fi-topbar .admin-brand-lockup__wordmark,
-.fi-auth-shell__context .admin-brand-lockup__wordmark {
-    filter: none;
+.fi-panel-admin .fi-topbar .admin-brand-lockup__wordmark--on-light {
+    opacity: 1;
 }
 
-.fi-auth-shell__context .admin-brand-lockup__wordmark {
-    width: clamp(10.5rem, 16vw, 13rem);
+.fi-panel-admin .fi-topbar .admin-brand-lockup__wordmark--on-dark,
+.dark .fi-panel-admin .fi-topbar .admin-brand-lockup__wordmark--on-light {
+    opacity: 0;
+}
+
+.dark .fi-panel-admin .fi-topbar .admin-brand-lockup__wordmark--on-dark {
+    opacity: 1;
+}
+
+.admin-brand-lockup--stacked .admin-brand-lockup__wordmark--stacked {
+    max-inline-size: min(11rem, 44vw);
+    block-size: clamp(7.5rem, 11vw, 9.5rem);
 }
 
 .fi-auth-shell {
@@ -519,27 +534,14 @@ html[dir='rtl'] .fi-panel-admin :is(
 .fi-auth-shell__context::before {
     position: absolute;
     z-index: 0;
-    inset-block: 0;
-    right: 0;
-    left: auto;
-    width: min(72%, 44rem);
+    inset: 0;
     pointer-events: none;
     content: '';
-    opacity: 0.11;
-    background-image: url('../../../../public/images/brand/ibrahim-geometric-pattern.svg');
-    background-repeat: repeat-y;
-    background-position: right center;
-    background-size: auto 100%;
-    -webkit-mask-image: linear-gradient(-90deg, black 0%, black 54%, transparent 100%);
-    mask-image: linear-gradient(-90deg, black 0%, black 54%, transparent 100%);
-}
-
-html[dir='rtl'] .fi-auth-shell__context::before {
-    right: auto;
-    left: 0;
-    background-position: left center;
-    -webkit-mask-image: linear-gradient(90deg, black 0%, black 54%, transparent 100%);
-    mask-image: linear-gradient(90deg, black 0%, black 54%, transparent 100%);
+    opacity: 0.08;
+    background-image: var(--admin-pattern-white-image), var(--admin-pattern-white-image), var(--admin-pattern-white-image);
+    background-repeat: no-repeat;
+    background-position: left -2.5rem top -3rem, right -3rem top 45%, left 15% bottom -3rem;
+    background-size: clamp(7rem, 15vw, 10rem) auto;
 }
 
 .fi-auth-shell__context-content {
