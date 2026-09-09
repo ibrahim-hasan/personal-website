@@ -536,6 +536,14 @@ return [
             'heading' => 'No Athar invitations yet',
             'description' => 'Create a private invitation for someone who shared a working relationship with you, then shape their note into an endorsement and send it to them for approval before publishing.',
         ],
+        'athar_publication_versions' => [
+            'heading' => 'No publication versions yet',
+            'description' => 'Publication versions prepared for this invitation will appear here, including their status and any publishing or withdrawal date.',
+        ],
+        'athar_publication_consent_events' => [
+            'heading' => 'No publication consent events yet',
+            'description' => 'Publication approvals, withdrawals, and restorations for this invitation will appear here.',
+        ],
     ],
     'permissions' => [
         'actions' => [

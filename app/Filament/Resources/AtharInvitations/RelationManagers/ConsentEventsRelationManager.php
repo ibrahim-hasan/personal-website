@@ -5,6 +5,7 @@ namespace App\Filament\Resources\AtharInvitations\RelationManagers;
 use App\Enums\AtharConsentEventType;
 use App\Enums\AtharIdentityDisplay;
 use App\Enums\AtharPlacement;
+use App\Support\AdminTableEmptyState;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -21,7 +22,7 @@ class ConsentEventsRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
-        return $table
+        return AdminTableEmptyState::apply($table, 'athar_publication_consent_events', 'heroicon-o-shield-check')
             ->defaultSort('occurred_at', 'desc')
             ->columns([
                 TextColumn::make('event_type')

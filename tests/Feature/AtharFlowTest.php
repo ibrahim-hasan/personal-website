@@ -111,7 +111,7 @@ class AtharFlowTest extends TestCase
             ->assertDontSee('name="email"', false);
         $this->assertStringContainsString('maxlength="350"', $response->getContent());
         $this->assertStringContainsString('id="freeform"', $response->getContent());
-        $this->assertStringContainsString('dir="auto"', $response->getContent());
+        $this->assertStringContainsString('required autofocus dir="ltr" :dir="textDirection"', $response->getContent());
         $this->post(route('en.athar.submit', ['token' => $token]), ['freeform' => 'A thoughtful note about the work.'])->assertRedirect();
         $this->get(route('en.athar.show', ['token' => $token, 'choose' => '1']))
             ->assertOk()
@@ -396,6 +396,22 @@ class AtharFlowTest extends TestCase
             'status' => 'awaiting_approval',
         ]);
         Notification::assertNothingSent();
+    }
+
+    public function test_an_empty_arabic_reflection_textarea_starts_right_to_left(): void
+    {
+        app()->setLocale('ar');
+
+        $created = app(CreateAtharInvitation::class)->handle(User::factory()->create(), [
+            'send_email' => false,
+            'preferred_locale' => 'ar',
+            'placement' => AtharPlacement::About,
+        ]);
+
+        $this->get(route('athar.show', ['token' => $created['token']]))
+            ->assertOk()
+            ->assertSee(__('athar.reflection.note_placeholder'))
+            ->assertSee('required autofocus dir="rtl" :dir="textDirection"', false);
     }
 
     public function test_saving_a_private_draft_persists_it_for_the_current_invitation_after_redirect(): void

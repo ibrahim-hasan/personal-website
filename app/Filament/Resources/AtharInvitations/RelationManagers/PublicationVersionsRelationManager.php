@@ -8,6 +8,7 @@ use App\Enums\AtharIdentityDisplay;
 use App\Enums\AtharPlacement;
 use App\Enums\AtharPublicationOrigin;
 use App\Enums\AtharPublicationStatus;
+use App\Support\AdminTableEmptyState;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -26,7 +27,7 @@ class PublicationVersionsRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
-        return $table
+        return AdminTableEmptyState::apply($table, 'athar_publication_versions', 'heroicon-o-document-text')
             ->defaultSort('version', 'desc')
             ->columns([
                 TextColumn::make('version')

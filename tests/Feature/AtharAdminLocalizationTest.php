@@ -11,6 +11,9 @@ use App\Enums\AtharPublicationStatus;
 use App\Enums\AtharRelationship;
 use App\Filament\Resources\AtharInvitations\AtharInvitationResource;
 use App\Filament\Resources\AtharInvitations\Pages\ListAtharInvitations;
+use App\Filament\Resources\AtharInvitations\Pages\ViewAtharInvitation;
+use App\Filament\Resources\AtharInvitations\RelationManagers\ConsentEventsRelationManager;
+use App\Filament\Resources\AtharInvitations\RelationManagers\PublicationVersionsRelationManager;
 use App\Models\AtharContribution;
 use App\Models\AtharInvitation;
 use App\Models\Role;
@@ -62,6 +65,11 @@ class AtharAdminLocalizationTest extends TestCase
             foreach (AtharIdentityDisplay::cases() as $state) {
                 $this->assertTranslated("admin.athar.identity_display.{$state->value}", $state->label());
             }
+
+            foreach (['athar_publication_versions', 'athar_publication_consent_events'] as $emptyState) {
+                $this->assertTranslated("admin.empty_states.{$emptyState}.heading", __("admin.empty_states.{$emptyState}.heading"));
+                $this->assertTranslated("admin.empty_states.{$emptyState}.description", __("admin.empty_states.{$emptyState}.description"));
+            }
         }
     }
 
@@ -102,6 +110,35 @@ class AtharAdminLocalizationTest extends TestCase
             ->assertDontSee('/athar/', false)
             ->assertDontSee(__('admin.sections.athar_private'))
             ->assertDontSee('admin.fields.email');
+    }
+
+    public function test_athar_relation_manager_empty_states_are_localized(): void
+    {
+        $this->seed([PermissionSeeder::class, RoleSeeder::class]);
+
+        foreach (['ar', 'en'] as $locale) {
+            app()->setLocale($locale);
+
+            $admin = User::factory()->create(['locale_preference' => $locale]);
+            $admin->assignRole('super_admin');
+            $invitation = AtharInvitation::factory()->create(['created_by' => $admin]);
+
+            $this->bootAdminPanel();
+
+            foreach ([
+                PublicationVersionsRelationManager::class => 'athar_publication_versions',
+                ConsentEventsRelationManager::class => 'athar_publication_consent_events',
+            ] as $relationManager => $emptyState) {
+                Livewire::actingAs($admin)
+                    ->test($relationManager, [
+                        'ownerRecord' => $invitation,
+                        'pageClass' => ViewAtharInvitation::class,
+                    ])
+                    ->loadTable()
+                    ->assertSee(__("admin.empty_states.{$emptyState}.heading"))
+                    ->assertSee(__("admin.empty_states.{$emptyState}.description"));
+            }
+        }
     }
 
     public function test_the_share_link_is_only_visible_to_users_who_can_send_an_invitation(): void
