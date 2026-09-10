@@ -1014,8 +1014,19 @@ html[dir='rtl'] .signal-label__line {
 
 .precision-hero::before {
     --brand-pattern-image: var(--brand-pattern-ink-image);
-    --brand-pattern-positions: left -5rem top 10%, right -4rem top 3%, left 16% bottom -4rem;
-    --brand-pattern-mobile-positions: left -3rem top 1rem, right -3rem bottom -2rem;
+    --brand-pattern-images:
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image));
+    --brand-pattern-sizes:
+        clamp(8.5rem, 15vw, 12rem) auto,
+        clamp(5.25rem, 8vw, 7.25rem) auto,
+        clamp(9.5rem, 17vw, 13rem) auto;
+    --brand-pattern-positions: left -5.5rem top 9%, right -3.5rem top 18%, left 18% bottom -5.5rem;
+    --brand-pattern-mobile-sizes:
+        clamp(6.75rem, 28vw, 8.5rem) auto,
+        clamp(4.5rem, 18vw, 5.75rem) auto;
+    --brand-pattern-mobile-positions: left -3.75rem top 1.5rem, right -2.75rem bottom -3.25rem;
     position: absolute;
     z-index: 0;
     inset: 6rem 0 0;
@@ -1614,6 +1625,19 @@ html[dir='rtl'] .precision-stage__finale strong {
 /* Narrative sections */
 .manifesto-section {
     --brand-pattern-opacity: 0.08;
+    --brand-pattern-images:
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image));
+    --brand-pattern-sizes:
+        clamp(11rem, 19vw, 15rem) auto,
+        clamp(5.5rem, 8vw, 7.5rem) auto,
+        clamp(8rem, 14vw, 11rem) auto;
+    --brand-pattern-positions: left -7rem top -6rem, right 22% top -6.5rem, left 12% bottom -7.5rem;
+    --brand-pattern-mobile-sizes:
+        clamp(7.5rem, 28vw, 9rem) auto,
+        clamp(5rem, 18vw, 6.5rem) auto;
+    --brand-pattern-mobile-positions: left -4.5rem top -3.5rem, right 12% bottom -4.5rem;
     position: relative;
     isolation: isolate;
     overflow: visible;
@@ -1971,6 +1995,19 @@ html[dir='rtl'] .writing-audio-feature__copy strong {
 
 .page-intro--violet {
     --brand-pattern-opacity: 0.07;
+    --brand-pattern-images:
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image));
+    --brand-pattern-sizes:
+        clamp(10.5rem, 18vw, 14.5rem) auto,
+        clamp(6rem, 9vw, 8.25rem) auto,
+        clamp(8.5rem, 15vw, 12rem) auto;
+    --brand-pattern-positions: right -7.5rem top -6.5rem, left -5.5rem top 38%, right 14% bottom -7.5rem;
+    --brand-pattern-mobile-sizes:
+        clamp(7rem, 26vw, 8.5rem) auto,
+        clamp(5rem, 18vw, 6.5rem) auto;
+    --brand-pattern-mobile-positions: right -4.25rem top -3.5rem, left -3rem bottom -4.5rem;
     isolation: isolate;
     background: var(--color-violet-700);
 }
@@ -4323,6 +4360,17 @@ html[data-reader-mode] .article-prose {
 
 .atlas-section::before {
     --brand-pattern-image: var(--brand-pattern-ink-violet-image);
+    --brand-pattern-images:
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image));
+    --brand-pattern-sizes:
+        clamp(11rem, 20vw, 16rem) auto,
+        clamp(12.5rem, 22vw, 17rem) auto;
+    --brand-pattern-positions: left -8rem top 46%, right -8rem bottom -8rem;
+    --brand-pattern-mobile-sizes:
+        clamp(7rem, 26vw, 8.5rem) auto,
+        clamp(8.5rem, 31vw, 10.5rem) auto;
+    --brand-pattern-mobile-positions: left -4.5rem top 40%, right -4.75rem bottom -5.25rem;
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -4894,6 +4942,19 @@ html[dir='rtl'] .about-intro__portrait {
 }
 
 .about-journey {
+    --brand-pattern-images:
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image));
+    --brand-pattern-sizes:
+        clamp(11rem, 19vw, 15rem) auto,
+        clamp(7rem, 11vw, 9.5rem) auto,
+        clamp(8rem, 14vw, 11.5rem) auto;
+    --brand-pattern-positions: right -7.5rem top -7rem, left -4.5rem top 52%, right 16% bottom -8rem;
+    --brand-pattern-mobile-sizes:
+        clamp(7rem, 27vw, 8.5rem) auto,
+        clamp(5rem, 18vw, 6.25rem) auto;
+    --brand-pattern-mobile-positions: right -4rem top -4rem, left -3.25rem bottom -4rem;
     position: relative;
     overflow: hidden;
     padding-block: clamp(5rem, 9vw, 8rem);
@@ -5750,6 +5811,17 @@ html[dir='rtl'] .reader-account-nav__link::after {
 }
 
 .site-footer__cta {
+    --brand-pattern-images:
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image));
+    --brand-pattern-sizes:
+        clamp(10.5rem, 18vw, 14.5rem) auto,
+        clamp(6rem, 9vw, 8rem) auto;
+    --brand-pattern-positions: left -7rem bottom -7rem, right 18% top -6rem;
+    --brand-pattern-mobile-sizes:
+        clamp(7rem, 27vw, 8.5rem) auto,
+        clamp(4.75rem, 18vw, 6rem) auto;
+    --brand-pattern-mobile-positions: left -4rem bottom -4rem, right 18% top -3.5rem;
     position: relative;
     overflow: visible;
     border-bottom: 1px solid color-mix(in oklab, var(--color-canvas) 13%, transparent);
@@ -5764,42 +5836,17 @@ html[dir='rtl'] .reader-account-nav__link::after {
     opacity: 0.08;
 }
 
-/* Repeat the supplied unit at a few fixed edges; the reading field stays open. */
+/* The renderer stays shared; each surface supplies its own restrained composition. */
 .precision-hero::before,
 .manifesto-section::after,
 .page-intro--violet::after,
 .atlas-section::before,
 .about-journey::before,
 .site-footer__cta::before {
-    background-image:
-        var(--brand-pattern-image, var(--brand-pattern-white-image)),
-        var(--brand-pattern-image, var(--brand-pattern-white-image)),
-        var(--brand-pattern-image, var(--brand-pattern-white-image));
+    background-image: var(--brand-pattern-images);
     background-repeat: no-repeat;
-    background-size: var(--brand-pattern-size) auto;
-    background-position: var(--brand-pattern-positions, left -3rem top -3rem, right -3rem top -5rem, left 12% bottom -4rem);
-}
-
-@media (min-width: 30rem) and (max-width: 63.99rem) {
-    .precision-hero::before {
-        --brand-pattern-positions: left -5rem top 10%, right -4rem top -4rem, left 16% bottom -4rem;
-    }
-}
-
-@media (min-width: 64rem) {
-    .manifesto-section::after,
-    .page-intro--violet::after,
-    .atlas-section::before,
-    .about-journey::before,
-    .site-footer__cta::before {
-        background-image:
-            var(--brand-pattern-image, var(--brand-pattern-white-image)),
-            var(--brand-pattern-image, var(--brand-pattern-white-image)),
-            var(--brand-pattern-image, var(--brand-pattern-white-image)),
-            var(--brand-pattern-image, var(--brand-pattern-white-image)),
-            var(--brand-pattern-image, var(--brand-pattern-white-image));
-        background-position: left -4rem top -4rem, 53% -6rem, right -3rem top 24%, left 8% bottom -3rem, right 18% bottom -6rem;
-    }
+    background-size: var(--brand-pattern-sizes, var(--brand-pattern-size) auto);
+    background-position: var(--brand-pattern-positions);
 }
 
 @media (max-width: 29.99rem) {
@@ -5810,9 +5857,11 @@ html[dir='rtl'] .reader-account-nav__link::after {
     .about-journey::before,
     .site-footer__cta::before {
         background-image:
-            var(--brand-pattern-image, var(--brand-pattern-white-image)),
-            var(--brand-pattern-image, var(--brand-pattern-white-image));
-        background-position: var(--brand-pattern-mobile-positions, left -3rem top -2.5rem, right -3rem bottom -3rem);
+            var(--brand-pattern-mobile-images,
+                var(--brand-pattern-image, var(--brand-pattern-white-image)),
+                var(--brand-pattern-image, var(--brand-pattern-white-image)));
+        background-size: var(--brand-pattern-mobile-sizes, var(--brand-pattern-size) auto);
+        background-position: var(--brand-pattern-mobile-positions);
     }
 }
 

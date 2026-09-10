@@ -125,14 +125,14 @@ class TypographyOverflowTest extends TestCase
             $publicCss,
             $sharedPattern,
         ));
-        $this->assertSparsePatternLayers($sharedPattern[1]);
+        $this->assertMatchesRegularExpression('/background-image:\s*var\(--brand-pattern-images\);/', $sharedPattern[1]);
         $this->assertMatchesRegularExpression('/background-repeat:\s*no-repeat(?:\s*,\s*no-repeat)*;/', $sharedPattern[1]);
         $this->assertSame(1, preg_match(
             '/@media \(max-width:\s*[\d.]+rem\)\s*\{\s*\.precision-hero::before,\s*[^{}]+\{([^}]+)\}/s',
             $publicCss,
             $mobilePattern,
         ));
-        $this->assertSparsePatternLayers($mobilePattern[1]);
+        $this->assertMatchesRegularExpression('/background-image:\s*var\(--brand-pattern-mobile-images,/', $mobilePattern[1]);
         $this->assertSame(1, preg_match(
             '/\.decision-room__rail::before\s*\{([^}]+)\}/s',
             $publicCss,
@@ -146,6 +146,47 @@ class TypographyOverflowTest extends TestCase
         );
         $this->assertStringNotContainsString('.experience-trajectory)::after', $publicCss);
         $this->assertStringNotContainsString('.experience-trajectory) > .site-container', $publicCss);
+    }
+
+    public function test_brand_pattern_compositions_are_surface_specific(): void
+    {
+        $css = file_get_contents(dirname(__DIR__, 3).'/resources/css/app.css');
+
+        $this->assertNotFalse($css);
+
+        $desktopCompositions = [];
+        $mobileCompositions = [];
+
+        foreach ([
+            '.precision-hero::before',
+            '.manifesto-section',
+            '.page-intro--violet',
+            '.atlas-section::before',
+            '.about-journey',
+            '.site-footer__cta',
+        ] as $selector) {
+            $this->assertSame(1, preg_match(
+                '/'.preg_quote($selector, '/').'\s*\{([^}]+)\}/s',
+                $css,
+                $surfaceRule,
+            ));
+            $this->assertSame(1, preg_match('/--brand-pattern-images:\s*([^;]+);/s', $surfaceRule[1], $images));
+            $this->assertSame(1, preg_match('/--brand-pattern-sizes:\s*([^;]+);/s', $surfaceRule[1], $sizes));
+            $this->assertSame(1, preg_match('/--brand-pattern-positions:\s*([^;]+);/s', $surfaceRule[1], $positions));
+            $this->assertSame(1, preg_match('/--brand-pattern-mobile-sizes:\s*([^;]+);/s', $surfaceRule[1], $mobileSizes));
+            $this->assertSame(1, preg_match('/--brand-pattern-mobile-positions:\s*([^;]+);/s', $surfaceRule[1], $mobilePositions));
+
+            $layerCount = substr_count($images[1], 'var(--brand-pattern-image,');
+
+            $this->assertGreaterThanOrEqual(2, $layerCount, "{$selector} must keep the pattern sparse.");
+            $this->assertLessThanOrEqual(3, $layerCount, "{$selector} must keep the pattern sparse.");
+
+            $desktopCompositions[] = trim($positions[1]).'|'.trim($sizes[1]);
+            $mobileCompositions[] = trim($mobilePositions[1]).'|'.trim($mobileSizes[1]);
+        }
+
+        $this->assertSame(count($desktopCompositions), count(array_unique($desktopCompositions)));
+        $this->assertSame(count($mobileCompositions), count(array_unique($mobileCompositions)));
     }
 
     private function assertPatternOpacityInRange(string $selector, string $css): void
