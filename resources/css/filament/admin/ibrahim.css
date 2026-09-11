@@ -292,48 +292,50 @@ html[dir='rtl'] .fi-panel-admin :is(
 }
 
 .fi-panel-admin .fi-ta-empty-state {
-    min-height: 18rem;
+    min-height: 14rem;
     display: grid;
     place-items: center;
-    padding: clamp(2.5rem, 6vw, 4.5rem) 1.5rem;
+    padding: 3rem 1.5rem;
     border-block-start: 1px solid var(--admin-border);
-    background:
-        radial-gradient(circle at 50% 20%, color-mix(in oklab, var(--admin-violet-100) 48%, transparent), transparent 48%),
-        var(--admin-surface);
+    background: var(--admin-surface);
 }
 
 .fi-panel-admin .fi-ta-empty-state-content {
     width: min(100%, 32rem);
-    gap: 0.75rem;
+    gap: 0.5rem;
     text-align: center;
 }
 
 .fi-panel-admin .fi-ta-empty-state-icon-bg {
-    width: 4.5rem;
-    height: 4.5rem;
-    margin-block-end: 0.35rem;
-    border: 1px solid color-mix(in oklab, var(--admin-violet-500) 28%, var(--admin-border));
-    border-radius: 1rem;
-    background: color-mix(in oklab, var(--admin-violet-100) 72%, var(--admin-surface));
-    color: var(--admin-violet-700);
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    margin-block-end: 0.5rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--admin-ink-muted);
     box-shadow: none;
 }
 
 .fi-panel-admin .fi-ta-empty-state-icon-bg > .fi-icon {
-    width: 1.75rem;
-    height: 1.75rem;
-    color: var(--admin-violet-700);
+    width: 2rem;
+    height: 2rem;
+    color: var(--admin-ink-muted);
 }
 
 .fi-panel-admin .fi-ta-empty-state-heading {
     color: var(--admin-ink);
-    font-size: 1.2rem;
-    font-weight: 800;
+    font-size: 1rem;
+    font-weight: 600;
     line-height: 1.45;
 }
 
 .fi-panel-admin .fi-ta-empty-state-description {
     max-width: 36rem;
+    margin-block-start: 0;
     color: var(--admin-ink-muted);
     font-size: 0.925rem;
     line-height: 1.75;
