@@ -1624,24 +1624,37 @@ html[dir='rtl'] .precision-stage__finale strong {
 
 /* Narrative sections */
 .manifesto-section {
-    --brand-pattern-opacity: 0.08;
+    --brand-pattern-image: var(--brand-pattern-white-image);
+    --brand-pattern-opacity: 0.075;
     --brand-pattern-images:
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
         var(--brand-pattern-image, var(--brand-pattern-white-image)),
         var(--brand-pattern-image, var(--brand-pattern-white-image)),
         var(--brand-pattern-image, var(--brand-pattern-white-image));
     --brand-pattern-sizes:
-        clamp(11rem, 19vw, 15rem) auto,
-        clamp(5.5rem, 8vw, 7.5rem) auto,
-        clamp(8rem, 14vw, 11rem) auto;
-    --brand-pattern-positions: left -7rem top -6rem, right 22% top -6.5rem, left 12% bottom -7.5rem;
+        clamp(8.5rem, 14vw, 12rem) auto,
+        clamp(7.5rem, 12vw, 10rem) auto,
+        clamp(8rem, 13vw, 11rem) auto,
+        clamp(8rem, 12vw, 10.5rem) auto;
+    --brand-pattern-positions: left 1.5rem top 38%, left 45% top -2.5rem, right -2.5rem top -2rem, left 27% bottom -4.25rem;
+    --brand-pattern-mobile-images:
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image)),
+        var(--brand-pattern-image, var(--brand-pattern-white-image));
     --brand-pattern-mobile-sizes:
-        clamp(7.5rem, 28vw, 9rem) auto,
-        clamp(5rem, 18vw, 6.5rem) auto;
-    --brand-pattern-mobile-positions: left -4.5rem top -3.5rem, right 12% bottom -4.5rem;
+        6.5rem auto,
+        5.75rem auto,
+        7rem auto;
+    --brand-pattern-mobile-positions: left -2.5rem top -1.5rem, right -2rem top -0.5rem, left 30% bottom -3.25rem;
     position: relative;
     isolation: isolate;
     overflow: visible;
     background: var(--color-violet-600);
+}
+
+html[dir='ltr'] .manifesto-section {
+    --brand-pattern-positions: right 1.5rem top 38%, right 45% top -2.5rem, left -2.5rem top -2rem, right 27% bottom -4.25rem;
+    --brand-pattern-mobile-positions: right -2.5rem top -1.5rem, left -2rem top -0.5rem, right 30% bottom -3.25rem;
 }
 
 :where(.manifesto-section, .page-intro--violet)::after {
@@ -5861,6 +5874,14 @@ html[dir='rtl'] .reader-account-nav__link::after {
                 var(--brand-pattern-image, var(--brand-pattern-white-image)),
                 var(--brand-pattern-image, var(--brand-pattern-white-image)));
         background-size: var(--brand-pattern-mobile-sizes, var(--brand-pattern-size) auto);
+        background-position: var(--brand-pattern-mobile-positions);
+    }
+}
+
+@media (max-width: 47.999rem) {
+    .manifesto-section::after {
+        background-image: var(--brand-pattern-mobile-images);
+        background-size: var(--brand-pattern-mobile-sizes);
         background-position: var(--brand-pattern-mobile-positions);
     }
 }

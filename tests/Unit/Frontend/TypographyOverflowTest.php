@@ -179,7 +179,16 @@ class TypographyOverflowTest extends TestCase
             $layerCount = substr_count($images[1], 'var(--brand-pattern-image,');
 
             $this->assertGreaterThanOrEqual(2, $layerCount, "{$selector} must keep the pattern sparse.");
-            $this->assertLessThanOrEqual(3, $layerCount, "{$selector} must keep the pattern sparse.");
+            $this->assertLessThanOrEqual(4, $layerCount, "{$selector} must keep the pattern sparse.");
+
+            if ($selector === '.manifesto-section') {
+                $this->assertSame(4, $layerCount, 'The manifesto should use four visible, deliberate motifs on wider screens.');
+                $this->assertSame(4, substr_count($positions[1], ',') + 1);
+                $this->assertSame(1, preg_match('/--brand-pattern-mobile-images:\s*([^;]+);/s', $surfaceRule[1], $mobileImages));
+                $this->assertSame(3, substr_count($mobileImages[1], 'var(--brand-pattern-image,'));
+                $this->assertSame(3, $this->countTopLevelCssValues($mobileSizes[1]));
+                $this->assertSame(3, $this->countTopLevelCssValues($mobilePositions[1]));
+            }
 
             $desktopCompositions[] = trim($positions[1]).'|'.trim($sizes[1]);
             $mobileCompositions[] = trim($mobilePositions[1]).'|'.trim($mobileSizes[1]);
@@ -209,6 +218,28 @@ class TypographyOverflowTest extends TestCase
         $this->assertLessThanOrEqual(5, $layerCount, 'A pattern composition must retain generous space between motifs.');
         $this->assertDoesNotMatchRegularExpression('/background-repeat:\s*repeat(?:-x|-y)?\b/', $rule);
         $this->assertDoesNotMatchRegularExpression('/(?:display|content|background-image):\s*none;/', $rule);
+    }
+
+    private function countTopLevelCssValues(string $value): int
+    {
+        $parenthesisDepth = 0;
+        $valueCount = 1;
+
+        foreach (str_split($value) as $character) {
+            if ($character === '(') {
+                $parenthesisDepth++;
+            }
+
+            if ($character === ')') {
+                $parenthesisDepth--;
+            }
+
+            if ($character === ',' && $parenthesisDepth === 0) {
+                $valueCount++;
+            }
+        }
+
+        return $valueCount;
     }
 
     public function test_writing_sidebar_scales_display_type_to_its_column(): void
