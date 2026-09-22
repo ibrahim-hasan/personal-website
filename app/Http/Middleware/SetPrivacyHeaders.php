@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\AgentRafeeqConfiguration;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Vite;
@@ -107,6 +108,17 @@ class SetPrivacyHeaders
 
             if ($sources !== []) {
                 $directives[$directive] = $sources;
+            }
+        }
+
+        $widgetOrigin = AgentRafeeqConfiguration::widgetOrigin();
+
+        if ($widgetOrigin !== null && str_starts_with($widgetOrigin, 'https://')) {
+            foreach (['script-src', 'style-src', 'font-src', 'img-src', 'connect-src'] as $directive) {
+                $directives[$directive] = array_values(array_unique([
+                    ...($directives[$directive] ?? ["'self'"]),
+                    $widgetOrigin,
+                ]));
             }
         }
 

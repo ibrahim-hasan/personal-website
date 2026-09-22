@@ -29,3 +29,5 @@ yarn-error.log
 *.cache
 Thumbs.db
 .DS_Store
+
+/storage/app/private/agent-rafeeq/

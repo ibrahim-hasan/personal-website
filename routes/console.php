@@ -15,3 +15,9 @@ Schedule::command('app:record-scheduler-heartbeat')
 Schedule::command('consultation:retry-notifications')
     ->everyFiveMinutes()
     ->withoutOverlapping();
+
+Schedule::command('agent-rafeeq:sync')
+    ->hourly()
+    ->environments('production')
+    ->when(fn (): bool => (bool) config('services.agent_rafeeq_sync.enabled'))
+    ->withoutOverlapping(55);

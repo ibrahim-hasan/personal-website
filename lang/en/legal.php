@@ -30,8 +30,8 @@ return [
         'eyebrow' => 'Privacy notice',
         'title' => 'Privacy',
         'description' => 'How ibrahimhasan.net handles the personal data needed for its public site and reader features.',
-        'effective_date' => 'Last updated: 26 July 2026',
-        'introduction' => 'This notice explains what is processed when you browse the site, request a consultation, create a reader account, or join the moderated community.',
+        'effective_date' => 'Last updated: 22 September 2026',
+        'introduction' => 'This notice explains what is processed when you browse the site, request a consultation, create a reader account, use the AI assistant, or join the moderated community.',
         'sections' => [
             [
                 'heading' => 'Who is responsible',
@@ -78,6 +78,14 @@ return [
                         ],
                     ],
                     [
+                        'title' => 'AI assistant',
+                        'values' => [
+                            ['label' => 'Data', 'value' => 'Messages you send, assistant replies, feedback, a conversation identifier, and technical request information are processed by Agent Rafeeq and its AI provider to answer from the published website and approved knowledge.'],
+                            ['label' => 'Purpose', 'value' => 'Answer questions about Ibrahim, his public work, services, and writing; maintain the conversation; prevent abuse; and review answer quality. Do not send passwords, payment details, or confidential information.'],
+                            ['label' => 'Storage and choices', 'value' => 'Conversation records are stored on the assistant service. You may choose not to use the assistant and can request access or deletion through the privacy contact. Starting a new conversation or closing the browser does not delete server records. The assistant remains available when optional analytics is declined.'],
+                        ],
+                    ],
+                    [
                         'title' => 'Optional analytics',
                         'values' => [
                             ['label' => 'Data', 'value' => 'Approved page and interaction categories; locale, page type and route key; an approved content, service, or topic key where relevant; UI location, destination category, contact channel, a controlled error category; and browser, device, and approximate-location information. Site analytics events do not include form content, names, emails, company, role, challenge, timing, request reference, comment text, raw URLs, query strings, or IP addresses.'],
@@ -90,7 +98,7 @@ return [
             [
                 'heading' => 'Providers, transfers, and updates',
                 'paragraphs' => [
-                    'We use providers for hosting, storage, security, and transactional email. Google receives analytics data only after you allow it, and private Athar pages never initialise analytics. Providers may process data outside your country; contact us for current provider and transfer information. We update this notice when the site or its processing changes.',
+                    'We use providers for hosting, storage, security, transactional email, and AI assistant processing. Google receives analytics data only after you allow it, and private Athar pages never initialise analytics. Providers may process data outside your country; contact us for current provider and transfer information. We update this notice when the site or its processing changes.',
                 ],
             ],
             [
@@ -106,7 +114,7 @@ return [
         'eyebrow' => 'Cookie policy',
         'title' => 'Cookies and storage',
         'description' => 'The necessary and optional browser storage used by ibrahimhasan.net.',
-        'effective_date' => 'Last updated: 26 July 2026',
+        'effective_date' => 'Last updated: 22 September 2026',
         'introduction' => 'This policy explains the storage used to secure the site, remember requested features, and measure selected public pages only when you allow it.',
         'sections' => [
             [
@@ -144,6 +152,13 @@ return [
                         'tokens' => ['ibrahim-theme', 'ibrahim-site-reader-mode', 'ibrahim-site-audio-rate', 'ibrahim-site-audio-state'],
                         'values' => [
                             ['label' => 'Use', 'value' => 'Stored locally on your device only when you use the feature. They remember theme, reading mode, playback speed and—after you start narration—the technical state needed to continue it. Closing the player clears its functional audio state and playback-speed setting; theme and reading preferences remain until browser data is cleared.'],
+                        ],
+                    ],
+                    [
+                        'title' => 'Assistant conversation',
+                        'tokens' => ['arw_session:*', 'arw_messages:*', 'arw_activity:*', 'arw_draft:*', 'arw_nudge:*'],
+                        'values' => [
+                            ['label' => 'Use', 'value' => 'Functional session storage keeps the conversation identifier, recent messages, unsent draft, activity time, and greeting state in the current browser tab. Conversation history expires after one hour of inactivity when the assistant is used again; the browser normally clears session storage when the tab closes. This is separate from server-side conversation records and optional analytics.'],
                         ],
                     ],
                     [

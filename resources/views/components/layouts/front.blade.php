@@ -31,7 +31,7 @@
     }
 
     $baseRouteName = implode('.', $routeNameParts);
-    $analyticsAllowedRoutes = [
+    $publicVisitorRoutes = [
         'home',
         'services',
         'work',
@@ -41,7 +41,8 @@
         'about',
         'contact',
     ];
-    $allowsAnalytics = in_array($baseRouteName, $analyticsAllowedRoutes, true);
+    $allowsAnalytics = in_array($baseRouteName, $publicVisitorRoutes, true);
+    $allowsWidget = in_array($baseRouteName, $publicVisitorRoutes, true);
     $hasAnalyticsConfiguration = $allowsAnalytics
         && app()->isProduction()
         && filled(config('services.google_analytics.measurement_id'));
@@ -186,6 +187,11 @@
     @if ($usesLivewire)
         @livewireScripts
     @endif
+
+    @if ($allowsWidget)
+        <x-partials.agent-rafeeq-widget :locale="$seo->locale" />
+    @endif
+
     @stack('scripts')
 </body>
 

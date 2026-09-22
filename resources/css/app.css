@@ -327,7 +327,7 @@ html[dir='rtl'] .scroll-progress span {
 .back-to-top {
     position: fixed;
     inset-inline-end: clamp(1rem, 2.5vw, 2rem);
-    inset-block-end: calc(clamp(1rem, 2.5vw, 2rem) + var(--floating-footer-offset, 0px));
+    inset-block-end: calc(clamp(1rem, 2.5vw, 2rem) + var(--floating-footer-offset, 0px) + var(--floating-widget-offset, 0px));
     z-index: 40;
     display: inline-flex;
     align-items: center;
@@ -350,6 +350,10 @@ html[dir='rtl'] .scroll-progress span {
         translate 420ms var(--ease-out-expo),
         border-color 180ms ease,
         background-color 180ms ease;
+}
+
+html[dir='ltr'].agent-rafeeq-widget-active .back-to-top {
+    --floating-widget-offset: 5rem;
 }
 
 .back-to-top::before {

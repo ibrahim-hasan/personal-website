@@ -1,6 +1,7 @@
 import './cookie-consent';
 import './google-analytics';
 import './article-reader';
+import { initializeAgentRafeeqWidget } from './agent-rafeeq-widget';
 import { trackConsultationStateOnce } from './analytics-consultation-state.js';
 import { initializeHeroVideos } from './hero-video.js';
 
@@ -1708,6 +1709,7 @@ const initializeFrontEnhancements = ({ skipWorkFilterEntranceMotion = false } = 
     initializeViewportStack(frontEnhancementController.signal);
     initializeOverflowRails(frontEnhancementController.signal);
     initializeBackToTop(frontEnhancementController.signal);
+    initializeAgentRafeeqWidget(frontEnhancementController.signal);
     initializeConsultationTurnstile(frontEnhancementController.signal);
     initializeServiceHubNavigation(frontEnhancementController.signal);
     initializeAnalyticsEventTracking(frontEnhancementController.signal);

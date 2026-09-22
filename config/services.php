@@ -64,6 +64,18 @@ return [
         'measurement_id' => env('GOOGLE_ANALYTICS_MEASUREMENT_ID'),
     ],
 
+    'agent_rafeeq_widget' => [
+        'enabled' => (bool) env('AGENT_RAFEEQ_WIDGET_ENABLED', false),
+        'script_url' => env('AGENT_RAFEEQ_WIDGET_SCRIPT_URL'),
+        'public_key' => env('AGENT_RAFEEQ_PUBLIC_KEY'),
+    ],
+
+    'agent_rafeeq_sync' => [
+        'enabled' => (bool) env('AGENT_RAFEEQ_SYNC_ENABLED', false),
+        'api_url' => env('AGENT_RAFEEQ_API_URL'),
+        'secret_key' => env('AGENT_RAFEEQ_SYNC_SECRET_KEY'),
+    ],
+
     'website_performance' => [
         'timezone' => env('WEBSITE_PERFORMANCE_TIMEZONE', 'Asia/Riyadh'),
         'website_url' => env('WEBSITE_PERFORMANCE_WEBSITE_URL', 'https://ibrahimhasan.net'),
