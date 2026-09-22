@@ -103,3 +103,43 @@ test('a failed script removes the launcher offset and can be retried on the next
     initializeAgentRafeeqWidget(new AbortController().signal);
     assert.equal(env.mounted().length, 1);
 });
+
+test('versioned widget scripts keep a single raw hexadecimal cache-bust parameter', async () => {
+    const { initializeAgentRafeeqWidget } = await load();
+    for (const hash of ['a'.repeat(16), '9'.repeat(32), 'Ab09'.repeat(16)]) {
+        const url = `https://agent.example.com/widget.js?v=${hash}`;
+        const env = environment({ url });
+        initializeAgentRafeeqWidget(new AbortController().signal);
+        assert.equal(env.mounted().length, 1);
+        assert.equal(env.mounted()[0].src, url);
+    }
+});
+
+test('version queries reject alternate encodings, extra parameters, empty queries, and fragments', async () => {
+    const { initializeAgentRafeeqWidget } = await load();
+    const hash = 'a'.repeat(16);
+    for (const suffix of [
+        '?', '?v=', `?v=${'a'.repeat(15)}`, `?v=${'a'.repeat(65)}`, `?v=${'g'.repeat(16)}`,
+        `?v=${hash}&v=${hash}`, `?v=${hash}&token=secret`, `?token=secret&v=${hash}`,
+        `?v=${hash}&`, `?v=${hash};`, `?v=${hash}?`, `?v=${hash}%20`, `?v=${hash}+`,
+        `?v=${hash}%0A`, `?v=${hash}\n`, `?v=${hash.slice(0, 8)}\t${hash.slice(8)}`,
+        `?V=${hash}`, `?%76=${hash}`, `?v=%61${'a'.repeat(15)}`, `?v[]=${hash}`,
+        `?v=${hash}#fragment`, `?v=${hash}#`, '#', '#fragment',
+    ]) {
+        const env = environment({ url: `https://agent.example.com/widget.js${suffix}` });
+        initializeAgentRafeeqWidget(new AbortController().signal);
+        assert.equal(env.mounted().length, 0, JSON.stringify(suffix));
+    }
+});
+
+test('changing the version replaces the existing script without duplicate widgets', async () => {
+    const env = environment({ url: `https://agent.example.com/widget.js?v=${'a'.repeat(16)}` });
+    const { initializeAgentRafeeqWidget } = await load();
+    initializeAgentRafeeqWidget(new AbortController().signal);
+    const previous = env.mounted()[0];
+    env.marker.dataset.widgetUrl = `https://agent.example.com/widget.js?v=${'b'.repeat(16)}`;
+    initializeAgentRafeeqWidget(new AbortController().signal);
+    assert.equal(previous.isConnected, false);
+    assert.equal(env.mounted().length, 1);
+    assert.equal(env.mounted()[0].src, env.marker.dataset.widgetUrl);
+});

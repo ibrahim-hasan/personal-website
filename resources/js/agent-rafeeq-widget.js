@@ -6,21 +6,24 @@ const hostSelector = '.agent-rafeeq-widget';
 const activeClass = 'agent-rafeeq-widget-active';
 
 const widgetOptions = (marker) => {
-    const scriptUrl = marker?.dataset.widgetUrl?.trim();
+    const scriptUrl = marker?.dataset.widgetUrl;
     const botKey = marker?.dataset.botKey?.trim();
     const locale = marker?.dataset.locale === 'en' ? 'en' : marker?.dataset.locale === 'ar' ? 'ar' : null;
     const history = ['memory', 'session', 'local'].includes(marker?.dataset.history)
         ? marker.dataset.history
         : 'session';
 
-    if (! scriptUrl || ! botKey || ! locale) {
+    if (! scriptUrl || scriptUrl !== scriptUrl.trim() || ! botKey || ! locale) {
         return null;
     }
 
     try {
+        // Validate the raw query before URL parsing can normalize its encoding.
+        const queryIndex = scriptUrl.indexOf('?');
+        const versionQuery = queryIndex < 0 || /^v=[a-fA-F0-9]{16,64}$/.test(scriptUrl.slice(queryIndex + 1));
         const url = new URL(scriptUrl, window.location.href);
 
-        if (! ['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash
+        if (! ['http:', 'https:'].includes(url.protocol) || url.username || url.password || ! versionQuery || scriptUrl.includes('#')
             || (window.location.protocol === 'https:' && url.protocol !== 'https:')) {
             return null;
         }

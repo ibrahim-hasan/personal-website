@@ -10,7 +10,7 @@ final class AgentRafeeqConfiguration
             return null;
         }
 
-        $url = self::safeUrl(config('services.agent_rafeeq_widget.script_url'));
+        $url = self::safeUrl(config('services.agent_rafeeq_widget.script_url'), allowVersionQuery: true);
         $key = config('services.agent_rafeeq_widget.public_key');
 
         return $url !== null && is_string($key) && preg_match('/\Apk_[A-Za-z0-9_-]+\z/D', $key)
@@ -24,7 +24,7 @@ final class AgentRafeeqConfiguration
         return $url === null ? null : self::origin($url);
     }
 
-    public static function safeUrl(mixed $value, bool $originOnly = false): ?string
+    public static function safeUrl(mixed $value, bool $originOnly = false, bool $allowVersionQuery = false): ?string
     {
         if (! is_string($value) || $value !== trim($value) || filter_var($value, FILTER_VALIDATE_URL) === false) {
             return null;
@@ -35,7 +35,8 @@ final class AgentRafeeqConfiguration
         $host = strtolower((string) ($parts['host'] ?? ''));
 
         if (! is_array($parts) || ! in_array($parts['scheme'] ?? '', $local ? ['http', 'https'] : ['https'], true)
-            || $host === '' || isset($parts['user']) || isset($parts['pass']) || isset($parts['query']) || isset($parts['fragment'])
+            || $host === '' || isset($parts['user']) || isset($parts['pass']) || isset($parts['fragment'])
+            || (isset($parts['query']) && ($originOnly || ! $allowVersionQuery || preg_match('/\Av=[a-fA-F0-9]{16,64}\z/D', $parts['query']) !== 1))
             || ($originOnly && ! in_array($parts['path'] ?? '', ['', '/'], true))
             || (isset($parts['port']) && ($parts['port'] < 1 || $parts['port'] > 65535))
             || (! $local && ! self::isPublicHostname($host))) {
