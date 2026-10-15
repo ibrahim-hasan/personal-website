@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
 use App\Support\Editorial\ArticleCatalog;
+use App\Support\Editorial\ArticleTopicClusters;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -31,6 +32,17 @@ class WritingController extends Controller
         }
 
         $selectedTopic = is_string($requestedTopic) ? $requestedTopic : null;
+
+        if ($selectedTopic !== null) {
+            $canonicalTopic = ArticleTopicClusters::forTopicKeys([$selectedTopic])[0] ?? null;
+
+            if ($canonicalTopic !== null && $canonicalTopic !== $selectedTopic && array_key_exists($canonicalTopic, $topics)) {
+                return redirect()->to(localized_route('writing', array_replace(
+                    $request->query(),
+                    ['topic' => $canonicalTopic],
+                )), 301);
+            }
+        }
 
         abort_unless($selectedTopic === null || array_key_exists($selectedTopic, $topics), 404);
 

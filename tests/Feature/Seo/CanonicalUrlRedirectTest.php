@@ -33,11 +33,29 @@ class CanonicalUrlRedirectTest extends TestCase
         ])->assertStatus(302);
     }
 
+    public function test_front_controller_alias_redirects_without_reusing_its_script_base_url(): void
+    {
+        foreach (['GET', 'HEAD'] as $method) {
+            $request = Request::create('https://ibrahimhasan.net:8443/index.php?ref=legacy', $method, server: [
+                'SCRIPT_FILENAME' => public_path('index.php'),
+                'SCRIPT_NAME' => '/index.php',
+                'PHP_SELF' => '/index.php',
+            ]);
+
+            $this->assertSame('/index.php', $request->getBaseUrl());
+
+            $response = app()->handle($request);
+
+            $this->assertSame(301, $response->getStatusCode());
+            $this->assertSame('https://ibrahimhasan.net:8443/?ref=legacy', $response->headers->get('Location'));
+        }
+    }
+
     private function assertPermanentRedirect(string $uri, string $target): void
     {
         $request = Request::create($uri, 'GET');
         $response = app()->handle($request);
-        $path = (string) parse_url($target, PHP_URL_PATH);
+        $path = parse_url($target, PHP_URL_PATH) ?: '/';
         $query = parse_url($target, PHP_URL_QUERY);
         $expectedTarget = $request->getSchemeAndHttpHost().$path
             .(is_string($query) ? '?'.$query : '');

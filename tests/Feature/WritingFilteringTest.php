@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Article;
 use App\Support\Editorial\ArticleCatalog;
 use Database\Seeders\ArticleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -49,6 +50,55 @@ class WritingFilteringTest extends TestCase
 
         $this->get('/en/writing?topic=')
             ->assertRedirect('/en/writing');
+
+        $this->get('/writing?topic[]=leadership')
+            ->assertRedirect('/writing');
+    }
+
+    public function test_legacy_topics_permanently_redirect_to_available_localized_clusters_and_preserve_other_query_parameters(): void
+    {
+        $aliases = [
+            'leadership' => 'product-strategy-measurement',
+            'ai_strategy' => 'ai-adoption-governance',
+            'transformation' => 'digital-transformation-operations',
+        ];
+
+        foreach (['ar', 'en'] as $locale) {
+            foreach ($aliases as $legacyTopic => $currentTopic) {
+                $query = [
+                    'topic' => $legacyTopic,
+                    'utm_source' => 'google',
+                    'utm_campaign' => 'Legacy filters & discovery',
+                    'return_to' => 'https://example.com/#external',
+                    'filters' => ['device' => 'mobile'],
+                ];
+                $response = $this->get(
+                    localized_route('writing', locale: $locale)
+                    .'?'.http_build_query($query, encoding_type: PHP_QUERY_RFC3986),
+                )->assertMovedPermanently();
+                $target = (string) $response->headers->get('Location');
+
+                $this->assertStringStartsWith(localized_route('writing', locale: $locale).'?', $target);
+                parse_str((string) parse_url($target, PHP_URL_QUERY), $targetQuery);
+                $this->assertSame(array_replace($query, ['topic' => $currentTopic]), $targetQuery);
+
+                $this->get($target)
+                    ->assertOk()
+                    ->assertSee('rel="canonical" href="'.localized_route('writing', locale: $locale).'"', false)
+                    ->assertSee('noindex, follow, noarchive', false);
+            }
+        }
+    }
+
+    public function test_legacy_topics_do_not_redirect_when_their_cluster_has_no_public_articles(): void
+    {
+        Article::query()->update(['is_published' => false]);
+        Article::factory()->create(['topic_keys' => ['data']]);
+
+        foreach (['ar', 'en'] as $locale) {
+            $this->get(localized_route('writing', ['topic' => 'leadership'], locale: $locale))
+                ->assertNotFound();
+        }
     }
 
     public function test_writing_filters_do_not_depend_on_alpine_visibility_rules(): void

@@ -33,7 +33,7 @@ final class CanonicalizePublicUrl
             return $next($request);
         }
 
-        $target = $canonicalPath;
+        $target = $request->getSchemeAndHttpHost().$canonicalPath;
         $query = $request->getQueryString();
 
         if (is_string($query) && $query !== '') {
